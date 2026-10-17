@@ -1,0 +1,24 @@
+const CONTACTS = [
+  { name: "Vanduo Marse", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
+  { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" },
+  { name: "Miegas Marse", email: "miegas@vanduomarse.lt", phone: "+370 630 80 444" },
+  { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" },
+  { name: "Marso Akademija", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
+];
+
+export function SiteFooter() {
+  return (
+    <footer className="border-t border-line bg-dust px-6 py-14 md:px-10">
+      <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        {CONTACTS.map((c) => (
+          <div key={c.name}>
+            <p className="font-display text-lg font-bold">{c.name}</p>
+            <p className="mt-2 text-sm text-ink/70">{c.email}</p>
+            <p className="text-sm text-ink/70">{c.phone}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-14 text-xs text-ink/50">© {new Date().getFullYear()} Vanduo Marse. Ežero krantas, Lietuva.</p>
+    </footer>
+  );
+}

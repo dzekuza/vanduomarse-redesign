@@ -1,26 +1,76 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #11201f;
+  --ink-soft: #1a2d2b;
+  --rust: #b5451b;
+  --rust-soft: #d4612f;
+  --lake: #2e7d73;
+  --lake-soft: #3f9a8e;
+  --dust: #e8d9c3;
+  --dust-soft: #f0e5d3;
+  --foam: #f5f1e8;
+  --signal: #f2b705;
+  --line: rgba(17, 32, 31, 0.14);
+  --line-on-ink: rgba(245, 241, 232, 0.16);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rust: var(--rust);
+  --color-rust-soft: var(--rust-soft);
+  --color-lake: var(--lake);
+  --color-lake-soft: var(--lake-soft);
+  --color-dust: var(--dust);
+  --color-dust-soft: var(--dust-soft);
+  --color-foam: var(--foam);
+  --color-signal: var(--signal);
+  --color-line: var(--line);
+  --color-line-on-ink: var(--line-on-ink);
+  --font-display: var(--font-big-shoulders);
+  --font-body: var(--font-work-sans);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--dust);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--rust);
+  color: var(--foam);
+}
+
+@utility font-display {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* The cable loop: a rider orbits the elliptical tow path. The one deliberate
+   motion moment on the page. Respects reduced motion. */
+@keyframes orbit {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+.cable-rider {
+  offset-path: path("M 10,110 C 10,40 390,40 390,110 C 390,180 10,180 10,110 Z");
+  animation: orbit 9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cable-rider {
+    animation: none;
+    offset-distance: 18%;
+  }
 }
