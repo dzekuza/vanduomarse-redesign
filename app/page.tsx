@@ -1,4 +1,6 @@
 import { AtmosphereStrip } from "@/components/atmosphere-strip";
+import { Equipment } from "@/components/equipment";
+import { FindUs } from "@/components/find-us";
 import { Hero } from "@/components/hero";
 import { MissionPatches } from "@/components/mission-patches";
 import { Pricing } from "@/components/pricing";
@@ -14,7 +16,9 @@ export default function Home() {
       <StatusBar />
       <AtmosphereStrip />
       <MissionPatches />
+      <Equipment />
       <Pricing />
+      <FindUs />
       <SiteFooter />
     </>
   );

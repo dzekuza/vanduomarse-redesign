@@ -46,6 +46,7 @@ const PATCHES: Patch[] = [
     tag: "Nakvynė",
     blurb: "Namelis ar kemperio aikštelė prie trasos.",
     color: "var(--ink)",
+    href: "/miegas",
     icon: TentIcon,
   },
   {
