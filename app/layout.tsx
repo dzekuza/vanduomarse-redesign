@@ -15,7 +15,7 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Vanduo Marse — kabelinis vandenlenčių parkas",
+  title: "Vanduo Marse - kabelinis vandenlenčių parkas",
   description:
     "Vanduo Marse: kabelinis vandenlenčių parkas prie ežero. Plaukimas, Marso akademija, Pirtis Marse, Miegas Marse ir Skoniai Marse.",
 };

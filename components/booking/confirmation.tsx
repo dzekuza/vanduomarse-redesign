@@ -34,7 +34,7 @@ export function Confirmation({ reference, date, time, partySize, vihtas, total, 
         </div>
         <div>
           <dt className="text-ink/50">Vantos</dt>
-          <dd className="mt-1 font-medium">{vihtas || "—"}</dd>
+          <dd className="mt-1 font-medium">{vihtas || "-"}</dd>
         </div>
       </dl>
       <div className="flex items-center justify-between border-t border-dashed border-ink/30 px-6 py-4">

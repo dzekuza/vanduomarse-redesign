@@ -19,7 +19,7 @@ export function SiteHeader() {
       </nav>
       <Link
         href="/pirtis"
-        className="rounded-none border border-ink bg-ink px-4 py-2 text-sm font-medium text-foam transition-colors hover:bg-rust hover:border-rust"
+        className="rounded-none border border-ink bg-ink px-4 py-2 text-sm font-medium text-foam transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-rust hover:border-rust"
       >
         Rezervuoti pirtį
       </Link>

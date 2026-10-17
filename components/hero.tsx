@@ -14,12 +14,12 @@ export function Hero() {
         </h1>
         <p className="mt-6 max-w-md text-lg text-ink/80">
           620 metrų kabelio trasa, 6 bokštai, 17 kliūčių ežere. Vienu metu
-          plaukia iki 8 raitelių — pirmąkart ar jau treniruotas.
+          plaukia iki 8 raitelių, pirmąkart ar jau treniruotas.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <a
             href="#kainos"
-            className="border border-ink bg-ink px-6 py-3 text-sm font-medium text-foam transition-colors hover:bg-rust hover:border-rust"
+            className="border border-ink bg-ink px-6 py-3 text-sm font-medium text-foam transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-rust hover:border-rust"
           >
             Žiūrėti kainas
           </a>

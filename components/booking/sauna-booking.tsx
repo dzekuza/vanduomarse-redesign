@@ -64,7 +64,7 @@ export function SaunaBooking() {
           <DayPicker days={days} selected={selectedDate} onSelect={selectDate} />
         </div>
         <div>
-          <p className="mb-3 text-sm font-medium text-ink/60">2. Pasirink laiką — 90 min seansas</p>
+          <p className="mb-3 text-sm font-medium text-ink/60">2. Pasirink laiką, 90 min seansas</p>
           <SlotGrid date={selectedDate} dateK={dateK} selected={selectedTime} onSelect={setSelectedTime} />
         </div>
         <div>
@@ -84,7 +84,7 @@ export function SaunaBooking() {
           type="button"
           disabled={!selectedTime}
           onClick={confirm}
-          className="border border-ink bg-ink px-6 py-3 text-sm font-medium text-foam transition-colors enabled:hover:bg-rust enabled:hover:border-rust disabled:opacity-30"
+          className="border border-ink bg-ink px-6 py-3 text-sm font-medium text-foam transition-[color,background-color,border-color,transform] active:scale-[0.97] enabled:hover:bg-rust enabled:hover:border-rust disabled:opacity-30"
         >
           Patvirtinti rezervaciją
         </button>

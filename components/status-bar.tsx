@@ -1,6 +1,6 @@
 const HOURS = [
-  { season: "Gegužė–Rugpjūtis", weekday: "I–V 8:00–21:00", weekend: "VI–VII 9:00–21:00" },
-  { season: "Rugsėjis", weekday: "I–V 16:00–19:00", weekend: "VI–VII 12:00–19:00" },
+  { season: "Gegužė-Rugpjūtis", weekday: "I-V 8:00-21:00", weekend: "VI-VII 9:00-21:00" },
+  { season: "Rugsėjis", weekday: "I-V 16:00-19:00", weekend: "VI-VII 12:00-19:00" },
 ];
 
 export function StatusBar() {

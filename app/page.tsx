@@ -1,3 +1,4 @@
+import { AtmosphereStrip } from "@/components/atmosphere-strip";
 import { Hero } from "@/components/hero";
 import { MissionPatches } from "@/components/mission-patches";
 import { Pricing } from "@/components/pricing";
@@ -11,6 +12,7 @@ export default function Home() {
       <SiteHeader />
       <Hero />
       <StatusBar />
+      <AtmosphereStrip />
       <MissionPatches />
       <Pricing />
       <SiteFooter />

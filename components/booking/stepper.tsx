@@ -22,7 +22,7 @@ export function Stepper({
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
           aria-label="Sumažinti"
-          className="flex size-7 items-center justify-center border border-ink/30 text-ink disabled:opacity-30"
+          className="flex size-7 items-center justify-center border border-ink/30 text-ink transition-transform enabled:active:scale-90 disabled:opacity-30"
         >
           −
         </button>
@@ -32,7 +32,7 @@ export function Stepper({
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
           aria-label="Padidinti"
-          className="flex size-7 items-center justify-center border border-ink/30 text-ink disabled:opacity-30"
+          className="flex size-7 items-center justify-center border border-ink/30 text-ink transition-transform enabled:active:scale-90 disabled:opacity-30"
         >
           +
         </button>

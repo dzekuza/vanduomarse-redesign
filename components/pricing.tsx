@@ -11,7 +11,7 @@ const RIDE_ROWS: Row[] = [
   { label: "2 valandos", note: "iki 17:00", adult: "20 €", child: "14 €" },
   { label: "2 valandos", note: "nuo 17:00 ir savaitgaliais", adult: "25 €", child: "17 €" },
   { label: "Visa diena", adult: "35 €", child: "25 €" },
-  { label: "Naujokams", note: "su įranga, naujokų valandomis", adult: "15 €", child: "—" },
+  { label: "Naujokams", note: "su įranga, naujokų valandomis", adult: "15 €", child: "-" },
 ];
 
 const PASSES: Row[] = [

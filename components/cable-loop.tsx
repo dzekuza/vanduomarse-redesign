@@ -8,7 +8,7 @@ const TOWERS = [
   { x: 70, y: 172 },
 ];
 
-/** The park's actual 6-tower cable loop — one rider orbiting it is the hero's single motion moment. */
+/** The park's actual 6-tower cable loop. One rider orbiting it is the hero's single motion moment. */
 export function CableLoop({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 400 220" className={className} role="img" aria-label="Kabelio trasos schema su šešiais bokštais">

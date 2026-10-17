@@ -25,7 +25,7 @@ export function SlotGrid({
             disabled={!available}
             onClick={() => onSelect(time)}
             aria-pressed={active}
-            className={`flex flex-col items-center gap-0.5 border py-3 text-sm transition-colors ${
+            className={`flex flex-col items-center gap-0.5 border py-3 text-sm transition-[color,background-color,border-color,transform] active:scale-[0.97] ${
               !available
                 ? "cursor-not-allowed border-ink/10 text-ink/30 line-through"
                 : active

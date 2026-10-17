@@ -1,3 +1,12 @@
+import type { Icon } from "@phosphor-icons/react";
+import {
+  ConfettiIcon,
+  FireIcon,
+  ForkKnifeIcon,
+  GraduationCapIcon,
+  TentIcon,
+  WavesIcon,
+} from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 
 interface Patch {
@@ -6,7 +15,7 @@ interface Patch {
   blurb: string;
   color: string;
   href?: string;
-  icon: React.ReactNode;
+  icon: Icon;
 }
 
 const PATCHES: Patch[] = [
@@ -15,66 +24,55 @@ const PATCHES: Patch[] = [
     tag: "Kabelio trasa",
     blurb: "620 m trasa, 17 kliūčių, 8 raiteliai vienu metu.",
     color: "var(--lake)",
-    icon: (
-      <path d="M4 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-    ),
+    icon: WavesIcon,
   },
   {
     name: "Marso Akademija",
     tag: "Pamokos",
     blurb: "Nuo pirmo karšto kabelio iki PRO figūrų.",
     color: "var(--rust)",
-    icon: <path d="M12 5l7 3-7 3-7-3 7-3zM5 10v4l7 3 7-3v-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round" />,
+    icon: GraduationCapIcon,
   },
   {
     name: "Pirtis Marse",
     tag: "Nauja",
-    blurb: "Pirtis prie ežero — atvėsk vandenyje, sušildyk garuose.",
+    blurb: "Pirtis prie ežero. Atvėsk vandenyje, sušildyk garuose.",
     color: "var(--signal)",
     href: "/pirtis",
-    icon: (
-      <path
-        d="M8 16c-1-2 1-3 0-5s1-3 0-5M12 16c-1-2 1-3 0-5s1-3 0-5M16 16c-1-2 1-3 0-5s1-3 0-5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        fill="none"
-        strokeLinecap="round"
-      />
-    ),
+    icon: FireIcon,
   },
   {
     name: "Miegas Marse",
     tag: "Nakvynė",
     blurb: "Namelis ar kemperio aikštelė prie trasos.",
     color: "var(--ink)",
-    icon: <path d="M5 13a7 7 0 0010-10 7 7 0 107 7 7 7 0 01-10 10 7 7 0 01-7-7z" stroke="currentColor" strokeWidth="1.3" fill="none" />,
+    icon: TentIcon,
   },
   {
     name: "Skoniai Marse",
     tag: "Restoranas",
     blurb: "Valgis su vaizdu į trasą, visą dieną.",
     color: "var(--rust-soft)",
-    icon: <path d="M8 4v7a2 2 0 002 2M6 4v6M8 4v6M16 4v16M16 4a3 3 0 00-3 3v4h3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" />,
+    icon: ForkKnifeIcon,
   },
   {
     name: "Renginiai Marse",
     tag: "Šventės",
     blurb: "Gimtadieniai, komandų dienos, varžybos.",
     color: "var(--lake-soft)",
-    icon: <path d="M5 20l3-7 9-9 3 3-9 9-7 3zM14 7l3 3" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />,
+    icon: ConfettiIcon,
   },
 ];
 
 function PatchCard({ patch }: { patch: Patch }) {
+  const Icon = patch.icon;
   const content = (
     <div className="group flex flex-col items-center text-center">
       <div
         className="flex size-32 items-center justify-center rounded-full border-2 border-dashed transition-transform group-hover:scale-105 md:size-36"
         style={{ borderColor: patch.color, color: patch.color }}
       >
-        <svg viewBox="0 0 24 24" className="size-12">
-          {patch.icon}
-        </svg>
+        <Icon size={44} weight="regular" />
       </div>
       <p className="mt-4 text-xs font-medium tracking-wide" style={{ color: patch.color }}>
         {patch.tag}
