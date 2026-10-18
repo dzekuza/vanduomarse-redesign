@@ -27,10 +27,10 @@ export function SlotGrid({
             aria-pressed={active}
             className={`flex flex-col items-center gap-0.5 border py-3 text-sm transition-[color,background-color,border-color,transform] active:scale-[0.97] ${
               !available
-                ? "cursor-not-allowed border-ink/10 text-ink/30 line-through"
+                ? "cursor-not-allowed border-ink/30 text-ink/30 line-through"
                 : active
-                  ? "border-rust bg-rust text-foam"
-                  : "border-ink/15 text-ink hover:border-ink/40"
+                  ? "border-ink bg-ink text-foam"
+                  : "border-ink text-ink hover:border-rust"
             }`}
           >
             <span className="font-medium">{time}</span>

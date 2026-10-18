@@ -14,7 +14,7 @@ export function Stepper({
   label: string;
 }) {
   return (
-    <div className="flex items-center justify-between border border-ink/15 px-4 py-3">
+    <div className="flex items-center justify-between border border-ink px-4 py-3">
       <span className="text-sm text-ink/70">{label}</span>
       <div className="flex items-center gap-4">
         <button
@@ -22,7 +22,7 @@ export function Stepper({
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
           aria-label="Sumažinti"
-          className="flex size-7 items-center justify-center border border-ink/30 text-ink transition-transform enabled:active:scale-90 disabled:opacity-30"
+          className="flex size-7 items-center justify-center border border-ink text-ink transition-[color,border-color,transform] enabled:hover:border-rust enabled:hover:text-rust enabled:active:scale-90 disabled:opacity-30"
         >
           −
         </button>
@@ -32,7 +32,7 @@ export function Stepper({
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
           aria-label="Padidinti"
-          className="flex size-7 items-center justify-center border border-ink/30 text-ink transition-transform enabled:active:scale-90 disabled:opacity-30"
+          className="flex size-7 items-center justify-center border border-ink text-ink transition-[color,border-color,transform] enabled:hover:border-rust enabled:hover:text-rust enabled:active:scale-90 disabled:opacity-30"
         >
           +
         </button>

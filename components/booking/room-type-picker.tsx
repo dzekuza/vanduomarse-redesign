@@ -14,7 +14,7 @@ export function RoomTypePicker({ selected, onSelect }: { selected: RoomTypeId; o
             onClick={() => onSelect(room.id)}
             aria-pressed={active}
             className={`flex items-center justify-between border px-4 py-4 text-left transition-[color,background-color,border-color,transform] active:scale-[0.98] ${
-              active ? "border-rust bg-rust text-foam" : "border-ink/15 text-ink hover:border-ink/40"
+              active ? "border-ink bg-ink text-foam" : "border-ink text-ink hover:border-rust"
             }`}
           >
             <div>

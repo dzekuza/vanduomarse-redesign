@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Big_Shoulders, Work_Sans } from "next/font/google";
+import { Archivo, Big_Shoulders, Work_Sans } from "next/font/google";
 import "./globals.css";
 
 const bigShoulders = Big_Shoulders({
@@ -14,6 +14,14 @@ const workSans = Work_Sans({
   weight: ["400", "500", "600"],
 });
 
+// Stand-in for Termina (the live vanduomarse.lt face, licensed). Archivo's width
+// axis gets close to Termina's wide stance; used by the `theme-marse` scope.
+const archivo = Archivo({
+  variable: "--font-archivo",
+  subsets: ["latin", "latin-ext"],
+  axes: ["wdth"],
+});
+
 export const metadata: Metadata = {
   title: "Vanduo Marse - kabelinis vandenlenčių parkas",
   description:
@@ -22,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="lt" className={`${bigShoulders.variable} ${workSans.variable} h-full antialiased`}>
+    <html lang="lt" className={`${bigShoulders.variable} ${workSans.variable} ${archivo.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-dust text-ink">{children}</body>
     </html>
   );

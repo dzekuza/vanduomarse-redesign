@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArrowButton } from "./arrow-button";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { DayPicker } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
+import { StepLabel } from "./step-label";
 import { Stepper } from "./stepper";
 import { cabinReference, roomPrice, type RoomTypeId } from "@/lib/cabin";
 import { dateKey } from "@/lib/sauna";
@@ -47,38 +49,32 @@ export function CabinBooking() {
   }
 
   return (
-    <div className="border border-ink">
+    <div className="border border-ink bg-foam">
       <div className="space-y-8 px-6 py-8 sm:px-8">
         <div>
-          <p className="mb-3 text-sm font-medium text-ink/60">1. Atvykimo diena</p>
+          <StepLabel step={1}>Atvykimo diena</StepLabel>
           <DayPicker days={days} selected={checkIn} onSelect={setCheckIn} />
         </div>
         <div>
-          <p className="mb-3 text-sm font-medium text-ink/60">2. Tipas</p>
+          <StepLabel step={2}>Tipas</StepLabel>
           <RoomTypePicker selected={roomId} onSelect={setRoomId} />
         </div>
         <div>
-          <p className="mb-3 text-sm font-medium text-ink/60">3. Trukmė ir svečiai</p>
+          <StepLabel step={3}>Trukmė ir svečiai</StepLabel>
           <div className="grid gap-3 sm:grid-cols-2">
             <Stepper label="Naktys" value={nights} onChange={setNights} min={1} max={14} />
             <Stepper label="Svečių" value={guests} onChange={setGuests} min={1} max={6} />
           </div>
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink/15 bg-dust-soft px-6 py-5 sm:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink bg-dust-soft px-6 py-5 sm:px-8">
         <div>
           <p className="text-sm text-ink/60">
             {nights} {nights === 1 ? "naktis" : "naktys"}, nuo {checkIn.toLocaleDateString("lt-LT")}
           </p>
           <p className="font-display text-2xl font-bold">{total} €</p>
         </div>
-        <button
-          type="button"
-          onClick={confirm}
-          className="border border-ink bg-ink px-6 py-3 text-sm font-medium text-foam transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-rust hover:border-rust"
-        >
-          Patvirtinti rezervaciją
-        </button>
+        <ArrowButton onClick={confirm}>Patvirtinti rezervaciją</ArrowButton>
       </div>
     </div>
   );

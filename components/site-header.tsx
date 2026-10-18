@@ -7,12 +7,12 @@ export function SiteHeader() {
         VANDUO MARSE
       </Link>
       <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-        <a href="#zonos" className="hover:text-rust">
+        <Link href="/#zonos" className="hover:text-rust">
           Zonos
-        </a>
-        <a href="#kainos" className="hover:text-rust">
+        </Link>
+        <Link href="/#kainos" className="hover:text-rust">
           Kainos
-        </a>
+        </Link>
         <Link href="/pirtis" className="hover:text-rust">
           Pirtis Marse
         </Link>

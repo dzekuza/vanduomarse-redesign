@@ -28,7 +28,6 @@
   --color-signal: var(--signal);
   --color-line: var(--line);
   --color-line-on-ink: var(--line-on-ink);
-  --font-display: var(--font-big-shoulders);
   --font-body: var(--font-work-sans);
 }
 
@@ -47,9 +46,13 @@ body {
   color: var(--foam);
 }
 
+/* Display face. Deliberately not an @theme font key: Tailwind would inline it
+   and collapse the fallback, so a scope like `theme-marse` could not swap it. */
 @utility font-display {
-  font-family: var(--font-display), sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--display-face, var(--font-big-shoulders)), sans-serif;
+  font-stretch: var(--display-stretch, 100%);
+  text-transform: var(--display-case, none);
+  letter-spacing: var(--display-tracking, -0.01em);
 }
 
 /* The cable loop: a rider orbits the elliptical tow path. The one deliberate
@@ -73,4 +76,45 @@ body {
     animation: none;
     offset-distance: 18%;
   }
+}
+
+/* Live vanduomarse.lt palette, sampled from the production site (2026-10).
+   `theme-marse` remaps the semantic tokens so every component inside it
+   (header, booking flow, footer) picks up the live brand without new classes. */
+:root {
+  --raw-aubergine: #382e38;
+  --raw-aubergine-soft: #4a3e4a;
+  --raw-blush: #f1d8ce;
+  --raw-blush-soft: #f7e7e0;
+  --raw-blush-paper: #fbf3ef;
+  --raw-coral: #ed5257;
+  --raw-coral-deep: #e94b4f;
+  --raw-tan: #e2b38c;
+}
+
+.theme-marse {
+  --ink: var(--raw-aubergine);
+  --ink-soft: var(--raw-aubergine-soft);
+  --rust: var(--raw-coral);
+  --rust-soft: var(--raw-coral-deep);
+  --lake: var(--raw-tan);
+  --dust: var(--raw-blush);
+  --dust-soft: var(--raw-blush-soft);
+  --foam: var(--raw-blush-paper);
+  --line: rgba(56, 46, 56, 0.14);
+  --line-on-ink: rgba(251, 243, 239, 0.16);
+  background: var(--dust);
+  color: var(--ink);
+  font-family: var(--font-archivo), system-ui, sans-serif;
+
+  /* Termina-style headings: wide, bold, uppercase. */
+  --display-face: var(--font-archivo);
+  --display-stretch: 125%;
+  --display-case: uppercase;
+  --display-tracking: 0;
+}
+
+.theme-marse ::selection {
+  background: var(--rust);
+  color: var(--foam);
 }
