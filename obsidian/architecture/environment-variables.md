@@ -1,5 +1,5 @@
 ---
-tags: [architecture, wip]
+tags: [architecture, stable]
 updated: 2026-10-19
 ---
 
@@ -16,13 +16,19 @@ updated: 2026-10-19
 
 ## Variables
 
+None are read by the code yet. Planned with Supabase (listed, commented
+out, in `.env.example`):
+
 | Name | Scope | Required | Purpose |
 |------|-------|----------|---------|
-| | client / server | | |
+| `NEXT_PUBLIC_SUPABASE_URL` | client | with backend | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | with backend | Public anon key (RLS-protected) |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | with backend | Admin operations in server actions only |
 
 ## Access
 
-<!-- Document the typed accessor (e.g. src/env.ts) and how to add a new var to it. -->
+No typed accessor yet. When the first variable is read, add `lib/env.ts`
+that parses `process.env` with Zod and import from it everywhere.
 
 ## Related
 

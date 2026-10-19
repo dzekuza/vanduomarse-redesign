@@ -18,7 +18,18 @@ updated: 2026-10-19
 
 | Route | Title | Description | OG image |
 |-------|-------|-------------|----------|
-| | | | |
+| `/` | Vanduo Marse - kabelinis vandenlenčių parkas | site default (root layout) | — |
+| `/pirtis` | Pirtis Marse - rezervacija | **missing** (falls back to site default) | — |
+| `/miegas` | Miegas Marse - rezervacija | **missing** | — |
+| `/renginiai` | Renginiai Marse | yes | — |
+| `/skaiciuokle` | Renginio kainos skaičiuoklė - Vanduo Marse | yes | — |
+| `/admin/*` | "%s · Vanduo Marse valdymas" | — | noindex, nofollow |
+
+## Gaps
+
+- No `app/sitemap.ts` or `app/robots.ts` yet (robots should disallow `/admin`).
+- No Open Graph images; no JSON-LD (LocalBusiness / Event would fit).
+- No `siteUrl` config value yet; add it before canonical URLs.
 
 ## Related
 

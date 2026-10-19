@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vanduo Marse — website redesign
 
-## Getting Started
+Redesign of [vanduomarse.lt](https://vanduomarse.lt), a cable wakeboard park in
+Lithuania, with the park's live brand (aubergine, blush, coral; wide uppercase
+headings) and new booking tools.
 
-First, run the development server:
+## What's here
+
+| Route | What it does |
+|-------|--------------|
+| `/` | Park homepage: hours, zones, prices, equipment |
+| `/pirtis` | Private sauna hire (hourly, group-size pricing, extras) or tickets to public sauna sessions |
+| `/miegas` | Cabin and camper-pitch booking |
+| `/renginiai` | Next 30 days of park and sauna events |
+| `/skaiciuokle` | Event price estimator from the 2026–27 price sheet |
+| `/admin` | Staff dashboard: bookings (incl. phone bookings), availability, inquiries, events, sauna rates and extras, price list |
+
+> **Status:** front-end prototype. Bookings, inquiries and admin edits run on
+> in-browser demo data and reset on reload. `/admin` has **no login** — do not
+> deploy it publicly until the Supabase backend and auth are in place
+> (see `obsidian/meta/decisions-log.md`, ADR-0005).
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Checks before committing:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm lint
+npx tsc --noEmit
+pnpm build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stack
 
-## Learn More
+Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS v4 ·
+shadcn/ui (Radix) · React Hook Form + Zod · Phosphor icons. Planned: Supabase.
 
-To learn more about Next.js, take a look at the following resources:
+## Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All project docs live in the [`obsidian/`](obsidian/README.md) vault (open the
+folder in Obsidian, or read the Markdown directly). AI agents start from
+[`AGENTS.md`](AGENTS.md); `CLAUDE.md` and `.cursorrules` point there.

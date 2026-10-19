@@ -1,5 +1,5 @@
 ---
-tags: [frontend, wip]
+tags: [frontend, stable]
 updated: 2026-10-19
 ---
 
@@ -9,10 +9,10 @@ updated: 2026-10-19
 
 | Kind | Location |
 |------|----------|
-| Design-system primitive | `components/ui/` |
-| Shared composed component | `components/common/` |
-| Feature-specific | `components/<feature>/` |
-| Page composition | `views/` |
+| Design-system primitive (shadcn) | `components/ui/` |
+| Site-wide section or shared piece | `components/*.tsx` (hero, header, footer, `ArrowLink`, `BrandLogo`) |
+| Feature-specific | `components/<feature>/` (`booking/`, `events/`, `calculator/`, `admin/<screen>/`) |
+| Page composition | the route's `page.tsx` (no `views/` layer) |
 
 **Check `components/ui/` before writing anything from scratch.** Prefer the
 existing shadcn/ui primitive (`Button`, `Card`, `Badge`, `Dialog`, `Sheet`,
@@ -25,8 +25,10 @@ existing shadcn/ui primitive (`Button`, `Card`, `Badge`, `Dialog`, `Sheet`,
 - Server Component by default; `"use client"` only at the leaf that needs it.
 - Extract past ~150 lines, or when a JSX block repeats, or when it represents a
   distinct UI concept (card, badge, section header, empty state).
-- No hardcoded user-visible strings when the project uses i18n — use translation
-  keys. Without i18n, hoist repeated strings into a constant.
+- UI copy is Lithuanian and written inline (no i18n library yet); hoist repeated
+  strings and option lists into constants (`lib/admin/labels.ts`, `NAV_LINKS`).
+- Public site styling uses the brand tokens directly; admin screens build on
+  `components/ui/` primitives.
 - Content via props/hooks, never hardcoded in the component.
 
 ## Documenting a new component

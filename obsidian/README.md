@@ -10,7 +10,11 @@ project is built, why decisions were made, and how to extend it — for both hum
 and AI agents (Claude Code, Cursor).
 
 > [!info] What is this project?
-> <!-- One paragraph: what vanduomarse-redesign is, who it is for, what stage it is at. -->
+> Redesign of vanduomarse.lt, a cable wakeboard park in Lithuania: a public site
+> in Lithuanian (sauna and cabin booking, events, an event price calculator) and
+> a staff dashboard at `/admin`. **Stage:** front-end prototype — bookings and
+> admin run on in-browser demo data, no backend or login yet (ADR-0005); a
+> Supabase backend is the next milestone.
 
 ## 🗺️ Map of Content
 

@@ -19,9 +19,11 @@ Keep the root shims consistent with the vault; the vault is canonical.
 
 ## Hard rules
 
-The authoritative list is in `AGENTS.md`. In short: no hardcoded design values,
-existing components first, no `any`, thin routes, Server Components by default,
-server-only secrets, semantic HTML, never edit applied migrations.
+The authoritative list is in `AGENTS.md` (10 rules). In short: tokens only,
+reuse `components/ui/` and the catalogs first, mobile-first with 44 px tap
+targets, Lithuanian copy, prices only from `lib/`, admin data only through
+`useAdmin()` (no auth yet), RHF + Zod forms, strict TypeScript, never edit
+`.env*`, verify in the browser.
 
 ## Where to look
 
@@ -60,7 +62,7 @@ Skills are packaged playbooks Claude Code loads on demand. Every skill is
 
 | Skill | Invoke when | Vault note |
 |-------|-------------|------------|
-| | | |
+| — | No project skills yet (`.claude/` holds only hooks and `launch.json`). Global skills used here: `shadcn-ui`, `responsive-design`. | — |
 
 Registering a new skill: drop it in `.claude/skills/<name>/`, add a vault note under
 `workflows/`, link it from [[README]] and the table above, and log it in [[changelog]].

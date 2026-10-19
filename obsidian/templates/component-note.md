@@ -7,7 +7,7 @@ updated: 2026-10-19
 
 > Template — duplicate this note when documenting a new component.
 
-- **File:** `src/components/<ui|common|feature>/<name>.tsx`
+- **File:** `components/<ui|feature>/<name>.tsx`
 - **Type:** Server Component / Client Component (`"use client"`)
 - **Status:** #wip
 

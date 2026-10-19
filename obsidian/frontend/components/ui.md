@@ -1,5 +1,5 @@
 ---
-tags: [frontend, catalog, wip]
+tags: [frontend, catalog, stable]
 updated: 2026-10-19
 ---
 

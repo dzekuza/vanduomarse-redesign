@@ -9,6 +9,21 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Agent files and docs brought in line with the code
+
+- `AGENTS.md` (loaded by `CLAUDE.md` and `.cursorrules`) now carries the
+  project summary, 10 hard rules, a code map and commands; it previously held
+  only the auto-generated Next.js block (kept intact at the end).
+- `README.md` replaced the create-next-app boilerplate (routes, status,
+  how to run, stack, where docs live). `.env.example` added (planned
+  Supabase vars, commented) and allowed through `.gitignore`.
+- Vault: filled system overview, data flow, env vars, hooks catalog, SEO
+  per-route table (gaps: `/pirtis` and `/miegas` descriptions, sitemap,
+  robots), backend overview, tech-stack tooling/not-used; rewrote
+  folder-structure, routing, component conventions, the new-page playbook and
+  note templates, which described a `src/` + `views/` layout this repo
+  doesn't use. No empty template tables remain outside `templates/`.
+
 ## 2026-10-19 — Admin: manual bookings (phone / walk-in)
 
 - **Rezervacijos → Nauja rezervacija** opens a form for bookings taken by

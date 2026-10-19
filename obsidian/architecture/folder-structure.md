@@ -1,34 +1,43 @@
 ---
-tags: [architecture, wip]
+tags: [architecture, stable]
 updated: 2026-10-19
 ---
 
 # Folder Structure
 
-Where everything lives and what belongs where. If a file has no obvious home, the
-answer belongs in this note before the file is written.
+No `src/` directory: folders sit at the repo root (Next's default).
 
 ```
-src/
-├── app/            ← routes only; thin, delegate to views
-├── views/          ← page-level composition
-├── components/
-│   ├── ui/         ← design-system primitives (shadcn/ui etc.)
-│   └── common/     ← shared composed components
-├── hooks/          ← custom hooks — catalog: [[hooks]]
-├── lib/            ← clients, config, integrations
-├── utils/          ← pure helpers — catalog: [[utils]]
-├── data/           ← static data & mocks
-└── types/          ← shared types
+app/                    ← routes; pages compose components directly
+├── layout.tsx          ← fonts, theme-marse on <body>, site metadata
+├── globals.css         ← all tokens (site + shadcn), utilities, theme
+├── pirtis/ miegas/ renginiai/ skaiciuokle/
+└── admin/              ← dashboard: layout (shell, store) + one page per screen
+components/
+├── *.tsx               ← site sections (hero, pricing, header, footer, logo…)
+├── nav-links.ts        ← public nav items
+├── ui/                 ← shadcn/ui primitives (locally modified, see [[components/ui]])
+├── booking/            ← /pirtis and /miegas flows, receipts, calendar export
+├── events/             ← /renginiai feed
+├── calculator/         ← /skaiciuokle
+└── admin/              ← store, shell, and a folder per admin screen
+hooks/                  ← shared hooks — catalog: [[hooks]]
+lib/                    ← business rules, prices, data generators — catalog: [[utils]]
+└── admin/              ← admin models, labels, mock data, occupancy, formatting
+public/brand/           ← logo badge
+obsidian/               ← this vault
 ```
 
 ## Rules
 
-- **kebab-case** file names: `event-card.tsx`, `use-auth.ts`.
-- Route groups in parentheses: `(auth)/`, `(dashboard)/`.
-- Feature-specific components live next to the feature, not in `components/ui/`.
-- Co-locate types with the code that uses them; shared types go in `types/`.
-- Assets per section under `public/assets/<section>/`.
+- **kebab-case** file names.
+- A component used by one feature lives in that feature's folder; only
+  design-system primitives go in `components/ui/`.
+- Types live next to the code that uses them (`lib/admin/types.ts` for admin
+  models). There is no shared `types/` folder yet.
+- Pure helpers and constants go in `lib/`, not in components.
+- Brand assets in `public/brand/`. The default `public/*.svg` files from
+  create-next-app are unused.
 
 ## Related
 

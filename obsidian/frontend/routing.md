@@ -1,23 +1,29 @@
 ---
-tags: [frontend, wip]
+tags: [frontend, stable]
 updated: 2026-10-19
 ---
 
 # Routing
 
-App Router conventions and the route → view delegation rule.
+App Router conventions for this project.
 
 ## The rule
 
-`app/**/page.tsx` is **thin**: metadata + a single import from `views/`. All
-composition lives in the view. This keeps routes swappable and views testable.
+`app/**/page.tsx` stays small: `metadata` plus composition of feature
+components. Interactive parts are client components imported by the page; the
+page itself stays a Server Component. Shared page chrome is a component
+(`BookingPage` = header + content + footer). Admin pages render one view each
+(`<BookingsView />`, `<SaunaView />`, …) inside `app/admin/layout.tsx`.
 
 ```tsx
-// app/about/page.tsx
-import { AboutView } from "@/views/about";
-export const metadata = { title: "About" };
-export default function Page() { return <AboutView />; }
+// app/renginiai/page.tsx
+export const metadata: Metadata = { title: "Renginiai Marse", description: "…" };
+export default function RenginiaiPage() {
+  return <BookingPage><EventsBoard /></BookingPage>;
+}
 ```
+
+Every new route: add a row below, set `title` and `description` ([[seo-metadata]]).
 
 ## Route map
 
@@ -30,7 +36,6 @@ export default function Page() { return <AboutView />; }
 | `/skaiciuokle` | `BookingPage` + `EventCalculator` | stable |
 | `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/renginiai`, `/pirtis`, `/kainos`) | `app/admin/layout.tsx` (sidebar shell, `AdminStoreProvider`, noindex) + one view per page | UI-first, mock data, **no auth** (ADR-0005) |
 
-Pages here compose components directly; there is no `views/` layer yet.
 
 ## Conventions
 

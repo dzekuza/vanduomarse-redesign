@@ -31,7 +31,7 @@ No database yet (ADR-0005). Planned tables, mirroring `lib/admin/types.ts`:
 
 | File | Date | What it does |
 |------|------|--------------|
-| | | |
+| — | — | No migrations yet |
 
 ## Related
 

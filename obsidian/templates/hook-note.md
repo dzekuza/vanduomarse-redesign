@@ -7,7 +7,7 @@ updated: 2026-10-19
 
 > Template — duplicate this note when documenting a new hook.
 
-- **File:** `src/hooks/<name>.ts`
+- **File:** `hooks/<name>.ts` (or next to its feature)
 - **Client only:** yes / no
 - **Status:** #wip
 

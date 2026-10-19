@@ -1,12 +1,12 @@
 ---
-tags: [frontend, catalog, wip]
+tags: [frontend, catalog, stable]
 updated: 2026-10-19
 ---
 
 # Utils Catalog
 
-Pure helpers in `src/utils/`. A util is pure, typed, and unit-testable; anything
-with I/O or client state belongs in `lib/` or a hook instead.
+Helpers and business rules live in `lib/` (`lib/admin/` for the dashboard). Keep
+them pure and typed; anything with client state belongs in a hook instead.
 
 | Util | File | Signature | Purpose |
 |------|------|-----------|---------|

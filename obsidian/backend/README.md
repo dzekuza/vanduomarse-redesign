@@ -1,5 +1,5 @@
 ---
-tags: [backend, wip]
+tags: [backend, stable]
 updated: 2026-10-19
 ---
 
@@ -11,11 +11,12 @@ What backend surface `vanduomarse-redesign` has, and what it deliberately does n
 
 | Concern | Implementation | Note |
 |---------|----------------|------|
-| API | `app/api/**/route.ts` + server actions | [[api-architecture]] |
-| Database | | [[database]] |
-| Auth | | |
-| Storage | | |
-| Background jobs | | |
+| API | none yet — planned: server actions for bookings and inquiries | [[api-architecture]] |
+| Database | none yet — planned: Supabase (tables listed in the note) | [[database]] |
+| Auth | none — `/admin` is open (noindex). Planned: Supabase auth via `@supabase/ssr` | [[decisions-log]] ADR-0005 |
+| Storage | none (photos are Unsplash stand-ins, logo in `public/brand/`) | |
+| Email | none — inquiries use `mailto:` links | |
+| Background jobs | none | |
 
 ## Related
 

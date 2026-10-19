@@ -1,12 +1,13 @@
 ---
-tags: [frontend, catalog, wip]
+tags: [frontend, catalog, stable]
 updated: 2026-10-19
 ---
 
 # Common Components Catalog
 
-Shared composed components in `components/common/` — built from [[components/ui]]
-primitives, reused across features.
+Composed components across the site and admin: site sections in `components/`,
+feature components in `components/<feature>/`. Admin screens build on
+[[components/ui]] primitives.
 
 | Component | File | Purpose | Status |
 |-----------|------|---------|--------|

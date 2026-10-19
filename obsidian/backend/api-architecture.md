@@ -1,5 +1,5 @@
 ---
-tags: [backend, wip]
+tags: [backend, stable]
 updated: 2026-10-19
 ---
 
@@ -25,13 +25,13 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | Route | Method | Input | Output | Auth |
 |-------|--------|-------|--------|------|
-| | | | | |
+| — | — | No API routes yet | — | — |
 
 ## Server actions
 
 | Action | File | Purpose | Validation |
 |--------|------|---------|------------|
-| | | | |
+| — | — | None yet. Planned: create booking / inquiry (public), and one per admin store action (ADR-0005) | Zod, reusing the admin form schemas |
 
 ## Related
 

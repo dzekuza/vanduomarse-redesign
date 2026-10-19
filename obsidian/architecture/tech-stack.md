@@ -1,5 +1,5 @@
 ---
-tags: [architecture, wip]
+tags: [architecture, stable]
 updated: 2026-10-19
 ---
 
@@ -41,13 +41,18 @@ No backend yet: admin runs on an in-memory store (ADR-0005). Supabase planned.
 
 | Package | Version | Why |
 |---------|---------|-----|
-| | | |
+| pnpm | 11 | Package manager (`packageManager` in `package.json`) |
+| eslint + eslint-config-next | 9 / 16.4.2 | Lint, incl. React hooks/compiler rules |
+| @tailwindcss/turbopack | 4 | Tailwind in the Turbopack dev server |
 
 ## Deliberately NOT used
 
 | Package | Why not | Use instead |
 |---------|---------|-------------|
-| | | |
+| TanStack Query | No server data yet | Add with the Supabase backend |
+| i18n library | Single language (LT) for now | Inline Lithuanian copy, constants for repeated strings |
+| Geist font (shadcn default) | Off-brand | Archivo (wide) via `font-sans` |
+| Zustand / Redux | One admin store is enough | `useReducer` + context (`AdminStoreProvider`) |
 
 ## Related
 
