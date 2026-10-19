@@ -8,20 +8,23 @@ const TOWERS = [
   { x: 70, y: 172 },
 ];
 
-/** The park's actual 6-tower cable loop. One rider orbiting it is the hero's single motion moment. */
+/**
+ * The park's actual 6-tower cable loop. One rider orbiting it is the hero's single motion moment.
+ * Lines and towers draw in `currentColor`, so the parent's text colour sets the tone (ink on light, foam on ink).
+ */
 export function CableLoop({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 400 220" className={className} role="img" aria-label="Kabelio trasos schema su šešiais bokštais">
-      <path d={PATH} fill="none" stroke="var(--line)" strokeWidth={2} strokeDasharray="1 10" strokeLinecap="round" />
+      <path d={PATH} fill="none" stroke="currentColor" strokeOpacity={0.35} strokeWidth={2} strokeDasharray="1 10" strokeLinecap="round" />
       {TOWERS.map((t, i) => (
         <g key={i}>
-          <circle cx={t.x} cy={t.y} r={5} fill="var(--ink)" />
-          <circle cx={t.x} cy={t.y} r={9} fill="none" stroke="var(--ink)" strokeOpacity={0.25} />
+          <circle cx={t.x} cy={t.y} r={5} fill="currentColor" />
+          <circle cx={t.x} cy={t.y} r={9} fill="none" stroke="currentColor" strokeOpacity={0.25} />
         </g>
       ))}
       <g className="cable-rider">
-        <circle r={7} fill="var(--rust)" />
-        <circle r={12} fill="none" stroke="var(--rust)" strokeWidth={1.5} strokeOpacity={0.4} />
+        <circle r={7} className="fill-rust" />
+        <circle r={12} fill="none" strokeWidth={1.5} strokeOpacity={0.4} className="stroke-rust" />
       </g>
     </svg>
   );

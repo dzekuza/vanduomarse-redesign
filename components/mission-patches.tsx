@@ -15,6 +15,8 @@ interface Patch {
   blurb: string;
   color: string;
   href?: string;
+  /** In-page anchor (/#id) for sections without a page of their own. */
+  id?: string;
   icon: Icon;
 }
 
@@ -31,6 +33,7 @@ const PATCHES: Patch[] = [
     tag: "Pamokos",
     blurb: "Nuo pirmo karšto kabelio iki PRO figūrų.",
     color: "var(--rust)",
+    id: "akademija",
     icon: GraduationCapIcon,
   },
   {
@@ -54,6 +57,7 @@ const PATCHES: Patch[] = [
     tag: "Restoranas",
     blurb: "Valgis su vaizdu į trasą, visą dieną.",
     color: "var(--rust-soft)",
+    id: "skoniai",
     icon: ForkKnifeIcon,
   },
   {
@@ -69,7 +73,7 @@ const PATCHES: Patch[] = [
 function PatchCard({ patch }: { patch: Patch }) {
   const Icon = patch.icon;
   const content = (
-    <div className="group flex flex-col items-center text-center">
+    <div id={patch.id} className="group flex flex-col items-center text-center">
       <div
         className="flex size-32 items-center justify-center rounded-full border-2 border-dashed transition-transform group-hover:scale-105 md:size-36"
         style={{ borderColor: patch.color, color: patch.color }}
@@ -95,7 +99,7 @@ function PatchCard({ patch }: { patch: Patch }) {
 
 export function MissionPatches() {
   return (
-    <section id="zonos" className="px-6 py-16 md:px-10 md:py-24">
+    <section id="zonos" className="bg-card px-6 py-16 md:px-10 md:py-24">
       <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Šeši Marso sektoriai</h2>
       <p className="mt-3 max-w-md text-ink/70">Vienas bilietas, visa diena. Kiekvienas sektorius veikia savo laiku.</p>
       <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3">

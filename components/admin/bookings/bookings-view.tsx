@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "@phosphor-icons/react";
+import { DownloadSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
@@ -10,7 +10,9 @@ import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
 import { NewBookingDialog } from "./new-booking-dialog";
 import { BOOKING_KIND, BOOKING_SOURCE } from "@/lib/admin/labels";
+import { bookingsToCsv, exportFileName } from "@/lib/admin/export";
 import { bookingWhen, formatDay, formatEur } from "@/lib/admin/format";
+import { downloadText } from "@/lib/download";
 import { dateKey } from "@/lib/sauna";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,9 +45,18 @@ export function BookingsView() {
       title="Rezervacijos"
       description="Pirties seansai, nameliai ir kemperių aikštelės."
       actions={
-        <Button onClick={() => setCreating(true)}>
-          <PlusIcon size={18} /> Nauja rezervacija
-        </Button>
+        <>
+          <Button
+            variant="outline"
+            disabled={rows.length === 0}
+            onClick={() => downloadText(bookingsToCsv(rows), exportFileName("rezervacijos", today))}
+          >
+            <DownloadSimpleIcon size={18} /> Eksportuoti
+          </Button>
+          <Button onClick={() => setCreating(true)}>
+            <PlusIcon size={18} /> Nauja rezervacija
+          </Button>
+        </>
       }
     >
       <BookingFilters value={filters} onChange={setFilters} />

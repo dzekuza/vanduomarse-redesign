@@ -21,7 +21,10 @@ export function RoomTypePicker({ selected, onSelect }: { selected: RoomTypeId; o
               <p className="font-medium">{room.label}</p>
               <p className={active ? "text-foam/70" : "text-ink/50"}>{room.note}</p>
             </div>
-            <p className="font-display text-xl font-bold">{room.pricePerNight} €</p>
+            <p className="font-display text-xl font-bold">
+              {room.id === "namelis" && <span className="font-sans text-sm font-normal normal-case">nuo </span>}
+              {room.pricePerNight} €
+            </p>
           </button>
         );
       })}

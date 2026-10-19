@@ -32,7 +32,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-coral` `#ed5257`, `--raw-coral-deep` | primitive | sampled from vanduomarse.lt | `theme-marse` accent (maps to `--rust`) |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
-| `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Archivo 125% uppercase in `theme-marse` | read by the `font-display` utility |
+| `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
 
 ## Utilities
 
@@ -64,7 +64,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 primary aubergine `#382e38`, background blush paper `#fbf3ef`, cards
 `#fffaf7`, secondary/accent blush `#f1d8ce`, ring coral `#ed5257`,
 destructive `#c73a3f`, borders aubergine at 18%, `--radius: 0rem` (square,
-like the site). `font-sans` / `font-heading` map to Archivo. Utilities:
+like the site). `font-sans` / `font-heading` map to Termina (`app/fonts/`, `next/font/local`, Regular 400 + Bold 700 only: headings bold, text regular; `font-medium` renders Regular and `font-semibold` renders Bold). Utilities:
 `bg-hatch` (diagonal stripes for closed slots).
 
 ## Scoped themes

@@ -1,11 +1,12 @@
 import { GiftIcon, MapPinIcon } from "@phosphor-icons/react/dist/ssr";
+import { MAPS_URL } from "@/lib/contacts";
 
 export function FindUs() {
   return (
     <section className="bg-dust-soft px-6 py-14 md:px-10">
       <div className="grid gap-8 sm:grid-cols-2">
         <a
-          href="https://goo.gl/maps/dZJ74iwj3UiChd5FA"
+          href={MAPS_URL}
           target="_blank"
           rel="noreferrer"
           className="group flex items-start gap-4 border border-ink bg-foam px-6 py-6 transition-colors hover:border-rust"

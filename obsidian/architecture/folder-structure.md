@@ -24,7 +24,7 @@ components/
 hooks/                  ← shared hooks — catalog: [[hooks]]
 lib/                    ← business rules, prices, data generators — catalog: [[utils]]
 └── admin/              ← admin models, labels, mock data, occupancy, formatting
-public/brand/           ← logo badge
+public/brand/           ← logo badge, zone stickers (sticker-*.svg)
 obsidian/               ← this vault
 ```
 

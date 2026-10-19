@@ -21,6 +21,7 @@ import {
   bookingReference,
   dateKey,
   formatHour,
+  hourRate,
   hoursLabel,
   maxHoursFrom,
   sessionPrice,
@@ -122,9 +123,10 @@ export function SaunaBooking() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={MAX_PARTY} />
         </div>
-        <p className="mt-2 text-sm text-ink/60">
-          Iki {SMALL_GROUP_MAX} asm. – {SMALL_GROUP_RATE} €/val., {SMALL_GROUP_MAX + 1}–{MAX_PARTY} asm. – {LARGE_GROUP_RATE} €/val.
-          Minimaliai 2 val., 4 val. paketas – {PACKAGE_PRICE} €.
+        <p className="mt-2 text-sm text-ink">Jūsų grupei – {hourRate(partySize)} €/val. už visą pirtį.</p>
+        <p className="mt-1 text-sm text-ink/60">
+          Kaina visai grupei, ne žmogui: iki {SMALL_GROUP_MAX} asm. – {SMALL_GROUP_RATE} €/val., {SMALL_GROUP_MAX + 1}–{MAX_PARTY} asm. –{" "}
+          {LARGE_GROUP_RATE} €/val. Minimaliai 2 val., 4 val. paketas – {PACKAGE_PRICE} €.
         </p>
       </div>
       <div>
