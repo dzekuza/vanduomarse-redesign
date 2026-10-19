@@ -6,20 +6,18 @@ import { BookingCard, BookingTotal } from "./booking-card";
 import { Confirmation } from "./confirmation";
 import { DayPicker } from "./day-picker";
 import { DurationPicker } from "./duration-picker";
-import { MasterPicker } from "./master-picker";
 import { StartTimeGrid } from "./start-time-grid";
 import { StepLabel } from "./step-label";
+import { UpsellPicker } from "./upsell-picker";
 import { Stepper } from "./stepper";
 import {
   MAX_HOURS,
   LARGE_GROUP_RATE,
-  MASTER_PRICE,
   MAX_PARTY,
   PACKAGE_PRICE,
   SMALL_GROUP_MAX,
   SMALL_GROUP_RATE,
   MIN_HOURS,
-  VIHTA_PRICE,
   bookingReference,
   dateKey,
   formatHour,
@@ -27,6 +25,7 @@ import {
   maxHoursFrom,
   sessionPrice,
 } from "@/lib/sauna";
+import { DEFAULT_UPSELLS, upsellMax, upsellSummary, upsellTotal } from "@/lib/sauna-upsells";
 
 function nextDays(count: number): Date[] {
   const today = new Date();
@@ -44,15 +43,16 @@ export function SaunaBooking() {
   const [startHour, setStartHour] = useState<number | null>(null);
   const [hours, setHours] = useState(MIN_HOURS);
   const [partySize, setPartySize] = useState(4);
-  const [vihtas, setVihtas] = useState(0);
-  const [withMaster, setWithMaster] = useState(false);
+  /** Upsell id -> item count (counted extras) or 0/1 (on/off extras). */
+  const [extras, setExtras] = useState<Record<string, number>>({});
   const [confirmed, setConfirmed] = useState<{ reference: string; total: number } | null>(null);
 
   const dateK = dateKey(selectedDate);
   const maxHours = startHour === null ? 0 : maxHoursFrom(dateK, startHour);
   const basePrice = startHour === null ? 0 : sessionPrice(hours, partySize);
-  const masterPrice = withMaster ? MASTER_PRICE : 0;
-  const total = basePrice + masterPrice + vihtas * VIHTA_PRICE;
+  const upsells = DEFAULT_UPSELLS;
+  const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize, hours }), 0);
+  const total = basePrice + extrasPrice;
   const timeLabel = startHour === null ? "" : `${formatHour(startHour)}-${formatHour(startHour + hours)}`;
 
   function selectDate(date: Date) {
@@ -69,7 +69,8 @@ export function SaunaBooking() {
 
   function changeParty(next: number) {
     setPartySize(next);
-    setVihtas((v) => Math.min(v, next));
+    // Counted extras can't exceed what the smaller group allows.
+    setExtras((e) => Object.fromEntries(upsells.map((u) => [u.id, Math.min(e[u.id] ?? 0, u.unit === "vienetui" ? upsellMax(u, next) : 1)])));
   }
 
   function confirm() {
@@ -86,13 +87,13 @@ export function SaunaBooking() {
         startHour={startHour}
         hours={hours}
         partySize={partySize}
-        vihtas={vihtas}
-        withMaster={withMaster}
+        extras={upsellSummary(upsells, extras)}
         total={confirmed.total}
         onReset={() => {
           setConfirmed(null);
           setStartHour(null);
           setHours(MIN_HOURS);
+          setExtras({});
         }}
       />
     );
@@ -120,7 +121,6 @@ export function SaunaBooking() {
         <StepLabel step={2}>Grupė</StepLabel>
         <div className="grid gap-3 sm:grid-cols-2">
           <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={MAX_PARTY} />
-          <Stepper label={`Vantos (+${VIHTA_PRICE} € vnt.)`} value={vihtas} onChange={setVihtas} min={0} max={partySize} />
         </div>
         <p className="mt-2 text-sm text-ink/60">
           Iki {SMALL_GROUP_MAX} asm. – {SMALL_GROUP_RATE} €/val., {SMALL_GROUP_MAX + 1}–{MAX_PARTY} asm. – {LARGE_GROUP_RATE} €/val.
@@ -143,8 +143,8 @@ export function SaunaBooking() {
         </div>
       ) : null}
       <div>
-        <StepLabel step={startHour === null ? 4 : 5}>Pirtininkas</StepLabel>
-        <MasterPicker value={withMaster} onChange={setWithMaster} />
+        <StepLabel step={startHour === null ? 4 : 5}>Papildomai</StepLabel>
+        <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
       </div>
     </BookingCard>
   );

@@ -29,16 +29,43 @@ export const START_HOURS: number[] = Array.from(
   (_, i) => OPEN_HOUR + i,
 );
 
-export function hourRate(partySize: number): number {
-  return partySize <= SMALL_GROUP_MAX ? SMALL_GROUP_RATE : LARGE_GROUP_RATE;
+/** Everything that prices or bounds a private booking; editable in /admin/pirtis. */
+export interface SaunaRates {
+  smallGroupMax: number;
+  smallGroupRate: number;
+  largeGroupRate: number;
+  maxParty: number;
+  minHours: number;
+  maxHours: number;
+  packageHours: number;
+  packagePrice: number;
+  openHour: number;
+  closeHour: number;
 }
 
-/** Price for a session; under 2 hours bills as 2, and 4 hours uses the package if cheaper. */
-export function sessionPrice(hours: number, partySize: number): number {
+export const DEFAULT_SAUNA_RATES: SaunaRates = {
+  smallGroupMax: SMALL_GROUP_MAX,
+  smallGroupRate: SMALL_GROUP_RATE,
+  largeGroupRate: LARGE_GROUP_RATE,
+  maxParty: MAX_PARTY,
+  minHours: MIN_HOURS,
+  maxHours: MAX_HOURS,
+  packageHours: PACKAGE_HOURS,
+  packagePrice: PACKAGE_PRICE,
+  openHour: OPEN_HOUR,
+  closeHour: CLOSE_HOUR,
+};
+
+export function hourRate(partySize: number, rates: SaunaRates = DEFAULT_SAUNA_RATES): number {
+  return partySize <= rates.smallGroupMax ? rates.smallGroupRate : rates.largeGroupRate;
+}
+
+/** Price for a session; short sessions bill the minimum, and the package applies if cheaper. */
+export function sessionPrice(hours: number, partySize: number, rates: SaunaRates = DEFAULT_SAUNA_RATES): number {
   if (hours <= 0) return 0;
-  const billable = Math.max(MIN_HOURS, hours);
-  const hourly = billable * hourRate(partySize);
-  return billable === PACKAGE_HOURS ? Math.min(hourly, PACKAGE_PRICE) : hourly;
+  const billable = Math.max(rates.minHours, hours);
+  const hourly = billable * hourRate(partySize, rates);
+  return billable === rates.packageHours ? Math.min(hourly, rates.packagePrice) : hourly;
 }
 
 /** Deterministic pseudo-availability so server and client render the same thing. */

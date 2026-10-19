@@ -15,9 +15,17 @@ updated: 2026-10-19
 
 ## Schema
 
+No database yet (ADR-0005). Planned tables, mirroring `lib/admin/types.ts`:
+
 | Table | Purpose | RLS policy summary |
 |-------|---------|--------------------|
-| | | |
+| `bookings` | Sauna sessions and stays (kind, customer, date, start/hours or nights, extras, total, status) | public insert via server action only; admin read/write |
+| `sauna_blocks` | Hours closed by staff | public read (availability); admin write |
+| `inquiries` + `inquiry_notes` | Event inquiries and follow-ups | public insert via server action; admin read/write |
+| `events` | Park events and public sauna sessions | public read where `published`; admin write |
+| `prices` | Price list items (value, optional max) | public read; admin write |
+| `sauna_settings` | Single row: `SaunaRates` (rates, threshold, package, party/hour limits, opening hours) | public read; admin write |
+| `sauna_upsells` | Extras: name, description, price, unit, max_qty, active | public read where `active`; admin write |
 
 ## Migrations
 

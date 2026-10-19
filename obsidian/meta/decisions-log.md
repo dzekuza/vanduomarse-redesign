@@ -10,6 +10,34 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0005 — Admin dashboard ships UI-first on an in-memory store
+
+- **Status:** Accepted
+- **Date:** 2026-10-19
+
+**Context.** The client wants to manage bookings, availability, inquiries,
+events and prices. There is no backend yet; the owner chose to review the
+screens before committing to Supabase.
+
+**Decision.** `/admin` is built with shadcn/ui on typed models in
+`lib/admin/types.ts` (shaped like future rows) and deterministic seed data in
+`lib/admin/mock-data.ts`. All reads and writes go through `useAdmin()` from
+`components/admin/admin-store.tsx` (a reducer with named actions:
+`setBookingStatus`, `toggleBlock`, `setInquiryStatus`, `addInquiryNote`,
+`saveEvent`, `deleteEvent`, `setEventPublished`, `updatePrices`,
+`updateSaunaRates`, `saveUpsell`, `deleteUpsell`). Seed prices
+are read from the same constants the public site uses.
+
+**Consequences.** Screens are reviewable now, but nothing persists and the
+public site does not read admin changes. There is no authentication: `/admin`
+is `noindex` but publicly reachable and must not be deployed to production
+until auth exists. Moving to Supabase means: tables for bookings, blocks,
+inquiries, events, prices, sauna_settings, sauna_upsells (RLS on each), admin auth via `@supabase/ssr`,
+replacing the reducer actions with server actions, and making the public
+booking, calendar export and calculator read prices/availability from the DB.
+
+---
+
 ## ADR-0004 — Event prices are estimated as ranges from the client's sheet
 
 - **Status:** Accepted

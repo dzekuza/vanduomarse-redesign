@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Big_Shoulders, Work_Sans } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const bigShoulders = Big_Shoulders({
   variable: "--font-big-shoulders",
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="lt" className={`${bigShoulders.variable} ${workSans.variable} ${archivo.variable} h-full antialiased`}>
+    <html lang="lt" className={cn("h-full antialiased font-sans", bigShoulders.variable, workSans.variable, archivo.variable)}>
       <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">{children}</body>
     </html>
   );

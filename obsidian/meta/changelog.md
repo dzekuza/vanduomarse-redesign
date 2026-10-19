@@ -9,6 +9,44 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Admin: sauna rates, rules and upsells
+
+- New **Pirtis** admin section (`/admin/pirtis`): edit hourly rates
+  (small / large group and the threshold), 4 h package, max people, min/max
+  hours and opening hours, with Zod cross-field checks and a live
+  "what the guest pays" table. Sauna items left Kainodara.
+- **Upsells** are now data (`lib/sauna-upsells.ts`): name, description,
+  price, unit (per booking / person / item / hour), max items, on/off.
+  Admin can add, edit, hide and delete them; Pirtininkas (100 €), Beržinė
+  vanta and Rankšluostis (5 €/item) are seeded.
+- The public `/pirtis` booking renders the active upsells generically in a
+  "Papildomai" step (toggles or steppers capped at the group size) instead
+  of hard-coded pirtininkas/vantos; receipts and calendar details list them.
+  `SaunaRates` + `sessionPrice(hours, party, rates)` let the admin preview
+  any rates. Admin edits still reset on reload and don't reach the public
+  page until the database exists (ADR-0005).
+
+## 2026-10-19 — Admin dashboard (UI-first, mock data)
+
+- New `/admin` area (noindex) with a shadcn/ui sidebar layout: **Apžvalga**
+  (today, pending, new inquiries, month total, sauna occupancy, upcoming
+  events), **Rezervacijos** (filters, status transitions, details sheet),
+  **Užimtumas** (sauna hour grid with close/reopen hours, nightly cabin and
+  camper occupancy; one day at a time on phones), **Užklausos** (status
+  pipeline, notes), **Renginiai** (create/edit/delete, publish toggle, sales)
+  and **Kainodara** (grouped price editor with range validation; label and
+  inputs stay on one row at every width, buffets numbered as packages 1–4).
+- Data is seeded mock data in an in-memory store (`AdminStoreProvider`),
+  generated relative to today; edits reset on reload and do not affect the
+  public site yet. Copy on each screen says so. See ADR-0005.
+- shadcn/ui initialised (radix, Nova preset) with tokens mapped to the live
+  brand (aubergine primary, blush surfaces, coral ring, `--radius: 0`), Geist
+  dropped in favour of Archivo. Control heights raised to 44 px
+  (button/input/select/tabs). The sidebar switches to a drawer below 1024 px.
+- Forms use React Hook Form + Zod (event dialog, inquiry notes, price groups).
+- `hooks/use-mobile.ts` rewritten on `useSyncExternalStore` with a
+  breakpoint argument (the generated version failed the React lint rules).
+
 ## 2026-10-19 — Pirtis booking on real prices
 
 - `/pirtis` private hire now uses the 2026–27 price sheet instead of

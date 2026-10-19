@@ -11,13 +11,13 @@ interface ConfirmationProps {
   startHour: number;
   hours: number;
   partySize: number;
-  vihtas: number;
-  withMaster: boolean;
+  /** Chosen extras, e.g. ["Pirtininkas", "Beržinė vanta × 3"]. */
+  extras: string[];
   total: number;
   onReset: () => void;
 }
 
-export function Confirmation({ reference, date, time, startHour, hours, partySize, vihtas, withMaster, total, onReset }: ConfirmationProps) {
+export function Confirmation({ reference, date, time, startHour, hours, partySize, extras, total, onReset }: ConfirmationProps) {
   return (
     <Receipt
       title="Pirtis Marse"
@@ -26,15 +26,14 @@ export function Confirmation({ reference, date, time, startHour, hours, partySiz
         { label: "Data", value: longDateLabel(date) },
         { label: "Laikas", value: time },
         { label: "Grupė", value: `${partySize} žm.` },
-        { label: "Vantos", value: vihtas ? String(vihtas) : "-" },
-        { label: "Pirtininkas", value: withMaster ? "Taip" : "Ne" },
+        { label: "Papildomai", value: extras.length ? extras.join(", ") : "-" },
       ]}
       total={total}
       calendar={{
         title: "Pirtis Marse",
         start: at(date, startHour),
         end: at(date, startHour + hours),
-        details: `Rezervacija ${reference}. Grupė: ${partySize} žm.${withMaster ? " Su pirtininku." : ""}`,
+        details: `Rezervacija ${reference}. Grupė: ${partySize} žm.${extras.length ? ` Papildomai: ${extras.join(", ")}.` : ""}`,
         location: VENUE,
       }}
       resetLabel="Rezervuoti kitą seansą"

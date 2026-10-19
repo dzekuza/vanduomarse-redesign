@@ -28,6 +28,7 @@ export default function Page() { return <AboutView />; }
 | `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking` | stable |
 | `/renginiai` | `BookingPage` + `EventsBoard` | stable |
 | `/skaiciuokle` | `BookingPage` + `EventCalculator` | stable |
+| `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/renginiai`, `/pirtis`, `/kainos`) | `app/admin/layout.tsx` (sidebar shell, `AdminStoreProvider`, noindex) + one view per page | UI-first, mock data, **no auth** (ADR-0005) |
 
 Pages here compose components directly; there is no `views/` layer yet.
 

@@ -54,6 +54,16 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
   mid-value; their row wraps instead.
 - Nav links live in `components/nav-links.ts` (`NAV_LINKS`).
 
+## shadcn/ui tokens
+
+`:root` also defines the shadcn tokens (`--background`, `--primary`,
+`--border`, `--ring`, `--sidebar*`, `--chart-*`, …) mapped to the brand:
+primary aubergine `#382e38`, background blush paper `#fbf3ef`, cards
+`#fffaf7`, secondary/accent blush `#f1d8ce`, ring coral `#ed5257`,
+destructive `#c73a3f`, borders aubergine at 18%, `--radius: 0rem` (square,
+like the site). `font-sans` / `font-heading` map to Archivo. Utilities:
+`bg-hatch` (diagonal stripes for closed slots).
+
 ## Scoped themes
 
 - `.theme-marse` — the live vanduomarse.lt look, applied site-wide on
