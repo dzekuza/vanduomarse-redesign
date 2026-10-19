@@ -33,6 +33,14 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Archivo 125% uppercase in `theme-marse` | read by the `font-display` utility |
 
+## Utilities
+
+- `scrollbar-ink` — thin square scrollbar (ink thumb, `--line` track, coral on
+  hover) for horizontal pickers. Chrome/Safari use `::-webkit-scrollbar`; the
+  standard `scrollbar-color` is fenced to Firefox with `@supports
+  (-moz-appearance: none)`, because Chrome ignores the pseudo-elements once
+  `scrollbar-color` is set, and the build drops `@supports not selector(...)`.
+
 ## Scoped themes
 
 - `.theme-marse` — the live vanduomarse.lt look (booking routes, via

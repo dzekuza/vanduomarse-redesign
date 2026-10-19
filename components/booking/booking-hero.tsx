@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { BentoGallery, type GalleryImage } from "./bento-gallery";
 
 interface Fact {
   label: string;
@@ -7,21 +7,21 @@ interface Fact {
 
 /**
  * Booking route intro, styled after the live site's sector pages: copy, facts
- * and a short photo strip on the left, the booking form beside it.
+ * and a bento photo gallery on the left, the booking form beside it.
  */
 export function BookingHero({
   eyebrow,
   title,
   intro,
   facts,
-  image,
+  gallery,
   children,
 }: {
   eyebrow: string;
   title: [string, string];
   intro: string;
   facts: Fact[];
-  image: { src: string; alt: string };
+  gallery: GalleryImage[];
   children: React.ReactNode;
 }) {
   return (
@@ -42,11 +42,11 @@ export function BookingHero({
             </div>
           ))}
         </dl>
-        <div className="relative mt-10 h-48 w-full overflow-hidden md:h-56">
-          <Image src={image.src} alt={image.alt} fill sizes="(min-width: 1024px) 45vw, 100vw" className="object-cover" />
+        <div className="mt-10">
+          <BentoGallery images={gallery} />
         </div>
       </div>
-      <div className="min-w-0 lg:sticky lg:top-6">{children}</div>
+      <div className="min-w-0 lg:sticky lg:top-28">{children}</div>
     </section>
   );
 }

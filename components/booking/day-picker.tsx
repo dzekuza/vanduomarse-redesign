@@ -12,7 +12,7 @@ export function DayPicker({
   onSelect: (date: Date) => void;
 }) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="scrollbar-ink flex gap-2 overflow-x-auto pb-3">
       {days.map((d) => {
         const key = dateKey(d);
         const active = key === dateKey(selected);

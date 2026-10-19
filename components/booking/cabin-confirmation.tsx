@@ -1,8 +1,9 @@
 "use client";
 
+import { Receipt } from "./receipt";
+import { VENUE } from "@/lib/calendar";
+import { ROOM_TYPES, type RoomTypeId } from "@/lib/cabin";
 import { longDateLabel } from "@/lib/sauna";
-import type { RoomTypeId } from "@/lib/cabin";
-import { ROOM_TYPES } from "@/lib/cabin";
 
 interface CabinConfirmationProps {
   reference: string;
@@ -20,38 +21,26 @@ export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, 
   checkOut.setDate(checkOut.getDate() + nights);
 
   return (
-    <div className="border border-ink bg-foam">
-      <div className="flex items-center justify-between border-b border-dashed border-ink px-6 py-4">
-        <span className="font-display text-lg font-bold">Miegas Marse</span>
-        <span className="font-display text-lg font-bold text-rust">{reference}</span>
-      </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 px-6 py-6 text-sm sm:grid-cols-4">
-        <div>
-          <dt className="text-ink/50">Atvykimas</dt>
-          <dd className="mt-1 font-medium">{longDateLabel(checkIn)}</dd>
-        </div>
-        <div>
-          <dt className="text-ink/50">Išvykimas</dt>
-          <dd className="mt-1 font-medium">{longDateLabel(checkOut)}</dd>
-        </div>
-        <div>
-          <dt className="text-ink/50">Tipas</dt>
-          <dd className="mt-1 font-medium">{room.label}</dd>
-        </div>
-        <div>
-          <dt className="text-ink/50">Svečiai</dt>
-          <dd className="mt-1 font-medium">{guests} žm.</dd>
-        </div>
-      </dl>
-      <div className="flex items-center justify-between border-t border-dashed border-ink px-6 py-4">
-        <p className="text-sm text-ink/70">Rezervacija patvirtinta. Patvirtinimą atsiųsime el. paštu.</p>
-        <p className="font-display text-2xl font-bold">{total} €</p>
-      </div>
-      <div className="border-t border-ink px-6 py-4">
-        <button type="button" onClick={onReset} className="text-sm font-medium text-ink/70 underline underline-offset-4 hover:text-rust">
-          Rezervuoti kitą nakvynę
-        </button>
-      </div>
-    </div>
+    <Receipt
+      title="Miegas Marse"
+      reference={reference}
+      rows={[
+        { label: "Atvykimas", value: longDateLabel(checkIn) },
+        { label: "Išvykimas", value: longDateLabel(checkOut) },
+        { label: "Tipas", value: room.label },
+        { label: "Svečiai", value: `${guests} žm.` },
+      ]}
+      total={total}
+      calendar={{
+        title: `Miegas Marse: ${room.label}`,
+        start: checkIn,
+        end: checkOut,
+        details: `Rezervacija ${reference}. Svečiai: ${guests} žm.`,
+        location: VENUE,
+        allDay: true,
+      }}
+      resetLabel="Rezervuoti kitą nakvynę"
+      onReset={onReset}
+    />
   );
 }

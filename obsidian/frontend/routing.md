@@ -23,7 +23,12 @@ export default function Page() { return <AboutView />; }
 
 | Route | View | Status |
 |-------|------|--------|
-| `/` | | #wip |
+| `/` | `app/page.tsx` (homepage sections, redesign palette) | stable |
+| `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab | stable |
+| `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking` | stable |
+| `/renginiai` | `BookingPage` + `EventsBoard` | stable |
+
+Pages here compose components directly; there is no `views/` layer yet.
 
 ## Conventions
 

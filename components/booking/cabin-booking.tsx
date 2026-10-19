@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ArrowButton } from "./arrow-button";
+import { BookingCard, BookingTotal } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { DayPicker } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
@@ -49,33 +50,30 @@ export function CabinBooking() {
   }
 
   return (
-    <div className="border border-ink bg-foam">
-      <div className="space-y-8 px-6 py-8 sm:px-8">
-        <div>
-          <StepLabel step={1}>Atvykimo diena</StepLabel>
-          <DayPicker days={days} selected={checkIn} onSelect={setCheckIn} />
-        </div>
-        <div>
-          <StepLabel step={2}>Tipas</StepLabel>
-          <RoomTypePicker selected={roomId} onSelect={setRoomId} />
-        </div>
-        <div>
-          <StepLabel step={3}>Trukmė ir svečiai</StepLabel>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Stepper label="Naktys" value={nights} onChange={setNights} min={1} max={14} />
-            <Stepper label="Svečių" value={guests} onChange={setGuests} min={1} max={6} />
-          </div>
+    <BookingCard
+      summary={
+        <BookingTotal
+          note={`${nights} ${nights === 1 ? "naktis" : "naktys"}, nuo ${checkIn.toLocaleDateString("lt-LT")}`}
+          total={total}
+        />
+      }
+      action={<ArrowButton onClick={confirm}>Patvirtinti rezervaciją</ArrowButton>}
+    >
+      <div>
+        <StepLabel step={1}>Atvykimo diena</StepLabel>
+        <DayPicker days={days} selected={checkIn} onSelect={setCheckIn} />
+      </div>
+      <div>
+        <StepLabel step={2}>Tipas</StepLabel>
+        <RoomTypePicker selected={roomId} onSelect={setRoomId} />
+      </div>
+      <div>
+        <StepLabel step={3}>Trukmė ir svečiai</StepLabel>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Stepper label="Naktys" value={nights} onChange={setNights} min={1} max={14} />
+          <Stepper label="Svečių" value={guests} onChange={setGuests} min={1} max={6} />
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink bg-dust-soft px-6 py-5 sm:px-8">
-        <div>
-          <p className="text-sm text-ink/60">
-            {nights} {nights === 1 ? "naktis" : "naktys"}, nuo {checkIn.toLocaleDateString("lt-LT")}
-          </p>
-          <p className="font-display text-2xl font-bold">{total} €</p>
-        </div>
-        <ArrowButton onClick={confirm}>Patvirtinti rezervaciją</ArrowButton>
-      </div>
-    </div>
+    </BookingCard>
   );
 }

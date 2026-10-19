@@ -41,6 +41,11 @@ body {
   box-sizing: border-box;
 }
 
+/* Keep in-page anchors (/#zonos, /#kainos) clear of the sticky header. */
+html {
+  scroll-padding-top: 7rem;
+}
+
 ::selection {
   background: var(--rust);
   color: var(--foam);
@@ -117,4 +122,29 @@ body {
 .theme-marse ::selection {
   background: var(--rust);
   color: var(--foam);
+}
+
+/* Thin, square scrollbar in the ink colour, for horizontal pickers like the
+   day strip. WebKit/Blink get the square 4px pseudo-element bar; the standard
+   properties are fenced to Firefox, because Chrome drops the pseudo-elements
+   whenever scrollbar-color is set. */
+@utility scrollbar-ink {
+  @supports (-moz-appearance: none) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink) var(--line);
+  }
+
+  &::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--line);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--ink);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--rust);
+  }
 }

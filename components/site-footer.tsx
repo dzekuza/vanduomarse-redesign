@@ -1,3 +1,5 @@
+import { BrandLogo } from "./brand-logo";
+
 const CONTACTS = [
   { name: "Vanduo Marse", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
   { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" },
@@ -10,7 +12,8 @@ const CONTACTS = [
 export function SiteFooter() {
   return (
     <footer className="border-t border-line bg-dust px-6 py-14 md:px-10">
-      <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+      <BrandLogo className="h-24 w-auto" />
+      <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
         {CONTACTS.map((c) => (
           <div key={c.name}>
             <p className="font-display text-lg font-bold">

@@ -61,6 +61,7 @@ const PATCHES: Patch[] = [
     tag: "Šventės",
     blurb: "Gimtadieniai, komandų dienos, varžybos.",
     color: "var(--lake-soft)",
+    href: "/renginiai",
     icon: ConfettiIcon,
   },
 ];

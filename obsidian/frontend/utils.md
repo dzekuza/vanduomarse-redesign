@@ -10,7 +10,13 @@ with I/O or client state belongs in `lib/` or a hook instead.
 
 | Util | File | Signature | Purpose |
 |------|------|-----------|---------|
-| | | | |
+| `googleCalendarUrl` | `lib/calendar.ts` | `(ev: CalendarEvent) => string` | Google Calendar "add event" template link |
+| `icsContent` | `lib/calendar.ts` | `(ev: CalendarEvent, uid: string) => string` | RFC 5545 `.ics` body (UTC or all-day) |
+| `at` | `lib/calendar.ts` | `(day: Date, hour: number, minute?: number) => Date` | Local date-time on a given day |
+| `sessionPrice` / `maxHoursFrom` | `lib/sauna.ts` | see file | Hourly sauna pricing and bookable run length |
+| `openEventCount` / `startOfToday` | `lib/sauna-events.ts` | `(events) => number` / `() => Date` | Bookable session count for the tab badge; local midnight |
+| `parkEvents` / `monthHeading` | `lib/park-events.ts` | `(from: Date, days?: number) => ParkEvent[]` / `(date) => string` | Merged park + sauna event feed; "Spalis 2026" headings |
+| `upcomingEvents` | `lib/sauna-events.ts` | `(from: Date, days: number) => SaunaEvent[]` | Expand weekly public sessions into dated events |
 
 ## Related
 

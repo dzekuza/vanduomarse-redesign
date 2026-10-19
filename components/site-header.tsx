@@ -1,11 +1,10 @@
 import Link from "next/link";
+import { BrandLogo } from "./brand-logo";
 
 export function SiteHeader() {
   return (
-    <header className="flex items-center justify-between px-6 py-5 md:px-10">
-      <Link href="/" className="font-display text-2xl font-extrabold tracking-tight">
-        VANDUO MARSE
-      </Link>
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-dust px-6 py-4 md:px-10">
+      <BrandLogo className="h-14 w-auto md:h-16" priority />
       <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
         <Link href="/#zonos" className="hover:text-rust">
           Zonos
@@ -15,6 +14,9 @@ export function SiteHeader() {
         </Link>
         <Link href="/pirtis" className="hover:text-rust">
           Pirtis Marse
+        </Link>
+        <Link href="/renginiai" className="hover:text-rust">
+          Renginiai
         </Link>
       </nav>
       <Link
