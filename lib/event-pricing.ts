@@ -1,3 +1,5 @@
+import { MASTER_PRICE, sessionPrice } from "./sauna";
+
 /**
  * Event price estimator, built from "Kainodara'26-'27.xlsx" (valid until 2027-12-31).
  * Every price includes 21% PVM. Where the sheet gives a range, we carry a
@@ -182,10 +184,8 @@ export const PRICES = {
   bartender: 120,
   decor: range(150, 250),
   serving: 7,
-  saunaSmallGroup: 70,
-  saunaLargeGroup: 100,
-  saunaPackage4h: 350,
-  saunaMaster: range(100, 200),
+  /** Sheet conflict: +100 € on the sauna rows, 200 € in the contract terms. */
+  saunaMaster: range(MASTER_PRICE, 200),
   wakePrivate: 1694,
   wakeRider: 20,
   atvTour: 72,
@@ -287,12 +287,6 @@ export interface Estimate {
   available: boolean;
 }
 
-export function saunaPrice(hours: number, guests: number): number {
-  if (hours <= 0) return 0;
-  const billable = Math.max(2, hours);
-  if (guests > 6) return billable === 4 ? PRICES.saunaPackage4h : billable * PRICES.saunaLargeGroup;
-  return billable * PRICES.saunaSmallGroup;
-}
 
 export function estimate(input: EstimateInput): Estimate {
   const space = SPACES.find((s) => s.id === input.space)!;
@@ -350,7 +344,7 @@ export function estimate(input: EstimateInput): Estimate {
 
   // Activities
   if (input.saunaHours > 0) {
-    push("Pramogos", `Pirtis, ${Math.max(2, input.saunaHours)} val.`, fixed(saunaPrice(input.saunaHours, guests)));
+    push("Pramogos", `Pirtis, ${Math.max(2, input.saunaHours)} val.`, fixed(sessionPrice(input.saunaHours, guests)));
     if (guests > 20) warnings.push("Pirtyje vienu metu telpa iki 20 asm., didesnė grupė keičiasi.");
     if (input.saunaMaster) push("Pramogos", "Pirtininkas", PRICES.saunaMaster);
   }

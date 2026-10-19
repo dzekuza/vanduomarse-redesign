@@ -12,8 +12,12 @@ import { StepLabel } from "./step-label";
 import { Stepper } from "./stepper";
 import {
   MAX_HOURS,
-  MASTER_RATE,
+  LARGE_GROUP_RATE,
+  MASTER_PRICE,
   MAX_PARTY,
+  PACKAGE_PRICE,
+  SMALL_GROUP_MAX,
+  SMALL_GROUP_RATE,
   MIN_HOURS,
   VIHTA_PRICE,
   bookingReference,
@@ -46,8 +50,8 @@ export function SaunaBooking() {
 
   const dateK = dateKey(selectedDate);
   const maxHours = startHour === null ? 0 : maxHoursFrom(dateK, startHour);
-  const basePrice = startHour === null ? 0 : sessionPrice(selectedDate, startHour, hours);
-  const masterPrice = withMaster && startHour !== null ? MASTER_RATE * hours : 0;
+  const basePrice = startHour === null ? 0 : sessionPrice(hours, partySize);
+  const masterPrice = withMaster ? MASTER_PRICE : 0;
   const total = basePrice + masterPrice + vihtas * VIHTA_PRICE;
   const timeLabel = startHour === null ? "" : `${formatHour(startHour)}-${formatHour(startHour + hours)}`;
 
@@ -61,6 +65,11 @@ export function SaunaBooking() {
     setStartHour(hour);
     // Keep the chosen length if it still fits, otherwise shrink to what does.
     setHours((h) => Math.min(h, maxHoursFrom(dateK, hour)));
+  }
+
+  function changeParty(next: number) {
+    setPartySize(next);
+    setVihtas((v) => Math.min(v, next));
   }
 
   function confirm() {
@@ -108,13 +117,24 @@ export function SaunaBooking() {
         <DayPicker days={days} selected={selectedDate} onSelect={selectDate} />
       </div>
       <div>
-        <StepLabel step={2}>Pradžios laikas</StepLabel>
-        <StartTimeGrid date={selectedDate} dateK={dateK} selected={startHour} onSelect={selectStart} />
+        <StepLabel step={2}>Grupė</StepLabel>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={MAX_PARTY} />
+          <Stepper label={`Vantos (+${VIHTA_PRICE} € vnt.)`} value={vihtas} onChange={setVihtas} min={0} max={partySize} />
+        </div>
+        <p className="mt-2 text-sm text-ink/60">
+          Iki {SMALL_GROUP_MAX} asm. – {SMALL_GROUP_RATE} €/val., {SMALL_GROUP_MAX + 1}–{MAX_PARTY} asm. – {LARGE_GROUP_RATE} €/val.
+          Minimaliai 2 val., 4 val. paketas – {PACKAGE_PRICE} €.
+        </p>
+      </div>
+      <div>
+        <StepLabel step={3}>Pradžios laikas</StepLabel>
+        <StartTimeGrid dateK={dateK} selected={startHour} onSelect={selectStart} />
       </div>
       {startHour !== null ? (
         <div>
-          <StepLabel step={3}>Trukmė</StepLabel>
-          <DurationPicker date={selectedDate} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setHours} />
+          <StepLabel step={4}>Trukmė</StepLabel>
+          <DurationPicker partySize={partySize} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setHours} />
           {maxHours < MAX_HOURS ? (
             <p className="mt-2 text-sm text-ink/60">
               Ilgiausiai iki {formatHour(startHour + maxHours)}: po to pirtis užimta arba uždaroma.
@@ -123,15 +143,8 @@ export function SaunaBooking() {
         </div>
       ) : null}
       <div>
-        <StepLabel step={startHour === null ? 3 : 4}>Pirtininkas</StepLabel>
-        <MasterPicker value={withMaster} onChange={setWithMaster} hours={startHour === null ? null : hours} />
-      </div>
-      <div>
-        <StepLabel step={startHour === null ? 4 : 5}>Grupė</StepLabel>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Stepper label="Žmonių" value={partySize} onChange={setPartySize} min={1} max={MAX_PARTY} />
-          <Stepper label={`Vantos (+${VIHTA_PRICE} € vnt.)`} value={vihtas} onChange={setVihtas} min={0} max={partySize} />
-        </div>
+        <StepLabel step={startHour === null ? 4 : 5}>Pirtininkas</StepLabel>
+        <MasterPicker value={withMaster} onChange={setWithMaster} />
       </div>
     </BookingCard>
   );

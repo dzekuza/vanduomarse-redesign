@@ -32,9 +32,9 @@ primitives, reused across features.
 | `PresetPicker` | `components/calculator/preset-picker.tsx` | Event-type chips that pre-fill a typical setup | stable |
 | `OptionToggle` | `components/calculator/option-toggle.tsx` | Full-width on/off add-on row (`role="switch"`) with price hint | stable |
 | `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos: 2x2 lead tile plus four small tiles, hover zoom; one image goes full width | stable |
-| `MasterPicker` | `components/booking/master-picker.tsx` | Pirtininkas needed or not; shows add-on total for the chosen hours | stable |
-| `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times; disabled when the 2 h minimum does not fit | stable |
-| `DurationPicker` | `components/booking/duration-picker.tsx` | 2-6 h options from the start, each with end time and price | stable |
+| `MasterPicker` | `components/booking/master-picker.tsx` | Pirtininkas needed or not; flat +100 € per booking | stable |
+| `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times showing the longest bookable run; disabled when the 2 h minimum does not fit | stable |
+| `DurationPicker` | `components/booking/duration-picker.tsx` | 2-6 h options from the start, each with end time and price for the group size | stable |
 | `ChoiceTile` | `components/booking/choice-tile.tsx` | Two-line selectable tile (active / idle / disabled) | stable |
 | `ArrowButton` | `components/booking/arrow-button.tsx` | Live-site CTA: dark block, thin arrow, uppercase label | stable |
 

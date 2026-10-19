@@ -9,6 +9,20 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Pirtis booking on real prices
+
+- `/pirtis` private hire now uses the 2026–27 price sheet instead of
+  placeholder rates: 70 €/h up to 6 people, 100 €/h for 7–20, minimum 2 h,
+  4 h package 350 € (applied when cheaper), capacity 20, pirtininkas +100 €
+  per booking (flat, not hourly).
+- Group size comes first in the flow (it sets the rate); start-time tiles
+  show the longest available run; duration tiles price for the actual group.
+- `lib/sauna.ts` is the single source of sauna rates; the event calculator
+  imports `sessionPrice` / `MASTER_PRICE` from it.
+- Open question for the client: pirtininkas is 100 € on the sauna rows but
+  200 € in the contract terms. Booking uses 100 €; the calculator shows
+  100–200 €.
+
 ## 2026-10-19 — Responsive pass (375 / 768 / 1024 / 1280)
 
 - Audited every route for page overflow, horizontal scrollers, text spilling
@@ -37,9 +51,8 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
   `lib/event-pricing.ts` (see ADR-0004). Linked from the header nav and the
   Renginiai page.
 - Known sheet inconsistencies, shown as ranges until the client confirms:
-  pirtininkas 100 € (space sheet) vs 200 € (terms sheet). The `/pirtis`
-  booking still uses placeholder hourly rates that differ from the sheet
-  (sheet: 70 €/h up to 6 ppl, 100 €/h 6–20 ppl, 350 € for 4 h).
+  pirtininkas 100 € (space sheet) vs 200 € (terms sheet). (The `/pirtis`
+  booking moved to sheet prices in a later change.)
 
 ## 2026-10-19 — Homepage moved to the live-site look
 

@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 const FACTS = [
   { label: "Vieta", value: "Prie pat ežero kranto" },
-  { label: "Talpa", value: "Iki 8 žmonių" },
-  { label: "Trukmė", value: "Nuo 2 val., renkiesi pats" },
+  { label: "Talpa", value: "Iki 20 žmonių" },
+  { label: "Kaina", value: "Nuo 70 €/val., min. 2 val." },
   { label: "Kūrenimas", value: "Malkomis, iš anksto" },
 ];
 

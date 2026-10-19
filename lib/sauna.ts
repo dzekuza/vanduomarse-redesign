@@ -1,13 +1,27 @@
-/** Private hire is sold by the hour: pick a start, then 2-6 hours. */
+/**
+ * Private hire is sold by the hour: pick a start, then 2-6 hours.
+ * Rates from "Kainodara'26-'27.xlsx" (incl. 21% PVM, valid until 2027-12-31).
+ */
 export const OPEN_HOUR = 10;
 export const CLOSE_HOUR = 22;
 export const MIN_HOURS = 2;
 export const MAX_HOURS = 6;
 
-export const MAX_PARTY = 8;
+export const MAX_PARTY = 20;
 export const VIHTA_PRICE = 5;
-/** Sauna master (pirtininkas) leading the session, charged per hour booked. */
-export const MASTER_RATE = 30;
+
+/** Hourly rate depends on group size, not time of day. */
+export const SMALL_GROUP_MAX = 6;
+export const SMALL_GROUP_RATE = 70;
+export const LARGE_GROUP_RATE = 100;
+/** 4-hour package for the whole sauna; applied when it beats the hourly price. */
+export const PACKAGE_HOURS = 4;
+export const PACKAGE_PRICE = 350;
+/**
+ * Pirtininkas, per booking. The sauna rows of the sheet say +100 €; the
+ * contract-terms sheet says 200 € per event. Using 100 € until confirmed.
+ */
+export const MASTER_PRICE = 100;
 
 /** Every start that leaves room for the minimum session before closing. */
 export const START_HOURS: number[] = Array.from(
@@ -15,20 +29,16 @@ export const START_HOURS: number[] = Array.from(
   (_, i) => OPEN_HOUR + i,
 );
 
-export function isWeekend(date: Date): boolean {
-  const day = date.getDay();
-  return day === 0 || day === 6;
+export function hourRate(partySize: number): number {
+  return partySize <= SMALL_GROUP_MAX ? SMALL_GROUP_RATE : LARGE_GROUP_RATE;
 }
 
-export function hourRate(date: Date, hour: number): number {
-  if (isWeekend(date)) return 60;
-  return hour >= 17 ? 50 : 40;
-}
-
-export function sessionPrice(date: Date, startHour: number, hours: number): number {
-  let total = 0;
-  for (let h = startHour; h < startHour + hours; h++) total += hourRate(date, h);
-  return total;
+/** Price for a session; under 2 hours bills as 2, and 4 hours uses the package if cheaper. */
+export function sessionPrice(hours: number, partySize: number): number {
+  if (hours <= 0) return 0;
+  const billable = Math.max(MIN_HOURS, hours);
+  const hourly = billable * hourRate(partySize);
+  return billable === PACKAGE_HOURS ? Math.min(hourly, PACKAGE_PRICE) : hourly;
 }
 
 /** Deterministic pseudo-availability so server and client render the same thing. */
