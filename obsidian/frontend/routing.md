@@ -23,7 +23,7 @@ export default function Page() { return <AboutView />; }
 
 | Route | View | Status |
 |-------|------|--------|
-| `/` | `app/page.tsx` (homepage sections, redesign palette) | stable |
+| `/` | `app/page.tsx` (homepage sections, live-brand theme) | stable |
 | `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab | stable |
 | `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking` | stable |
 | `/renginiai` | `BookingPage` + `EventsBoard` | stable |

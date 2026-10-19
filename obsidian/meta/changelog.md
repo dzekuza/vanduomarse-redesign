@@ -9,6 +9,20 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Homepage moved to the live-site look
+
+- `theme-marse` now sits on `<body>`, so every route (homepage included)
+  uses the aubergine / blush / coral palette and Archivo wide uppercase
+  headings. `BookingPage` no longer adds the class itself.
+- Homepage tuned to match Pirtis: outlined eyebrow tag, bold (not black) hero
+  heading at fixed sizes, `ArrowLink` CTA, section headings `text-3xl/4xl`,
+  solid ink borders on equipment tiles and the find-us cards, uppercase
+  group labels.
+- `--lake-soft` now maps to the badge's deep teal (#015059) for the one
+  remaining teal accent; the atmosphere strip uses a real wakeboard photo
+  (Unsplash) instead of a random picsum image.
+- New shared `ArrowLink` (link version of the CTA), also used by `EventRow`.
+
 ## 2026-10-19 — Sticky header
 
 - `SiteHeader` is sticky (`top-0`, opaque `bg-dust`, `border-line` rule) on

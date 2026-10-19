@@ -1,11 +1,12 @@
+import { ArrowLink } from "./arrow-link";
 import { CableLoop } from "./cable-loop";
 
 export function Hero() {
   return (
     <section className="grid gap-10 px-6 pb-16 pt-4 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-6 md:px-10 md:pb-24">
       <div>
-        <p className="mb-5 text-sm font-medium text-ink/60">Kabelinis vandenlenčių parkas · Lietuva</p>
-        <h1 className="font-display text-[15vw] font-black leading-[0.88] tracking-tight md:text-[5.2vw]">
+        <p className="mb-6 inline-block border border-ink px-4 py-2 text-xs uppercase">Kabelinis vandenlenčių parkas · Lietuva</p>
+        <h1 className="font-display text-5xl font-bold leading-[1.02] sm:text-6xl xl:text-7xl">
           Žemė per
           <br />
           toli. Plauk
@@ -17,13 +18,8 @@ export function Hero() {
           plaukia iki 8 raitelių, pirmąkart ar jau treniruotas.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <a
-            href="#kainos"
-            className="border border-ink bg-ink px-6 py-3 text-sm font-medium text-foam transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-rust hover:border-rust"
-          >
-            Žiūrėti kainas
-          </a>
-          <a href="#zonos" className="border-b border-ink/30 pb-0.5 text-sm font-medium text-ink/80 hover:border-rust hover:text-rust">
+          <ArrowLink href="#kainos">Žiūrėti kainas</ArrowLink>
+          <a href="#zonos" className="border-b border-ink pb-0.5 text-sm uppercase hover:border-rust hover:text-rust">
             Visos zonos
           </a>
         </div>

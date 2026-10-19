@@ -15,7 +15,7 @@ const workSans = Work_Sans({
 });
 
 // Stand-in for Termina (the live vanduomarse.lt face, licensed). Archivo's width
-// axis gets close to Termina's wide stance; used by the `theme-marse` scope.
+// axis gets close to Termina's wide stance; used site-wide by `theme-marse`.
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin", "latin-ext"],
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="lt" className={`${bigShoulders.variable} ${workSans.variable} ${archivo.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-dust text-ink">{children}</body>
+      <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">{children}</body>
     </html>
   );
 }

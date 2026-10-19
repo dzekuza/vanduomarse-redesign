@@ -24,7 +24,7 @@ const EXTRAS: Item[] = [
 
 function Tile({ item }: { item: Item }) {
   return (
-    <div className="border border-ink/15 px-4 py-3">
+    <div className="border border-ink bg-foam px-4 py-3">
       <p className="text-sm">{item.label}</p>
       <div className="mt-2 flex items-baseline justify-between gap-2">
         {item.note ? <span className="text-xs text-ink/50">{item.note}</span> : <span />}
@@ -37,11 +37,11 @@ function Tile({ item }: { item: Item }) {
 export function Equipment() {
   return (
     <section className="px-6 py-16 md:px-10 md:py-24">
-      <h2 className="font-display max-w-md text-4xl font-bold leading-tight md:text-5xl">Įranga ir papildomai</h2>
+      <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Įranga ir papildomai</h2>
       <p className="mt-3 max-w-md text-ink/70">Nuomai vietoje, jei savo įrangos neturi.</p>
       <div className="mt-10 grid gap-10 md:grid-cols-2">
         <div>
-          <p className="mb-3 text-sm font-medium text-ink/60">Įranga</p>
+          <p className="mb-3 text-sm font-semibold uppercase">Įranga</p>
           <div className="grid grid-cols-2 gap-2">
             {GEAR.map((item, i) => (
               <Tile key={item.label + (item.note ?? i)} item={item} />
@@ -49,7 +49,7 @@ export function Equipment() {
           </div>
         </div>
         <div>
-          <p className="mb-3 text-sm font-medium text-ink/60">Papildomai</p>
+          <p className="mb-3 text-sm font-semibold uppercase">Papildomai</p>
           <div className="grid grid-cols-2 gap-2">
             {EXTRAS.map((item, i) => (
               <Tile key={item.label + (item.note ?? i)} item={item} />

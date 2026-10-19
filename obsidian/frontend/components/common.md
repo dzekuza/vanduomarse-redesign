@@ -10,8 +10,9 @@ primitives, reused across features.
 
 | Component | File | Purpose | Status |
 |-----------|------|---------|--------|
+| `ArrowLink` | `components/arrow-link.tsx` | Link version of the live-site CTA (dark block, thin arrow, uppercase); `sm`/`md` | stable |
 | `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-14/16, footer h-24) | stable |
-| `BookingPage` | `components/booking/booking-page.tsx` | Booking route shell: header, content, footer inside `theme-marse` | stable |
+| `BookingPage` | `components/booking/booking-page.tsx` | Page shell: header, content, footer (theme now comes from `<body>`) | stable |
 | `BookingHero` | `components/booking/booking-hero.tsx` | Eyebrow, uppercase title, intro, facts, bento gallery on the left; booking form (`children`) sticky on the right | stable |
 | `StepLabel` | `components/booking/step-label.tsx` | Numbered step heading (`01 PASIRINK DIENĄ`) | stable |
 | `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` | stable |

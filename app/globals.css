@@ -95,6 +95,8 @@ html {
   --raw-coral: #ed5257;
   --raw-coral-deep: #e94b4f;
   --raw-tan: #e2b38c;
+  /* Deep teal from the brand badge; readable on blush, unlike its bright #00b2b5. */
+  --raw-teal-deep: #015059;
 }
 
 .theme-marse {
@@ -103,6 +105,7 @@ html {
   --rust: var(--raw-coral);
   --rust-soft: var(--raw-coral-deep);
   --lake: var(--raw-tan);
+  --lake-soft: var(--raw-teal-deep);
   --dust: var(--raw-blush);
   --dust-soft: var(--raw-blush-soft);
   --foam: var(--raw-blush-paper);

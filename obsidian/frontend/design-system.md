@@ -31,6 +31,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-blush` `#f1d8ce`, `--raw-blush-soft`, `--raw-blush-paper` | primitive | sampled from vanduomarse.lt | `theme-marse` page / card surfaces |
 | `--raw-coral` `#ed5257`, `--raw-coral-deep` | primitive | sampled from vanduomarse.lt | `theme-marse` accent (maps to `--rust`) |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
+| `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Archivo 125% uppercase in `theme-marse` | read by the `font-display` utility |
 
 ## Utilities
@@ -43,9 +44,10 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 
 ## Scoped themes
 
-- `.theme-marse` — the live vanduomarse.lt look (booking routes, via
-  `BookingPage`). Remaps the semantic tokens above; components need no
-  theme-specific classes. See [[decisions-log]] ADR-0002.
+- `.theme-marse` — the live vanduomarse.lt look, applied site-wide on
+  `<body>`. Remaps the semantic tokens above (incl. `--lake-soft` → badge
+  teal `#015059`); components need no theme-specific classes. See
+  [[decisions-log]] ADR-0002 / ADR-0003.
 
 ## Adding a token
 

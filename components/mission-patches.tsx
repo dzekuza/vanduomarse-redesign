@@ -96,7 +96,7 @@ function PatchCard({ patch }: { patch: Patch }) {
 export function MissionPatches() {
   return (
     <section id="zonos" className="px-6 py-16 md:px-10 md:py-24">
-      <h2 className="font-display max-w-md text-4xl font-bold leading-tight md:text-5xl">Šeši Marso sektoriai</h2>
+      <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Šeši Marso sektoriai</h2>
       <p className="mt-3 max-w-md text-ink/70">Vienas bilietas, visa diena. Kiekvienas sektorius veikia savo laiku.</p>
       <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3">
         {PATCHES.map((p) => (

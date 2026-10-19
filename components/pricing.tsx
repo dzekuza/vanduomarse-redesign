@@ -45,7 +45,7 @@ export function Pricing() {
   return (
     <section id="kainos" className="bg-ink px-6 py-16 text-foam md:px-10 md:py-24">
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <h2 className="font-display max-w-md text-4xl font-bold leading-tight md:text-5xl">Kainos</h2>
+        <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Kainos</h2>
         <p className="text-sm text-foam/60">
           Suaugę <span className="mx-2 text-foam/30">/</span> Vaikai iki 14 m.
         </p>

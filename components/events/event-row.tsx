@@ -1,5 +1,4 @@
-import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
-import Link from "next/link";
+import { ArrowLink } from "@/components/arrow-link";
 import { CategoryTag } from "./category-tag";
 import { longDateLabel, weekdayLabel } from "@/lib/sauna";
 import type { ParkEvent } from "@/lib/park-events";
@@ -33,13 +32,9 @@ export function EventRow({ event }: { event: ParkEvent }) {
         {full ? (
           <span className="px-4 py-2 text-xs uppercase text-ink/40">Išparduota</span>
         ) : (
-          <Link
-            href={event.cta.href}
-            className="group flex items-center gap-3 border border-ink bg-ink px-4 py-2 text-xs uppercase text-foam transition-[background-color,border-color,transform] hover:border-rust hover:bg-rust active:scale-[0.97]"
-          >
-            <ArrowRightIcon size={18} weight="thin" className="transition-transform group-hover:translate-x-1" />
+          <ArrowLink href={event.cta.href} size="sm">
             {event.cta.label}
-          </Link>
+          </ArrowLink>
         )}
       </div>
     </article>

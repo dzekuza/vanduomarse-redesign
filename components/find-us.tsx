@@ -8,7 +8,7 @@ export function FindUs() {
           href="https://goo.gl/maps/dZJ74iwj3UiChd5FA"
           target="_blank"
           rel="noreferrer"
-          className="group flex items-start gap-4 border border-ink/15 px-6 py-6 transition-colors hover:border-ink"
+          className="group flex items-start gap-4 border border-ink bg-foam px-6 py-6 transition-colors hover:border-rust"
         >
           <MapPinIcon size={28} className="shrink-0 text-rust" />
           <div>
@@ -20,7 +20,7 @@ export function FindUs() {
           href="https://shop.vanduomarse.lt"
           target="_blank"
           rel="noreferrer"
-          className="group flex items-start gap-4 border border-ink/15 px-6 py-6 transition-colors hover:border-ink"
+          className="group flex items-start gap-4 border border-ink bg-foam px-6 py-6 transition-colors hover:border-rust"
         >
           <GiftIcon size={28} className="shrink-0 text-rust" />
           <div>

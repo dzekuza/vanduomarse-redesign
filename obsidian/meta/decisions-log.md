@@ -10,9 +10,28 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0002 — Booking pages use a scoped live-brand theme
+## ADR-0003 — The live-brand theme is site-wide
 
 - **Status:** Accepted
+- **Date:** 2026-10-19
+
+**Context.** After the booking pages and Renginiai adopted `theme-marse`, the
+client asked for the homepage to match them too. Keeping two palettes no
+longer served anyone.
+
+**Decision.** `theme-marse` is applied on `<body>` in `app/layout.tsx`. The
+original redesign values remain in `:root` only as the base the theme remaps;
+components keep using semantic tokens (`ink`, `dust`, `rust`, `foam`, …).
+
+**Consequences.** New pages get the live look by default. To drop the old
+palette entirely, move the `theme-marse` values into `:root` and delete the
+class; no component changes needed.
+
+---
+
+## ADR-0002 — Booking pages use a scoped live-brand theme
+
+- **Status:** Superseded by ADR-0003
 - **Date:** 2026-10-19
 
 **Context.** The booking routes had to match the current production UI at
