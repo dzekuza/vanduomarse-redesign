@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArrowLink } from "@/components/arrow-link";
 import { BookingPage } from "@/components/booking/booking-page";
 import { EventsBoard } from "@/components/events/events-board";
 
@@ -21,6 +22,9 @@ export default function RenginiaiPage() {
           <p className="mt-6 max-w-md text-ink/80">
             Pirties ritualai, vakarai prie ežero, Akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje.
           </p>
+          <div className="mt-6">
+            <ArrowLink href="/skaiciuokle">Planuoji savo renginį? Apskaičiuok kainą</ArrowLink>
+          </div>
         </div>
         <div className="mt-12">
           <EventsBoard />

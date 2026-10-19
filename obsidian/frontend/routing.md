@@ -27,6 +27,7 @@ export default function Page() { return <AboutView />; }
 | `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab | stable |
 | `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking` | stable |
 | `/renginiai` | `BookingPage` + `EventsBoard` | stable |
+| `/skaiciuokle` | `BookingPage` + `EventCalculator` | stable |
 
 Pages here compose components directly; there is no `views/` layer yet.
 

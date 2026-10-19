@@ -3,7 +3,7 @@ import { CableLoop } from "./cable-loop";
 
 export function Hero() {
   return (
-    <section className="grid gap-10 px-6 pb-16 pt-4 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-6 md:px-10 md:pb-24">
+    <section className="grid gap-10 px-6 pb-16 pt-4 md:px-10 md:pb-24 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-6">
       <div>
         <p className="mb-6 inline-block border border-ink px-4 py-2 text-xs uppercase">Kabelinis vandenlenčių parkas · Lietuva</p>
         <h1 className="font-display text-5xl font-bold leading-[1.02] sm:text-6xl xl:text-7xl">
@@ -24,7 +24,7 @@ export function Hero() {
           </a>
         </div>
       </div>
-      <CableLoop className="w-full" />
+      <CableLoop className="mx-auto w-full max-w-xl" />
     </section>
   );
 }

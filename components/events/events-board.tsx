@@ -31,7 +31,7 @@ export function EventsBoard() {
 
   return (
     <div>
-      <div role="group" aria-label="Renginių kategorijos" className="scrollbar-ink flex gap-2 overflow-x-auto pb-3">
+      <div role="group" aria-label="Renginių kategorijos" className="flex flex-wrap gap-2">
         {filters.map((f) => {
           const active = f.id === filter;
           return (
@@ -40,7 +40,7 @@ export function EventsBoard() {
               type="button"
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
-              className={`flex shrink-0 items-center gap-2 border border-ink px-4 py-2 text-sm uppercase transition-[color,background-color,transform] active:scale-[0.97] ${
+              className={`flex min-h-11 items-center gap-2 border border-ink px-4 text-sm uppercase transition-[color,background-color,transform] active:scale-[0.97] ${
                 active ? "bg-ink text-foam" : "text-ink hover:bg-dust-soft"
               }`}
             >

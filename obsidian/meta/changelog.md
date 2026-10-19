@@ -9,6 +9,38 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Responsive pass (375 / 768 / 1024 / 1280)
+
+- Audited every route for page overflow, horizontal scrollers, text spilling
+  out of its box, tap targets under 44 px and text under 12 px.
+- **Mobile nav:** below `lg` the header shows a menu button (`MobileMenu`,
+  Escape closes it) instead of hiding the nav entirely. Links come from
+  `NAV_LINKS`, which now also includes Miegas Marse. The inline nav starts at
+  `lg`, where all six links fit.
+- **Tap targets:** stepper buttons 28 → 44 px, header CTA, filter/preset
+  chips, `ArrowLink` and calendar buttons all `min-h-11`+.
+- **No sideways scrolling for choices:** Renginiai category chips wrap
+  instead of scrolling. Only the day strips scroll horizontally, on purpose.
+- **Layout:** homepage hero stacks until `lg` (no one-word-per-line headline
+  on tablets); Įranga / Papildomai stack until `lg`; equipment prices never
+  break mid-value; calculator space cards go one column at `lg` and two at
+  `xl`, with a wrapping header row.
+
+## 2026-10-19 — Event price calculator (/skaiciuokle)
+
+- New `/skaiciuokle` page: pick an event type (8 presets from the price
+  sheet), guests (adults + children 3–10), day type, space, catering,
+  drinks, services and activities; a live estimate shows a min–max total,
+  per-guest figure, the sheet's typical per-guest range, warnings and a
+  `mailto:` inquiry with the breakdown. Mobile gets a sticky total bar.
+- All prices come from the client's `Kainodara'26-'27.xlsx` and live in
+  `lib/event-pricing.ts` (see ADR-0004). Linked from the header nav and the
+  Renginiai page.
+- Known sheet inconsistencies, shown as ranges until the client confirms:
+  pirtininkas 100 € (space sheet) vs 200 € (terms sheet). The `/pirtis`
+  booking still uses placeholder hourly rates that differ from the sheet
+  (sheet: 70 €/h up to 6 ppl, 100 €/h 6–20 ppl, 350 € for 4 h).
+
 ## 2026-10-19 — Homepage moved to the live-site look
 
 - `theme-marse` now sits on `<body>`, so every route (homepage included)

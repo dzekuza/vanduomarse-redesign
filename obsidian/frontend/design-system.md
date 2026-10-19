@@ -42,6 +42,18 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
   (-moz-appearance: none)`, because Chrome ignores the pseudo-elements once
   `scrollbar-color` is set, and the build drops `@supports not selector(...)`.
 
+## Responsive rules
+
+- Breakpoints: mobile-first; two-column page layouts and the inline header
+  nav start at `lg` (1024). Tablets get the stacked layout and `MobileMenu`.
+- Every tap target is at least 44 px tall (`min-h-11` / `size-11`). Inline
+  text links in body copy are the only exception.
+- Choice sets wrap (`flex-wrap`) rather than scroll sideways; horizontal
+  scroll (`scrollbar-ink`) is reserved for long date strips.
+- Prices and other short values use `whitespace-nowrap` so they never break
+  mid-value; their row wraps instead.
+- Nav links live in `components/nav-links.ts` (`NAV_LINKS`).
+
 ## Scoped themes
 
 - `.theme-marse` — the live vanduomarse.lt look, applied site-wide on

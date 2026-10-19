@@ -10,6 +10,7 @@ primitives, reused across features.
 
 | Component | File | Purpose | Status |
 |-----------|------|---------|--------|
+| `MobileMenu` | `components/mobile-menu.tsx` | Below `lg`: 44 px menu button + full-width link panel under the sticky header; Escape closes | stable |
 | `ArrowLink` | `components/arrow-link.tsx` | Link version of the live-site CTA (dark block, thin arrow, uppercase); `sm`/`md` | stable |
 | `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-14/16, footer h-24) | stable |
 | `BookingPage` | `components/booking/booking-page.tsx` | Page shell: header, content, footer (theme now comes from `<body>`) | stable |
@@ -25,6 +26,11 @@ primitives, reused across features.
 | `EventsBoard` | `components/events/events-board.tsx` | Renginiai feed: category filter chips with counts, month-grouped `EventRow`s | stable |
 | `EventRow` | `components/events/event-row.tsx` | Date block, category tag, details, spots left, price and CTA link | stable |
 | `CategoryTag` | `components/events/category-tag.tsx` | Coloured uppercase chip per event category | stable |
+| `EventCalculator` | `components/calculator/event-calculator.tsx` | Price calculator form + sticky estimate; mobile total bar | stable |
+| `EstimateSummary` | `components/calculator/estimate-summary.tsx` | Grouped estimate lines, range total, per-guest, warnings, mailto inquiry | stable |
+| `SpacePicker` | `components/calculator/space-picker.tsx` | Venue cards with capacity/price for the day type; disables too-small spaces | stable |
+| `PresetPicker` | `components/calculator/preset-picker.tsx` | Event-type chips that pre-fill a typical setup | stable |
+| `OptionToggle` | `components/calculator/option-toggle.tsx` | Full-width on/off add-on row (`role="switch"`) with price hint | stable |
 | `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos: 2x2 lead tile plus four small tiles, hover zoom; one image goes full width | stable |
 | `MasterPicker` | `components/booking/master-picker.tsx` | Pirtininkas needed or not; shows add-on total for the chosen hours | stable |
 | `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times; disabled when the 2 h minimum does not fit | stable |

@@ -24,11 +24,11 @@ const EXTRAS: Item[] = [
 
 function Tile({ item }: { item: Item }) {
   return (
-    <div className="border border-ink bg-foam px-4 py-3">
+    <div className="flex flex-col justify-between border border-ink bg-foam px-3 py-3 sm:px-4">
       <p className="text-sm">{item.label}</p>
-      <div className="mt-2 flex items-baseline justify-between gap-2">
+      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
         {item.note ? <span className="text-xs text-ink/50">{item.note}</span> : <span />}
-        <span className="font-display text-lg font-bold">{item.price}</span>
+        <span className="font-display whitespace-nowrap text-base font-bold sm:text-lg">{item.price}</span>
       </div>
     </div>
   );
@@ -39,7 +39,7 @@ export function Equipment() {
     <section className="px-6 py-16 md:px-10 md:py-24">
       <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Įranga ir papildomai</h2>
       <p className="mt-3 max-w-md text-ink/70">Nuomai vietoje, jei savo įrangos neturi.</p>
-      <div className="mt-10 grid gap-10 md:grid-cols-2">
+      <div className="mt-10 grid gap-10 lg:grid-cols-2">
         <div>
           <p className="mb-3 text-sm font-semibold uppercase">Įranga</p>
           <div className="grid grid-cols-2 gap-2">

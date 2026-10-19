@@ -10,6 +10,28 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0004 — Event prices are estimated as ranges from the client's sheet
+
+- **Status:** Accepted
+- **Date:** 2026-10-19
+
+**Context.** The 2026–2027 price sheet mixes fixed prices with ranges
+(service fee 100–350 €, decor 150–250 €, cabins 50–60 €/night, drinks by
+brand) and minimum food-and-drink spends instead of rent for some spaces.
+
+**Decision.** `lib/event-pricing.ts` transcribes the sheet into typed data and
+a pure `estimate()` that carries a `Money { min, max }` range through every
+line. Minimum spend is modelled as a top-up line ("Iki minimalios
+sąskaitos") that shrinks as food and drinks are added. Prices include 21%
+PVM, as the sheet does. The result is an orientation, not an offer; the CTA
+sends the breakdown by email.
+
+**Consequences.** Updating prices means editing one file. When a backend or
+CMS exists, the same shapes can be fed from it. Ranges make totals honest
+but wider; the client can narrow them by fixing values in the sheet.
+
+---
+
 ## ADR-0003 — The live-brand theme is site-wide
 
 - **Status:** Accepted

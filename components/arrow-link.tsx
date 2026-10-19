@@ -8,8 +8,8 @@ interface ArrowLinkProps {
 }
 
 const SIZE = {
-  sm: { box: "gap-3 px-4 py-2 text-xs", icon: 18 },
-  md: { box: "gap-4 px-5 py-3 text-sm", icon: 22 },
+  sm: { box: "min-h-11 gap-3 px-4 text-xs", icon: 18 },
+  md: { box: "min-h-12 gap-4 px-5 text-sm", icon: 22 },
 };
 
 /** Link styled as the live-site CTA: dark block, thin arrow, uppercase label. */
