@@ -9,6 +9,32 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Admin: manual bookings (phone / walk-in)
+
+- **Rezervacijos → Nauja rezervacija** opens a form for bookings taken by
+  phone or on site: Pirtis / Namelis / Kemperis, date, guests, customer
+  (email optional), status, channel, internal note.
+- Sauna: only free start times and lengths are offered (existing bookings
+  and staff-closed hours respected, using the admin's sauna rules); active
+  upsells can be added. Cabins: rejected if every cabin is taken on any
+  night; guest limits per type. Price is computed from the admin's own rates
+  and upsells, with an optional manual override (discounts).
+- Bookings carry `source` (svetainė / telefonu / vietoje) and `note`; the
+  list tags phone/on-site bookings and the sheet shows both. A new booking
+  opens in the sheet after saving. Occupancy helpers moved to
+  `lib/admin/occupancy.ts` (shared by the grid and the form).
+- **Mobile admin navigation is a bottom tab bar** (`AdminBottomNav`, below
+  `lg`): Apžvalga, Rezervacijos, Užimtumas, Užklausos plus "Daugiau" (bottom
+  sheet: Renginiai, Pirtis, Kainodara, Į svetainę). Live count badges, 56 px
+  tabs, safe-area padding, `aria-current`. The sidebar and its toggle are
+  desktop-only now; the mobile header shows the badge logo. Content gets
+  bottom padding and toasts sit above the bar on phones.
+- All admin dialogs keep the title pinned at the top and the actions pinned
+  at the bottom while the form scrolls; footer buttons sit side by side on
+  phones instead of stacking (shared `components/ui/dialog.tsx`).
+- Overview KPI cards sit in a 2×2 grid on phones (4 across from `xl`); the
+  value steps down to `text-xl` so amounts like "12 655 €" stay on one line.
+
 ## 2026-10-19 — Admin: sauna rates, rules and upsells
 
 - New **Pirtis** admin section (`/admin/pirtis`): edit hourly rates

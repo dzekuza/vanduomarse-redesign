@@ -7,13 +7,15 @@ export interface AdminNavItem {
   icon: Icon;
   /** Store-driven count shown as a badge. */
   badge?: "pendingBookings" | "newInquiries";
+  /** Shown directly in the mobile bottom bar; the rest live under "Daugiau". */
+  primary?: boolean;
 }
 
 export const ADMIN_NAV: AdminNavItem[] = [
-  { href: "/admin", label: "Apžvalga", icon: ChartPieSliceIcon },
-  { href: "/admin/rezervacijos", label: "Rezervacijos", icon: CalendarCheckIcon, badge: "pendingBookings" },
-  { href: "/admin/uzimtumas", label: "Užimtumas", icon: CalendarDotsIcon },
-  { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, badge: "newInquiries" },
+  { href: "/admin", label: "Apžvalga", icon: ChartPieSliceIcon, primary: true },
+  { href: "/admin/rezervacijos", label: "Rezervacijos", icon: CalendarCheckIcon, badge: "pendingBookings", primary: true },
+  { href: "/admin/uzimtumas", label: "Užimtumas", icon: CalendarDotsIcon, primary: true },
+  { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, badge: "newInquiries", primary: true },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon },
   { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon },

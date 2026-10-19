@@ -12,6 +12,8 @@ export interface Customer {
 }
 
 export type BookingKind = "pirtis" | "namelis" | "kemperis";
+/** Where the booking came from; seeded/public ones are "svetaine". */
+export type BookingSource = "svetaine" | "telefonu" | "vietoje";
 export type BookingStatus = "laukia" | "patvirtinta" | "ivykdyta" | "atsaukta";
 
 export interface Booking {
@@ -31,6 +33,9 @@ export interface Booking {
   total: number;
   status: BookingStatus;
   createdAt: string;
+  source?: BookingSource;
+  /** Internal note from staff (manual bookings). */
+  note?: string;
 }
 
 /** Sauna hours closed by staff (maintenance, private use). */

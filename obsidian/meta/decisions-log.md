@@ -23,7 +23,7 @@ screens before committing to Supabase.
 `lib/admin/types.ts` (shaped like future rows) and deterministic seed data in
 `lib/admin/mock-data.ts`. All reads and writes go through `useAdmin()` from
 `components/admin/admin-store.tsx` (a reducer with named actions:
-`setBookingStatus`, `toggleBlock`, `setInquiryStatus`, `addInquiryNote`,
+`setBookingStatus`, `addBooking`, `toggleBlock`, `setInquiryStatus`, `addInquiryNote`,
 `saveEvent`, `deleteEvent`, `setEventPublished`, `updatePrices`,
 `updateSaunaRates`, `saveUpsell`, `deleteUpsell`). Seed prices
 are read from the same constants the public site uses.

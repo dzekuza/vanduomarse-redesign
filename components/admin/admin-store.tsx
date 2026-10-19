@@ -24,6 +24,7 @@ interface AdminState {
 
 type Action =
   | { type: "booking/status"; id: string; status: BookingStatus }
+  | { type: "booking/add"; booking: Booking }
   | { type: "block/toggle"; date: string; hour: number; reason: string }
   | { type: "inquiry/status"; id: string; status: InquiryStatus }
   | { type: "inquiry/note"; id: string; text: string }
@@ -39,6 +40,8 @@ function reducer(state: AdminState, action: Action): AdminState {
   switch (action.type) {
     case "booking/status":
       return { ...state, bookings: state.bookings.map((b) => (b.id === action.id ? { ...b, status: action.status } : b)) };
+    case "booking/add":
+      return { ...state, bookings: [...state.bookings, action.booking] };
     case "block/toggle": {
       const exists = state.blocks.some((b) => b.date === action.date && b.hour === action.hour);
       return {
@@ -103,6 +106,7 @@ function useAdminReducer() {
   const actions = useMemo(
     () => ({
       setBookingStatus: (id: string, status: BookingStatus) => dispatch({ type: "booking/status", id, status }),
+      addBooking: (booking: Booking) => dispatch({ type: "booking/add", booking }),
       toggleBlock: (date: string, hour: number, reason = "Uždaryta") => dispatch({ type: "block/toggle", date, hour, reason }),
       setInquiryStatus: (id: string, status: InquiryStatus) => dispatch({ type: "inquiry/status", id, status }),
       addInquiryNote: (id: string, text: string) => dispatch({ type: "inquiry/note", id, text }),

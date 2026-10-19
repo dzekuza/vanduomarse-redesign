@@ -1,5 +1,6 @@
 "use client";
 
+import { PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
@@ -7,9 +8,12 @@ import { BookingStatusBadge } from "../status-badge";
 import { BookingActions } from "./booking-actions";
 import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
-import { BOOKING_KIND } from "@/lib/admin/labels";
+import { NewBookingDialog } from "./new-booking-dialog";
+import { BOOKING_KIND, BOOKING_SOURCE } from "@/lib/admin/labels";
 import { bookingWhen, formatDay, formatEur } from "@/lib/admin/format";
 import { dateKey } from "@/lib/sauna";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -20,6 +24,7 @@ export function BookingsView() {
   const { bookings } = useAdmin();
   const [filters, setFilters] = useState(INITIAL);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const today = dateKey(new Date());
   const q = filters.query.trim().toLowerCase();
 
@@ -34,7 +39,15 @@ export function BookingsView() {
     });
 
   return (
-    <AdminPage title="Rezervacijos" description="Pirties seansai, nameliai ir kemperių aikštelės.">
+    <AdminPage
+      title="Rezervacijos"
+      description="Pirties seansai, nameliai ir kemperių aikštelės."
+      actions={
+        <Button onClick={() => setCreating(true)}>
+          <PlusIcon size={18} /> Nauja rezervacija
+        </Button>
+      }
+    >
       <BookingFilters value={filters} onChange={setFilters} />
       <Card className="py-0">
         <Table>
@@ -58,7 +71,14 @@ export function BookingsView() {
                 </TableCell>
                 <TableCell className="max-w-32 sm:max-w-none">
                   <p className="truncate">{b.customer.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{b.reference}</p>
+                  <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                    {b.reference}
+                    {b.source && b.source !== "svetaine" ? (
+                      <Badge variant="outline" className="px-1.5 py-0 text-xs">
+                        {b.source === "telefonu" ? "Tel." : BOOKING_SOURCE[b.source]}
+                      </Badge>
+                    ) : null}
+                  </p>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{BOOKING_KIND[b.kind]}</TableCell>
                 <TableCell className="hidden lg:table-cell">{b.guests}</TableCell>
@@ -77,6 +97,7 @@ export function BookingsView() {
       </Card>
       <p className="text-sm text-muted-foreground">Rodoma: {rows.length}</p>
       <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
+      {creating ? <NewBookingDialog onOpenChange={setCreating} onCreated={setOpenId} /> : null}
     </AdminPage>
   );
 }

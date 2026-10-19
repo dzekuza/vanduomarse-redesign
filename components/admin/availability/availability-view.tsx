@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { BookingSheet } from "../bookings/booking-sheet";
-import { daysFrom } from "./occupancy";
+import { daysFrom } from "@/lib/admin/occupancy";
 import { SaunaGrid } from "./sauna-grid";
 import { StaysStrip } from "./stays-strip";
 import { useIsMobile } from "@/hooks/use-mobile";

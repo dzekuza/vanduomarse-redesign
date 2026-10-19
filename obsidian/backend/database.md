@@ -19,7 +19,7 @@ No database yet (ADR-0005). Planned tables, mirroring `lib/admin/types.ts`:
 
 | Table | Purpose | RLS policy summary |
 |-------|---------|--------------------|
-| `bookings` | Sauna sessions and stays (kind, customer, date, start/hours or nights, extras, total, status) | public insert via server action only; admin read/write |
+| `bookings` | Sauna sessions and stays (kind, customer, date, start/hours or nights, extras, total, status, source: svetaine/telefonu/vietoje, note) | public insert via server action only; admin read/write |
 | `sauna_blocks` | Hours closed by staff | public read (availability); admin write |
 | `inquiries` + `inquiry_notes` | Event inquiries and follow-ups | public insert via server action; admin read/write |
 | `events` | Park events and public sauna sessions | public read where `published`; admin write |

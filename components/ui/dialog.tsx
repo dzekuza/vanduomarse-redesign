@@ -66,12 +66,11 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
         {showCloseButton && (
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
+              className="sticky top-0 z-20 -mb-14 justify-self-end"
               size="icon-sm"
             >
               <XIcon
@@ -80,6 +79,7 @@ function DialogContent({
             </Button>
           </DialogPrimitive.Close>
         )}
+        {children}
       </DialogPrimitive.Content>
     </DialogPortal>
   )
@@ -89,7 +89,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("sticky -top-4 z-10 -mx-4 -mt-4 flex flex-col gap-2 bg-popover px-4 pt-4 pr-14 pb-2", className)}
       {...props}
     />
   )
@@ -107,7 +107,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "sticky -bottom-4 z-10 -mx-4 -mb-4 flex flex-row justify-end gap-2 border-t bg-muted p-4 *:flex-1 sm:*:flex-none",
         className
       )}
       {...props}

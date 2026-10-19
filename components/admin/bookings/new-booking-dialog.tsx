@@ -1,0 +1,177 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
+import { useAdmin } from "../admin-store";
+import { FormField } from "../form-field";
+import { BookingCustomerFields } from "./booking-customer-fields";
+import { BookingExtrasFields } from "./booking-extras-fields";
+import { BookingWhenFields } from "./booking-when-fields";
+import { STAY_MAX_GUESTS, newBookingSchema, type NewBookingValues } from "./new-booking-schema";
+import { formatEur } from "@/lib/admin/format";
+import { freeHoursFrom, freeStartHours, fullCabinNights, nextReference } from "@/lib/admin/occupancy";
+import { ROOM_TYPES } from "@/lib/cabin";
+import { dateKey, sessionPrice } from "@/lib/sauna";
+import { upsellSummary, upsellTotal } from "@/lib/sauna-upsells";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface NewBookingDialogProps {
+  onOpenChange: (open: boolean) => void;
+  /** Called with the new booking's id so the list can open it. */
+  onCreated: (id: string) => void;
+}
+
+const range = (from: number, to: number) => (to < from ? [] : Array.from({ length: to - from + 1 }, (_, i) => from + i));
+
+/** Staff-entered booking (phone or walk-in): free slots only, price from admin rates. */
+export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogProps) {
+  const { bookings, blocks, saunaRates, upsells, prices, addBooking } = useAdmin();
+  const [extras, setExtras] = useState<Record<string, number>>({});
+  const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
+    resolver: zodResolver(newBookingSchema),
+    defaultValues: {
+      kind: "pirtis",
+      date: dateKey(new Date()),
+      startHour: "",
+      hours: "",
+      nights: "1",
+      guests: "2",
+      name: "",
+      phone: "",
+      email: "",
+      status: "patvirtinta",
+      source: "telefonu",
+      priceOverride: "",
+      note: "",
+    },
+  });
+  const [kind, date, startHour, hours, nights, guests, priceOverride] = useWatch({
+    control,
+    name: ["kind", "date", "startHour", "hours", "nights", "guests", "priceOverride"],
+  });
+  const err = formState.errors;
+  const party = Number(guests) || 0;
+  const sauna = kind === "pirtis";
+
+  const starts = sauna && date ? freeStartHours(bookings, blocks, saunaRates, date) : [];
+  const run = sauna && startHour ? freeHoursFrom(bookings, blocks, saunaRates, date, Number(startHour)) : 0;
+  const lengths = range(saunaRates.minHours, run);
+  const maxGuests = sauna ? saunaRates.maxParty : STAY_MAX_GUESTS[kind];
+
+  const extrasCtx = { partySize: party, hours: Number(hours) || 0 };
+  const stayRate = sauna ? 0 : (prices.find((p) => p.id === `room-${kind}`)?.value ?? ROOM_TYPES.find((r) => r.id === kind)!.pricePerNight);
+  const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
+  const computed = sauna ? (hours ? sessionPrice(Number(hours), party, saunaRates) : 0) + extrasPrice : stayRate * (Number(nights) || 0);
+  const total = priceOverride ? Number(priceOverride) : computed;
+
+  const resetSlot = () => {
+    setValue("startHour", "");
+    setValue("hours", "");
+  };
+
+  const submit = handleSubmit((v) => {
+    if (party > maxGuests) return setError("guests", { message: `Daugiausia ${maxGuests} žm.` });
+    if (sauna && freeHoursFrom(bookings, blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
+      return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
+    if (kind === "namelis") {
+      const full = fullCabinNights(bookings, v.date, Number(v.nights));
+      if (full.length) return setError("nights", { message: `Visi nameliai užimti: ${full.join(", ")}` });
+    }
+    const id = `b-${crypto.randomUUID()}`;
+    const reference = nextReference(bookings, sauna ? "PM" : "MM");
+    addBooking({
+      id,
+      reference,
+      kind: v.kind,
+      customer: { name: v.name, phone: v.phone, email: v.email },
+      date: v.date,
+      ...(sauna ? { startHour: Number(v.startHour), hours: Number(v.hours) } : { nights: Number(v.nights) }),
+      guests: party,
+      extras: sauna ? upsellSummary(upsells.filter((u) => u.active), extras) : [],
+      total,
+      status: v.status,
+      createdAt: new Date().toISOString(),
+      source: v.source,
+      note: v.note || undefined,
+    });
+    toast.success(`${reference} sukurta`);
+    onOpenChange(false);
+    onCreated(id);
+  });
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92svh] overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Nauja rezervacija</DialogTitle>
+          <DialogDescription>Kai klientas skambina ar atvyksta. Rodomi tik laisvi laikai.</DialogDescription>
+        </DialogHeader>
+        <form id="new-booking" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+          <Tabs
+            value={kind}
+            onValueChange={(k) => {
+              setValue("kind", k as NewBookingValues["kind"]);
+              resetSlot();
+              setExtras({});
+            }}
+            className="sm:col-span-2"
+          >
+            <TabsList className="w-full">
+              <TabsTrigger value="pirtis">Pirtis</TabsTrigger>
+              <TabsTrigger value="namelis">Namelis</TabsTrigger>
+              <TabsTrigger value="kemperis">Kemperis</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <BookingWhenFields
+            control={control}
+            register={register}
+            errors={err}
+            kind={kind}
+            starts={starts}
+            lengths={lengths}
+            maxGuests={maxGuests}
+            onDateChange={resetSlot}
+            onStartChange={() => setValue("hours", "")}
+          />
+
+          {sauna ? (
+            <BookingExtrasFields
+              upsells={upsells}
+              quantities={extras}
+              onChange={(id, q) => setExtras((e) => ({ ...e, [id]: q }))}
+              {...extrasCtx}
+            />
+          ) : null}
+
+          <BookingCustomerFields control={control} register={register} errors={err} />
+          <FormField
+            id="nb-price"
+            label="Kita kaina, €"
+            error={err.priceOverride?.message}
+            hint={`Apskaičiuota: ${formatEur(computed)}. Palikite tuščią.`}
+            className="sm:col-span-2"
+          >
+            <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
+          </FormField>
+        </form>
+        <DialogFooter className="items-center justify-between *:flex-none">
+          <p className="font-display text-2xl font-bold">{formatEur(total)}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Atšaukti
+            </Button>
+            <Button type="submit" form="new-booking">
+              Sukurti
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

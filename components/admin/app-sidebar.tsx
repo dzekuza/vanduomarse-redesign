@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ADMIN_NAV, activeNavItem } from "./admin-nav";
-import { useAdmin } from "./admin-store";
+import { useNavCounts } from "./use-nav-counts";
 import {
   Sidebar,
   SidebarContent,
@@ -24,12 +24,8 @@ import {
 export function AppSidebar() {
   const pathname = usePathname();
   const active = activeNavItem(pathname);
-  const { bookings, inquiries } = useAdmin();
+  const counts = useNavCounts();
   const { setOpenMobile } = useSidebar();
-  const counts = {
-    pendingBookings: bookings.filter((b) => b.status === "laukia").length,
-    newInquiries: inquiries.filter((q) => q.status === "nauja").length,
-  };
 
   return (
     <Sidebar collapsible="icon">

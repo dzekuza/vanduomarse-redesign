@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdminBottomNav } from "@/components/admin/admin-bottom-nav";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminStoreProvider } from "@/components/admin/admin-store";
 import { AppSidebar } from "@/components/admin/app-sidebar";
@@ -19,10 +20,11 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           <AppSidebar />
           <SidebarInset className="min-w-0 bg-background">
             <AdminHeader />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pb-24 lg:pb-0">{children}</main>
           </SidebarInset>
+          <AdminBottomNav />
         </SidebarProvider>
-        <Toaster theme="light" position="bottom-right" />
+        <Toaster theme="light" position="bottom-right" mobileOffset={{ bottom: 96 }} />
       </TooltipProvider>
     </AdminStoreProvider>
   );

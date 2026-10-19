@@ -1,9 +1,15 @@
-import type { BookingKind, BookingStatus, InquirySource, InquiryStatus } from "./types";
+import type { BookingKind, BookingSource, BookingStatus, InquirySource, InquiryStatus } from "./types";
 
 export const BOOKING_KIND: Record<BookingKind, string> = {
   pirtis: "Pirtis",
   namelis: "Namelis",
   kemperis: "Kemperis",
+};
+
+export const BOOKING_SOURCE: Record<BookingSource, string> = {
+  svetaine: "Svetainė",
+  telefonu: "Telefonu",
+  vietoje: "Vietoje",
 };
 
 export const BOOKING_STATUS: Record<BookingStatus, string> = {

@@ -19,7 +19,9 @@ with I/O or client state belongs in `lib/` or a hook instead.
 | `parkEvents` / `monthHeading` | `lib/park-events.ts` | `(from: Date, days?: number) => ParkEvent[]` / `(date) => string` | Merged park + sauna event feed; "Spalis 2026" headings |
 | `formatDay` / `formatDateTime` / `formatEur` / `bookingWhen` | `lib/admin/format.ts` | `(yyyy-mm-dd) => string` etc. | Admin date and money formatting in site wording |
 | `seedBookings` / `seedInquiries` / `seedEvents` / `seedPrices` | `lib/admin/mock-data.ts` | `(today: Date) => T[]` | Deterministic demo data for the admin store |
+| `useNavCounts` | `components/admin/use-nav-counts.ts` | `() => { pendingBookings, newInquiries }` | Badge counts shared by sidebar and bottom bar |
 | `useIsMobile` | `hooks/use-mobile.ts` | `(breakpoint = 768) => boolean` | Media-query hook (`useSyncExternalStore`) |
+| `saunaBookingAt` / `staysOn` / `freeStartHours` / `freeHoursFrom` / `fullCabinNights` / `nextReference` | `lib/admin/occupancy.ts` | `(bookings, blocks?, rates?, day, …)` | Admin availability: who holds a slot, free starts and run length, full cabin nights, next PM-/MM- number |
 | `upsellTotal` / `upsellMax` / `upsellSummary` | `lib/sauna-upsells.ts` | `(upsell, qty, {partySize, hours}) => number` etc. | Price and describe sauna extras by unit |
 | `upcomingEvents` | `lib/sauna-events.ts` | `(from: Date, days: number) => SaunaEvent[]` | Expand weekly public sessions into dated events |
 

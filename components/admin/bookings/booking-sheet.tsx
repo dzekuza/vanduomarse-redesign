@@ -3,7 +3,7 @@
 import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { ACTION_LABEL, NEXT_STATUSES, useBookingStatus } from "./booking-actions";
 import { BookingStatusBadge } from "../status-badge";
-import { BOOKING_KIND } from "@/lib/admin/labels";
+import { BOOKING_KIND, BOOKING_SOURCE } from "@/lib/admin/labels";
 import { bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
 import type { Booking } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
                 ["Svečiai", `${booking.guests} asm.`],
                 ["Priedai", booking.extras.length ? booking.extras.join(", ") : "-"],
                 ["Suma", formatEur(booking.total)],
+                ["Šaltinis", BOOKING_SOURCE[booking.source ?? "svetaine"]],
               ].map(([k, v]) => (
                 <div key={k}>
                   <dt className="text-muted-foreground">{k}</dt>
@@ -45,13 +46,16 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
             </dl>
             <div className="mx-4 space-y-2 border-t pt-4 text-sm">
               <p className="font-medium">{booking.customer.name}</p>
-              <a href={`mailto:${booking.customer.email}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
-                <EnvelopeSimpleIcon size={18} /> {booking.customer.email}
-              </a>
+              {booking.customer.email ? (
+                <a href={`mailto:${booking.customer.email}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
+                  <EnvelopeSimpleIcon size={18} /> {booking.customer.email}
+                </a>
+              ) : null}
               <a href={`tel:${booking.customer.phone.replace(/\s/g, "")}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
                 <PhoneIcon size={18} /> {booking.customer.phone}
               </a>
             </div>
+            {booking.note ? <blockquote className="mx-4 border-l-2 border-rust pl-3 text-sm">{booking.note}</blockquote> : null}
             <SheetFooter className="flex-col gap-2 sm:flex-col">
               {NEXT_STATUSES[booking.status].map((s) => (
                 <Button key={s} variant={s === "atsaukta" ? "destructive" : s === "patvirtinta" ? "default" : "outline"} onClick={() => change(booking, s)}>

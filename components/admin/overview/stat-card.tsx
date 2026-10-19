@@ -12,12 +12,12 @@ interface StatCardProps {
 export function StatCard({ label, value, hint, icon: Icon }: StatCardProps) {
   return (
     <Card className="gap-2">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-start justify-between gap-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon size={20} className="text-rust" />
+        <Icon size={20} className="shrink-0 text-rust" />
       </CardHeader>
       <CardContent>
-        <p className="font-display text-3xl font-bold">{value}</p>
+        <p className="font-display whitespace-nowrap text-xl font-bold sm:text-3xl">{value}</p>
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>

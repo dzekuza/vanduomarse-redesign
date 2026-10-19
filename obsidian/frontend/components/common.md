@@ -14,8 +14,12 @@ primitives, reused across features.
 | `ArrowLink` | `components/arrow-link.tsx` | Link version of the live-site CTA (dark block, thin arrow, uppercase); `sm`/`md` | stable |
 | `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-14/16, footer h-24) | stable |
 | `AdminStoreProvider` / `useAdmin` | `components/admin/admin-store.tsx` | In-memory admin data + actions (ADR-0005) | stable |
-| `AppSidebar` / `AdminHeader` / `AdminPage` | `components/admin/` | Admin shell: nav with live badges, sticky top bar, page heading | stable |
+| `AppSidebar` / `AdminHeader` / `AdminPage` | `components/admin/` | Admin shell: desktop sidebar with live badges, sticky top bar (badge logo below `lg`), page heading | stable |
+| `AdminBottomNav` | `components/admin/admin-bottom-nav.tsx` | Below `lg`: fixed bottom tab bar (items with `primary` in `ADMIN_NAV`) + "Daugiau" bottom sheet for the rest | stable |
 | `BookingsView` / `BookingSheet` / `BookingActions` | `components/admin/bookings/` | Filters, table, status transitions, details | stable |
+| `NewBookingDialog` | `components/admin/bookings/new-booking-dialog.tsx` | Staff-entered booking: free slots only, live price, override, conflict checks | stable |
+| `BookingWhenFields` / `BookingCustomerFields` / `BookingExtrasFields` | `components/admin/bookings/` | Sections of the manual booking form (slot or nights; contact/status/note; sauna extras) | stable |
+| `FormField` | `components/admin/form-field.tsx` | Label + control + inline error/hint for admin forms | stable |
 | `AvailabilityView` / `SaunaGrid` / `StaysStrip` | `components/admin/availability/` | Week (or day, on phones) sauna grid with close/reopen; cabin occupancy | stable |
 | `InquiriesView` / `InquirySheet` / `NoteForm` | `components/admin/inquiries/` | Status chips, cards, sheet with status + notes | stable |
 | `EventsView` / `EventDialog` / `DeleteEventDialog` | `components/admin/events/` | Events table, RHF+Zod create/edit, delete confirm | stable |

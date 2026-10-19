@@ -18,7 +18,7 @@ files are listed in the last column; re-running `shadcn add` would overwrite the
 | Breadcrumb | `components/ui/breadcrumb.tsx` | composable parts | — |
 | Button | `components/ui/button.tsx` | `variant`, `size`, `asChild` | sizes raised: default h-11, sm h-10, lg h-12, icon 44/40/48 |
 | Card | `components/ui/card.tsx` | Header/Title/Description/Content/Footer | — |
-| Dialog | `components/ui/dialog.tsx` | controlled `open` | — |
+| Dialog | `components/ui/dialog.tsx` | controlled `open` | header and footer `sticky` (offset by the content padding) so long forms keep title and actions in view; footer buttons in one row on phones (equal width), right-aligned from `sm`; close button sticks in the header |
 | DropdownMenu | `components/ui/dropdown-menu.tsx` | Radix menu parts | — |
 | Input | `components/ui/input.tsx` | native input props | h-11, `bg-card` |
 | Label | `components/ui/label.tsx` | `htmlFor` | — |

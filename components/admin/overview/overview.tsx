@@ -34,7 +34,7 @@ export function Overview() {
 
   return (
     <AdminPage title="Apžvalga" description="Šiandienos darbai, laukiantys sprendimai ir artimiausi renginiai.">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Šiandien" value={String(todays.length)} hint={`Pirties užimtumas 7 d.: ${occupancy}%`} icon={CalendarCheckIcon} />
         <StatCard label="Laukia patvirtinimo" value={String(pending.length)} hint="Rezervacijos be atsakymo" icon={HourglassIcon} />
         <StatCard label="Naujos užklausos" value={String(fresh.length)} hint="Renginiai ir skaičiuoklė" icon={EnvelopeSimpleIcon} />

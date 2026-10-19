@@ -1,7 +1,7 @@
 "use client";
 
 import { useAdmin } from "../admin-store";
-import { staysOn } from "./occupancy";
+import { staysOn } from "@/lib/admin/occupancy";
 import { CABIN_COUNT } from "@/lib/admin/labels";
 import { formatDay } from "@/lib/admin/format";
 

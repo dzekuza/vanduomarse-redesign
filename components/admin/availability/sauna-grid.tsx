@@ -2,7 +2,7 @@
 
 import { LockSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 import { useAdmin } from "../admin-store";
-import { saunaBookingAt } from "./occupancy";
+import { saunaBookingAt } from "@/lib/admin/occupancy";
 import { formatDay } from "@/lib/admin/format";
 import { CLOSE_HOUR, OPEN_HOUR, formatHour } from "@/lib/sauna";
 
