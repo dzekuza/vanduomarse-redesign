@@ -10,6 +10,28 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0006 — Termina webfont self-hosted with next/font/local
+
+- **Status:** Accepted
+- **Date:** 2026-10-19
+
+**Context.** ADR-0002/0003 used Archivo at 125% width as a stand-in for the
+live site's licensed Termina face. The client has now supplied the Termina
+OTF files.
+
+**Decision.** Ship only `Termina-Regular.otf` (400) and `Termina-Bold.otf`
+(700) from `app/fonts/`, loaded with `next/font/local` as `--font-termina`.
+`font-sans`, `font-heading` and the `theme-marse` display face point at it;
+`--display-stretch` drops to 100% since Termina is wide by design. Inside
+`theme-marse`, `h1`–`h6` are set to 700 in the base layer.
+
+**Consequences.** Two files instead of nine keep the payload small; any
+`font-medium` renders Regular and `font-semibold` renders Bold, by CSS weight
+matching. The font files are committed, so the licence must cover web
+embedding on vanduomarse.lt. Archivo is no longer loaded.
+
+---
+
 ## ADR-0005 — Admin dashboard ships UI-first on an in-memory store
 
 - **Status:** Accepted

@@ -1,13 +1,5 @@
+import { CONTACTS } from "@/lib/contacts";
 import { BrandLogo } from "./brand-logo";
-
-const CONTACTS = [
-  { name: "Vanduo Marse", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
-  { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" },
-  { name: "Miegas Marse", email: "miegas@vanduomarse.lt", phone: "+370 630 80 444" },
-  { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" },
-  { name: "Marso Akademija", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
-  { name: "Boardsports Shop", email: "hello@boardsports.lt", phone: "+370 695 55555", href: "https://boards.lt" },
-];
 
 export function SiteFooter() {
   return (

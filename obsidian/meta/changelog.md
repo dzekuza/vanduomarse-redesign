@@ -9,6 +9,92 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-19 — Home: hero redesign
+
+- Audit of the old hero: the cable-loop SVG floated as a faint dotted outline
+  with no frame, so the right half read as empty; the park's numbers were
+  buried in a paragraph; the boxed eyebrow wrapped awkwardly at 375 px; the
+  "Visos zonos" link was under 44 px.
+- Now a 7/5 split from `lg`: copy left, `TrackPanel` right, an ink block
+  with the loop drawn in foam and the numbers (620 m, 6 bokštai, 17 kliūčių,
+  8 raiteliai vienu metu) as a scannable `dl`. The panel gives the hero a
+  visual anchor until real photography lands.
+- Eyebrow is a rust tick + text (no box); "Visos zonos" is a 44 px link.
+- Load-in: blocks fade up in a 0–500 ms cascade (`tw-animate-css`,
+  `motion-safe:` only); the orbiting rider stays the one looping motion.
+- `CableLoop` draws in `currentColor` so the parent sets its tone.
+
+## 2026-10-19 — Admin: export bookings to CSV
+
+- `/admin/rezervacijos` has an **Eksportuoti** button (outline, 44 px) that
+  downloads the rows currently shown — kind, time, status and search filters
+  all apply — as `rezervacijos-YYYY-MM-DD.csv`. Disabled when nothing matches.
+- Built for Lithuanian Excel: UTF-8 with BOM, `;` separator, `1234,50` amounts,
+  Lithuanian headers. Dates are `2026-10-19` / `2026-10-19 14:05` rather than
+  the UI's "Pr, 19 Spalio" so they keep the year and sort in Excel.
+- Cells starting with `=`, `@` or a non-numeric `+`/`-` get a leading `'`
+  (names and notes come from public forms); phone numbers stay untouched.
+- CSV building is pure (`lib/admin/export.ts`); the browser download is
+  `lib/download.ts`. Reads only from `useAdmin()` via the view's filtered rows.
+
+## 2026-10-19 — Contact bar above the header
+
+- New `ContactBar` (dark strip) above the sticky header on every public page:
+  +370 630 80 444 (tap to call), info@vanduomarse.lt and a map link.
+- Contact details moved out of `SiteFooter` into `lib/contacts.ts`, now
+  shared by the bar, footer and `FindUs` (map URL), so they change in one place.
+
+## 2026-10-19 — Pirtis: group price wording
+
+- Feedback "price doesn't change for 7+ people" is the sheet's rule: the
+  hourly rate is per group in two bands (≤6 asm. 70 €/val., 7–20 asm.
+  100 €/val.), so 7 and 20 people pay the same. Kept, per the owner.
+- The Grupė step now shows "Jūsų grupei – N €/val. už visą pirtį", which
+  updates with the stepper, and the hint says "Kaina visai grupei, ne žmogui".
+
+## 2026-10-19 — Sticker dock for the zones
+
+- New `StickerDock` in the root layout: the brand-kit zone stickers
+  (`public/brand/sticker-{vanduo,akademija,skoniai,miegas}.svg`) as a sticky
+  bottom menu. Phones/tablets: full-width bar; from `lg`: a floating dock that
+  hugs the stickers, 24 px above the edge. A spacer keeps the footer clear.
+  Background is frosted glass: half-transparent blush paper with a strong
+  backdrop blur, so the page shows through softly.
+- Akademija and Skoniai have no pages yet, so they link to `/#akademija` and
+  `/#skoniai` (new anchors on the `MissionPatches` cards). Pirtis and
+  Renginiai have no sticker in the kit.
+- Not shown in `/admin` (own bottom bar) or below `lg` on `/skaiciuokle`
+  (calculator total bar).
+- `/miegas` facts: "Iki 6 vienam nameliui" → "Nameliai 2 arba 4 asmenims".
+
+## 2026-10-19 — Home: zones section on white
+
+- "Šeši Marso sektoriai" (`MissionPatches`, `#zonos`) sits on `bg-card`
+  (warm white `#fffaf7`) to break up the blush page. No pure-white token
+  exists; `--card` is the brand's white.
+
+## 2026-10-19 — Real Termina font replaces the Archivo stand-in
+
+- Termina Regular + Bold (client-supplied OTFs) now load from `app/fonts/`
+  via `next/font/local`; headings are Bold, body text Regular, site-wide and
+  in `/admin`. Archivo dropped. See ADR-0006.
+- Checked all public routes and `/admin/rezervacijos` at 375 px: no page-level
+  horizontal scroll. Note: a stale Turbopack cache kept serving the old CSS
+  until `.next` was cleared.
+
+## 2026-10-19 — Miegas: 2- or 4-person cabins, free count per day
+
+- `/miegas` booking: choosing **Namelis** now asks for the size (2 or 4
+  asmenims). Guests are capped at the size; the tile reads "nuo 50 €".
+- Each arrival day shows **"liko N"**: cabins of any size free for every
+  night of the chosen stay. Full days and booked-out sizes are disabled; a
+  booked-out preferred size falls back to the other one.
+- Prices: the sheet's "cabins 50–60 €/night" is read as **50 € double, 60 €
+  quad** (was a flat 65 €). Needs confirming with the client.
+- Public availability is still deterministic pseudo-data in `lib/cabin.ts`
+  (like the sauna), not the admin store. Admin bookings don't record the
+  cabin size yet; `CABIN_COUNT` is now derived from `CABIN_SIZES` (14).
+
 ## 2026-10-19 — Agent files and docs brought in line with the code
 
 - `AGENTS.md` (loaded by `CLAUDE.md` and `.cursorrules`) now carries the

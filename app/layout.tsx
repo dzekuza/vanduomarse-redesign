@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { Archivo, Big_Shoulders, Work_Sans } from "next/font/google";
+import { Big_Shoulders, Work_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import { StickerDock } from "@/components/sticker-dock";
 import { cn } from "@/lib/utils";
 
 const bigShoulders = Big_Shoulders({
@@ -15,12 +17,13 @@ const workSans = Work_Sans({
   weight: ["400", "500", "600"],
 });
 
-// Stand-in for Termina (the live vanduomarse.lt face, licensed). Archivo's width
-// axis gets close to Termina's wide stance; used site-wide by `theme-marse`.
-const archivo = Archivo({
-  variable: "--font-archivo",
-  subsets: ["latin", "latin-ext"],
-  axes: ["wdth"],
+// Termina, the live vanduomarse.lt face (licensed): Bold for headings, Regular for text.
+const termina = localFont({
+  variable: "--font-termina",
+  src: [
+    { path: "./fonts/Termina-Regular.otf", weight: "400", style: "normal" },
+    { path: "./fonts/Termina-Bold.otf", weight: "700", style: "normal" },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -31,8 +34,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="lt" className={cn("h-full antialiased font-sans", bigShoulders.variable, workSans.variable, archivo.variable)}>
-      <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">{children}</body>
+    <html lang="lt" className={cn("h-full antialiased font-sans", bigShoulders.variable, workSans.variable, termina.variable)}>
+      <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">
+        {children}
+        <StickerDock />
+      </body>
     </html>
   );
 }

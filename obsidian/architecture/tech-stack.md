@@ -51,7 +51,7 @@ No backend yet: admin runs on an in-memory store (ADR-0005). Supabase planned.
 |---------|---------|-------------|
 | TanStack Query | No server data yet | Add with the Supabase backend |
 | i18n library | Single language (LT) for now | Inline Lithuanian copy, constants for repeated strings |
-| Geist font (shadcn default) | Off-brand | Archivo (wide) via `font-sans` |
+| Geist font (shadcn default) | Off-brand | Termina (licensed, local files) via `font-sans` |
 | Zustand / Redux | One admin store is enough | `useReducer` + context (`AdminStoreProvider`) |
 
 ## Related

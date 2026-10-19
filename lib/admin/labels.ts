@@ -1,3 +1,4 @@
+import { CABIN_TOTAL } from "@/lib/cabin";
 import type { BookingKind, BookingSource, BookingStatus, InquirySource, InquiryStatus } from "./types";
 
 export const BOOKING_KIND: Record<BookingKind, string> = {
@@ -33,5 +34,5 @@ export const INQUIRY_SOURCE: Record<InquirySource, string> = {
   kontaktai: "Kontaktai",
 };
 
-/** Cabin stock from the price sheet: 8 doubles + 6 quads, 40 beds. */
-export const CABIN_COUNT = 14;
+/** Cabin stock from the price sheet (see `CABIN_SIZES`). */
+export const CABIN_COUNT = CABIN_TOTAL;

@@ -2,7 +2,7 @@
 
 import { Receipt } from "./receipt";
 import { VENUE } from "@/lib/calendar";
-import { ROOM_TYPES, type RoomTypeId } from "@/lib/cabin";
+import { roomLabel, type CabinSize, type RoomTypeId } from "@/lib/cabin";
 import { longDateLabel } from "@/lib/sauna";
 
 interface CabinConfirmationProps {
@@ -11,12 +11,13 @@ interface CabinConfirmationProps {
   nights: number;
   guests: number;
   roomId: RoomTypeId;
+  size: CabinSize;
   total: number;
   onReset: () => void;
 }
 
-export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, total, onReset }: CabinConfirmationProps) {
-  const room = ROOM_TYPES.find((r) => r.id === roomId)!;
+export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, size, total, onReset }: CabinConfirmationProps) {
+  const label = roomLabel(roomId, size);
   const checkOut = new Date(checkIn);
   checkOut.setDate(checkOut.getDate() + nights);
 
@@ -27,12 +28,12 @@ export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, 
       rows={[
         { label: "Atvykimas", value: longDateLabel(checkIn) },
         { label: "Išvykimas", value: longDateLabel(checkOut) },
-        { label: "Tipas", value: room.label },
+        { label: "Tipas", value: label },
         { label: "Svečiai", value: `${guests} žm.` },
       ]}
       total={total}
       calendar={{
-        title: `Miegas Marse: ${room.label}`,
+        title: `Miegas Marse: ${label}`,
         start: checkIn,
         end: checkOut,
         details: `Rezervacija ${reference}. Svečiai: ${guests} žm.`,
