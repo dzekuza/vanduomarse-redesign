@@ -1,6 +1,6 @@
 ---
 tags: [backend, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # API Architecture
@@ -31,7 +31,7 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | Action | File | Purpose | Validation |
 |--------|------|---------|------------|
-| — | — | None yet. Planned: create booking / inquiry (public), and one per admin store action (ADR-0005) | Zod, reusing the admin form schemas |
+| — | — | None yet. Planned: create booking / ticket / inquiry (public, service role, recompute the price server-side), and one per admin store action (ADR-0005). Map SQLSTATE `23P01` to a field error — see [[database]] | Zod, reusing the admin form schemas |
 
 ## Related
 

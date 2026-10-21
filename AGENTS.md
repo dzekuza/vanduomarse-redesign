@@ -53,6 +53,7 @@ architectural choices).
 | Domain logic & data | `lib/` (`lib/admin/` for dashboard models, mock data, occupancy) |
 | Hooks | `hooks/` |
 | Brand assets | `public/brand/` |
+| Database (not connected yet) | `supabase/migrations/`, demo `supabase/seed.sql` — see `obsidian/backend/database.md` |
 
 ## Commands
 

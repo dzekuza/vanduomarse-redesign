@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Folder Structure
@@ -25,6 +25,7 @@ hooks/                  ← shared hooks — catalog: [[hooks]]
 lib/                    ← business rules, prices, data generators — catalog: [[utils]]
 └── admin/              ← admin models, labels, mock data, occupancy, formatting
 public/brand/           ← logo badge, zone stickers (sticker-*.svg)
+supabase/               ← config.toml, migrations/, seed.sql (demo) — see [[database]]
 obsidian/               ← this vault
 ```
 

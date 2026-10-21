@@ -1,6 +1,6 @@
 ---
 tags: [meta, changelog]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Changelog
@@ -8,6 +8,19 @@ updated: 2026-10-19
 Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
+
+## 2026-10-22 — Supabase migrations prepared (not connected)
+
+- `supabase/` added with `config.toml`, four migrations and a demo `seed.sql`.
+  They're ready to push to a fresh project, and nothing in the app uses them yet.
+- The database itself rules out double-booked sauna hours, booking over staff
+  blocks, overselling cabins by size and overselling event tickets. RLS keeps
+  customer data staff-only, and public pages get availability through two
+  functions instead.
+- Data audit found the cabin size missing on bookings, cabin prices charged per
+  guest in the calculator but per cabin in booking, no contact details in the
+  public flows and fake public availability. Listed in [[database]].
+- Checked in PGlite with 32 passing checks. Not yet run on real Supabase.
 
 ## 2026-10-19 — Home: hero redesign
 

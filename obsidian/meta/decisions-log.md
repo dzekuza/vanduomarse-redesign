@@ -1,6 +1,6 @@
 ---
 tags: [meta, decision]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Decisions Log (ADRs)
@@ -29,6 +29,38 @@ OTF files.
 `font-medium` renders Regular and `font-semibold` renders Bold, by CSS weight
 matching. The font files are committed, so the licence must cover web
 embedding on vanduomarse.lt. Archivo is no longer loaded.
+
+---
+
+## ADR-0006 — Supabase schema enforces booking rules in the database
+
+- **Status:** Accepted
+- **Date:** 2026-10-22
+
+**Context.** The admin store (ADR-0005) is ready to move to Supabase, and the
+owner wants clean migrations prepared now and connected later. Double-booking
+the sauna or overselling cabins and tickets must be impossible even when two
+customers submit at once.
+
+**Decision.** `supabase/migrations/` holds four migrations: schema, business
+rules, RLS and reference data. Conflicts are enforced in Postgres: an exclusion
+constraint for overlapping sauna sessions, and advisory-locked triggers for staff
+blocks, cabin capacity per size (new `stay_types` table, `bookings.stay_type_id`)
+and ticket capacity. All of them raise SQLSTATE `23P01`. Public visitors never
+read bookings. They call `SECURITY DEFINER` availability functions
+(`sauna_taken_hours`, `stay_occupancy`), and public writes go through server
+actions using the service role. Staff access is membership in `public.staff`,
+checked by `is_staff()`. Extras are stored as price snapshots in
+`booking_extras`, and public sauna tickets get their own table `event_tickets`
+with `events.sold` kept by a trigger. Reference data was generated from the
+`lib/` constants, and `seed.sql` holds local demo data only.
+
+**Consequences.** The rules hold no matter which client writes. The app still
+has to check availability before submitting for good UX and map `23P01` to a
+form error. Nothing is connected yet: the app still runs on the in-memory store
+until the steps in [[database]] "Connecting" are done. Cabin size, contact
+details and price-unit mismatches found in the data audit must be fixed in the
+UI before going live.
 
 ---
 
