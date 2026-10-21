@@ -26,6 +26,7 @@ lib/                    ← business rules, prices, data generators — catalog:
 └── admin/              ← admin models, labels, mock data, occupancy, formatting
 public/brand/           ← logo badge, zone stickers (sticker-*.svg)
 supabase/               ← config.toml, migrations/, seed.sql (demo) — see [[database]]
+lib/supabase/           ← generated database.types.ts (clients come when the app connects)
 obsidian/               ← this vault
 ```
 

@@ -9,6 +9,18 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-22 — Supabase project "Vanduo" migrated
+
+- All migrations applied to the new project (`mwngljhcvqkvncwbmgeo`) through
+  the Supabase MCP. Local files renamed to the versions the project recorded.
+- The first advisor run showed `is_staff()` callable as an RPC by anon, because
+  Supabase grants execute on public functions to anon directly. A follow-up
+  migration moves it to a `private` schema, revokes RPC access to trigger
+  functions and adds a missing FK index. Only the two intended availability RPCs
+  remain flagged.
+- Generated `lib/supabase/database.types.ts`. The app still uses the in-memory
+  store; no env vars or clients are added yet.
+
 ## 2026-10-22 — Supabase migrations prepared (not connected)
 
 - `supabase/` added with `config.toml`, four migrations and a demo `seed.sql`.

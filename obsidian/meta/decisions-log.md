@@ -50,7 +50,8 @@ and ticket capacity. All of them raise SQLSTATE `23P01`. Public visitors never
 read bookings. They call `SECURITY DEFINER` availability functions
 (`sauna_taken_hours`, `stay_occupancy`), and public writes go through server
 actions using the service role. Staff access is membership in `public.staff`,
-checked by `is_staff()`. Extras are stored as price snapshots in
+checked by `private.is_staff()`, which sits outside the exposed API schema so
+it isn't an RPC. Extras are stored as price snapshots in
 `booking_extras`, and public sauna tickets get their own table `event_tickets`
 with `events.sold` kept by a trigger. Reference data was generated from the
 `lib/` constants, and `seed.sql` holds local demo data only.

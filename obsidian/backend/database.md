@@ -5,9 +5,10 @@ updated: 2026-10-22
 
 # Database
 
-Supabase Postgres. Migrations are written and checked but **not applied or
-connected yet** (ADR-0006): the app still runs on the in-memory admin store
-(ADR-0005). See "Connecting" below for what's left to do.
+Supabase Postgres, project **Vanduo** (`mwngljhcvqkvncwbmgeo`, eu-west-1).
+All migrations are **applied** (2026-10-22, via the Supabase MCP), but the
+**app is not connected yet** (ADR-0006): it still runs on the in-memory admin
+store (ADR-0005). See "Connecting" below for what's left.
 
 ## Rules
 
@@ -27,14 +28,18 @@ connected yet** (ADR-0006): the app still runs on the in-memory admin store
 supabase/
   config.toml                         ← `supabase init` (project_id vanduomarse-redesign)
   migrations/
-    20261022120000_init_schema.sql    ← enums, tables, checks, indexes, updated_at
-    20261022120100_business_rules.sql ← references, conflict triggers, availability RPCs
-    20261022120200_rls.sql            ← is_staff(), RLS + policies, materialize_sauna_events()
-    20261022120300_reference_data.sql ← settings, upsells, stay types, templates, price list
-  seed.sql                            ← DEMO data, local `supabase db reset` only
+    20261021230415_init_schema.sql            ← enums, tables, checks, indexes, updated_at
+    20261021230446_business_rules.sql         ← references, conflict triggers, availability RPCs
+    20261021230515_rls.sql                    ← is_staff(), RLS + policies, materialize_sauna_events()
+    20261021230538_reference_data.sql         ← settings, upsells, stay types, templates, price list
+    20261021230629_harden_function_grants.sql ← is_staff() → private schema, RPC grants, FK index
+  seed.sql                                    ← DEMO data, local `supabase db reset` only
+lib/supabase/database.types.ts                ← generated from the live project
 ```
 
-`20261022120300_reference_data.sql` and `seed.sql` were generated from the
+File names match the versions recorded in the remote project (the MCP stamps
+its own version on apply), so `supabase db push` sees them as already applied.
+`…_reference_data.sql` and `seed.sql` were generated from the
 `lib/` constants and `lib/admin/mock-data.ts` (one-off script, not kept in the
 repo). After connecting, the database is the source of truth for prices.
 
@@ -73,25 +78,34 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 |----------|-----|---------|
 | `sauna_taken_hours(from, to)` | anon, authenticated | Booked + closed sauna hours, no customer data |
 | `stay_occupancy(from, to)` | anon, authenticated | Nights taken vs units per stay type per day |
-| `is_staff()` | authenticated | Used by every staff policy |
+| `private.is_staff()` | authenticated | Used by every staff policy. Lives in the non-exposed `private` schema, so it isn't an RPC |
 | `materialize_sauna_events(from, days)` | staff | Creates events from active templates; idempotent |
 
-Both availability functions cap the range at 370 days.
+Both availability functions cap the range at 370 days. Supabase grants
+EXECUTE on new `public` functions to `anon`/`authenticated` directly, so any new
+function that isn't meant to be an RPC needs an explicit `revoke … from anon, authenticated`.
 
 ## Migrations
 
 | File | Date | What it does |
 |------|------|--------------|
-| `20261022120000_init_schema.sql` | 2026-10-22 | Enums, all tables, checks, indexes, `updated_at` triggers |
-| `20261022120100_business_rules.sql` | 2026-10-22 | Reference sequences, overlap/capacity triggers, `sold` sync, availability RPCs |
-| `20261022120200_rls.sql` | 2026-10-22 | `is_staff()`, RLS on every table, policies, `materialize_sauna_events()` |
-| `20261022120300_reference_data.sql` | 2026-10-22 | Sauna settings, 3 upsells, 3 stay types, 3 sauna templates, 39 price items |
+| `20261021230415_init_schema.sql` | 2026-10-22 | Enums, all tables, checks, indexes, `updated_at` triggers |
+| `20261021230446_business_rules.sql` | 2026-10-22 | Reference sequences, overlap/capacity triggers, `sold` sync, availability RPCs |
+| `20261021230515_rls.sql` | 2026-10-22 | `is_staff()`, RLS on every table, policies, `materialize_sauna_events()` |
+| `20261021230538_reference_data.sql` | 2026-10-22 | Sauna settings, 3 upsells, 3 stay types, 3 sauna templates, 39 price items |
+| `20261021230629_harden_function_grants.sql` | 2026-10-22 | Moves `is_staff()` to `private`, revokes RPC access to trigger functions, covering index for the stay-type FK |
 
 Verified on 2026-10-22 against PGlite (Postgres 17) with a stub `auth` schema:
 all migrations and the seed apply cleanly, and 32 checks pass (overlaps,
 blocks, cabin capacity, ticket capacity, `sold` sync, anon/non-staff/staff RLS,
-idempotent materialisation). They have not run on real Supabase yet. Run
-`supabase db reset` locally (needs Docker) before the first push.
+idempotent materialisation). Then applied to the live project. Afterwards:
+- The security advisor flags only the two intended public RPCs
+  (`sauna_taken_hours`, `stay_occupancy`) and `public.rls_auto_enable()`,
+  which existed in the project before these migrations (not ours, left alone).
+- The performance advisor reports only "unused index", which is expected on an
+  empty database.
+- Live check: anon reads the 39 price items and upsells and can call
+  `stay_occupancy`, but has no privilege on `bookings` or `inquiries`.
 
 ## Data audit (2026-10-22): mismatches to settle before connecting
 
@@ -124,12 +138,16 @@ idempotent materialisation). They have not run on real Supabase yet. Run
 
 ## Connecting (later)
 
-1. Create the Supabase project. Add `NEXT_PUBLIC_SUPABASE_URL`,
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` to
+1. ~~Create the project and apply the migrations~~ (done 2026-10-22). Add
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
+   `SUPABASE_SERVICE_ROLE_KEY` for project `mwngljhcvqkvncwbmgeo` to
    `.env.local` (names already in `.env.example`).
-2. `supabase link --project-ref <ref>`, then `supabase db push`. The demo `seed.sql` isn't pushed.
+2. `supabase link --project-ref mwngljhcvqkvncwbmgeo` for future `db push`. The demo `seed.sql` isn't pushed.
 3. Create the first staff user in Auth, then `insert into public.staff (user_id, display_name) values (…)`.
-4. `supabase gen types typescript --linked > lib/supabase/database.types.ts` and commit it.
+4. ~~Generate types~~ (done: `lib/supabase/database.types.ts`). Regenerate after every schema change.
+   Note: `bookings.reference` and `event_tickets.reference` show as required on
+   `Insert` though a trigger fills them. Pass `reference: undefined as unknown as string`
+   or omit it with a typed helper in the repository layer.
 5. Add `@supabase/ssr` clients (`lib/supabase/server.ts`, `client.ts`), protect `/admin` with login + `is_staff()`, and swap the reducer actions in `admin-store.tsx` for server actions (see [[api-architecture]]).
 6. Fix the data-audit items above.
 
