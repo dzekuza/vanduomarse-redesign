@@ -1,28 +1,22 @@
 "use client";
 
-import { createContext, useContext, useMemo, useReducer } from "react";
-import { seedBlocks, seedBookings, seedEvents, seedInquiries, seedPrices } from "@/lib/admin/mock-data";
-import type { Block, Booking, BookingStatus, Inquiry, InquiryStatus, ManagedEvent, PriceItem } from "@/lib/admin/types";
-import { DEFAULT_SAUNA_RATES, type SaunaRates } from "@/lib/sauna";
-import { DEFAULT_UPSELLS, type Upsell } from "@/lib/sauna-upsells";
+import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { toast } from "sonner";
+import * as actions from "@/app/admin/actions";
+import type { ActionResult, NewBookingInput } from "@/app/admin/actions";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem } from "@/lib/admin/types";
+import type { SaunaRates } from "@/lib/sauna";
+import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
- * In-memory admin data for the UI-first phase (ADR-0005). Every screen talks to
- * these actions only, so swapping the reducer for Supabase calls later does not
- * touch the pages. Changes reset on reload.
+ * Admin data from Supabase (loaded in the admin layout). Every screen talks to
+ * these actions only: each applies its change optimistically, runs the server
+ * action, and the revalidated layout then resets the store to what the
+ * database holds. A failed write shows a toast and is rolled back by that reset.
  */
 
-interface AdminState {
-  bookings: Booking[];
-  blocks: Block[];
-  inquiries: Inquiry[];
-  events: ManagedEvent[];
-  prices: PriceItem[];
-  saunaRates: SaunaRates;
-  upsells: Upsell[];
-}
-
 type Action =
+  | { type: "reset"; data: AdminData }
   | { type: "booking/status"; id: string; status: BookingStatus }
   | { type: "booking/add"; booking: Booking }
   | { type: "block/toggle"; date: string; hour: number; reason: string }
@@ -36,8 +30,10 @@ type Action =
   | { type: "upsell/upsert"; upsell: Upsell }
   | { type: "upsell/delete"; id: string };
 
-function reducer(state: AdminState, action: Action): AdminState {
+function reducer(state: AdminData, action: Action): AdminData {
   switch (action.type) {
+    case "reset":
+      return action.data;
     case "booking/status":
       return { ...state, bookings: state.bookings.map((b) => (b.id === action.id ? { ...b, status: action.status } : b)) };
     case "booking/add":
@@ -48,7 +44,7 @@ function reducer(state: AdminState, action: Action): AdminState {
         ...state,
         blocks: exists
           ? state.blocks.filter((b) => !(b.date === action.date && b.hour === action.hour))
-          : [...state.blocks, { id: `blk-${action.date}-${action.hour}`, date: action.date, hour: action.hour, reason: action.reason }],
+          : [...state.blocks, { id: `pending-${action.date}-${action.hour}`, date: action.date, hour: action.hour, reason: action.reason }],
       };
     }
     case "inquiry/status":
@@ -87,48 +83,83 @@ function reducer(state: AdminState, action: Action): AdminState {
   }
 }
 
-function initialState(): AdminState {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return {
-    bookings: seedBookings(today),
-    blocks: seedBlocks(today),
-    inquiries: seedInquiries(today),
-    events: seedEvents(today),
-    prices: seedPrices(),
-    saunaRates: DEFAULT_SAUNA_RATES,
-    upsells: DEFAULT_UPSELLS,
-  };
+/** Toast on failure; returns whether the write succeeded. */
+async function report<T>(pending: Promise<ActionResult<T>>): Promise<ActionResult<T>> {
+  const result = await pending;
+  if ("error" in result) toast.error(result.error.message);
+  return result;
 }
 
-function useAdminReducer() {
-  const [state, dispatch] = useReducer(reducer, undefined, initialState);
-  const actions = useMemo(
+function useAdminReducer(initial: AdminData) {
+  const [state, dispatch] = useReducer(reducer, initial);
+
+  // The layout re-renders after every server action; adopt the fresh data.
+  useEffect(() => dispatch({ type: "reset", data: initial }), [initial]);
+
+  const api = useMemo(
     () => ({
-      setBookingStatus: (id: string, status: BookingStatus) => dispatch({ type: "booking/status", id, status }),
-      addBooking: (booking: Booking) => dispatch({ type: "booking/add", booking }),
-      toggleBlock: (date: string, hour: number, reason = "Uždaryta") => dispatch({ type: "block/toggle", date, hour, reason }),
-      setInquiryStatus: (id: string, status: InquiryStatus) => dispatch({ type: "inquiry/status", id, status }),
-      addInquiryNote: (id: string, text: string) => dispatch({ type: "inquiry/note", id, text }),
-      saveEvent: (event: ManagedEvent) => dispatch({ type: "event/upsert", event }),
-      deleteEvent: (id: string) => dispatch({ type: "event/delete", id }),
-      setEventPublished: (id: string, published: boolean) => dispatch({ type: "event/publish", id, published }),
-      updatePrices: (items: PriceItem[]) => dispatch({ type: "prices/update", items }),
-      updateSaunaRates: (rates: SaunaRates) => dispatch({ type: "sauna/rates", rates }),
-      saveUpsell: (upsell: Upsell) => dispatch({ type: "upsell/upsert", upsell }),
-      deleteUpsell: (id: string) => dispatch({ type: "upsell/delete", id }),
+      setBookingStatus: (id: string, status: BookingStatus) => {
+        dispatch({ type: "booking/status", id, status });
+        return report(actions.setBookingStatus(id, status));
+      },
+      /** Not optimistic: the reference comes from the database. */
+      createBooking: async (input: NewBookingInput) => {
+        const result = await actions.createBooking(input);
+        if ("data" in result) dispatch({ type: "booking/add", booking: result.data });
+        return result;
+      },
+      toggleBlock: (date: string, hour: number, reason = "Uždaryta") => {
+        dispatch({ type: "block/toggle", date, hour, reason });
+        return report(actions.toggleBlock(date, hour, reason));
+      },
+      setInquiryStatus: (id: string, status: InquiryStatus) => {
+        dispatch({ type: "inquiry/status", id, status });
+        return report(actions.setInquiryStatus(id, status));
+      },
+      addInquiryNote: (id: string, text: string) => {
+        dispatch({ type: "inquiry/note", id, text });
+        return report(actions.addInquiryNote(id, text));
+      },
+      saveEvent: (event: ManagedEvent) => {
+        dispatch({ type: "event/upsert", event });
+        return report(actions.saveEvent(event));
+      },
+      deleteEvent: (id: string) => {
+        dispatch({ type: "event/delete", id });
+        return report(actions.deleteEvent(id));
+      },
+      setEventPublished: (id: string, published: boolean) => {
+        dispatch({ type: "event/publish", id, published });
+        return report(actions.setEventPublished(id, published));
+      },
+      updatePrices: (items: PriceItem[]) => {
+        dispatch({ type: "prices/update", items });
+        return report(actions.updatePrices(items));
+      },
+      updateSaunaRates: (rates: SaunaRates) => {
+        dispatch({ type: "sauna/rates", rates });
+        return report(actions.updateSaunaRates(rates));
+      },
+      saveUpsell: (upsell: Upsell) => {
+        dispatch({ type: "upsell/upsert", upsell });
+        return report(actions.saveUpsell(upsell));
+      },
+      deleteUpsell: (id: string) => {
+        dispatch({ type: "upsell/delete", id });
+        return report(actions.deleteUpsell(id));
+      },
     }),
     [],
   );
-  return { ...state, ...actions };
+  return { ...state, ...api };
 }
 
 type AdminStore = ReturnType<typeof useAdminReducer>;
 
 const AdminContext = createContext<AdminStore | null>(null);
 
-export function AdminStoreProvider({ children }: { children: React.ReactNode }) {
-  const store = useAdminReducer();
+export function AdminStoreProvider({ initial, children }: { initial: AdminData; children: React.ReactNode }) {
+  const store = useAdminReducer(initial);
   return <AdminContext.Provider value={store}>{children}</AdminContext.Provider>;
 }
 

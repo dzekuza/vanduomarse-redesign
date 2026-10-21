@@ -36,7 +36,7 @@ export function EventsView() {
   return (
     <AdminPage
       title="Renginiai"
-      description="Renginiai ir viešos pirties sesijos. Prijungus duomenų bazę, jie bus rodomi puslapyje /renginiai."
+      description="Renginiai ir viešos pirties sesijos. Paskelbti renginiai rodomi puslapyje /renginiai."
       actions={
         <Button onClick={() => setEditing({ mode: "new" })}>
           <PlusIcon size={18} /> Naujas renginys

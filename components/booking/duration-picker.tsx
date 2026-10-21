@@ -1,9 +1,10 @@
 "use client";
 
 import { ChoiceTile } from "./choice-tile";
-import { MAX_HOURS, MIN_HOURS, formatHour, hoursLabel, sessionPrice } from "@/lib/sauna";
+import { formatHour, hoursLabel, sessionLengths, sessionPrice, type SaunaRates } from "@/lib/sauna";
 
 interface DurationPickerProps {
+  rates: SaunaRates;
   partySize: number;
   startHour: number;
   /** Longest run available from the start, capped by closing and the next booking. */
@@ -12,17 +13,15 @@ interface DurationPickerProps {
   onSelect: (hours: number) => void;
 }
 
-const OPTIONS = Array.from({ length: MAX_HOURS - MIN_HOURS + 1 }, (_, i) => MIN_HOURS + i);
-
 /** Session length from the chosen start, with end time and price on each option. */
-export function DurationPicker({ partySize, startHour, maxHours, selected, onSelect }: DurationPickerProps) {
+export function DurationPicker({ rates, partySize, startHour, maxHours, selected, onSelect }: DurationPickerProps) {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-      {OPTIONS.map((hours) => (
+      {sessionLengths(rates).map((hours) => (
         <ChoiceTile
           key={hours}
           primary={hoursLabel(hours)}
-          secondary={`iki ${formatHour(startHour + hours)} · ${sessionPrice(hours, partySize)} €`}
+          secondary={`iki ${formatHour(startHour + hours)} · ${sessionPrice(hours, partySize, rates)} €`}
           active={selected === hours}
           disabled={hours > maxHours}
           onClick={() => onSelect(hours)}

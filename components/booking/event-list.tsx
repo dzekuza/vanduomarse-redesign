@@ -41,7 +41,8 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
                 {ev.title} <span className={active ? "text-foam/60" : "text-ink/50"}>· {ev.host}</span>
               </span>
               <span className={`block text-sm ${active ? "text-foam/70" : "text-ink/60"}`}>
-                {longDateLabel(ev.date)}, {ev.time} · {ev.minutes} min
+                {longDateLabel(ev.date)}, {ev.time}
+                {ev.minutes ? ` · ${ev.minutes} min` : ""}
               </span>
               <span className={`mt-1 block text-xs ${full ? "" : active ? "text-foam/70" : "text-rust"}`}>
                 {full ? "Vietų nebeliko" : `Liko vietų: ${ev.spotsLeft}`}

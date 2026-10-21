@@ -52,12 +52,3 @@ export function fullCabinNights(bookings: Booking[], day: string, nights: number
   const start = parseDay(day);
   return daysFrom(start, nights).filter((d) => staysOn(bookings, d, "namelis").length >= CABIN_COUNT);
 }
-
-/** Next free reference number for a prefix, e.g. PM-1047. */
-export function nextReference(bookings: Booking[], prefix: "PM" | "MM"): string {
-  const max = bookings.reduce((m, b) => {
-    const [p, n] = b.reference.split("-");
-    return p === prefix ? Math.max(m, Number(n) || 0) : m;
-  }, 1000);
-  return `${prefix}-${max + 1}`;
-}

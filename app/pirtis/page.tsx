@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import { BookingHero } from "@/components/booking/booking-hero";
 import { BookingPage } from "@/components/booking/booking-page";
 import { SaunaReservation } from "@/components/booking/sauna-reservation";
+import { SAUNA_DAYS, getSaunaPageData } from "@/lib/data/public";
+import type { SaunaRates } from "@/lib/sauna";
 
 export const metadata: Metadata = {
   title: "Pirtis Marse - rezervacija",
 };
 
-const FACTS = [
+/** Capacity and price follow the live rates from /admin/pirtis. */
+const facts = (rates: SaunaRates) => [
   { label: "Vieta", value: "Prie pat ežero kranto" },
-  { label: "Talpa", value: "Iki 20 žmonių" },
-  { label: "Kaina", value: "Nuo 70 €/val., min. 2 val." },
+  { label: "Talpa", value: `Iki ${rates.maxParty} žmonių` },
+  { label: "Kaina", value: `Nuo ${rates.smallGroupRate} €/val., min. ${rates.minHours} val.` },
   { label: "Kūrenimas", value: "Malkomis, iš anksto" },
 ];
 
@@ -27,7 +30,7 @@ const GALLERY = [
 
 /** `?skirtukas=renginiai` opens the public-events tab (linked from /renginiai). */
 export default async function PirtisPage({ searchParams }: PageProps<"/pirtis">) {
-  const { skirtukas } = await searchParams;
+  const [{ skirtukas }, data] = await Promise.all([searchParams, getSaunaPageData()]);
 
   return (
     <BookingPage>
@@ -35,10 +38,10 @@ export default async function PirtisPage({ searchParams }: PageProps<"/pirtis">)
         eyebrow="Pirtis Marse"
         title={["Karšta pirtis.", "Šaltas ežeras."]}
         intro="Malkomis kūrenama pirtis prie pat vandens. Išeini iš garų tiesiai į ežerą. Rezervuojama visai grupei, ne vietoms."
-        facts={FACTS}
+        facts={facts(data.rates)}
         gallery={GALLERY}
       >
-        <SaunaReservation initialMode={skirtukas === "renginiai" ? "event" : "private"} />
+        <SaunaReservation initialMode={skirtukas === "renginiai" ? "event" : "private"} data={data} days={SAUNA_DAYS} />
       </BookingHero>
     </BookingPage>
   );

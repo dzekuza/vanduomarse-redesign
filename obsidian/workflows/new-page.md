@@ -18,8 +18,10 @@ updated: 2026-10-19
    a typed `interface ...Props` ([[component-conventions]]).
 5. **Tokens before styles.** Every colour/spacing/type/radius references a token.
    Missing value → add the token first, with a comment on its origin ([[design-system]]).
-6. **Content and prices from `lib/`.** Rules, prices and generated demo data
-   live in `lib/`; never hard-code a price in a component.
+6. **Rules from `lib/`, data from Supabase.** Pure rules live in `lib/`;
+   rows (rates, extras, events, availability) are read in the page through
+   `lib/data/public.ts` and passed as props. Never hard-code a price or invent
+   demo data in a component.
 7. **Assets.** Brand files in `public/brand/`; remote photos need their host
    in `next.config.ts` `images.remotePatterns`.
 8. **Server-first.** Server Components by default; `"use client"` only at leaves.

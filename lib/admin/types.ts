@@ -1,8 +1,10 @@
 import type { EventCategory } from "@/lib/park-events";
+import type { SaunaRates } from "@/lib/sauna";
+import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
- * Admin domain models. Shaped like the future Supabase rows (snake_case at the
- * DB edge, camelCase here) so the mock store can be swapped for a repository.
+ * Admin domain models. Mapped from Supabase rows in `lib/admin/mappers.ts`
+ * (snake_case at the DB edge, camelCase here).
  */
 
 export interface Customer {
@@ -26,8 +28,10 @@ export interface Booking {
   /** Sauna only. */
   startHour?: number;
   hours?: number;
-  /** Cabins only. */
+  /** Stays only. */
   nights?: number;
+  /** Stays only: `namelis-2`, `namelis-4` or `kemperis` (public.stay_types). */
+  stayTypeId?: string;
   guests: number;
   extras: string[];
   total: number;
@@ -69,7 +73,10 @@ export interface ManagedEvent {
   title: string;
   category: EventCategory;
   date: string;
+  /** HH:MM */
   time: string;
+  /** Set for public sauna sessions. */
+  durationMinutes?: number;
   place: string;
   blurb: string;
   /** null = free entry */
@@ -90,4 +97,15 @@ export interface PriceItem {
   value: number;
   /** Upper bound when the sheet gives a range. */
   max?: number;
+}
+
+/** Everything the dashboard renders, loaded once per request in the admin layout. */
+export interface AdminData {
+  bookings: Booking[];
+  blocks: Block[];
+  inquiries: Inquiry[];
+  events: ManagedEvent[];
+  prices: PriceItem[];
+  saunaRates: SaunaRates;
+  upsells: Upsell[];
 }

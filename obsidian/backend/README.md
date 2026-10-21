@@ -11,9 +11,9 @@ What backend surface `vanduomarse-redesign` has, and what it deliberately does n
 
 | Concern | Implementation | Note |
 |---------|----------------|------|
-| API | none yet — planned: server actions for bookings and inquiries | [[api-architecture]] |
-| Database | Supabase project "Vanduo", migrations in `supabase/` applied; app not connected yet | [[database]] |
-| Auth | none — `/admin` is open (noindex). Planned: Supabase auth via `@supabase/ssr`; `public.staff` + `is_staff()` already in the schema | [[decisions-log]] ADR-0005, ADR-0006 |
+| API | Server actions for every admin write (`app/admin/actions.ts`); public pages read via `lib/data/public.ts`; no API routes | [[api-architecture]] |
+| Database | Supabase project "Vanduo", migrations applied, **demo data loaded** | [[database]] |
+| Auth | Supabase email + password via `@supabase/ssr`; `proxy.ts` gates `/admin/*`, the panel layout checks `public.staff` | [[decisions-log]] ADR-0007 |
 | Storage | none (photos are Unsplash stand-ins, logo in `public/brand/`) | |
 | Email | none — inquiries use `mailto:` links | |
 | Background jobs | none | |

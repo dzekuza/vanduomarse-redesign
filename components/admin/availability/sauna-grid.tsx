@@ -4,9 +4,7 @@ import { LockSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 import { useAdmin } from "../admin-store";
 import { saunaBookingAt } from "@/lib/admin/occupancy";
 import { formatDay } from "@/lib/admin/format";
-import { CLOSE_HOUR, OPEN_HOUR, formatHour } from "@/lib/sauna";
-
-const HOURS = Array.from({ length: CLOSE_HOUR - OPEN_HOUR }, (_, i) => OPEN_HOUR + i);
+import { formatHour } from "@/lib/sauna";
 
 interface SaunaGridProps {
   days: string[];
@@ -15,7 +13,8 @@ interface SaunaGridProps {
 
 /** Hour-by-day sauna grid: booked, closed by staff, or free (click to close). */
 export function SaunaGrid({ days, onOpenBooking }: SaunaGridProps) {
-  const { bookings, blocks, toggleBlock } = useAdmin();
+  const { bookings, blocks, saunaRates, toggleBlock } = useAdmin();
+  const hours = Array.from({ length: saunaRates.closeHour - saunaRates.openHour }, (_, i) => saunaRates.openHour + i);
   const cols = days.length === 1 ? "grid-cols-[4rem_minmax(0,1fr)]" : "grid-cols-[4rem_repeat(7,minmax(0,1fr))]";
 
   return (
@@ -24,7 +23,7 @@ export function SaunaGrid({ days, onOpenBooking }: SaunaGridProps) {
       {days.map((d) => (
         <div key={d} className="border-r border-b bg-muted px-2 py-2 font-medium">{formatDay(d)}</div>
       ))}
-      {HOURS.map((hour) => (
+      {hours.map((hour) => (
         <div key={hour} className="contents">
           <div className="flex items-start justify-end border-r border-b px-2 py-2 text-muted-foreground tabular-nums">{formatHour(hour)}</div>
           {days.map((day) => {

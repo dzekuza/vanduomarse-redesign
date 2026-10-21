@@ -6,9 +6,16 @@ updated: 2026-10-22
 # Database
 
 Supabase Postgres, project **Vanduo** (`mwngljhcvqkvncwbmgeo`, eu-west-1).
-All migrations are **applied** (2026-10-22, via the Supabase MCP), but the
-**app is not connected yet** (ADR-0006): it still runs on the in-memory admin
-store (ADR-0005). See "Connecting" below for what's left.
+All migrations are **applied**, and the **app reads and writes it** (ADR-0007):
+public pages through `lib/data/public.ts`, `/admin` through staff login and
+`app/admin/actions.ts`.
+
+> [!warning] Demo data in the live project
+> `supabase/seed.sql` (fake customers: 64 bookings, 7 inquiries, 12 ticket
+> sales, plus 6 one-off events and 90 days of sauna sessions) was loaded into
+> "Vanduo" on 2026-10-22 so the dashboard looks like before. Before go-live:
+> `delete from bookings; delete from inquiries; delete from event_tickets;
+> delete from sauna_blocks;` (extras and notes cascade), and review `events`.
 
 ## Rules
 
@@ -107,12 +114,13 @@ idempotent materialisation). Then applied to the live project. Afterwards:
 - Live check: anon reads the 39 price items and upsells and can call
   `stay_occupancy`, but has no privilege on `bookings` or `inquiries`.
 
-## Data audit (2026-10-22): mismatches to settle before connecting
+## Data audit (2026-10-22): status
 
-1. **Bookings have no cabin size.** `Booking` has no size, so admin occupancy
-   lumps all 14 cabins into one pool, and the manual-booking form allows 4
-   guests for any cabin. The schema adds `stay_type_id`. The admin form and
-   `occupancy.ts` need a size picker or per-size counts.
+1. **Bookings have no cabin size.** *Partly fixed.* Bookings now carry
+   `stay_type_id`, and the DB enforces per-size capacity. But the manual-booking
+   form still has no size picker: `createBooking` picks a double for ≤ 2 guests
+   and a quad otherwise, and `occupancy.ts` still pre-checks against the
+   14-cabin pool.
 2. **Cabin price units disagree.** The price list and calculator charge
    "Nameliai 50–60 €/asm./naktis" (per guest), but the cabin booking charges
    50 € / 60 € per cabin per night. For 15 guests and 1 night that's
@@ -122,34 +130,34 @@ idempotent materialisation). Then applied to the live project. Afterwards:
    bookings ask for no name, phone or email, and the calculator inquiry is a
    `mailto:`. The DB requires a name plus an email or phone, so each flow needs
    a contact step.
-5. **Public availability is fake.** It comes from hash-based pseudo-random
-   occupancy (`isHourBooked`, `bookedCabins`, `spotsLeft`) that ignores the
-   admin store. Replace it with `sauna_taken_hours` and `stay_occupancy`,
-   and use `events.sold` for spots left.
-6. **The admin price list is display-only.** The calculator and booking read
-   `lib/` constants, not `price_items`. Wire them up, or keep `/admin/kainos`
-   read-only.
-7. **Extra names don't match.** The demo uses "Vantos × n" while the upsell
-   is called "Beržinė vanta". The DB stores a structured snapshot, so the app
-   should render extras from `booking_extras` instead of free strings.
-8. **Manual bookings store an empty email as `""`.** It's stored as `null` in the DB.
-9. **`ManagedEvent` has no duration.** Sauna sessions carry one in
-   `duration_minutes`, and the `time` column comes back as `HH:MM:SS`, so trim it when mapping.
+5. ~~**Public availability is fake.**~~ *Fixed.* `/pirtis` uses
+   `sauna_taken_hours`, `/miegas` uses `stay_occupancy`, and spots left come
+   from `events.sold`. Public **confirmations still don't save** (see item 4),
+   and their references (`PM-`/`MM-`/`PR-` hashes) are display-only.
+6. **The admin price list is display-only.** Edits save to `price_items`,
+   but the calculator still reads `lib/event-pricing.ts`, and cabin prices come
+   from `lib/cabin.ts`. Sauna rates and extras *are* live from the DB.
+7. ~~**Extra names don't match.**~~ *Fixed.* Extras render from
+   `booking_extras` ("Beržinė vanta × 3"), priced on the server.
+8. ~~**Manual bookings store an empty email as `""`.**~~ *Fixed.* Stored as `null`.
+9. ~~**`ManagedEvent` has no duration.**~~ *Fixed.* `durationMinutes` is mapped
+   and `time` is trimmed to `HH:MM`.
+10. **Recurring sauna sessions run out.** The seed created 90 days of them.
+    Staff need a way to extend them (`materialize_sauna_events()`: a button in
+    /admin/renginiai, or a `pg_cron` job) before about 2027-01-19.
 
-## Connecting (later)
+## Running locally / adding staff
 
-1. ~~Create the project and apply the migrations~~ (done 2026-10-22). Add
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
-   `SUPABASE_SERVICE_ROLE_KEY` for project `mwngljhcvqkvncwbmgeo` to
-   `.env.local` (names already in `.env.example`).
-2. `supabase link --project-ref mwngljhcvqkvncwbmgeo` for future `db push`. The demo `seed.sql` isn't pushed.
-3. Create the first staff user in Auth, then `insert into public.staff (user_id, display_name) values (…)`.
-4. ~~Generate types~~ (done: `lib/supabase/database.types.ts`). Regenerate after every schema change.
-   Note: `bookings.reference` and `event_tickets.reference` show as required on
-   `Insert` though a trigger fills them. Pass `reference: undefined as unknown as string`
-   or omit it with a typed helper in the repository layer.
-5. Add `@supabase/ssr` clients (`lib/supabase/server.ts`, `client.ts`), protect `/admin` with login + `is_staff()`, and swap the reducer actions in `admin-store.tsx` for server actions (see [[api-architecture]]).
-6. Fix the data-audit items above.
+1. Copy `.env.example` to `.env.local` and fill both `NEXT_PUBLIC_SUPABASE_*`
+   values for project `mwngljhcvqkvncwbmgeo` (Dashboard → Project Settings → API).
+2. Create a user in Dashboard → Authentication → Users (email + password), then:
+   `insert into public.staff (user_id, display_name) values ('<user id>', '<name>');`
+   Signed-in users who aren't in `staff` see "Nėra prieigos".
+3. `supabase link --project-ref mwngljhcvqkvncwbmgeo` for future `db push`.
+4. Regenerate `lib/supabase/database.types.ts` after every schema change.
+   `bookings.reference` / `event_tickets.reference` show as required on
+   `Insert` though a trigger fills them; `createBooking` passes
+   `undefined as unknown as string`.
 
 ## Related
 

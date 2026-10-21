@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowSquareOutIcon, DotsThreeOutlineIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, DotsThreeOutlineIcon, SignOutIcon } from "@phosphor-icons/react";
+import { signOut } from "@/app/admin/actions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -69,7 +70,7 @@ export function AdminBottomNav() {
         <SheetContent side="bottom" className="pb-[env(safe-area-inset-bottom)] lg:hidden">
           <SheetHeader>
             <SheetTitle>Daugiau</SheetTitle>
-            <SheetDescription>Demonstraciniai duomenys: pakeitimai neišsaugomi.</SheetDescription>
+            <SheetDescription>Kiti valdymo skyriai.</SheetDescription>
           </SheetHeader>
           <ul className="divide-y px-4 pb-4">
             {MORE.map((item) => {
@@ -92,6 +93,13 @@ export function AdminBottomNav() {
               <Link href="/" className="flex min-h-14 items-center gap-3 text-base text-muted-foreground">
                 <ArrowSquareOutIcon size={22} /> Į svetainę
               </Link>
+            </li>
+            <li>
+              <form action={signOut}>
+                <button type="submit" className="flex min-h-14 w-full items-center gap-3 text-base text-muted-foreground">
+                  <SignOutIcon size={22} /> Atsijungti
+                </button>
+              </form>
             </li>
           </ul>
         </SheetContent>

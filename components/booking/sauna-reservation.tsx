@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { BookingTabs } from "./booking-tabs";
 import { SaunaBooking } from "./sauna-booking";
 import { SaunaEventBooking } from "./sauna-event-booking";
-import { EVENT_WINDOW_DAYS, openEventCount, startOfToday, upcomingEvents } from "@/lib/sauna-events";
+import type { SaunaPageData } from "@/lib/data/public-types";
+import { openEventCount, toSaunaEvent } from "@/lib/sauna-events";
 
 export type SaunaMode = "private" | "event";
 
@@ -13,15 +14,25 @@ const TABS: { id: SaunaMode; label: string; hint: string; badge?: number }[] = [
   { id: "event", label: "Prisijungti prie renginio", hint: "Bilietas vienam žmogui" },
 ];
 
+interface SaunaReservationProps {
+  initialMode?: SaunaMode;
+  data: SaunaPageData;
+  days: number;
+}
+
 /** Pirtis Marse booking: private hire or a seat at a public session. */
-export function SaunaReservation({ initialMode = "private" }: { initialMode?: SaunaMode }) {
+export function SaunaReservation({ initialMode = "private", data, days }: SaunaReservationProps) {
   const [mode, setMode] = useState<SaunaMode>(initialMode);
-  const openEvents = useMemo(() => openEventCount(upcomingEvents(startOfToday(), EVENT_WINDOW_DAYS)), []);
-  const tabs = TABS.map((t) => (t.id === "event" ? { ...t, badge: openEvents } : t));
+  const events = useMemo(() => data.events.map(toSaunaEvent), [data.events]);
+  const tabs = TABS.map((t) => (t.id === "event" ? { ...t, badge: openEventCount(events) } : t));
 
   return (
     <BookingTabs tabs={tabs} value={mode} onChange={setMode}>
-      {mode === "private" ? <SaunaBooking /> : <SaunaEventBooking />}
+      {mode === "private" ? (
+        <SaunaBooking today={data.today} days={days} rates={data.rates} upsells={data.upsells} takenByDay={data.takenByDay} />
+      ) : (
+        <SaunaEventBooking events={events} />
+      )}
     </BookingTabs>
   );
 }

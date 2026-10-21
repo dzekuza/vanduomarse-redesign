@@ -12,8 +12,8 @@ export function SaunaView() {
       <div className="flex gap-3 border border-ink/20 bg-muted p-4 text-sm">
         <InfoIcon size={20} className="mt-0.5 shrink-0 text-rust" />
         <p>
-          Pradinės reikšmės – tos pačios, kurias dabar naudoja svetainė. Kol duomenų bazė neprijungta, pakeitimai galioja tik šioje
-          sesijoje; prijungus, rezervacijos puslapis jas skaitys iš čia.
+          Pakeitimai išsaugomi iš karto ir rodomi pirties rezervacijos puslapyje. Renginių skaičiuoklė kol kas naudoja kainoraščio
+          kainas.
         </p>
       </div>
       <SaunaRatesForm />

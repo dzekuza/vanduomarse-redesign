@@ -1,6 +1,6 @@
 ---
 tags: [moc, home]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # 🧠 vanduomarse-redesign — Project Brain
@@ -12,9 +12,10 @@ and AI agents (Claude Code, Cursor).
 > [!info] What is this project?
 > Redesign of vanduomarse.lt, a cable wakeboard park in Lithuania: a public site
 > in Lithuanian (sauna and cabin booking, events, an event price calculator) and
-> a staff dashboard at `/admin`. **Stage:** front-end prototype — bookings and
-> admin run on in-browser demo data, no backend or login yet (ADR-0005); a
-> Supabase backend is the next milestone.
+> a staff dashboard at `/admin`. **Stage:** prototype on a live backend — bookings and
+> admin read and write Supabase (project "Vanduo"), `/admin` needs a staff
+> login (ADR-0007). The database still holds **demo** bookings and inquiries,
+> and public booking forms don't save yet.
 
 ## 🗺️ Map of Content
 

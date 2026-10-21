@@ -10,6 +10,42 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0007 — App reads and writes Supabase; staff log in
+
+- **Status:** Accepted (supersedes ADR-0005)
+- **Date:** 2026-10-22
+
+**Context.** The schema was live (ADR-0006), and the owner asked to remove all
+mock data and keep the same screens on real data, with a staff login for
+`/admin`.
+
+**Decision.**
+- **Admin.** `proxy.ts` refreshes the Supabase session on `/admin/*` and sends
+  signed-out visitors to `/admin/prisijungti`. `app/admin/(panel)/layout.tsx`
+  checks `public.staff`, loads everything with `loadAdminData()` as that user
+  (RLS), and hands it to `AdminStoreProvider` as `initial`. `useAdmin()` keeps
+  its named actions: each updates optimistically, calls a server action in
+  `app/admin/actions.ts` (staff check + Zod), and the action's
+  `revalidatePath` makes the provider reset to the database state. The
+  service-role key is not used.
+- **Public pages** are async Server Components that read through
+  `lib/data/public.ts` with a cookieless anon client (`connection()` for
+  per-request freshness) and pass serializable props. Availability comes from
+  `sauna_taken_hours()` / `stay_occupancy()`, and sauna rates and extras from
+  their tables.
+- `lib/admin/mock-data.ts` and every generator (`isHourBooked`,
+  `bookedCabins`, `spotsLeft`, sauna `TEMPLATES`, event `ONE_OFFS`,
+  `DEFAULT_UPSELLS`) are deleted. The same demo rows now live in the database
+  (`supabase/seed.sql`).
+
+**Consequences.** Admin edits persist and the public site shows them (sauna
+rates, extras, events, blocks, bookings). Public booking confirmations still
+don't save (no contact step), the calculator and cabin prices stay on `lib/`
+constants, and the live database holds demo rows that must be cleared before
+go-live. The app needs `.env.local` to run at all.
+
+---
+
 ## ADR-0006 — Termina webfont self-hosted with next/font/local
 
 - **Status:** Accepted
@@ -67,7 +103,7 @@ UI before going live.
 
 ## ADR-0005 — Admin dashboard ships UI-first on an in-memory store
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0007
 - **Date:** 2026-10-19
 
 **Context.** The client wants to manage bookings, availability, inquiries,

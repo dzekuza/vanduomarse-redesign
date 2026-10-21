@@ -9,6 +9,36 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-22 — Mock data removed: site and admin run on Supabase
+
+- **Removed:** `lib/admin/mock-data.ts` and every runtime generator of fake data
+  (pseudo-random sauna hours, cabin occupancy and ticket counts, hard-coded
+  park events and sauna templates, default extras). The same demo data now
+  lives in the "Vanduo" database (`supabase/seed.sql`, compacted to
+  multi-row inserts), dated relative to load day.
+- **Admin:** staff login at `/admin/prisijungti` (Supabase email + password).
+  `proxy.ts` refreshes the session, and the panel checks `public.staff`.
+  All 12 store actions now persist through server actions; new bookings get
+  their `PM-`/`MM-` number from the database. The sidebar and mobile sheet gain
+  „Atsijungti", and the "Demonstraciniai duomenys" notes are gone.
+- **Public:** `/pirtis` shows real taken hours, live rates (including the facts
+  box) and extras, and session spots from ticket sales. `/miegas` shows real
+  free cabins per size, and `/renginiai` lists published events from the
+  database. Confirmations still don't save.
+- **Deps:** `@supabase/supabase-js`, `@supabase/ssr`, `server-only`.
+- **Env:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are
+  now required (`.env.example` updated).
+- ADR-0007 supersedes ADR-0005.
+- Admin info texts no longer say "kol duomenų bazė neprijungta" (Užimtumas,
+  Renginiai, Pirtis, Kainodara); Kainodara now says the prices are saved but
+  don't change the site or calculator yet.
+- Verified in the browser as staff (admin@admin.com, display name "Administratorius"):
+  all seven screens load DB data. Status change, closing and reopening an hour,
+  a new phone booking (PM-1062, extras snapshot) and an inquiry note all
+  persisted and were rolled back. The phone layout and sign-out work. Not
+  covered: event create/delete, saving sauna rates or prices, the
+  conflict-error path in the UI (covered by SQL tests).
+
 ## 2026-10-22 — Supabase project "Vanduo" migrated
 
 - All migrations applied to the new project (`mwngljhcvqkvncwbmgeo`) through

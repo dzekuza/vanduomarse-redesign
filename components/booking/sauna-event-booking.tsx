@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal } from "./booking-card";
 import { EventList } from "./event-list";
@@ -9,7 +9,7 @@ import { StepLabel } from "./step-label";
 import { Stepper } from "./stepper";
 import { VENUE, at, type CalendarEvent } from "@/lib/calendar";
 import { longDateLabel } from "@/lib/sauna";
-import { EVENT_WINDOW_DAYS, eventReference, startOfToday, upcomingEvents, type SaunaEvent } from "@/lib/sauna-events";
+import { eventReference, type SaunaEvent } from "@/lib/sauna-events";
 
 function eventCalendar(event: SaunaEvent, reference: string, people: number): CalendarEvent {
   const [h, m] = event.time.split(":").map(Number);
@@ -17,15 +17,15 @@ function eventCalendar(event: SaunaEvent, reference: string, people: number): Ca
   return {
     title: `${event.title} · Pirtis Marse`,
     start,
-    end: new Date(start.getTime() + event.minutes * 60_000),
+    // Sessions without a set length block two hours in the calendar.
+    end: new Date(start.getTime() + (event.minutes ?? 120) * 60_000),
     details: `Bilietai ${reference}: ${people} asm. ${event.blurb}`,
     location: VENUE,
   };
 }
 
 /** Join a scheduled public sauna session: pick an event, buy per-person tickets. */
-export function SaunaEventBooking() {
-  const events = useMemo(() => upcomingEvents(startOfToday(), EVENT_WINDOW_DAYS), []);
+export function SaunaEventBooking({ events }: { events: SaunaEvent[] }) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [people, setPeople] = useState(1);
   const [confirmed, setConfirmed] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export function SaunaEventBooking() {
         reference={confirmed}
         rows={[
           { label: "Data", value: longDateLabel(event.date) },
-          { label: "Laikas", value: `${event.time}, ${event.minutes} min` },
+          { label: "Laikas", value: event.minutes ? `${event.time}, ${event.minutes} min` : event.time },
           { label: "Bilietai", value: `${people} asm.` },
           { label: "Vedėjas", value: event.host },
         ]}

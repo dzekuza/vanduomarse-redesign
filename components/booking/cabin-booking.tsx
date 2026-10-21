@@ -15,37 +15,30 @@ import {
   cabinReference,
   freeCabins,
   roomPrice,
+  type CabinAvailability,
   type CabinSize,
   type RoomTypeId,
 } from "@/lib/cabin";
-import { dateKey } from "@/lib/sauna";
-
-function nextDays(count: number): Date[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
-}
+import type { CabinPageData } from "@/lib/data/public-types";
+import { dateKey, nextDays } from "@/lib/sauna";
 
 /** Cabins of any size free for every night of the stay. */
-function freeAll(checkIn: Date, nights: number): number {
-  return CABIN_SIZES.reduce((sum, s) => sum + freeCabins(checkIn, nights, s.id), 0);
+function freeAll(availability: CabinAvailability, checkIn: Date, nights: number): number {
+  return CABIN_SIZES.reduce((sum, s) => sum + freeCabins(availability, checkIn, nights, s.id), 0);
 }
 
-export function CabinBooking() {
-  const days = useMemo(() => nextDays(21), []);
+export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; days: number }) {
+  const { availability } = data;
+  const days = useMemo(() => nextDays(data.today, dayCount), [data.today, dayCount]);
   const [nights, setNights] = useState(2);
-  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeAll(d, 2) > 0) ?? days[0]);
+  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeAll(availability, d, 2) > 0) ?? days[0]);
   const [guests, setGuests] = useState(2);
   const [roomId, setRoomId] = useState<RoomTypeId>("namelis");
   const [preferredSize, setPreferredSize] = useState<CabinSize>(2);
   const [confirmed, setConfirmed] = useState<{ reference: string; total: number } | null>(null);
 
   const cabin = roomId === "namelis";
-  const free = (size: CabinSize) => freeCabins(checkIn, nights, size);
+  const free = (size: CabinSize) => freeCabins(availability, checkIn, nights, size);
   // Fall back to the other size when the preferred one is booked out for this stay.
   const size = free(preferredSize) > 0 ? preferredSize : (CABIN_SIZES.find((s) => free(s.id) > 0)?.id ?? preferredSize);
   const soldOut = cabin && free(size) === 0;
@@ -55,7 +48,7 @@ export function CabinBooking() {
 
   function dayNote(d: Date): DayNote | undefined {
     if (!cabin) return undefined;
-    const left = freeAll(d, nights);
+    const left = freeAll(availability, d, nights);
     return { text: left > 0 ? `liko ${left}` : "Užimta", disabled: left === 0 };
   }
 

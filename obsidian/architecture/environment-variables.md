@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Environment Variables
@@ -16,19 +16,19 @@ updated: 2026-10-19
 
 ## Variables
 
-None are read by the code yet. Planned with Supabase (listed, commented
-out, in `.env.example`):
-
 | Name | Scope | Required | Purpose |
 |------|-------|----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | client | with backend | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | with backend | Public anon key (RLS-protected) |
-| `SUPABASE_SERVICE_ROLE_KEY` | server | with backend | Admin operations in server actions only |
+| `NEXT_PUBLIC_SUPABASE_URL` | client + server | **yes** | Supabase project URL (project "Vanduo") |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | **yes** | Public anon key; RLS decides what it can see |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | no | Not read by the app. Reserved for future public-booking writes or scripts |
+
+Values: Supabase dashboard → Project Settings → API.
 
 ## Access
 
-No typed accessor yet. When the first variable is read, add `lib/env.ts`
-that parses `process.env` with Zod and import from it everywhere.
+`lib/supabase/env.ts` (`supabaseEnv()`) is the only reader; it throws a clear
+error when either variable is missing. Every client (`lib/supabase/server.ts`,
+`lib/supabase/public.ts`, `proxy.ts`) goes through it.
 
 ## Related
 

@@ -31,7 +31,23 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | Action | File | Purpose | Validation |
 |--------|------|---------|------------|
-| — | — | None yet. Planned: create booking / ticket / inquiry (public, service role, recompute the price server-side), and one per admin store action (ADR-0005). Map SQLSTATE `23P01` to a field error — see [[database]] | Zod, reusing the admin form schemas |
+| `signIn` / `signOut` | `app/admin/actions.ts` | Supabase password login → redirect `/admin`; sign-out → login page | Zod (`email`, `password ≥ 6`) |
+| `createBooking` | `app/admin/actions.ts` | Manual booking; DB assigns the reference; extras re-priced server-side from active upsells; returns the saved `Booking` | Zod; `23P01` → message for the slot field |
+| `setBookingStatus` / `toggleBlock` | `app/admin/actions.ts` | Status change; close/reopen a sauna hour (`created_by` = user) | Zod |
+| `setInquiryStatus` / `addInquiryNote` | `app/admin/actions.ts` | Inquiry pipeline; notes carry `author_id` | Zod |
+| `saveEvent` / `deleteEvent` / `setEventPublished` | `app/admin/actions.ts` | Upsert by UUID; delete refuses events with tickets (`23503`) | Zod |
+| `updatePrices` | `app/admin/actions.ts` | Value/max per price item | Zod (max ≥ value) |
+| `updateSaunaRates` / `saveUpsell` / `deleteUpsell` | `app/admin/actions.ts` | Sauna settings and extras; also revalidate `/pirtis` | `ratesSchema` / Zod |
+
+Every action: `staffClient()` (session + `public.staff` row, else `unauthorized`
+/ `forbidden`), Zod parse, write as the user (RLS), then
+`revalidatePath("/admin", "layout")`. Returns `ActionResult<T>`
+(`{ data } | { error: { message, code } }`); Postgres errors map to Lithuanian
+messages (`23P01` conflict by trigger hint, `23503` in use, `23514` invalid).
+
+Planned (public): create booking / ticket / inquiry once the forms collect
+contact details. Those need a server action with rate limiting that writes with
+the service role (anon has no insert grants) and recomputes the price.
 
 ## Related
 

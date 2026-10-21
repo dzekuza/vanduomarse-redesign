@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import { ArrowLink } from "@/components/arrow-link";
 import { BookingPage } from "@/components/booking/booking-page";
 import { EventsBoard } from "@/components/events/events-board";
+import { getParkEvents } from "@/lib/data/public";
 
 export const metadata: Metadata = {
   title: "Renginiai Marse",
   description: "Artimiausi Vanduo Marse renginiai: pirties ritualai, vakarai prie ežero, Marso Akademija ir šventės.",
 };
 
-export default function RenginiaiPage() {
+export default async function RenginiaiPage() {
+  const events = await getParkEvents();
+
   return (
     <BookingPage>
       <section className="px-6 pb-20 pt-6 md:px-10 md:pt-10">
@@ -27,7 +30,7 @@ export default function RenginiaiPage() {
           </div>
         </div>
         <div className="mt-12">
-          <EventsBoard />
+          <EventsBoard data={events} />
         </div>
       </section>
     </BookingPage>

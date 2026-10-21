@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BookingHero } from "@/components/booking/booking-hero";
 import { BookingPage } from "@/components/booking/booking-page";
 import { CabinBooking } from "@/components/booking/cabin-booking";
+import { CABIN_DAYS, getCabinPageData } from "@/lib/data/public";
 
 export const metadata: Metadata = {
   title: "Miegas Marse - rezervacija",
@@ -14,7 +15,9 @@ const FACTS = [
   { label: "Atsiskaitymas", value: "Iš anksto" },
 ];
 
-export default function MiegasPage() {
+export default async function MiegasPage() {
+  const data = await getCabinPageData();
+
   return (
     <BookingPage>
       <BookingHero
@@ -24,7 +27,7 @@ export default function MiegasPage() {
         facts={FACTS}
         gallery={[{ src: "https://picsum.photos/seed/lakeside-wooden-cabin-campsite-dusk/1600/600", alt: "Namelis prie ežero" }]}
       >
-        <CabinBooking />
+        <CabinBooking data={data} days={CABIN_DAYS} />
       </BookingHero>
     </BookingPage>
   );

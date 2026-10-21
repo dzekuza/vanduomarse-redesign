@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, SignOutIcon } from "@phosphor-icons/react";
+import { signOut } from "@/app/admin/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 
 /** Admin navigation with live counts for work waiting on staff. */
-export function AppSidebar() {
+export function AppSidebar({ staffName }: { staffName: string }) {
   const pathname = usePathname();
   const active = activeNavItem(pathname);
   const counts = useNavCounts();
@@ -59,9 +60,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
-        <p className="px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-          Demonstraciniai duomenys: pakeitimai neišsaugomi.
-        </p>
+        <p className="truncate px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">{staffName}</p>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Į svetainę">
@@ -70,6 +69,14 @@ export function AppSidebar() {
                 <span>Į svetainę</span>
               </Link>
             </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <form action={signOut}>
+              <SidebarMenuButton type="submit" tooltip="Atsijungti">
+                <SignOutIcon size={18} />
+                <span>Atsijungti</span>
+              </SidebarMenuButton>
+            </form>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
