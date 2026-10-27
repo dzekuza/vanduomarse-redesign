@@ -10,6 +10,26 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0013 — Hero wordmark distortion is a small raw-WebGL layer
+
+- **Status:** Accepted
+- **Date:** 2026-10-27
+
+**Context.** The client wanted the cursor "melt" effect seen on the Max Bennet
+reference (a Unicorn Studio scene) on the hero wordmark.
+**Decision.** Draw the h1's text into a 2D canvas (position, font and token
+colour read from the DOM) and show it through a ~100-line WebGL fragment
+shader (`lib/distort-gl.ts`). The h1 stays in the DOM, transparent while the
+canvas is active. Only for `(hover: hover) and (pointer: fine)` and no reduced
+motion; the render loop stops when the pointer leaves.
+
+**Consequences.** No dependency or hosted scene, and the colour follows the
+`rust` token. Effect strength is tuned in the shader (`spread`, `shift`,
+dither). A different font or layout needs no change; the canvas re-rasterises
+on resize.
+
+---
+
 ## ADR-0012 — Staff roles are enforced in row level security
 
 - **Status:** Accepted (migration applied 2026-10-28)

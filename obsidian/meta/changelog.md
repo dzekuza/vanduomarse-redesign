@@ -9,6 +9,15 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-27 — Hero wordmark melts under the cursor
+
+- **What:** the home hero wordmark reacts to the pointer like the Max Bennet
+  reference: letters smear sideways and dissolve into spray around the cursor,
+  then settle back. New `DistortWordmark` (client) + `lib/distort-gl.ts`
+  (raw WebGL, no new dependency). See [[components/common]], ADR-0013.
+- **Safe fallbacks:** touch devices, `prefers-reduced-motion` and no-WebGL keep
+  the plain `Wordmark`; the footer repeat is unchanged.
+
 ## 2026-10-28 — Staff roles and per-page permissions
 
 - **What:** owners create staff logins and give each person a role; a role is a
