@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLink } from "./arrow-link";
-import { Wordmark } from "./wordmark";
+import { DistortWordmark } from "./distort-wordmark";
 
 /** Load-in for hero blocks: fade up, staggered with `delay-*`; skipped under reduced motion. */
 const REVEAL = "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:fill-mode-both";
@@ -8,7 +8,7 @@ const REVEAL = "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-
 export function Hero() {
   return (
     <section className="px-6 pb-10 pt-4 md:px-10 md:pb-14 md:pt-8">
-      <Wordmark as="h1" className={REVEAL} />
+      <DistortWordmark className={REVEAL} />
       <div className={`mt-6 grid gap-3 text-xs uppercase md:mt-10 md:grid-cols-3 md:items-start md:gap-6 ${REVEAL} delay-200`}>
         <p className="text-balance leading-relaxed">Kabelinis vandenlenčių parkas, pirtis ir nakvynė prie ežero</p>
         <p className="leading-relaxed md:text-center">Ežero krantas, Lietuva</p>
