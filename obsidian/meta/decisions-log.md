@@ -12,7 +12,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ## ADR-0012 — Staff roles are enforced in row level security
 
-- **Status:** Accepted (migration pending on the live project)
+- **Status:** Accepted (migration applied 2026-10-28)
 - **Date:** 2026-10-28
 
 **Context.** Until now any row in `public.staff` had full admin power (ADR-0007).

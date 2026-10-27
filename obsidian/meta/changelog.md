@@ -27,7 +27,7 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
 - **Env:** `SUPABASE_SERVICE_ROLE_KEY` is now used (server only) to create,
   reset and delete logins; without it only that screen reports it (ADR-0012).
 - **Order matters:** apply `20261028120000_staff_roles.sql` **before** deploying
-  this code, or `/admin` fails for everyone. Not yet applied: see [[database]].
+  this code, or `/admin` fails for everyone. Applied to the live project; see [[database]].
 - **Internal:** action helpers moved to `lib/admin/action-helpers.ts`;
   `staffClient(need)` replaces `staffClient()`; capacity/consistency triggers are
   `security definer`.
