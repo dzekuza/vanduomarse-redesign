@@ -133,6 +133,161 @@ export type Database = {
           },
         ]
       }
+      coupon_products: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          id: string
+          kind: Database["public"]["Enums"]["coupon_kind"]
+          name: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          sort_order: number
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id: string
+          kind: Database["public"]["Enums"]["coupon_kind"]
+          name: string
+          service?: Database["public"]["Enums"]["coupon_service"]
+          sort_order?: number
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["coupon_kind"]
+          name?: string
+          service?: Database["public"]["Enums"]["coupon_service"]
+          sort_order?: number
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      coupon_redemptions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          coupon_id: string
+          created_at: string
+          id: string
+          note: string
+          redeemed_by: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          coupon_id: string
+          created_at?: string
+          id?: string
+          note?: string
+          redeemed_by?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+          redeemed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          balance: number
+          buyer_email: string
+          buyer_name: string
+          code: string | null
+          created_at: string
+          expires_at: string | null
+          face_value: number
+          id: string
+          kind: Database["public"]["Enums"]["coupon_kind"]
+          message: string
+          paid_at: string | null
+          product_id: string
+          product_name: string
+          recipient_name: string
+          reference: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          status: Database["public"]["Enums"]["coupon_status"]
+          updated_at: string
+        }
+        Insert: {
+          balance: number
+          buyer_email: string
+          buyer_name: string
+          code?: string | null
+          created_at?: string
+          expires_at?: string | null
+          face_value: number
+          id?: string
+          kind: Database["public"]["Enums"]["coupon_kind"]
+          message?: string
+          paid_at?: string | null
+          product_id: string
+          product_name: string
+          recipient_name?: string
+          reference: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          status?: Database["public"]["Enums"]["coupon_status"]
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          buyer_email?: string
+          buyer_name?: string
+          code?: string | null
+          created_at?: string
+          expires_at?: string | null
+          face_value?: number
+          id?: string
+          kind?: Database["public"]["Enums"]["coupon_kind"]
+          message?: string
+          paid_at?: string | null
+          product_id?: string
+          product_name?: string
+          recipient_name?: string
+          reference?: string
+          service?: Database["public"]["Enums"]["coupon_service"]
+          status?: Database["public"]["Enums"]["coupon_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tickets: {
         Row: {
           created_at: string
@@ -370,6 +525,146 @@ export type Database = {
         }
         Relationships: []
       }
+      quad_rentals: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          date: string
+          hours: number
+          id: string
+          note: string | null
+          quad_type_id: string
+          reference: string
+          riders: number
+          source: Database["public"]["Enums"]["booking_source"]
+          start_hour: number
+          status: Database["public"]["Enums"]["booking_status"]
+          total: number
+          units: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          date: string
+          hours: number
+          id?: string
+          note?: string | null
+          quad_type_id: string
+          reference: string
+          riders: number
+          source?: Database["public"]["Enums"]["booking_source"]
+          start_hour: number
+          status?: Database["public"]["Enums"]["booking_status"]
+          total: number
+          units: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          date?: string
+          hours?: number
+          id?: string
+          note?: string | null
+          quad_type_id?: string
+          reference?: string
+          riders?: number
+          source?: Database["public"]["Enums"]["booking_source"]
+          start_hour?: number
+          status?: Database["public"]["Enums"]["booking_status"]
+          total?: number
+          units?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quad_rentals_quad_type_id_fkey"
+            columns: ["quad_type_id"]
+            isOneToOne: false
+            referencedRelation: "quad_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quad_settings: {
+        Row: {
+          close_hour: number
+          deposit: number
+          id: boolean
+          max_hours: number
+          min_age: number
+          open_hour: number
+          rules: string
+          updated_at: string
+        }
+        Insert: {
+          close_hour: number
+          deposit?: number
+          id?: boolean
+          max_hours: number
+          min_age: number
+          open_hour: number
+          rules?: string
+          updated_at?: string
+        }
+        Update: {
+          close_hour?: number
+          deposit?: number
+          id?: boolean
+          max_hours?: number
+          min_age?: number
+          open_hour?: number
+          rules?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quad_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          id: string
+          name: string
+          price_per_hour: number
+          seats: number
+          sort_order: number
+          units: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id: string
+          name: string
+          price_per_hour: number
+          seats: number
+          sort_order?: number
+          units: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          price_per_hour?: number
+          seats?: number
+          sort_order?: number
+          units?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sauna_blocks: {
         Row: {
           created_at: string
@@ -525,19 +820,66 @@ export type Database = {
       }
       staff: {
         Row: {
+          active: boolean
           created_at: string
           display_name: string
+          email: string
+          role_id: string
           user_id: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
           display_name: string
+          email?: string
+          role_id: string
           user_id: string
         }
         Update: {
+          active?: boolean
           created_at?: string
           display_name?: string
+          email?: string
+          role_id?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "staff_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_roles: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_owner: boolean
+          name: string
+          permissions: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_owner?: boolean
+          name: string
+          permissions?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_owner?: boolean
+          name?: string
+          permissions?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -585,9 +927,82 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_coupon: {
+        Args: { p_id: string }
+        Returns: {
+          code: string
+          expires_at: string
+        }[]
+      }
+      check_coupon: {
+        Args: { p_code: string }
+        Returns: {
+          balance: number
+          expires_at: string
+          product_name: string
+          service: Database["public"]["Enums"]["coupon_service"]
+        }[]
+      }
+      create_coupon_order: {
+        Args: {
+          p_buyer_email: string
+          p_buyer_name: string
+          p_message?: string
+          p_product_id: string
+          p_recipient_name?: string
+        }
+        Returns: {
+          amount: number
+          id: string
+          product_name: string
+          reference: string
+        }[]
+      }
+      create_quad_rental: {
+        Args: {
+          p_date: string
+          p_email?: string
+          p_hours: number
+          p_name: string
+          p_note?: string
+          p_phone?: string
+          p_riders: number
+          p_start_hour: number
+          p_type_id: string
+          p_units: number
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_tour_ticket: {
+        Args: {
+          p_email?: string
+          p_event_id: string
+          p_name: string
+          p_people: number
+          p_phone?: string
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
       materialize_sauna_events: {
         Args: { p_days?: number; p_from: string }
         Returns: number
+      }
+      quad_taken: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          day: string
+          hour: number
+          quad_type_id: string
+          taken: number
+        }[]
       }
       sauna_taken_hours: {
         Args: { p_from: string; p_to: string }
@@ -610,7 +1025,19 @@ export type Database = {
       booking_kind: "pirtis" | "namelis" | "kemperis"
       booking_source: "svetaine" | "telefonu" | "vietoje"
       booking_status: "laukia" | "patvirtinta" | "ivykdyta" | "atsaukta"
-      event_category: "pirtis" | "vakarai" | "akademija" | "sventes"
+      coupon_kind: "verte" | "paslauga"
+      coupon_service: "visi" | "kabelis" | "pirtis" | "miegas"
+      coupon_status:
+        | "laukia_apmokejimo"
+        | "aktyvus"
+        | "panaudotas"
+        | "atsauktas"
+      event_category:
+        | "pirtis"
+        | "vakarai"
+        | "akademija"
+        | "sventes"
+        | "keturratis"
       inquiry_source: "skaiciuokle" | "renginys" | "kontaktai"
       inquiry_status:
         | "nauja"
@@ -755,7 +1182,21 @@ export const Constants = {
       booking_kind: ["pirtis", "namelis", "kemperis"],
       booking_source: ["svetaine", "telefonu", "vietoje"],
       booking_status: ["laukia", "patvirtinta", "ivykdyta", "atsaukta"],
-      event_category: ["pirtis", "vakarai", "akademija", "sventes"],
+      coupon_kind: ["verte", "paslauga"],
+      coupon_service: ["visi", "kabelis", "pirtis", "miegas"],
+      coupon_status: [
+        "laukia_apmokejimo",
+        "aktyvus",
+        "panaudotas",
+        "atsauktas",
+      ],
+      event_category: [
+        "pirtis",
+        "vakarai",
+        "akademija",
+        "sventes",
+        "keturratis",
+      ],
       inquiry_source: ["skaiciuokle", "renginys", "kontaktai"],
       inquiry_status: [
         "nauja",

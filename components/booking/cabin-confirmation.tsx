@@ -13,10 +13,11 @@ interface CabinConfirmationProps {
   roomId: RoomTypeId;
   size: CabinSize;
   total: number;
+  coupon?: { code: string; discount: number };
   onReset: () => void;
 }
 
-export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, size, total, onReset }: CabinConfirmationProps) {
+export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, size, total, coupon, onReset }: CabinConfirmationProps) {
   const label = roomLabel(roomId, size);
   const checkOut = new Date(checkIn);
   checkOut.setDate(checkOut.getDate() + nights);
@@ -32,6 +33,7 @@ export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, 
         { label: "Svečiai", value: `${guests} žm.` },
       ]}
       total={total}
+      coupon={coupon}
       calendar={{
         title: `Miegas Marse: ${label}`,
         start: checkIn,

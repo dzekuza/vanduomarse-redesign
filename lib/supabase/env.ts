@@ -1,7 +1,7 @@
 /**
  * Public Supabase settings. Both are safe in the browser bundle; the
- * service-role key is deliberately not read anywhere in the app (RLS + staff
- * login cover every read and write).
+ * service-role key is not read here: only the owner-only staff actions use it,
+ * through `lib/supabase/admin.ts` (RLS + roles cover every other read and write).
  */
 export function supabaseEnv(): { url: string; anonKey: string } {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

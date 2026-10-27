@@ -1,4 +1,7 @@
+import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
+import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
+import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { SaunaRates } from "@/lib/sauna";
 import type { Upsell } from "@/lib/sauna-upsells";
 
@@ -99,6 +102,82 @@ export interface PriceItem {
   max?: number;
 }
 
+/** A named set of admin pages. The Owner role has every page and manages staff. */
+export interface StaffRole {
+  id: string;
+  name: string;
+  description: string;
+  isOwner: boolean;
+  permissions: PermissionId[];
+}
+
+/** A person with an admin login. Only owners receive the full list. */
+export interface StaffMember {
+  userId: string;
+  name: string;
+  email: string;
+  roleId: string;
+  active: boolean;
+  createdAt: string;
+}
+
+/** An hourly quad rental request or booking. */
+export interface QuadRental {
+  id: string;
+  reference: string;
+  quadTypeId: string;
+  /** yyyy-mm-dd */
+  date: string;
+  startHour: number;
+  hours: number;
+  units: number;
+  riders: number;
+  customer: Customer;
+  total: number;
+  status: BookingStatus;
+  source: BookingSource;
+  note?: string;
+  createdAt: string;
+}
+
+/** A ticket for a guided quad tour (a row of event_tickets on a `keturratis` event). */
+export interface TourTicket {
+  id: string;
+  reference: string;
+  eventId: string;
+  eventTitle: string;
+  /** yyyy-mm-dd */
+  eventDate: string;
+  /** HH:MM */
+  eventTime: string;
+  people: number;
+  customer: Customer;
+  total: number;
+  status: BookingStatus;
+  createdAt: string;
+}
+
+/** A coupon order or issued coupon. `code` stays unset until payment is confirmed. */
+export interface Coupon {
+  id: string;
+  reference: string;
+  code?: string;
+  productName: string;
+  kind: CouponKind;
+  service: CouponService;
+  faceValue: number;
+  balance: number;
+  status: CouponStatus;
+  buyer: { name: string; email: string };
+  recipientName: string;
+  message: string;
+  createdAt: string;
+  paidAt?: string;
+  /** yyyy-mm-dd */
+  expiresAt?: string;
+  redemptions: { id: string; amount: number; note: string; at: string }[];
+}
+
 /** Everything the dashboard renders, loaded once per request in the admin layout. */
 export interface AdminData {
   bookings: Booking[];
@@ -108,4 +187,15 @@ export interface AdminData {
   prices: PriceItem[];
   saunaRates: SaunaRates;
   upsells: Upsell[];
+  coupons: Coupon[];
+  couponProducts: CouponProduct[];
+  quadTypes: QuadType[];
+  quadSettings: QuadSettings;
+  quadRentals: QuadRental[];
+  tourTickets: TourTicket[];
+  /** The signed-in staff member. */
+  me: StaffAccess;
+  roles: StaffRole[];
+  /** Empty unless `me` is an owner. */
+  staff: StaffMember[];
 }

@@ -6,6 +6,7 @@ export const EVENT_CATEGORIES = [
   { id: "vakarai", label: "Vakarai" },
   { id: "akademija", label: "Akademija" },
   { id: "sventes", label: "Šventės" },
+  { id: "keturratis", label: "Keturračiai" },
 ] as const;
 
 export type EventCategory = (typeof EVENT_CATEGORIES)[number]["id"];

@@ -1,7 +1,10 @@
+import { isPermissionId } from "@/lib/admin/permissions";
+import type { CouponProduct } from "@/lib/coupons";
+import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
 import type { SaunaRates } from "@/lib/sauna";
 import type { Upsell } from "@/lib/sauna-upsells";
-import type { Block, Booking, Inquiry, ManagedEvent, PriceItem } from "./types";
+import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -9,6 +12,8 @@ import type { Block, Booking, Inquiry, ManagedEvent, PriceItem } from "./types";
  */
 
 type BookingRow = Tables<"bookings"> & { booking_extras: Pick<Tables<"booking_extras">, "name" | "unit" | "quantity">[] };
+type CouponRow = Tables<"coupons"> & { coupon_redemptions: Pick<Tables<"coupon_redemptions">, "id" | "amount" | "note" | "created_at">[] };
+type TicketRow = Tables<"event_tickets"> & { events: Pick<Tables<"events">, "title" | "date" | "start_time"> };
 type InquiryRow = Tables<"inquiries"> & { inquiry_notes: Pick<Tables<"inquiry_notes">, "text" | "created_at">[] };
 
 /** "19:00:00" -> "19:00" */
@@ -96,4 +101,82 @@ export function toSaunaRates(r: Tables<"sauna_settings">): SaunaRates {
 
 export function toUpsell(r: Tables<"sauna_upsells">): Upsell {
   return { id: r.id, name: r.name, description: r.description, price: r.price, unit: r.unit, maxQty: r.max_qty, active: r.active };
+}
+
+export function toCouponProduct(r: Tables<"coupon_products">): CouponProduct {
+  return { id: r.id, kind: r.kind, service: r.service, name: r.name, description: r.description, value: r.value, active: r.active };
+}
+
+export function toCoupon(r: CouponRow): Coupon {
+  return {
+    id: r.id,
+    reference: r.reference,
+    code: r.code ?? undefined,
+    productName: r.product_name,
+    kind: r.kind,
+    service: r.service,
+    faceValue: r.face_value,
+    balance: r.balance,
+    status: r.status,
+    buyer: { name: r.buyer_name, email: r.buyer_email },
+    recipientName: r.recipient_name,
+    message: r.message,
+    createdAt: r.created_at,
+    paidAt: r.paid_at ?? undefined,
+    expiresAt: r.expires_at ?? undefined,
+    redemptions: r.coupon_redemptions
+      .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
+      .map((x) => ({ id: x.id, amount: x.amount, note: x.note, at: x.created_at })),
+  };
+}
+
+export function toQuadType(r: Tables<"quad_types">): QuadType {
+  return { id: r.id, name: r.name, description: r.description, seats: r.seats, units: r.units, pricePerHour: r.price_per_hour, active: r.active };
+}
+
+export function toQuadSettings(r: Tables<"quad_settings">): QuadSettings {
+  return { openHour: r.open_hour, closeHour: r.close_hour, maxHours: r.max_hours, deposit: r.deposit, minAge: r.min_age, rules: r.rules };
+}
+
+export function toQuadRental(r: Tables<"quad_rentals">): QuadRental {
+  return {
+    id: r.id,
+    reference: r.reference,
+    quadTypeId: r.quad_type_id,
+    date: r.date,
+    startHour: r.start_hour,
+    hours: r.hours,
+    units: r.units,
+    riders: r.riders,
+    customer: { name: r.customer_name, email: r.customer_email ?? "", phone: r.customer_phone ?? "" },
+    total: r.total,
+    status: r.status,
+    source: r.source,
+    note: r.note ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+export function toTourTicket(r: TicketRow): TourTicket {
+  return {
+    id: r.id,
+    reference: r.reference,
+    eventId: r.event_id,
+    eventTitle: r.events.title,
+    eventDate: r.events.date,
+    eventTime: toHHMM(r.events.start_time),
+    people: r.people,
+    customer: { name: r.customer_name, email: r.customer_email ?? "", phone: r.customer_phone ?? "" },
+    total: r.total,
+    status: r.status,
+    createdAt: r.created_at,
+  };
+}
+
+export function toStaffRole(r: Tables<"staff_roles">): StaffRole {
+  return { id: r.id, name: r.name, description: r.description, isOwner: r.is_owner, permissions: r.permissions.filter(isPermissionId) };
+}
+
+export function toStaffMember(r: Tables<"staff">): StaffMember {
+  return { userId: r.user_id, name: r.display_name, email: r.email, roleId: r.role_id, active: r.active, createdAt: r.created_at };
 }

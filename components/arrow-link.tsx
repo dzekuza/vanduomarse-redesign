@@ -5,6 +5,8 @@ interface ArrowLinkProps {
   href: string;
   children: React.ReactNode;
   size?: "sm" | "md";
+  /** Fully rounded ends (landing page); default stays the square block. */
+  pill?: boolean;
 }
 
 const SIZE = {
@@ -13,11 +15,11 @@ const SIZE = {
 };
 
 /** Link styled as the live-site CTA: dark block, thin arrow, uppercase label. */
-export function ArrowLink({ href, children, size = "md" }: ArrowLinkProps) {
+export function ArrowLink({ href, children, size = "md", pill = false }: ArrowLinkProps) {
   return (
     <Link
       href={href}
-      className={`group inline-flex items-center border border-ink bg-ink uppercase text-foam transition-[background-color,border-color,transform] hover:border-rust hover:bg-rust active:scale-[0.97] ${SIZE[size].box}`}
+      className={`group inline-flex items-center border border-ink bg-ink uppercase text-foam transition-[background-color,border-color,transform] hover:border-rust hover:bg-rust active:scale-[0.97] ${SIZE[size].box} ${pill ? "rounded-full" : ""}`}
     >
       <ArrowRightIcon size={SIZE[size].icon} weight="thin" className="transition-transform group-hover:translate-x-1" />
       {children}

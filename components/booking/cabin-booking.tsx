@@ -5,6 +5,7 @@ import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { CabinSizePicker } from "./cabin-size-picker";
+import { CouponField } from "./coupon-field";
 import { DayPicker, type DayNote } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
 import { StepLabel } from "./step-label";
@@ -19,6 +20,7 @@ import {
   type CabinSize,
   type RoomTypeId,
 } from "@/lib/cabin";
+import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
 import type { CabinPageData } from "@/lib/data/public-types";
 import { dateKey, nextDays } from "@/lib/sauna";
 
@@ -35,7 +37,8 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
   const [guests, setGuests] = useState(2);
   const [roomId, setRoomId] = useState<RoomTypeId>("namelis");
   const [preferredSize, setPreferredSize] = useState<CabinSize>(2);
-  const [confirmed, setConfirmed] = useState<{ reference: string; total: number } | null>(null);
+  const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
+  const [confirmed, setConfirmed] = useState<{ reference: string; total: number; coupon?: { code: string; discount: number } } | null>(null);
 
   const cabin = roomId === "namelis";
   const free = (size: CabinSize) => freeCabins(availability, checkIn, nights, size);
@@ -44,7 +47,9 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
   const soldOut = cabin && free(size) === 0;
   const maxGuests = cabin ? size : CAMPER_MAX_GUESTS;
   const shownGuests = Math.min(guests, maxGuests);
-  const total = roomPrice(roomId, size) * nights;
+  const subtotal = roomPrice(roomId, size) * nights;
+  const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
+  const total = subtotal - discount;
 
   function dayNote(d: Date): DayNote | undefined {
     if (!cabin) return undefined;
@@ -54,7 +59,11 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
 
   function confirm() {
     const ref = cabin ? `${roomId}${size}` : roomId;
-    setConfirmed({ reference: cabinReference(dateKey(checkIn), ref, nights), total });
+    setConfirmed({
+      reference: cabinReference(dateKey(checkIn), ref, nights),
+      total,
+      coupon: coupon && discount > 0 ? { code: coupon.code, discount } : undefined,
+    });
   }
 
   if (confirmed) {
@@ -67,7 +76,11 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         roomId={roomId}
         size={size}
         total={confirmed.total}
-        onReset={() => setConfirmed(null)}
+        coupon={confirmed.coupon}
+        onReset={() => {
+          setConfirmed(null);
+          setCoupon(null);
+        }}
       />
     );
   }
@@ -78,6 +91,7 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         <BookingTotal
           note={`${nights} ${nights === 1 ? "naktis" : "naktys"}, nuo ${checkIn.toLocaleDateString("lt-LT")}`}
           total={total}
+          discount={discount}
         />
       }
       action={
@@ -104,6 +118,7 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
           <Stepper label="Svečių" value={shownGuests} onChange={setGuests} min={1} max={maxGuests} />
         </div>
       </div>
+      <CouponField flow="miegas" coupon={coupon} discount={discount} onChange={setCoupon} />
     </BookingCard>
   );
 }

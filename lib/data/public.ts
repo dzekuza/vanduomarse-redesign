@@ -1,8 +1,10 @@
 import "server-only";
 import { connection } from "next/server";
-import { toHHMM, toSaunaRates, toUpsell } from "@/lib/admin/mappers";
+import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSaunaRates, toUpsell } from "@/lib/admin/mappers";
 import type { CabinAvailability, CabinSize } from "@/lib/cabin";
-import type { CabinPageData, SaunaPageData } from "./public-types";
+import type { CouponProduct } from "@/lib/coupons";
+import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
+import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
 import { EVENTS_WINDOW_DAYS, type ParkEventData } from "@/lib/park-events";
 import { todayKey } from "@/lib/sauna";
 import { EVENT_WINDOW_DAYS } from "@/lib/sauna-events";
@@ -126,6 +128,65 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
     cta:
       e.category === "pirtis" && e.capacity !== null
         ? { label: "Pirkti bilietą", href: "/pirtis?skirtukas=renginiai" }
-        : { label: "Registruotis", href: `mailto:${CONTACT}?subject=${encodeURIComponent(e.title)}` },
+        : e.category === "keturratis" && e.capacity !== null
+          ? { label: "Registruotis į žygį", href: "/keturraciai?skirtukas=zygiai" }
+          : { label: "Registruotis", href: `mailto:${CONTACT}?subject=${encodeURIComponent(e.title)}` },
   }));
+}
+
+/** Active coupon products for /kuponai (RLS limits anon to active rows). */
+export async function getCouponProducts(): Promise<CouponProduct[]> {
+  await connection();
+  const supabase = createPublicClient();
+  return must(await supabase.from("coupon_products").select("*").eq("active", true).order("sort_order"), "Coupon products").map(toCouponProduct);
+}
+
+/** Days of guided tours the quad page lists. */
+const TOUR_DAYS = 60;
+
+const vilniusHour = () =>
+  Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Vilnius" }).format(new Date())) % 24;
+
+/** Fleet, opening hours, hourly availability and upcoming tours for /keturraciai. */
+export async function getQuadPageData(): Promise<QuadPageData> {
+  await connection();
+  const supabase = createPublicClient();
+  const today = todayKey();
+
+  const [types, settings, taken, tours] = await Promise.all([
+    supabase.from("quad_types").select("*").eq("active", true).order("sort_order"),
+    supabase.from("quad_settings").select("*").single(),
+    supabase.rpc("quad_taken", { p_from: today, p_to: addDays(today, QUAD_DAYS) }),
+    supabase
+      .from("events")
+      .select("*")
+      .eq("category", "keturratis")
+      .not("capacity", "is", null)
+      .gte("date", today)
+      .lte("date", addDays(today, TOUR_DAYS - 1))
+      .order("date")
+      .order("start_time"),
+  ]);
+
+  const takenMap: QuadTaken = {};
+  for (const row of must(taken, "Quad availability")) ((takenMap[row.day] ??= {})[row.quad_type_id] ??= {})[row.hour] = row.taken;
+
+  return {
+    today,
+    nowHour: vilniusHour(),
+    types: must(types, "Quad types").map(toQuadType),
+    settings: toQuadSettings(must(settings, "Quad settings")),
+    taken: takenMap,
+    tours: must(tours, "Quad tours").map((e) => ({
+      key: e.id,
+      title: e.title,
+      date: e.date,
+      time: toHHMM(e.start_time),
+      minutes: e.duration_minutes,
+      pricePerPerson: e.price ?? 0,
+      spotsLeft: spotsLeft(e) ?? 0,
+      blurb: e.blurb,
+      place: e.place,
+    })),
+  };
 }

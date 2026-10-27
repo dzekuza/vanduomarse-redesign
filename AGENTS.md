@@ -30,7 +30,7 @@ architectural choices).
    hard-code a price in a component.
 6. **Data lives in Supabase** (ADR-0007). Admin screens read and write only
    through `useAdmin()` (`components/admin/admin-store.tsx` → server actions in
-   `app/admin/actions.ts`), behind staff login (`public.staff`). Public pages
+   `app/admin/actions.ts`), behind staff login (`public.staff`) and the role's page permission (`staff_roles`, ADR-0012: new admin data needs a policy keyed to a page permission). Public pages
    read through `lib/data/public.ts`. No mock or generated data in `lib/`.
 7. **Forms:** React Hook Form + Zod. Validate shape in the schema, live
    conflicts (availability, capacity) on submit with `setError`.

@@ -19,10 +19,11 @@ export function BookingCard({ children, summary, action }: BookingCardProps) {
   );
 }
 
-export function BookingTotal({ note, total }: { note: string; total: number }) {
+export function BookingTotal({ note, total, discount = 0 }: { note: string; total: number; discount?: number }) {
   return (
     <>
       <p className="text-sm text-ink/60">{note}</p>
+      {discount > 0 ? <p className="text-sm text-ink/60">Kuponas −{discount} €</p> : null}
       <p className="font-display text-2xl font-bold">{total} €</p>
     </>
   );

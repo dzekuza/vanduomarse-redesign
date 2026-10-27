@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal } from "./booking-card";
 import { Confirmation } from "./confirmation";
+import { CouponField } from "./coupon-field";
 import { DayPicker } from "./day-picker";
 import { DurationPicker } from "./duration-picker";
 import { StartTimeGrid } from "./start-time-grid";
@@ -21,6 +22,7 @@ import {
   sessionPrice,
   type SaunaRates,
 } from "@/lib/sauna";
+import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
 import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 
 interface SaunaBookingProps {
@@ -41,14 +43,17 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
   const [partySize, setPartySize] = useState(4);
   /** Upsell id -> item count (counted extras) or 0/1 (on/off extras). */
   const [extras, setExtras] = useState<Record<string, number>>({});
-  const [confirmed, setConfirmed] = useState<{ reference: string; total: number } | null>(null);
+  const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
+  const [confirmed, setConfirmed] = useState<{ reference: string; total: number; coupon?: { code: string; discount: number } } | null>(null);
 
   const dateK = dateKey(selectedDate);
   const taken = takenByDay[dateK] ?? [];
   const maxHours = startHour === null ? 0 : maxHoursFrom(taken, startHour, rates);
   const basePrice = startHour === null ? 0 : sessionPrice(hours, partySize, rates);
   const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize, hours }), 0);
-  const total = basePrice + extrasPrice;
+  const subtotal = basePrice + extrasPrice;
+  const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
+  const total = subtotal - discount;
   const timeLabel = startHour === null ? "" : `${formatHour(startHour)}-${formatHour(startHour + hours)}`;
 
   function selectDate(date: Date) {
@@ -71,7 +76,11 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
 
   function confirm() {
     if (startHour === null) return;
-    setConfirmed({ reference: bookingReference(dateK, startHour, hours, partySize), total });
+    setConfirmed({
+      reference: bookingReference(dateK, startHour, hours, partySize),
+      total,
+      coupon: coupon && discount > 0 ? { code: coupon.code, discount } : undefined,
+    });
   }
 
   if (confirmed && startHour !== null) {
@@ -85,8 +94,10 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
         partySize={partySize}
         extras={upsellSummary(upsells, extras)}
         total={confirmed.total}
+        coupon={confirmed.coupon}
         onReset={() => {
           setConfirmed(null);
+          setCoupon(null);
           setStartHour(null);
           setHours(rates.minHours);
           setExtras({});
@@ -101,6 +112,7 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
         <BookingTotal
           note={startHour === null ? "Pasirink pradžios laiką" : `${selectedDate.toLocaleDateString("lt-LT")}, ${timeLabel}`}
           total={total}
+          discount={discount}
         />
       }
       action={
@@ -144,6 +156,7 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
         <StepLabel step={startHour === null ? 4 : 5}>Papildomai</StepLabel>
         <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
       </div>
+      <CouponField flow="pirtis" coupon={coupon} discount={discount} onChange={setCoupon} />
     </BookingCard>
   );
 }

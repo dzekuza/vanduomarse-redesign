@@ -1,42 +1,30 @@
 import Link from "next/link";
 import { ArrowLink } from "./arrow-link";
-import { TrackPanel } from "./track-panel";
+import { Wordmark } from "./wordmark";
 
 /** Load-in for hero blocks: fade up, staggered with `delay-*`; skipped under reduced motion. */
 const REVEAL = "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:fill-mode-both";
 
 export function Hero() {
   return (
-    <section className="grid gap-12 px-6 pb-16 pt-10 md:px-10 md:pb-24 md:pt-16 lg:grid-cols-12 lg:items-end lg:gap-10">
-      <div className="lg:col-span-7 lg:pb-2">
-        <p className={`flex items-center gap-3 text-xs uppercase text-ink/70 ${REVEAL}`}>
-          <span aria-hidden className="h-px w-8 shrink-0 bg-rust" />
-          <span>
-            Kabelinis vandenlenčių parkas <span className="whitespace-nowrap">· Lietuva</span>
-          </span>
-        </p>
-        <h1 className={`mt-6 font-display text-5xl font-bold leading-none sm:text-6xl xl:text-7xl ${REVEAL} delay-100`}>
-          Žemė per
-          <br />
-          toli. Plauk
-          <br />
-          Marse.
-        </h1>
-        <p className={`mt-6 max-w-md md:mt-8 text-base leading-relaxed text-ink/80 md:text-lg ${REVEAL} delay-200`}>
-          Kabelio trasa per visą ežerą. Vienu metu plaukia iki 8 raitelių,
-          pirmąkart ar jau treniruotas.
-        </p>
-        <div className={`mt-8 flex flex-wrap md:mt-10 items-center gap-x-8 gap-y-4 ${REVEAL} delay-300`}>
-          <ArrowLink href="#kainos">Žiūrėti kainas</ArrowLink>
-          <Link
-            href="#zonos"
-            className="inline-flex min-h-11 items-center text-sm uppercase underline decoration-ink/40 underline-offset-8 transition-colors hover:text-rust hover:decoration-rust"
-          >
-            Visos zonos
-          </Link>
-        </div>
+    <section className="px-6 pb-10 pt-4 md:px-10 md:pb-14 md:pt-8">
+      <Wordmark as="h1" className={REVEAL} />
+      <div className={`mt-6 grid gap-3 text-xs uppercase md:mt-10 md:grid-cols-3 md:items-start md:gap-6 ${REVEAL} delay-200`}>
+        <p className="text-balance leading-relaxed">Kabelinis vandenlenčių parkas, pirtis ir nakvynė prie ežero</p>
+        <p className="leading-relaxed md:text-center">Ežero krantas, Lietuva</p>
+        <p className="text-balance leading-relaxed md:text-right">Plaukimas be išankstinės rezervacijos</p>
       </div>
-      <TrackPanel className={`lg:col-span-5 ${REVEAL} delay-500`} />
+      <div className={`mt-8 flex flex-wrap items-center gap-3 ${REVEAL} delay-300`}>
+        <ArrowLink href="#kainos" pill>
+          Žiūrėti kainas
+        </ArrowLink>
+        <Link
+          href="#zonos"
+          className="inline-flex min-h-12 items-center rounded-full border border-ink px-6 text-sm uppercase transition-colors hover:border-rust hover:text-rust"
+        >
+          Visos zonos
+        </Link>
+      </div>
     </section>
   );
 }

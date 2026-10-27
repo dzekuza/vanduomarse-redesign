@@ -42,14 +42,24 @@
   --chart-4: #015059;
   --chart-5: #00b2b5;
   --radius: 0rem;
-  --sidebar: #f1d8ce;
-  --sidebar-foreground: #382e38;
-  --sidebar-primary: #382e38;
+  /* Rounded corners for photo tiles, panels and pills only (landing redesign, ADR-0009); everything else stays square. */
+  --tile-radius: 1.25rem;
+  /* Admin sidebar and mobile tab bar: an aubergine rail with a coral marker. */
+  --sidebar: #382e38;
+  --sidebar-foreground: #fbf3ef;
+  --sidebar-primary: #ed5257;
   --sidebar-primary-foreground: #fbf3ef;
-  --sidebar-accent: #f7e7e0;
-  --sidebar-accent-foreground: #382e38;
-  --sidebar-border: rgba(56, 46, 56, 0.18);
+  --sidebar-accent: #4a3e4a;
+  --sidebar-accent-foreground: #fbf3ef;
+  --sidebar-border: rgba(251, 243, 239, 0.12);
   --sidebar-ring: #ed5257;
+  /* Admin status colours: a dot next to the label, never the label colour. */
+  --status-pending: #ed5257;
+  --status-confirmed: #015059;
+  --status-new: #e2b38c;
+  --status-done: #8f838e;
+  /* Soft aubergine-tinted elevation for floating admin UI (tab bar, sheets). */
+  --shadow-float: 0 18px 40px -16px rgba(56, 46, 56, 0.45);
 }
 
 @theme inline {
@@ -76,6 +86,11 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-status-pending: var(--status-pending);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-new: var(--status-new);
+  --color-status-done: var(--status-done);
+  --shadow-float: var(--shadow-float);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -99,6 +114,7 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --radius-tile: var(--tile-radius);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -137,26 +153,27 @@ html {
   letter-spacing: var(--display-tracking, -0.01em);
 }
 
-/* The cable loop: a rider orbits the elliptical tow path. The one deliberate
-   motion moment on the page. Respects reduced motion. */
-@keyframes orbit {
-  from {
-    offset-distance: 0%;
-  }
-  to {
-    offset-distance: 100%;
-  }
+/* Giant condensed wordmark (Big Shoulders Black, uppercase). `wordmark-fit` makes
+   the parent a size container so `wordmark-size` can scale the type to its
+   width: two stacked lines on phones, one line from md. */
+@utility wordmark-fit {
+  container-type: inline-size;
 }
 
-.cable-rider {
-  offset-path: path("M 10,110 C 10,40 390,40 390,110 C 390,180 10,180 10,110 Z");
-  animation: orbit 9s linear infinite;
+@utility font-wordmark {
+  font-family: var(--font-big-shoulders), sans-serif;
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cable-rider {
-    animation: none;
-    offset-distance: 18%;
+@utility wordmark-size {
+  font-size: 30cqw;
+
+  @media (min-width: 48rem) {
+    font-size: 16cqw;
+    white-space: nowrap;
   }
 }
 
@@ -174,6 +191,13 @@ html {
   --raw-tan: #e2b38c;
   /* Deep teal from the brand badge; readable on blush, unlike its bright #00b2b5. */
   --raw-teal-deep: #015059;
+  --raw-teal: #00b2b5;
+  /* Admin dark mode: the brand aubergine taken down in lightness, same hue. */
+  --raw-aubergine-deep: #171317;
+  --raw-aubergine-night: #1f1a1f;
+  --raw-aubergine-dusk: #2a232a;
+  --raw-aubergine-haze: #5a4c5a;
+  --raw-mauve: #b9a9b3;
 }
 
 .theme-marse {
@@ -234,38 +258,53 @@ html {
   }
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* Admin dark mode (ADR-0008). Only the admin panel ever sets `.dark`: on its
+   wrapper from the server cookie, and on <html> while mounted so portals
+   (sheets, dialogs, toasts) follow. `.dark .theme-marse` outranks the body's
+   theme so the brand tokens used by admin screens (ink, rust, lake) remap too. */
+.dark,
+.dark .theme-marse {
+  color-scheme: dark;
+  --background: var(--raw-aubergine-night);
+  --foreground: var(--raw-blush-paper);
+  --card: var(--raw-aubergine-dusk);
+  --card-foreground: var(--raw-blush-paper);
+  --popover: var(--raw-aubergine-dusk);
+  --popover-foreground: var(--raw-blush-paper);
+  --primary: var(--raw-blush);
+  --primary-foreground: var(--raw-aubergine);
+  --secondary: var(--raw-aubergine);
+  --secondary-foreground: var(--raw-blush-paper);
+  --muted: var(--raw-aubergine);
+  --muted-foreground: var(--raw-mauve);
+  --accent: var(--raw-aubergine-soft);
+  --accent-foreground: var(--raw-blush-paper);
+  --destructive: var(--raw-coral);
+  --border: rgba(251, 243, 239, 0.12);
+  --input: rgba(251, 243, 239, 0.2);
+  --ring: var(--raw-coral);
+  --chart-1: var(--raw-blush);
+  --chart-2: var(--raw-coral);
+  --chart-3: var(--raw-tan);
+  --chart-4: var(--raw-teal);
+  --chart-5: var(--raw-mauve);
+  --sidebar: var(--raw-aubergine-deep);
+  --sidebar-foreground: var(--raw-blush-paper);
+  --sidebar-primary: var(--raw-coral);
+  --sidebar-primary-foreground: var(--raw-blush-paper);
+  --sidebar-accent: var(--raw-aubergine-dusk);
+  --sidebar-accent-foreground: var(--raw-blush-paper);
+  --sidebar-border: rgba(251, 243, 239, 0.1);
+  --sidebar-ring: var(--raw-coral);
+  --status-confirmed: var(--raw-teal);
+  --status-done: var(--raw-mauve);
+  --shadow-float: 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+  /* Brand tokens: ink stays a dark fill (bg-ink text-foam keeps contrast). */
+  --ink: var(--raw-aubergine-haze);
+  --ink-soft: var(--raw-aubergine-soft);
+  --dust: var(--raw-aubergine-night);
+  --dust-soft: var(--raw-aubergine-dusk);
+  --line: rgba(251, 243, 239, 0.14);
 }
 
 @layer base {
