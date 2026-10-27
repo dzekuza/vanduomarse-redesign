@@ -15,6 +15,9 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
   reference: letters smear sideways and dissolve into spray around the cursor,
   then settle back. New `DistortWordmark` (client) + `lib/distort-gl.ts`
   (raw WebGL, no new dependency). See [[components/common]], ADR-0013.
+- **Refined:** slower, low-frequency liquid smear; edge spray only (fine device-pixel
+  grain, no stray specks); strength follows pointer speed and eases back when the
+  cursor rests.
 - **Safe fallbacks:** touch devices, `prefers-reduced-motion` and no-WebGL keep
   the plain `Wordmark`; the footer repeat is unchanged.
 

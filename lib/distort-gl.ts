@@ -46,10 +46,11 @@ void main() {
   float m = smoothstep(uRadius, 0.0, distance(px, uPointer)) * uPower;
 
   // Rows slide sideways by different amounts (the "melt"), with a little wobble.
-  float streak = noise(vec2(px.y * 0.06, uTime * 0.9)) - 0.5;
-  float wobble = noise(px * 0.025 + uTime * 0.4) - 0.5;
-  vec2 shift = vec2(streak * 2.0, wobble * 0.6) * m * uRadius * 0.45;
-  float spread = m * uRadius * 0.05;
+  // Low-frequency, slow noise reads as liquid; high-frequency reads as a glitch.
+  float streak = noise(vec2(px.y * 0.016, uTime * 0.55)) - 0.5;
+  float wobble = noise(px * 0.01 + uTime * 0.3) - 0.5;
+  vec2 shift = vec2(streak * 2.0, wobble * 0.5) * m * uRadius * 0.3;
+  float spread = m * uRadius * 0.04;
 
   vec4 c = vec4(0.0);
   for (int i = -2; i <= 2; i++) {
@@ -58,10 +59,12 @@ void main() {
   c /= 5.0;
 
   // Dither the soft edge into spray; solid interiors stay solid.
-  float grain = hash(floor(px * 0.5) + floor(uTime * 14.0));
-  float dither = smoothstep(0.05, 0.6, m);
-  float a = mix(c.a, step(grain, c.a), dither);
-  vec3 rgb = c.rgb / max(c.a, 0.001);
+  // Grain is sampled in device pixels so it stays fine on every screen; only the
+  // soft edge is dithered (and never below a minimum alpha, which would leave stray specks).
+  float grain = hash(floor(gl_FragCoord.xy) + floor(uTime * 8.0));
+  float dither = smoothstep(0.2, 0.9, m) * 0.8;
+  float a = mix(c.a, step(grain, c.a), dither) * step(0.05, c.a);
+  vec3 rgb = c.rgb / max(c.a, 0.05);
   gl_FragColor = vec4(rgb * a, a);
 }`;
 

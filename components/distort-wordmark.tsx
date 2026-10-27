@@ -7,8 +7,10 @@ import { Wordmark } from "./wordmark";
 
 const MAX_DPR = 2;
 /** Effect radius as a share of the wordmark width, capped so phones-in-landscape stay calm. */
-const RADIUS_SHARE = 0.18;
-const RADIUS_MAX = 260;
+const RADIUS_SHARE = 0.14;
+const RADIUS_MAX = 200;
+/** Share of the effect that stays while the cursor rests; the rest follows pointer speed. */
+const RESTING_SHARE = 0.25;
 
 /** Rasterises the h1's spans (position, font, token colour) into a 2D canvas. */
 function paintWordmark(h1: Element, canvas: HTMLCanvasElement, dpr: number): HTMLCanvasElement | null {
@@ -56,18 +58,25 @@ export function DistortWordmark({ className }: { className?: string }) {
     const renderer: DistortRenderer | null = createDistortRenderer(canvas);
     if (!renderer) return;
 
-    const state = { x: 0, y: 0, tx: 0, ty: 0, power: 0, target: 0, radius: RADIUS_MAX };
+    const state = { x: 0, y: 0, tx: 0, ty: 0, power: 0, target: 0, energy: 0, radius: RADIUS_MAX };
     let frame = 0;
     let build = 0;
     let disposed = false;
 
     const draw = (time: number) =>
-      renderer.render({ pointer: [state.x, state.y], power: state.power, time, radius: state.radius });
+      renderer.render({
+        pointer: [state.x, state.y],
+        // Fast movement melts the letters, a resting cursor lets them settle.
+        power: state.power * (RESTING_SHARE + (1 - RESTING_SHARE) * state.energy),
+        time,
+        radius: state.radius,
+      });
 
     const tick = (now: number) => {
-      state.x += (state.tx - state.x) * 0.18;
-      state.y += (state.ty - state.y) * 0.18;
-      state.power += (state.target - state.power) * 0.1;
+      state.x += (state.tx - state.x) * 0.12;
+      state.y += (state.ty - state.y) * 0.12;
+      state.power += (state.target - state.power) * 0.07;
+      state.energy *= 0.95;
       if (state.target === 0 && state.power < 0.005) {
         state.power = 0;
         frame = 0;
@@ -104,8 +113,13 @@ export function DistortWordmark({ className }: { className?: string }) {
     const onMove = (event: PointerEvent) => {
       if (event.pointerType === "touch") return;
       const box = canvas.getBoundingClientRect();
-      state.tx = event.clientX - box.left;
-      state.ty = event.clientY - box.top;
+      const nx = event.clientX - box.left;
+      const ny = event.clientY - box.top;
+      if (state.target === 1) {
+        state.energy = Math.min(1, state.energy + Math.hypot(nx - state.tx, ny - state.ty) * 0.012);
+      }
+      state.tx = nx;
+      state.ty = ny;
       if (state.target === 0 && state.power === 0) {
         state.x = state.tx;
         state.y = state.ty;
