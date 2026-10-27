@@ -38,7 +38,7 @@ export function AvailabilityView() {
   return (
     <AdminPage
       title="Užimtumas"
-      description="Pirties valandos ir nakvynės. Laisvą valandą galima uždaryti (pvz., priežiūrai). Prijungus duomenų bazę, uždarytos valandos nebus rezervuojamos svetainėje."
+      description="Pirties valandos ir nakvynės. Laisvą valandą galima uždaryti (pvz., priežiūrai): svetainėje ji iškart rodoma kaip užimta."
       actions={
         <>
           <Button variant="outline" size="icon" aria-label="Ankstesnis laikotarpis" onClick={() => shift(-1)}>

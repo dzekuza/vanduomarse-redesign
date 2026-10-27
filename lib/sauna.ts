@@ -1,6 +1,10 @@
 /**
  * Private hire is sold by the hour: pick a start, then 2-6 hours.
- * Rates from "Kainodara'26-'27.xlsx" (incl. 21% PVM, valid until 2027-12-31).
+ *
+ * Live rates and limits come from `public.sauna_settings` (edited in
+ * /admin/pirtis). The constants below are the "Kainodara'26-'27.xlsx" sheet
+ * snapshot (incl. 21% PVM): the database was seeded from them, and the event
+ * calculator (`lib/event-pricing.ts`) still prices from them.
  */
 export const OPEN_HOUR = 10;
 export const CLOSE_HOUR = 22;
@@ -8,7 +12,6 @@ export const MIN_HOURS = 2;
 export const MAX_HOURS = 6;
 
 export const MAX_PARTY = 20;
-export const VIHTA_PRICE = 5;
 
 /** Hourly rate depends on group size, not time of day. */
 export const SMALL_GROUP_MAX = 6;
@@ -23,13 +26,7 @@ export const PACKAGE_PRICE = 350;
  */
 export const MASTER_PRICE = 100;
 
-/** Every start that leaves room for the minimum session before closing. */
-export const START_HOURS: number[] = Array.from(
-  { length: CLOSE_HOUR - MIN_HOURS - OPEN_HOUR + 1 },
-  (_, i) => OPEN_HOUR + i,
-);
-
-/** Everything that prices or bounds a private booking; editable in /admin/pirtis. */
+/** Everything that prices or bounds a private booking; a `sauna_settings` row. */
 export interface SaunaRates {
   smallGroupMax: number;
   smallGroupRate: number;
@@ -68,18 +65,23 @@ export function sessionPrice(hours: number, partySize: number, rates: SaunaRates
   return billable === rates.packageHours ? Math.min(hourly, rates.packagePrice) : hourly;
 }
 
-/** Deterministic pseudo-availability so server and client render the same thing. */
-function isHourBooked(dateKey: string, hour: number): boolean {
-  const s = `${dateKey}${hour}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h % 6 === 0;
+/** Every start that leaves room for the minimum session before closing. */
+export function startHours(rates: SaunaRates): number[] {
+  return Array.from({ length: Math.max(0, rates.closeHour - rates.minHours - rates.openHour + 1) }, (_, i) => rates.openHour + i);
 }
 
-/** Longest bookable run from `startHour`: stops at the next booking, closing or MAX_HOURS. */
-export function maxHoursFrom(dateKey: string, startHour: number): number {
+/** Session lengths the rates allow, shortest first. */
+export function sessionLengths(rates: SaunaRates): number[] {
+  return Array.from({ length: rates.maxHours - rates.minHours + 1 }, (_, i) => rates.minHours + i);
+}
+
+/**
+ * Longest bookable run from `startHour`: stops at the next taken hour (booked
+ * or closed by staff, from `sauna_taken_hours`), closing or the max length.
+ */
+export function maxHoursFrom(taken: readonly number[], startHour: number, rates: SaunaRates): number {
   let hours = 0;
-  while (hours < MAX_HOURS && startHour + hours < CLOSE_HOUR && !isHourBooked(dateKey, startHour + hours)) hours++;
+  while (hours < rates.maxHours && startHour + hours < rates.closeHour && !taken.includes(startHour + hours)) hours++;
   return hours;
 }
 
@@ -89,6 +91,17 @@ export function formatHour(hour: number): string {
 
 export function hoursLabel(hours: number): string {
   return `${hours} val.`;
+}
+
+/** Today's park date (Europe/Vilnius) as yyyy-mm-dd, wherever the server runs. */
+export function todayKey(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Vilnius" }).format(now);
+}
+
+/** `count` local dates starting at the yyyy-mm-dd `fromKey` (used by the day pickers). */
+export function nextDays(fromKey: string, count: number): Date[] {
+  const [y, m, d] = fromKey.split("-").map(Number);
+  return Array.from({ length: count }, (_, i) => new Date(y, m - 1, d + i));
 }
 
 export function dateKey(date: Date): string {

@@ -15,10 +15,11 @@ headings) and new booking tools.
 | `/skaiciuokle` | Event price estimator from the 2026–27 price sheet |
 | `/admin` | Staff dashboard: bookings (incl. phone bookings), availability, inquiries, events, sauna rates and extras, price list |
 
-> **Status:** front-end prototype. Bookings, inquiries and admin edits run on
-> in-browser demo data and reset on reload. `/admin` has **no login** — do not
-> deploy it publicly until the Supabase backend and auth are in place
-> (see `obsidian/meta/decisions-log.md`, ADR-0005).
+> **Status:** prototype on Supabase (project "Vanduo"). Admin edits are saved;
+> `/admin` requires a staff login. The database holds **demo** bookings and
+> inquiries, and the public booking forms don't save yet
+> (see `obsidian/backend/database.md` and ADR-0007).
+> Needs `.env.local` — copy `.env.example`.
 
 ## Run it
 

@@ -1,5 +1,6 @@
 import { AddToCalendar } from "./add-to-calendar";
 import type { CalendarEvent } from "@/lib/calendar";
+import { formatCode } from "@/lib/coupons";
 
 interface ReceiptRow {
   label: string;
@@ -11,13 +12,15 @@ interface ReceiptProps {
   reference: string;
   rows: ReceiptRow[];
   total: number;
+  /** Applied gift coupon: shown on the ticket; its balance is deducted on arrival. */
+  coupon?: { code: string; discount: number };
   calendar: CalendarEvent;
   resetLabel: string;
   onReset: () => void;
 }
 
 /** Ticket-style confirmation shown after any booking flow. */
-export function Receipt({ title, reference, rows, total, calendar, resetLabel, onReset }: ReceiptProps) {
+export function Receipt({ title, reference, rows, total, coupon, calendar, resetLabel, onReset }: ReceiptProps) {
   return (
     <div className="border border-ink bg-foam">
       <div className="flex items-center justify-between border-b border-dashed border-ink px-6 py-4">
@@ -33,7 +36,10 @@ export function Receipt({ title, reference, rows, total, calendar, resetLabel, o
         ))}
       </dl>
       <div className="flex items-center justify-between gap-4 border-t border-dashed border-ink px-6 py-4">
-        <p className="text-sm text-ink/70">Rezervacija patvirtinta. Patvirtinimą atsiųsime el. paštu.</p>
+        <p className="text-sm text-ink/70">
+          Rezervacija patvirtinta. Patvirtinimą atsiųsime el. paštu.
+          {coupon ? ` Kuponas ${formatCode(coupon.code)} (−${coupon.discount} €): pasakykite kodą atvykę, likutį nuskaitysime vietoje.` : ""}
+        </p>
         <p className="font-display text-2xl font-bold">{total} €</p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink px-6 py-4">

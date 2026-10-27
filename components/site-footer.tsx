@@ -1,11 +1,10 @@
 import { CONTACTS } from "@/lib/contacts";
-import { BrandLogo } from "./brand-logo";
+import { Wordmark } from "./wordmark";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-dust px-6 py-14 md:px-10">
-      <BrandLogo className="h-24 w-auto" />
-      <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+    <footer className="px-6 pb-28 pt-6 md:px-10 md:pb-24">
+      <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
         {CONTACTS.map((c) => (
           <div key={c.name}>
             <p className="font-display text-lg font-bold">
@@ -22,7 +21,8 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <p className="mt-14 text-xs text-ink/50">© {new Date().getFullYear()} Vanduo Marse. Ežero krantas, Lietuva.</p>
+      <Wordmark aria-hidden className="mt-16" />
+      <p className="mt-6 text-xs uppercase">© {new Date().getFullYear()} Vanduo Marse. Ežero krantas, Lietuva.</p>
     </footer>
   );
 }

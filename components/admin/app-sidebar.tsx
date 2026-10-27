@@ -1,10 +1,15 @@
 "use client";
 
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, KeyIcon, SignOutIcon } from "@phosphor-icons/react";
+import { signOut } from "@/app/admin/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ADMIN_NAV, activeNavItem } from "./admin-nav";
+import { useState } from "react";
+import { ADMIN_NAV_GROUPS, activeNavItem, visibleNav } from "./admin-nav";
+import { useAdmin } from "./admin-store";
+import { ChangePasswordDialog } from "./change-password-dialog";
+import { StaffAvatar } from "./staff-avatar";
 import { useNavCounts } from "./use-nav-counts";
 import {
   Sidebar,
@@ -12,56 +17,71 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 
-/** Admin navigation with live counts for work waiting on staff. */
-export function AppSidebar() {
-  const pathname = usePathname();
-  const active = activeNavItem(pathname);
+/* Coral marker on the active row; shadcn already handles the active fill. */
+const ACTIVE_MARKER =
+  "relative data-active:before:absolute data-active:before:inset-y-2 data-active:before:left-0 data-active:before:w-1 data-active:before:bg-sidebar-primary data-active:[&_svg]:text-sidebar-primary";
+
+/** Desktop admin navigation: grouped sections, live counts, staff footer. */
+export function AppSidebar({ staffName }: { staffName: string }) {
+  const active = activeNavItem(usePathname());
   const counts = useNavCounts();
-  const { setOpenMobile } = useSidebar();
+  const { me } = useAdmin();
+  const nav = visibleNav(me);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <Link href="/admin" className="flex items-center gap-3 px-1 py-1" onClick={() => setOpenMobile(false)}>
+        <Link href="/admin" className="flex items-center gap-3 px-1 py-1">
           <Image src="/brand/vanduo-marse-badge.svg" alt="" width={85} height={110} className="h-9 w-auto shrink-0" />
-          <span className="font-display truncate text-sm font-bold group-data-[collapsible=icon]:hidden">Valdymas</span>
+          <span className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <span className="font-display block truncate text-sm font-bold">Vanduo Marse</span>
+            <span className="block text-xs text-sidebar-foreground/60">Valdymas</span>
+          </span>
         </Link>
       </SidebarHeader>
+
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {ADMIN_NAV.map((item) => {
-                const Icon = item.icon;
-                const count = item.badge ? counts[item.badge] : 0;
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={item.href === active.href} tooltip={item.label} size="lg">
-                      <Link href={item.href} onClick={() => setOpenMobile(false)}>
-                        <Icon size={20} />
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {count > 0 ? <SidebarMenuBadge className="bg-rust text-foam">{count}</SidebarMenuBadge> : null}
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {ADMIN_NAV_GROUPS.filter((group) => nav.some((item) => item.group === group.id)).map((group) => (
+          <SidebarGroup key={group.id}>
+            <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase">{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {nav.filter((item) => item.group === group.id).map((item) => {
+                  const Icon = item.icon;
+                  const current = item.href === active.href;
+                  const count = item.badge ? counts[item.badge] : 0;
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton asChild isActive={current} tooltip={item.label} size="lg" className={ACTIVE_MARKER}>
+                        <Link href={item.href} aria-current={current ? "page" : undefined}>
+                          <Icon size={20} weight={current ? "fill" : "regular"} />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      {count > 0 ? (
+                        <SidebarMenuBadge className="bg-sidebar-primary text-sidebar-primary-foreground peer-data-active/menu-button:text-sidebar-primary-foreground">
+                          {count}
+                        </SidebarMenuBadge>
+                      ) : null}
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
+
       <SidebarFooter className="border-t border-sidebar-border">
-        <p className="px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-          Demonstraciniai duomenys: pakeitimai neišsaugomi.
-        </p>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Į svetainę">
@@ -72,7 +92,34 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="flex items-center gap-3 p-1 group-data-[collapsible=icon]:p-0">
+          <StaffAvatar name={staffName} className="group-data-[collapsible=icon]:size-8" />
+          <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+            <p className="truncate text-sm font-bold">{staffName}</p>
+            <p className="truncate text-xs text-sidebar-foreground/60">{me.roleName}</p>
+          </div>
+          <button
+            type="button"
+            aria-label="Keisti slaptažodį"
+            title="Keisti slaptažodį"
+            onClick={() => setPasswordOpen(true)}
+            className="inline-flex size-11 items-center justify-center text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground group-data-[collapsible=icon]:hidden"
+          >
+            <KeyIcon size={18} />
+          </button>
+          <form action={signOut} className="group-data-[collapsible=icon]:hidden">
+            <button
+              type="submit"
+              aria-label="Atsijungti"
+              title="Atsijungti"
+              className="inline-flex size-11 items-center justify-center text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            >
+              <SignOutIcon size={18} />
+            </button>
+          </form>
+        </div>
       </SidebarFooter>
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
     </Sidebar>
   );
 }

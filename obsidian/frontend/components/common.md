@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Common Components Catalog
@@ -12,18 +12,40 @@ feature components in `components/<feature>/`. Admin screens build on
 | Component | File | Purpose | Status |
 |-----------|------|---------|--------|
 | `MobileMenu` | `components/mobile-menu.tsx` | Below `lg`: 44 px menu button + full-width link panel under the sticky header; Escape closes | stable |
-| `ArrowLink` | `components/arrow-link.tsx` | Link version of the live-site CTA (dark block, thin arrow, uppercase); `sm`/`md` | stable |
-| `Hero` | `components/hero.tsx` | Home hero: 7/5 split from `lg` (stacked below). Rust-tick eyebrow, H1, short lede, `ArrowLink` + 44 px "Visos zonos" link; blocks fade up on load in a `delay-*` cascade (`motion-safe:` only) | stable |
-| `TrackPanel` | `components/track-panel.tsx` | Ink figure beside the hero copy: `CableLoop` in foam + the park numbers (620 m, 6 bokštai, 17 kliūčių, 8 raiteliai) as a `dl`, 2 cols on phones and `lg`, 4 cols `sm`–`md` | stable |
-| `CableLoop` | `components/cable-loop.tsx` | 6-tower loop SVG with the orbiting rider (`.cable-rider` in `globals.css`); lines use `currentColor`, rider `fill-rust` | stable |
-| `ContactBar` | `components/contact-bar.tsx` | Dark strip above `SiteHeader` (rendered by it): main phone (`tel:`), email (icon-only below `sm`), map link ("Žemėlapis" / address from `md`); scrolls away, header stays sticky | stable |
+| `ArrowLink` | `components/arrow-link.tsx` | Link version of the live-site CTA (dark block, thin arrow, uppercase); `sm`/`md`; `pill` makes the ends fully rounded (landing page) | stable |
+| `Hero` | `components/hero.tsx` | Home hero (Max Bennet look): giant `Wordmark` H1, three-column uppercase meta row, pill `ArrowLink` + outline "Visos zonos" pill; blocks fade up on load in a `delay-*` cascade (`motion-safe:` only) | stable |
+| `Wordmark` | `components/wordmark.tsx` | "VANDUO MARSE" in Big Shoulders Black, coral, fitted to its container (`wordmark-fit` + `wordmark-size`, cqw units): two lines below `md`, one line from `md`. `as="h1"` on the hero, `aria-hidden` repeat in the footer | stable |
+| `SectorTiles` | `components/sector-tiles.tsx` | `#zonos`: the six sectors as rounded photo tiles (wide / 2-up / 2-up / wide from `md`, stacked below) with tag pill, name, blurb on an ink gradient; tiles with `id` keep the `/#akademija` and `/#skoniai` anchors. Photos are placeholder Unsplash images until real ones exist | stable |
+| `TrackStats` | `components/track-stats.tsx` | Park numbers (620 m, 6, 17, 8) as oversized coral figures in a `dl`, 2 cols below `lg`, 4 from `lg` (numerals `7xl` → `8xl` at `md` → `9xl` at `xl`, so "620 m" never collides with the next figure) | stable |
+| `StatusBar` | `components/status-bar.tsx` | Rounded `bg-card` block: pulsing status line (half width from `lg`) + one labelled day/time list per season (`dl`, tabular numbers); stacks below `md` | stable |
+| `ContactBar` | `components/contact-bar.tsx` | Thin blush strip above `SiteHeader` (rendered by it): main phone (`tel:`), email (icon-only below `sm`), map link ("Žemėlapis" / address from `md`); scrolls away, header stays sticky | stable |
 | `StickerDock` | `components/sticker-dock.tsx` | Zone stickers (Vanduo, Akademija, Skoniai, Miegas) from `public/brand/sticker-*.svg`: frosted glass (`bg-foam/50` + `backdrop-blur-xl backdrop-saturate-150`); full-width bottom bar below `lg`, floating hug-width dock 24 px above the edge from `lg`; active page raised; hidden in `/admin` and, below `lg`, on `/skaiciuokle` (own bottom bar). Rendered in the root layout | stable |
-| `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-14/16, footer h-24) | stable |
-| `AdminStoreProvider` / `useAdmin` | `components/admin/admin-store.tsx` | In-memory admin data + actions (ADR-0005) | stable |
-| `AppSidebar` / `AdminHeader` / `AdminPage` | `components/admin/` | Admin shell: desktop sidebar with live badges, sticky top bar (badge logo below `lg`), page heading | stable |
-| `AdminBottomNav` | `components/admin/admin-bottom-nav.tsx` | Below `lg`: fixed bottom tab bar (items with `primary` in `ADMIN_NAV`) + "Daugiau" bottom sheet for the rest | stable |
+| `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-11/12; no longer in the footer) | stable |
+| `QuadReservation` | `components/quads/quad-reservation.tsx` | `/keturraciai` tabs (`BookingTabs`): hourly rental / guided tours (badge = tours with seats) | stable |
+| `QuadRental` / `QuadTypeStep` / `StartGrid` / `DurationGrid` | `components/quads/` | Day strip (free count per day) → quad type + count + riders → start hours (only while `units` stay free; today's past hours off) → length → contact (RHF + `quadContactSchema`). Submits a request via `createQuadRental`; availability comes from `quad_taken` | stable |
+| `TourBooking` | `components/quads/tour-booking.tsx` | Reuses `EventList` (tours mapped to `SaunaEvent`), seats stepper, contact; empty state when no tours | stable |
+| `ContactFields` / `RequestConfirmation` | `components/quads/` | Name/phone/email (+ honeypot) via `useFormContext`; ticket-style "request received" panel that says staff still confirm | stable |
+| `QuadsView` + `RentalsTab` / `RentalSheet` / `ToursTab` | `components/admin/quads/` | `/admin/keturraciai`: tabs Nuoma / Žygiai / Parkas, status chips, details sheet, tour seat confirmations | stable |
+| `StatusActions` | `components/admin/quads/status-actions.tsx` | Confirm/reject, mark done, cancel, reopen buttons by status | stable |
+| `NewRentalDialog` | `components/admin/quads/new-rental-dialog.tsx` | Phone/on-site rental: live price, DB refuses full hours (shown inline) | stable |
+| `QuadTypesCard` / `QuadTypeDialog` / `QuadSettingsCard` | `components/admin/quads/` | Fleet (units, price, on/off, delete refused once rented) and opening hours, max length, deposit, min age, rules text | stable |
+| `CouponIntro` / `CouponShop` | `components/coupons/` | `/kuponai`: intro with 3 steps; `CouponShop` holds the selected product and the ordered state (empty state when nothing is sold) | stable |
+| `ProductPicker` | `components/coupons/product-picker.tsx` | Radio tiles grouped into "Vertės kuponai" / "Patirtys" (real radio inputs, `peer-checked` styling, focus ring) | stable |
+| `OrderForm` / `OrderConfirmation` | `components/coupons/` | RHF + `couponOrderSchema`; honeypot; server error on `root`. Confirmation says payment is arranged by the team (no online payment yet) | stable |
+| `CouponField` | `components/booking/coupon-field.tsx` | "Turite dovanų kuponą?" in the sauna and cabin flows: `checkCoupon`, applied row with discount and what stays on the coupon. `BookingTotal` takes `discount`; `Receipt` shows the code and says the balance is deducted on arrival | stable |
+| `CouponsView` / `CouponCard` / `CouponSheet` / `CouponActions` | `components/admin/coupons/` | `/admin/kuponai`: status chips + search (code, ref, name, email), cards, details sheet; actions by status: mark paid + email, redeem, resend, cancel (inline confirm) | stable |
+| `RedeemForm` | `components/admin/coupons/redeem-form.tsx` | Amount (≤ balance) + note, remounted when the balance changes | stable |
+| `CouponProductsCard` / `ProductDialog` | `components/admin/coupons/` | Catalogue editor: price, on/off, kind + service, delete (refused once sold) | stable |
+| `CouponStatusBadge` | `components/admin/status-badge.tsx` | Coupon status pill (pending pulses) | stable |
+| `AdminStoreProvider` / `useAdmin` | `components/admin/admin-store.tsx` | Admin data from the layout (`initial`) + optimistic actions over server actions; resets when the layout re-renders (ADR-0007) | stable |
+| `AuthCard` / `LoginForm` / `NoAccess` | `components/admin/auth/` | Login page card, RHF + Zod email/password form (`signIn` action), "no access" screen for non-staff with sign-out | stable |
+| `AppSidebar` / `AdminHeader` / `AdminPage` | `components/admin/` | Admin shell: desktop sidebar with live badges, staff name, **role name**, change-password key and „Atsijungti", sticky top bar (badge logo below `lg`; "Nauja rezervacija" only with `rezervacijos`), page heading. Menu items come from `visibleNav(me)`: only the pages the role opens | stable |
+| `AdminBottomNav` | `components/admin/admin-bottom-nav.tsx` | Below `lg`: fixed bottom tab bar (visible items with `primary`; the centre "+" only with `rezervacijos`) + "Daugiau" bottom sheet for the rest, incl. „Keisti slaptažodį" and „Atsijungti" | stable |
+| `ChangePasswordDialog` | `components/admin/change-password-dialog.tsx` | Any staff member sets their own password (8-72 chars, confirm field); opened from the sidebar key and the more sheet | stable |
+| `StaffView` / `StaffList` / `AddStaffDialog` / `CredentialsPanel` | `components/admin/staff/` | `/admin/darbuotojai` (owner-only): staff cards with role select, active switch, reset password, remove; the add dialog creates the login and shows the temporary password once with copy buttons | stable |
+| `RolesTab` / `RoleDialog` | `components/admin/staff/` | Roles with their page chips and member counts; dialog = name, description and one switch per admin page with a plain-language hint. The Owner role is fixed; deleting a role in use is refused | stable |
 | `BookingsView` / `BookingSheet` / `BookingActions` | `components/admin/bookings/` | Filters, table, status transitions, details, „Eksportuoti" CSV of the filtered rows | stable |
-| `NewBookingDialog` | `components/admin/bookings/new-booking-dialog.tsx` | Staff-entered booking: free slots only, live price, override, conflict checks | stable |
+| `NewBookingDialog` | `components/admin/bookings/new-booking-dialog.tsx` | Staff-entered booking: free slots only, live price, override; saves via `createBooking`, DB conflicts land on the slot field | stable |
 | `BookingWhenFields` / `BookingCustomerFields` / `BookingExtrasFields` | `components/admin/bookings/` | Sections of the manual booking form (slot or nights; contact/status/note; sauna extras) | stable |
 | `FormField` | `components/admin/form-field.tsx` | Label + control + inline error/hint for admin forms | stable |
 | `AvailabilityView` / `SaunaGrid` / `StaysStrip` | `components/admin/availability/` | Week (or day, on phones) sauna grid with close/reopen; cabin occupancy | stable |
@@ -37,13 +59,13 @@ feature components in `components/<feature>/`. Admin screens build on
 | `BookingHero` | `components/booking/booking-hero.tsx` | Eyebrow, uppercase title, intro, facts, bento gallery on the left; booking form (`children`) sticky on the right | stable |
 | `StepLabel` | `components/booking/step-label.tsx` | Numbered step heading (`01 PASIRINK DIENĄ`) | stable |
 | `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` | stable |
-| `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai` | stable |
+| `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai`; takes `SaunaPageData` (rates, extras, taken hours, sessions) from the page | stable |
 | `SaunaEventBooking` | `components/booking/sauna-event-booking.tsx` | Pick a public session (`EventList`), choose tickets, confirm | stable |
 | `EventList` | `components/booking/event-list.tsx` | Radio-group rows of upcoming sessions with spots left and price | stable |
 | `BookingCard` / `BookingTotal` | `components/booking/booking-card.tsx` | Outlined form shell with summary + action footer bar | stable |
 | `Receipt` | `components/booking/receipt.tsx` | Ticket-style confirmation used by every booking flow; takes a `calendar` entry | stable |
 | `AddToCalendar` | `components/booking/add-to-calendar.tsx` | Google Calendar link + `.ics` download for a booking | stable |
-| `EventsBoard` | `components/events/events-board.tsx` | Renginiai feed: category filter chips with counts, month-grouped `EventRow`s | stable |
+| `EventsBoard` | `components/events/events-board.tsx` | Renginiai feed (published `events`, next 30 days, via `getParkEvents()`): category filter chips with counts, month-grouped `EventRow`s | stable |
 | `EventRow` | `components/events/event-row.tsx` | Date block, category tag, details, spots left, price and CTA link | stable |
 | `CategoryTag` | `components/events/category-tag.tsx` | Coloured uppercase chip per event category | stable |
 | `EventCalculator` | `components/calculator/event-calculator.tsx` | Price calculator form + sticky estimate; mobile total bar | stable |
@@ -53,8 +75,8 @@ feature components in `components/<feature>/`. Admin screens build on
 | `OptionToggle` | `components/calculator/option-toggle.tsx` | Full-width on/off add-on row (`role="switch"`) with price hint | stable |
 | `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos: 2x2 lead tile plus four small tiles, hover zoom; one image goes full width | stable |
 | `UpsellPicker` | `components/booking/upsell-picker.tsx` | Active sauna extras: on/off rows or steppers (capped at group size) with live cost | stable |
-| `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times showing the longest bookable run; disabled when the 2 h minimum does not fit | stable |
-| `DurationPicker` | `components/booking/duration-picker.tsx` | 2-6 h options from the start, each with end time and price for the group size | stable |
+| `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times from the live rates showing the longest bookable run (taken hours from `sauna_taken_hours()`); disabled when the minimum does not fit | stable |
+| `DurationPicker` | `components/booking/duration-picker.tsx` | Min–max hour options from the live rates, each with end time and price for the group size | stable |
 | `DayPicker` | `components/booking/day-picker.tsx` | Sideways date strip; optional `note` adds a third line (e.g. "liko 3") and can disable a day | stable |
 | `CabinSizePicker` | `components/booking/cabin-size-picker.tsx` | Namelis 2 / 4 asmenims with nightly price and cabins left for the stay; booked-out size disabled | stable |
 | `ChoiceTile` | `components/booking/choice-tile.tsx` | Two-line selectable tile (active / idle / disabled) | stable |

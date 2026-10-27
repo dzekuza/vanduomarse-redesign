@@ -5,14 +5,16 @@ export function ArrowButton({
   children,
   onClick,
   disabled,
+  type = "button",
 }: {
   children: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
+  type?: "button" | "submit";
 }) {
   return (
     <button
-      type="button"
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className="group flex items-center gap-4 border border-ink bg-ink px-5 py-3 text-sm uppercase text-foam transition-[color,background-color,border-color,transform] active:scale-[0.97] enabled:hover:border-rust enabled:hover:bg-rust disabled:opacity-30"

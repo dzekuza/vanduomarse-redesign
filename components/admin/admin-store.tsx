@@ -1,28 +1,26 @@
 "use client";
 
-import { createContext, useContext, useMemo, useReducer } from "react";
-import { seedBlocks, seedBookings, seedEvents, seedInquiries, seedPrices } from "@/lib/admin/mock-data";
-import type { Block, Booking, BookingStatus, Inquiry, InquiryStatus, ManagedEvent, PriceItem } from "@/lib/admin/types";
-import { DEFAULT_SAUNA_RATES, type SaunaRates } from "@/lib/sauna";
-import { DEFAULT_UPSELLS, type Upsell } from "@/lib/sauna-upsells";
+import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { toast } from "sonner";
+import * as actions from "@/app/admin/actions";
+import * as staffActions from "@/app/admin/staff-actions";
+import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
+import type { PermissionId } from "@/lib/admin/permissions";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole } from "@/lib/admin/types";
+import type { CouponProduct } from "@/lib/coupons";
+import type { QuadSettings, QuadType } from "@/lib/quads";
+import type { SaunaRates } from "@/lib/sauna";
+import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
- * In-memory admin data for the UI-first phase (ADR-0005). Every screen talks to
- * these actions only, so swapping the reducer for Supabase calls later does not
- * touch the pages. Changes reset on reload.
+ * Admin data from Supabase (loaded in the admin layout). Every screen talks to
+ * these actions only: each applies its change optimistically, runs the server
+ * action, and the revalidated layout then resets the store to what the
+ * database holds. A failed write shows a toast and is rolled back by that reset.
  */
 
-interface AdminState {
-  bookings: Booking[];
-  blocks: Block[];
-  inquiries: Inquiry[];
-  events: ManagedEvent[];
-  prices: PriceItem[];
-  saunaRates: SaunaRates;
-  upsells: Upsell[];
-}
-
 type Action =
+  | { type: "reset"; data: AdminData }
   | { type: "booking/status"; id: string; status: BookingStatus }
   | { type: "booking/add"; booking: Booking }
   | { type: "block/toggle"; date: string; hour: number; reason: string }
@@ -34,10 +32,27 @@ type Action =
   | { type: "prices/update"; items: PriceItem[] }
   | { type: "sauna/rates"; rates: SaunaRates }
   | { type: "upsell/upsert"; upsell: Upsell }
-  | { type: "upsell/delete"; id: string };
+  | { type: "upsell/delete"; id: string }
+  | { type: "coupon/cancel"; id: string }
+  | { type: "couponProduct/upsert"; product: CouponProduct }
+  | { type: "couponProduct/delete"; id: string }
+  | { type: "rental/status"; id: string; status: BookingStatus }
+  | { type: "rental/add"; rental: QuadRental }
+  | { type: "ticket/status"; id: string; status: BookingStatus }
+  | { type: "quadType/upsert"; quadType: QuadType }
+  | { type: "quadType/delete"; id: string }
+  | { type: "quadSettings"; settings: QuadSettings }
+  | { type: "staff/add"; member: StaffMember }
+  | { type: "staff/role"; userId: string; roleId: string }
+  | { type: "staff/active"; userId: string; active: boolean }
+  | { type: "staff/remove"; userId: string }
+  | { type: "role/upsert"; role: StaffRole }
+  | { type: "role/delete"; id: string };
 
-function reducer(state: AdminState, action: Action): AdminState {
+function reducer(state: AdminData, action: Action): AdminData {
   switch (action.type) {
+    case "reset":
+      return action.data;
     case "booking/status":
       return { ...state, bookings: state.bookings.map((b) => (b.id === action.id ? { ...b, status: action.status } : b)) };
     case "booking/add":
@@ -48,7 +63,7 @@ function reducer(state: AdminState, action: Action): AdminState {
         ...state,
         blocks: exists
           ? state.blocks.filter((b) => !(b.date === action.date && b.hour === action.hour))
-          : [...state.blocks, { id: `blk-${action.date}-${action.hour}`, date: action.date, hour: action.hour, reason: action.reason }],
+          : [...state.blocks, { id: `pending-${action.date}-${action.hour}`, date: action.date, hour: action.hour, reason: action.reason }],
       };
     }
     case "inquiry/status":
@@ -84,51 +99,201 @@ function reducer(state: AdminState, action: Action): AdminState {
     }
     case "upsell/delete":
       return { ...state, upsells: state.upsells.filter((u) => u.id !== action.id) };
+    case "coupon/cancel":
+      return { ...state, coupons: state.coupons.map((c) => (c.id === action.id ? { ...c, status: "atsauktas" } : c)) };
+    case "couponProduct/upsert": {
+      const exists = state.couponProducts.some((p) => p.id === action.product.id);
+      return {
+        ...state,
+        couponProducts: exists
+          ? state.couponProducts.map((p) => (p.id === action.product.id ? action.product : p))
+          : [...state.couponProducts, action.product],
+      };
+    }
+    case "couponProduct/delete":
+      return { ...state, couponProducts: state.couponProducts.filter((p) => p.id !== action.id) };
+    case "rental/status":
+      return { ...state, quadRentals: state.quadRentals.map((r) => (r.id === action.id ? { ...r, status: action.status } : r)) };
+    case "rental/add":
+      return { ...state, quadRentals: [...state.quadRentals, action.rental] };
+    case "ticket/status":
+      return { ...state, tourTickets: state.tourTickets.map((t) => (t.id === action.id ? { ...t, status: action.status } : t)) };
+    case "quadType/upsert": {
+      const exists = state.quadTypes.some((t) => t.id === action.quadType.id);
+      return {
+        ...state,
+        quadTypes: exists ? state.quadTypes.map((t) => (t.id === action.quadType.id ? action.quadType : t)) : [...state.quadTypes, action.quadType],
+      };
+    }
+    case "quadType/delete":
+      return { ...state, quadTypes: state.quadTypes.filter((t) => t.id !== action.id) };
+    case "quadSettings":
+      return { ...state, quadSettings: action.settings };
+    case "staff/add":
+      return { ...state, staff: [...state.staff, action.member] };
+    case "staff/role":
+      return { ...state, staff: state.staff.map((m) => (m.userId === action.userId ? { ...m, roleId: action.roleId } : m)) };
+    case "staff/active":
+      return { ...state, staff: state.staff.map((m) => (m.userId === action.userId ? { ...m, active: action.active } : m)) };
+    case "staff/remove":
+      return { ...state, staff: state.staff.filter((m) => m.userId !== action.userId) };
+    case "role/upsert": {
+      const exists = state.roles.some((r) => r.id === action.role.id);
+      return { ...state, roles: exists ? state.roles.map((r) => (r.id === action.role.id ? action.role : r)) : [...state.roles, action.role] };
+    }
+    case "role/delete":
+      return { ...state, roles: state.roles.filter((r) => r.id !== action.id) };
   }
 }
 
-function initialState(): AdminState {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return {
-    bookings: seedBookings(today),
-    blocks: seedBlocks(today),
-    inquiries: seedInquiries(today),
-    events: seedEvents(today),
-    prices: seedPrices(),
-    saunaRates: DEFAULT_SAUNA_RATES,
-    upsells: DEFAULT_UPSELLS,
-  };
+/** Toast on failure; returns whether the write succeeded. */
+async function report<T>(pending: Promise<ActionResult<T>>): Promise<ActionResult<T>> {
+  const result = await pending;
+  if ("error" in result) toast.error(result.error.message);
+  return result;
 }
 
-function useAdminReducer() {
-  const [state, dispatch] = useReducer(reducer, undefined, initialState);
-  const actions = useMemo(
+function useAdminReducer(initial: AdminData) {
+  const [state, dispatch] = useReducer(reducer, initial);
+
+  // The layout re-renders after every server action; adopt the fresh data.
+  useEffect(() => dispatch({ type: "reset", data: initial }), [initial]);
+
+  const api = useMemo(
     () => ({
-      setBookingStatus: (id: string, status: BookingStatus) => dispatch({ type: "booking/status", id, status }),
-      addBooking: (booking: Booking) => dispatch({ type: "booking/add", booking }),
-      toggleBlock: (date: string, hour: number, reason = "Uždaryta") => dispatch({ type: "block/toggle", date, hour, reason }),
-      setInquiryStatus: (id: string, status: InquiryStatus) => dispatch({ type: "inquiry/status", id, status }),
-      addInquiryNote: (id: string, text: string) => dispatch({ type: "inquiry/note", id, text }),
-      saveEvent: (event: ManagedEvent) => dispatch({ type: "event/upsert", event }),
-      deleteEvent: (id: string) => dispatch({ type: "event/delete", id }),
-      setEventPublished: (id: string, published: boolean) => dispatch({ type: "event/publish", id, published }),
-      updatePrices: (items: PriceItem[]) => dispatch({ type: "prices/update", items }),
-      updateSaunaRates: (rates: SaunaRates) => dispatch({ type: "sauna/rates", rates }),
-      saveUpsell: (upsell: Upsell) => dispatch({ type: "upsell/upsert", upsell }),
-      deleteUpsell: (id: string) => dispatch({ type: "upsell/delete", id }),
+      setBookingStatus: (id: string, status: BookingStatus) => {
+        dispatch({ type: "booking/status", id, status });
+        return report(actions.setBookingStatus(id, status));
+      },
+      /** Not optimistic: the reference comes from the database. */
+      createBooking: async (input: NewBookingInput) => {
+        const result = await actions.createBooking(input);
+        if ("data" in result) dispatch({ type: "booking/add", booking: result.data });
+        return result;
+      },
+      toggleBlock: (date: string, hour: number, reason = "Uždaryta") => {
+        dispatch({ type: "block/toggle", date, hour, reason });
+        return report(actions.toggleBlock(date, hour, reason));
+      },
+      setInquiryStatus: (id: string, status: InquiryStatus) => {
+        dispatch({ type: "inquiry/status", id, status });
+        return report(actions.setInquiryStatus(id, status));
+      },
+      addInquiryNote: (id: string, text: string) => {
+        dispatch({ type: "inquiry/note", id, text });
+        return report(actions.addInquiryNote(id, text));
+      },
+      saveEvent: (event: ManagedEvent) => {
+        dispatch({ type: "event/upsert", event });
+        return report(actions.saveEvent(event));
+      },
+      deleteEvent: (id: string) => {
+        dispatch({ type: "event/delete", id });
+        return report(actions.deleteEvent(id));
+      },
+      setEventPublished: (id: string, published: boolean) => {
+        dispatch({ type: "event/publish", id, published });
+        return report(actions.setEventPublished(id, published));
+      },
+      updatePrices: (items: PriceItem[]) => {
+        dispatch({ type: "prices/update", items });
+        return report(actions.updatePrices(items));
+      },
+      updateSaunaRates: (rates: SaunaRates) => {
+        dispatch({ type: "sauna/rates", rates });
+        return report(actions.updateSaunaRates(rates));
+      },
+      saveUpsell: (upsell: Upsell) => {
+        dispatch({ type: "upsell/upsert", upsell });
+        return report(actions.saveUpsell(upsell));
+      },
+      deleteUpsell: (id: string) => {
+        dispatch({ type: "upsell/delete", id });
+        return report(actions.deleteUpsell(id));
+      },
+      saveCouponProduct: (product: CouponProduct) => {
+        dispatch({ type: "couponProduct/upsert", product });
+        return report(actions.saveCouponProduct(product));
+      },
+      deleteCouponProduct: (id: string) => {
+        dispatch({ type: "couponProduct/delete", id });
+        return report(actions.deleteCouponProduct(id));
+      },
+      /** Not optimistic: the code and expiry come from the database. */
+      activateCoupon: (id: string) => report(actions.activateCoupon(id)),
+      resendCouponEmail: (id: string) => report(actions.resendCouponEmail(id)),
+      /** Not optimistic: the database checks balance, status and expiry. */
+      redeemCoupon: (id: string, amount: number, note: string) => report(actions.redeemCoupon(id, amount, note)),
+      cancelCoupon: (id: string) => {
+        dispatch({ type: "coupon/cancel", id });
+        return report(actions.cancelCoupon(id));
+      },
+      /** Not optimistic: the reference and price come from the database. */
+      createRental: async (input: StaffRentalInput) => {
+        const result = await actions.createRental(input);
+        if ("data" in result) dispatch({ type: "rental/add", rental: result.data });
+        return result;
+      },
+      /** Not optimistic: the database re-checks capacity when a cancelled rental is reopened. */
+      setRentalStatus: (id: string, status: BookingStatus) => report(actions.setRentalStatus(id, status)),
+      setTourTicketStatus: (id: string, status: BookingStatus) => report(actions.setTourTicketStatus(id, status)),
+      saveQuadType: (quadType: QuadType) => {
+        dispatch({ type: "quadType/upsert", quadType });
+        return report(actions.saveQuadType(quadType));
+      },
+      deleteQuadType: (id: string) => {
+        dispatch({ type: "quadType/delete", id });
+        return report(actions.deleteQuadType(id));
+      },
+      updateQuadSettings: (settings: QuadSettings) => {
+        dispatch({ type: "quadSettings", settings });
+        return report(actions.updateQuadSettings(settings));
+      },
+      changeOwnPassword: (password: string) => report(actions.changeOwnPassword(password)),
+      /** Not optimistic: the login and its temporary password come from the server. */
+      createStaff: async (input: { email: string; displayName: string; roleId: string }) => {
+        const result = await report(staffActions.createStaff(input));
+        if ("data" in result) {
+          dispatch({
+            type: "staff/add",
+            member: { userId: result.data.userId, name: input.displayName, email: input.email.toLowerCase(), roleId: input.roleId, active: true, createdAt: new Date().toISOString() },
+          });
+        }
+        return result;
+      },
+      resetStaffPassword: (userId: string) => report(staffActions.resetStaffPassword(userId)),
+      setStaffRole: (userId: string, roleId: string) => {
+        dispatch({ type: "staff/role", userId, roleId });
+        return report(staffActions.setStaffRole(userId, roleId));
+      },
+      setStaffActive: (userId: string, active: boolean) => {
+        dispatch({ type: "staff/active", userId, active });
+        return report(staffActions.setStaffActive(userId, active));
+      },
+      removeStaff: (userId: string) => {
+        dispatch({ type: "staff/remove", userId });
+        return report(staffActions.removeStaff(userId));
+      },
+      saveRole: (role: StaffRole) => {
+        dispatch({ type: "role/upsert", role });
+        return report(staffActions.saveRole({ id: role.id, name: role.name, description: role.description, permissions: role.permissions as PermissionId[] }));
+      },
+      deleteRole: (id: string) => {
+        dispatch({ type: "role/delete", id });
+        return report(staffActions.deleteRole(id));
+      },
     }),
     [],
   );
-  return { ...state, ...actions };
+  return { ...state, ...api };
 }
 
 type AdminStore = ReturnType<typeof useAdminReducer>;
 
 const AdminContext = createContext<AdminStore | null>(null);
 
-export function AdminStoreProvider({ children }: { children: React.ReactNode }) {
-  const store = useAdminReducer();
+export function AdminStoreProvider({ initial, children }: { initial: AdminData; children: React.ReactNode }) {
+  const store = useAdminReducer(initial);
   return <AdminContext.Provider value={store}>{children}</AdminContext.Provider>;
 }
 

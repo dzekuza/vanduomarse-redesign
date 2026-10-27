@@ -11,10 +11,10 @@ import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingWhenFields } from "./booking-when-fields";
 import { STAY_MAX_GUESTS, newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { formatEur } from "@/lib/admin/format";
-import { freeHoursFrom, freeStartHours, fullCabinNights, nextReference } from "@/lib/admin/occupancy";
+import { freeHoursFrom, freeStartHours, fullCabinNights } from "@/lib/admin/occupancy";
 import { ROOM_TYPES } from "@/lib/cabin";
 import { dateKey, sessionPrice } from "@/lib/sauna";
-import { upsellSummary, upsellTotal } from "@/lib/sauna-upsells";
+import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ const range = (from: number, to: number) => (to < from ? [] : Array.from({ lengt
 
 /** Staff-entered booking (phone or walk-in): free slots only, price from admin rates. */
 export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogProps) {
-  const { bookings, blocks, saunaRates, upsells, prices, addBooking } = useAdmin();
+  const { bookings, blocks, saunaRates, upsells, prices, createBooking } = useAdmin();
   const [extras, setExtras] = useState<Record<string, number>>({});
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
@@ -74,7 +74,7 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
     setValue("hours", "");
   };
 
-  const submit = handleSubmit((v) => {
+  const submit = handleSubmit(async (v) => {
     if (party > maxGuests) return setError("guests", { message: `Daugiausia ${maxGuests} žm.` });
     if (sauna && freeHoursFrom(bookings, blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
       return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
@@ -82,26 +82,25 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
       const full = fullCabinNights(bookings, v.date, Number(v.nights));
       if (full.length) return setError("nights", { message: `Visi nameliai užimti: ${full.join(", ")}` });
     }
-    const id = `b-${crypto.randomUUID()}`;
-    const reference = nextReference(bookings, sauna ? "PM" : "MM");
-    addBooking({
-      id,
-      reference,
+    const result = await createBooking({
       kind: v.kind,
       customer: { name: v.name, phone: v.phone, email: v.email },
       date: v.date,
       ...(sauna ? { startHour: Number(v.startHour), hours: Number(v.hours) } : { nights: Number(v.nights) }),
       guests: party,
-      extras: sauna ? upsellSummary(upsells.filter((u) => u.active), extras) : [],
+      extras: sauna ? extras : {},
       total,
       status: v.status,
-      createdAt: new Date().toISOString(),
       source: v.source,
-      note: v.note || undefined,
+      note: v.note,
     });
-    toast.success(`${reference} sukurta`);
+    // The database has the final say on conflicts (another booking may have landed meanwhile).
+    if ("error" in result) {
+      return setError(sauna ? "startHour" : "nights", { message: result.error.message });
+    }
+    toast.success(`${result.data.reference} sukurta`);
     onOpenChange(false);
-    onCreated(id);
+    onCreated(result.data.id);
   });
 
   return (
@@ -166,8 +165,8 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Atšaukti
             </Button>
-            <Button type="submit" form="new-booking">
-              Sukurti
+            <Button type="submit" form="new-booking" disabled={formState.isSubmitting}>
+              {formState.isSubmitting ? "Kuriama…" : "Sukurti"}
             </Button>
           </div>
         </DialogFooter>

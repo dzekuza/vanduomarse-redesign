@@ -43,17 +43,19 @@ function PriceTable({ title, rows }: { title: string; rows: Row[] }) {
 
 export function Pricing() {
   return (
-    <section id="kainos" className="bg-ink px-6 py-16 text-foam md:px-10 md:py-24">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Kainos</h2>
-        <p className="text-sm text-foam/60">
-          Suaugę <span className="mx-2 text-foam/30">/</span> Vaikai iki 14 m.
-        </p>
-      </div>
-      <p className="mt-3 max-w-md text-foam/60">Plaukimas vyksta be išankstinės rezervacijos.</p>
-      <div className="mt-14 grid gap-14 md:grid-cols-2">
-        <PriceTable title="Plaukimas" rows={RIDE_ROWS} />
-        <PriceTable title="Abonementai" rows={PASSES} />
+    <section id="kainos" className="px-6 pb-16 md:px-10 md:pb-24">
+      <div className="rounded-tile bg-ink p-6 text-foam md:p-12">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <h2 className="font-display max-w-xl text-3xl font-bold leading-tight md:text-4xl">Kainos</h2>
+          <p className="text-sm text-foam/60">
+            Suaugę <span className="mx-2 text-foam/30">/</span> Vaikai iki 14 m.
+          </p>
+        </div>
+        <p className="mt-3 max-w-md text-foam/60">Plaukimas vyksta be išankstinės rezervacijos.</p>
+        <div className="mt-14 grid gap-14 md:grid-cols-2">
+          <PriceTable title="Plaukimas" rows={RIDE_ROWS} />
+          <PriceTable title="Abonementai" rows={PASSES} />
+        </div>
       </div>
     </section>
   );

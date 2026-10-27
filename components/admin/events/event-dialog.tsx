@@ -47,11 +47,12 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
 
   const submit = handleSubmit((v) => {
     saveEvent({
-      id: event?.id ?? `evt-${crypto.randomUUID()}`,
+      id: event?.id ?? crypto.randomUUID(),
       title: v.title,
       category: v.category as EventCategory,
       date: v.date,
       time: v.time,
+      durationMinutes: event?.durationMinutes,
       place: v.place,
       blurb: v.blurb,
       price: v.price === "" ? null : Number(v.price),

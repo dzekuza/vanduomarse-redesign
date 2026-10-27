@@ -1,101 +1,112 @@
 "use client";
 
-import { ArrowSquareOutIcon, DotsThreeOutlineIcon } from "@phosphor-icons/react";
+import { DotsNineIcon, PlusIcon } from "@phosphor-icons/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ADMIN_NAV, activeNavItem, type AdminNavItem } from "./admin-nav";
+import { AdminMoreSheet } from "./admin-more-sheet";
+import { activeNavItem, NEW_BOOKING_HREF, visibleNav, type AdminNavItem } from "./admin-nav";
+import { useAdmin } from "./admin-store";
 import { useNavCounts } from "./use-nav-counts";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { hasPermission } from "@/lib/admin/permissions";
+import { cn } from "@/lib/utils";
 
-const PRIMARY = ADMIN_NAV.filter((i) => i.primary);
-const MORE = ADMIN_NAV.filter((i) => !i.primary);
+const SPRING = { type: "spring", stiffness: 420, damping: 34 } as const;
+
+const TAB =
+  "relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs transition-colors active:scale-[0.96]";
 
 function TabBadge({ count }: { count: number }) {
   if (!count) return null;
   return (
-    <span className="absolute -top-1.5 left-1/2 ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rust px-1 text-xs leading-none font-bold text-foam tabular-nums">
+    <span className="absolute -top-1.5 left-1/2 ml-1.5 inline-flex h-4 min-w-4 items-center justify-center bg-sidebar-primary px-1 text-xs leading-none font-bold text-sidebar-primary-foreground tabular-nums">
       {count}
     </span>
   );
 }
 
-const TAB = "relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-xs transition-colors";
+/** The highlight behind the current tab; one shared layoutId makes it slide between tabs. */
+function ActivePill() {
+  return (
+    <motion.span layoutId="admin-tab-pill" transition={SPRING} aria-hidden className="absolute inset-x-1 inset-y-1.5 bg-sidebar-accent">
+      <span className="absolute inset-x-3 top-0 h-0.5 bg-sidebar-primary" />
+    </motion.span>
+  );
+}
 
-/** Phone/tablet admin navigation: four main tabs plus "Daugiau" for the rest. */
+interface TabProps {
+  icon: AdminNavItem["icon"];
+  label: string;
+  current: boolean;
+  count: number;
+}
+
+function TabContent({ icon: Icon, label, current, count }: TabProps) {
+  return (
+    <>
+      {current ? <ActivePill /> : null}
+      <span className="relative">
+        <Icon size={22} weight={current ? "fill" : "regular"} />
+        <TabBadge count={count} />
+      </span>
+      <span className="relative">{label}</span>
+    </>
+  );
+}
+
+/**
+ * Phone/tablet admin navigation: a floating aubergine bar with three main
+ * tabs, a centre "new booking" button and "Daugiau" for the other sections.
+ */
 export function AdminBottomNav() {
   const active = activeNavItem(usePathname());
   const counts = useNavCounts();
+  const { me } = useAdmin();
+  const nav = visibleNav(me);
+  const primary = nav.filter((i) => i.primary);
+  const more = nav.filter((i) => !i.primary);
+  const canBook = hasPermission(me, "rezervacijos");
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = MORE.some((i) => i.href === active.href);
+  const moreActive = more.some((i) => i.href === active.href);
+  const moreCount = more.reduce((sum, i) => sum + (i.badge ? counts[i.badge] : 0), 0);
+  const tone = (current: boolean) => (current ? "text-sidebar-foreground" : "text-sidebar-foreground/60");
 
   const tab = (item: AdminNavItem) => {
-    const Icon = item.icon;
     const current = item.href === active.href;
     return (
-      <Link
-        key={item.href}
-        href={item.href}
-        aria-current={current ? "page" : undefined}
-        className={`${TAB} ${current ? "text-rust before:absolute before:inset-x-3 before:top-0 before:h-0.5 before:bg-rust" : "text-muted-foreground"}`}
-      >
-        <span className="relative">
-          <Icon size={22} weight={current ? "fill" : "regular"} />
-          <TabBadge count={item.badge ? counts[item.badge] : 0} />
-        </span>
-        {item.label}
+      <Link key={item.href} href={item.href} aria-current={current ? "page" : undefined} className={cn(TAB, tone(current))}>
+        <TabContent icon={item.icon} label={item.label} current={current} count={item.badge ? counts[item.badge] : 0} />
       </Link>
     );
   };
 
   return (
     <>
-      <nav aria-label="Valdymo meniu" className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
-        <div className="flex">
-          {PRIMARY.map(tab)}
-          <button
-            type="button"
-            aria-expanded={moreOpen}
-            onClick={() => setMoreOpen(true)}
-            className={`${TAB} ${moreActive ? "text-rust before:absolute before:inset-x-3 before:top-0 before:h-0.5 before:bg-rust" : "text-muted-foreground"}`}
-          >
-            <DotsThreeOutlineIcon size={22} weight={moreActive ? "fill" : "regular"} />
-            Daugiau
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+        <nav aria-label="Valdymo meniu" className="pointer-events-auto mx-auto flex max-w-lg items-stretch bg-sidebar px-1 shadow-float ring-1 ring-sidebar-border">
+          {(canBook ? primary.slice(0, 2) : primary).map(tab)}
+          {canBook ? (
+            <>
+              <div className="flex flex-1 items-center justify-center">
+                <Link
+                  href={NEW_BOOKING_HREF}
+                  aria-label="Nauja rezervacija"
+                  className="-mt-6 inline-flex size-14 items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground shadow-float ring-4 ring-background transition-transform active:scale-[0.94]"
+                >
+                  <PlusIcon size={26} weight="bold" />
+                </Link>
+              </div>
+              {primary.slice(2).map(tab)}
+            </>
+          ) : null}
+          <button type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen(true)} className={cn(TAB, tone(moreActive))}>
+            <TabContent icon={DotsNineIcon} label="Daugiau" current={moreActive} count={moreCount} />
           </button>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
-      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" className="pb-[env(safe-area-inset-bottom)] lg:hidden">
-          <SheetHeader>
-            <SheetTitle>Daugiau</SheetTitle>
-            <SheetDescription>Demonstraciniai duomenys: pakeitimai neišsaugomi.</SheetDescription>
-          </SheetHeader>
-          <ul className="divide-y px-4 pb-4">
-            {MORE.map((item) => {
-              const Icon = item.icon;
-              const current = item.href === active.href;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    aria-current={current ? "page" : undefined}
-                    className={`flex min-h-14 items-center gap-3 text-base ${current ? "text-rust" : ""}`}
-                  >
-                    <Icon size={22} /> {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-            <li>
-              <Link href="/" className="flex min-h-14 items-center gap-3 text-base text-muted-foreground">
-                <ArrowSquareOutIcon size={22} /> Į svetainę
-              </Link>
-            </li>
-          </ul>
-        </SheetContent>
-      </Sheet>
+      <AdminMoreSheet open={moreOpen} onOpenChange={setMoreOpen} items={more} activeHref={active.href} counts={counts} />
     </>
   );
 }

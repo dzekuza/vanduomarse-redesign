@@ -5,6 +5,7 @@ const TONE: Record<EventCategory, string> = {
   vakarai: "bg-ink text-foam",
   akademija: "bg-lake text-ink",
   sventes: "border border-ink text-ink",
+  keturratis: "bg-lake-soft text-foam",
 };
 
 export function categoryLabel(id: EventCategory): string {

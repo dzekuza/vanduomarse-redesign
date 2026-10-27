@@ -1,6 +1,6 @@
 ---
 tags: [meta, changelog]
-updated: 2026-10-19
+updated: 2026-10-27
 ---
 
 # Changelog
@@ -8,6 +8,151 @@ updated: 2026-10-19
 Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
+
+## 2026-10-28 — Staff roles and per-page permissions
+
+- **What:** owners create staff logins and give each person a role; a role is a
+  set of admin pages (Apžvalga, Rezervacijos, Užimtumas, Užklausos, Keturračiai,
+  Kuponai, Renginiai, Pirtis, Kainodara). New screen `/admin/darbuotojai`
+  (owner-only): staff list (role, on/off, reset password, remove) and roles
+  (switch per page, with plain hints). Anyone can change their own password.
+- **Enforced in the database:** every staff policy now checks the page
+  permission (RLS), not just the menu; the menu, tab bar, header shortcut and
+  page guards follow the role. Pages that show another page's data get read-only
+  access to it (listed in [[database]]), so a role never opens onto empty data.
+- **Safety:** the last owner can't be removed, demoted or switched off; the owner
+  role can't be edited; you can't switch off or remove yourself. Switched-off
+  and page-less accounts see a "no access" screen that says why.
+- **Existing staff become owners** when the migration runs, so nobody is locked out.
+- **Env:** `SUPABASE_SERVICE_ROLE_KEY` is now used (server only) to create,
+  reset and delete logins; without it only that screen reports it (ADR-0012).
+- **Order matters:** apply `20261028120000_staff_roles.sql` **before** deploying
+  this code, or `/admin` fails for everyone. Applied to the live project; see [[database]].
+- **Internal:** action helpers moved to `lib/admin/action-helpers.ts`;
+  `staffClient(need)` replaces `staffClient()`; capacity/consistency triggers are
+  `security definer`.
+
+## 2026-10-28 — Quads (keturračiai): rental page and admin
+
+- **Public:** `/keturraciai` with two tabs: hourly rental (day, quad type and
+  count, riders, start, length, contact) and guided tours (seats on a departure).
+  Both store a **request** that staff confirm: availability counts pending and
+  confirmed rentals, and the confirmation says the spot isn't guaranteed yet.
+  Nav gained "Keturračiai"; tours also appear in `/renginiai` (category
+  "Keturračiai", CTA → the tours tab).
+- **Admin:** `/admin/keturraciai` (tabs Nuoma / Žygiai / Parkas): status chips and
+  details sheet, "Nauja nuoma" for phone bookings, tour seat confirmations,
+  fleet editor and opening hours / max length / deposit / min age / rules text.
+  Nav badge counts pending rentals and tour seats.
+- **Data:** three migrations (ADR-0011): `quad_types`, `quad_settings`,
+  `quad_rentals` + hourly capacity trigger + 3 anon-safe RPCs; tours reuse
+  `events` (new category `keturratis`) and `event_tickets`. **Not applied to the
+  live project yet**, and the seeded fleet and prices are placeholders: see
+  [[database]].
+- **Header:** eight nav links overflowed by 45 px at 1024, so link padding is `px-2` at `lg` and `px-3` from `xl`.
+- **Not done:** coupons can't be redeemed against quad rentals yet (the coupon
+  service enum has no `keturratis`), and there is no per-day closure (switch a
+  quad type off to hide it).
+
+## 2026-10-27 — Gift coupons as products
+
+- **Shop:** `/kuponai` sells euro-value coupons (25 / 50 / 100 €) and experience
+  coupons (plaukimas, pirtis, nakvynė). Orders are stored as "laukia apmokėjimo";
+  there is **no online payment yet**, so the team arranges it by email and then
+  presses „Pažymėti apmokėtu ir išsiųsti kodą" in `/admin/kuponai`, which issues
+  a 12-character code (valid 12 months) and emails it (Resend, optional).
+- **Redemption:** the sauna and cabin flows have a coupon field that checks the
+  code and shows the discount; the receipt carries the code and says the balance
+  is deducted on arrival. Staff record the spend in the admin (partial spends
+  allowed). Public bookings still aren't saved, so the online discount is not
+  linked to a stored booking (`coupon_redemptions.booking_id` is ready for it).
+- **Admin:** `/admin/kuponai` (orders, search by code/ref/name/email, details
+  sheet, products editor) + nav item with a pending-orders badge.
+- **Data:** migrations `20261027203000_coupons.sql` and
+  `20261027203100_coupon_products.sql` (ADR-0010), applied to the live project
+  and checked as anon; types regenerated. A test order `KP-1001` is in the
+  database: cancel it in /admin/kuponai. See [[database]].
+- **Changed:** `FindUs` links to `/kuponai` instead of the external shop and no
+  longer claims coupons never expire; `NAV_LINKS` gained "Kuponai";
+  `ArrowButton` accepts `type="submit"`.
+- **Env:** optional `RESEND_API_KEY` and `COUPON_FROM_EMAIL` (`.env.example`).
+
+## 2026-10-27 — Landing page restyled after max-bennet.webflow.io
+
+- **Look:** giant full-width coral wordmark, tiny uppercase meta row, rounded
+  photo tiles with captions, pill CTAs, borderless blush header, wordmark
+  repeated in the footer. The ink full-bleed bands became rounded panels
+  (`Pricing`) and `bg-card` tiles (`Equipment`, `FindUs`, `StatusBar`).
+- **New:** `Wordmark`, `SectorTiles` (replaces `MissionPatches`, whose dashed
+  patch circles used inline `style`), `TrackStats`; `rounded-tile` token and
+  the `font-wordmark` / `wordmark-size` / `wordmark-fit` utilities; `ArrowLink`
+  `pill` prop (ADR-0009).
+- **Removed:** `TrackPanel`, `CableLoop` (and `.cable-rider` CSS),
+  `AtmosphereStrip`. The park numbers live on as `TrackStats`.
+- **Follow-up:** `TrackStats` figures lost their top rules; the hero meta row
+  is top-aligned with balanced, relaxed-leading text. `StatusBar` now leads with a
+  large status line and lists each season's hours as aligned day/time pairs.
+  Tablet fix: `TrackStats` is 2 columns below `lg` and its numerals scale
+  `7xl` / `8xl` / `9xl`, because 4 columns at 768 px made "620 m" run into "6".
+  Dev-log cleanups: the first sector tile loads eagerly (it is the LCP image;
+  Next 16 deprecates `priority`), and Big Shoulders sets `adjustFontFallback: false`.
+- **Placeholders:** sector tiles use Unsplash photos until real park photos
+  are supplied (`components/sector-tiles.tsx`).
+
+## 2026-10-22 — Mock data removed: site and admin run on Supabase
+
+- **Removed:** `lib/admin/mock-data.ts` and every runtime generator of fake data
+  (pseudo-random sauna hours, cabin occupancy and ticket counts, hard-coded
+  park events and sauna templates, default extras). The same demo data now
+  lives in the "Vanduo" database (`supabase/seed.sql`, compacted to
+  multi-row inserts), dated relative to load day.
+- **Admin:** staff login at `/admin/prisijungti` (Supabase email + password).
+  `proxy.ts` refreshes the session, and the panel checks `public.staff`.
+  All 12 store actions now persist through server actions; new bookings get
+  their `PM-`/`MM-` number from the database. The sidebar and mobile sheet gain
+  „Atsijungti", and the "Demonstraciniai duomenys" notes are gone.
+- **Public:** `/pirtis` shows real taken hours, live rates (including the facts
+  box) and extras, and session spots from ticket sales. `/miegas` shows real
+  free cabins per size, and `/renginiai` lists published events from the
+  database. Confirmations still don't save.
+- **Deps:** `@supabase/supabase-js`, `@supabase/ssr`, `server-only`.
+- **Env:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are
+  now required (`.env.example` updated).
+- ADR-0007 supersedes ADR-0005.
+- Admin info texts no longer say "kol duomenų bazė neprijungta" (Užimtumas,
+  Renginiai, Pirtis, Kainodara); Kainodara now says the prices are saved but
+  don't change the site or calculator yet.
+- Verified in the browser as staff (admin@admin.com, display name "Administratorius"):
+  all seven screens load DB data. Status change, closing and reopening an hour,
+  a new phone booking (PM-1062, extras snapshot) and an inquiry note all
+  persisted and were rolled back. The phone layout and sign-out work. Not
+  covered: event create/delete, saving sauna rates or prices, the
+  conflict-error path in the UI (covered by SQL tests).
+
+## 2026-10-22 — Supabase project "Vanduo" migrated
+
+- All migrations applied to the new project (`mwngljhcvqkvncwbmgeo`) through
+  the Supabase MCP. Local files renamed to the versions the project recorded.
+- The first advisor run showed `is_staff()` callable as an RPC by anon, because
+  Supabase grants execute on public functions to anon directly. A follow-up
+  migration moves it to a `private` schema, revokes RPC access to trigger
+  functions and adds a missing FK index. Only the two intended availability RPCs
+  remain flagged.
+- Generated `lib/supabase/database.types.ts`. The app still uses the in-memory
+  store; no env vars or clients are added yet.
+
+## 2026-10-22 — Supabase migrations prepared (not connected)
+
+- `supabase/` added with `config.toml`, four migrations and a demo `seed.sql`.
+  They're ready to push to a fresh project, and nothing in the app uses them yet.
+- The database itself rules out double-booked sauna hours, booking over staff
+  blocks, overselling cabins by size and overselling event tickets. RLS keeps
+  customer data staff-only, and public pages get availability through two
+  functions instead.
+- Data audit found the cabin size missing on bookings, cabin prices charged per
+  guest in the calculator but per cabin in booking, no contact details in the
+  public flows and fake public availability. Listed in [[database]].
+- Checked in PGlite with 32 passing checks. Not yet run on real Supabase.
 
 ## 2026-10-19 — Home: hero redesign
 

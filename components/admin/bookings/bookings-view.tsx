@@ -1,6 +1,7 @@
 "use client";
 
 import { DownloadSimpleIcon, PlusIcon } from "@phosphor-icons/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
@@ -27,6 +28,15 @@ export function BookingsView() {
   const [filters, setFilters] = useState(INITIAL);
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  // `?nauja=1` comes from the header button and the tab bar's centre "+".
+  const router = useRouter();
+  const pathname = usePathname();
+  const fromLink = useSearchParams().get("nauja") === "1";
+  const newOpen = creating || fromLink;
+  const setNewOpen = (open: boolean) => {
+    setCreating(open);
+    if (!open && fromLink) router.replace(pathname, { scroll: false });
+  };
   const today = dateKey(new Date());
   const q = filters.query.trim().toLowerCase();
 
@@ -108,7 +118,7 @@ export function BookingsView() {
       </Card>
       <p className="text-sm text-muted-foreground">Rodoma: {rows.length}</p>
       <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
-      {creating ? <NewBookingDialog onOpenChange={setCreating} onCreated={setOpenId} /> : null}
+      {newOpen ? <NewBookingDialog onOpenChange={setNewOpen} onCreated={setOpenId} /> : null}
     </AdminPage>
   );
 }

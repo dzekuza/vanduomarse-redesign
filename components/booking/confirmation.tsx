@@ -14,10 +14,11 @@ interface ConfirmationProps {
   /** Chosen extras, e.g. ["Pirtininkas", "Beržinė vanta × 3"]. */
   extras: string[];
   total: number;
+  coupon?: { code: string; discount: number };
   onReset: () => void;
 }
 
-export function Confirmation({ reference, date, time, startHour, hours, partySize, extras, total, onReset }: ConfirmationProps) {
+export function Confirmation({ reference, date, time, startHour, hours, partySize, extras, total, coupon, onReset }: ConfirmationProps) {
   return (
     <Receipt
       title="Pirtis Marse"
@@ -29,6 +30,7 @@ export function Confirmation({ reference, date, time, startHour, hours, partySiz
         { label: "Papildomai", value: extras.length ? extras.join(", ") : "-" },
       ]}
       total={total}
+      coupon={coupon}
       calendar={{
         title: "Pirtis Marse",
         start: at(date, startHour),

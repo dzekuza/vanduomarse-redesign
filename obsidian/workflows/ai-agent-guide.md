@@ -22,7 +22,7 @@ Keep the root shims consistent with the vault; the vault is canonical.
 The authoritative list is in `AGENTS.md` (10 rules). In short: tokens only,
 reuse `components/ui/` and the catalogs first, mobile-first with 44 px tap
 targets, Lithuanian copy, prices only from `lib/`, admin data only through
-`useAdmin()` (no auth yet), RHF + Zod forms, strict TypeScript, never edit
+`useAdmin()` behind staff login and public reads through `lib/data/public.ts`, RHF + Zod forms, strict TypeScript, never edit
 `.env*`, verify in the browser.
 
 ## Where to look

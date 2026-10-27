@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Folder Structure
@@ -23,8 +23,12 @@ components/
 └── admin/              ← store, shell, and a folder per admin screen
 hooks/                  ← shared hooks — catalog: [[hooks]]
 lib/                    ← business rules, prices, data generators — catalog: [[utils]]
-└── admin/              ← admin models, labels, mock data, occupancy, formatting
+└── admin/              ← admin models, labels, mappers, repository (server), occupancy, formatting
 public/brand/           ← logo badge, zone stickers (sticker-*.svg)
+supabase/               ← config.toml, migrations/, seed.sql (demo) — see [[database]]
+lib/supabase/           ← env, server (cookie) + public (anon) clients, generated database.types.ts
+lib/data/               ← public.ts (server-only reads for public pages), public-types.ts
+proxy.ts                ← Next 16 proxy: Supabase session refresh + /admin login gate
 obsidian/               ← this vault
 ```
 

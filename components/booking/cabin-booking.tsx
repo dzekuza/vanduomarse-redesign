@@ -5,6 +5,7 @@ import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { CabinSizePicker } from "./cabin-size-picker";
+import { CouponField } from "./coupon-field";
 import { DayPicker, type DayNote } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
 import { StepLabel } from "./step-label";
@@ -15,53 +16,54 @@ import {
   cabinReference,
   freeCabins,
   roomPrice,
+  type CabinAvailability,
   type CabinSize,
   type RoomTypeId,
 } from "@/lib/cabin";
-import { dateKey } from "@/lib/sauna";
-
-function nextDays(count: number): Date[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
-}
+import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
+import type { CabinPageData } from "@/lib/data/public-types";
+import { dateKey, nextDays } from "@/lib/sauna";
 
 /** Cabins of any size free for every night of the stay. */
-function freeAll(checkIn: Date, nights: number): number {
-  return CABIN_SIZES.reduce((sum, s) => sum + freeCabins(checkIn, nights, s.id), 0);
+function freeAll(availability: CabinAvailability, checkIn: Date, nights: number): number {
+  return CABIN_SIZES.reduce((sum, s) => sum + freeCabins(availability, checkIn, nights, s.id), 0);
 }
 
-export function CabinBooking() {
-  const days = useMemo(() => nextDays(21), []);
+export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; days: number }) {
+  const { availability } = data;
+  const days = useMemo(() => nextDays(data.today, dayCount), [data.today, dayCount]);
   const [nights, setNights] = useState(2);
-  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeAll(d, 2) > 0) ?? days[0]);
+  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeAll(availability, d, 2) > 0) ?? days[0]);
   const [guests, setGuests] = useState(2);
   const [roomId, setRoomId] = useState<RoomTypeId>("namelis");
   const [preferredSize, setPreferredSize] = useState<CabinSize>(2);
-  const [confirmed, setConfirmed] = useState<{ reference: string; total: number } | null>(null);
+  const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
+  const [confirmed, setConfirmed] = useState<{ reference: string; total: number; coupon?: { code: string; discount: number } } | null>(null);
 
   const cabin = roomId === "namelis";
-  const free = (size: CabinSize) => freeCabins(checkIn, nights, size);
+  const free = (size: CabinSize) => freeCabins(availability, checkIn, nights, size);
   // Fall back to the other size when the preferred one is booked out for this stay.
   const size = free(preferredSize) > 0 ? preferredSize : (CABIN_SIZES.find((s) => free(s.id) > 0)?.id ?? preferredSize);
   const soldOut = cabin && free(size) === 0;
   const maxGuests = cabin ? size : CAMPER_MAX_GUESTS;
   const shownGuests = Math.min(guests, maxGuests);
-  const total = roomPrice(roomId, size) * nights;
+  const subtotal = roomPrice(roomId, size) * nights;
+  const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
+  const total = subtotal - discount;
 
   function dayNote(d: Date): DayNote | undefined {
     if (!cabin) return undefined;
-    const left = freeAll(d, nights);
+    const left = freeAll(availability, d, nights);
     return { text: left > 0 ? `liko ${left}` : "Užimta", disabled: left === 0 };
   }
 
   function confirm() {
     const ref = cabin ? `${roomId}${size}` : roomId;
-    setConfirmed({ reference: cabinReference(dateKey(checkIn), ref, nights), total });
+    setConfirmed({
+      reference: cabinReference(dateKey(checkIn), ref, nights),
+      total,
+      coupon: coupon && discount > 0 ? { code: coupon.code, discount } : undefined,
+    });
   }
 
   if (confirmed) {
@@ -74,7 +76,11 @@ export function CabinBooking() {
         roomId={roomId}
         size={size}
         total={confirmed.total}
-        onReset={() => setConfirmed(null)}
+        coupon={confirmed.coupon}
+        onReset={() => {
+          setConfirmed(null);
+          setCoupon(null);
+        }}
       />
     );
   }
@@ -85,6 +91,7 @@ export function CabinBooking() {
         <BookingTotal
           note={`${nights} ${nights === 1 ? "naktis" : "naktys"}, nuo ${checkIn.toLocaleDateString("lt-LT")}`}
           total={total}
+          discount={discount}
         />
       }
       action={
@@ -111,6 +118,7 @@ export function CabinBooking() {
           <Stepper label="Svečių" value={shownGuests} onChange={setGuests} min={1} max={maxGuests} />
         </div>
       </div>
+      <CouponField flow="miegas" coupon={coupon} discount={discount} onChange={setCoupon} />
     </BookingCard>
   );
 }

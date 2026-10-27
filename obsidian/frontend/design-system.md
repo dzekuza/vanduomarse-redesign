@@ -1,6 +1,6 @@
 ---
 tags: [frontend, wip]
-updated: 2026-10-19
+updated: 2026-10-27
 ---
 
 # Design System
@@ -32,9 +32,18 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-coral` `#ed5257`, `--raw-coral-deep` | primitive | sampled from vanduomarse.lt | `theme-marse` accent (maps to `--rust`) |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
+| `--tile-radius` `1.25rem` | primitive | landing redesign | bound as `rounded-tile`: photo tiles, panels, cards on the home page. Everything else stays square (`--radius: 0`) |
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
 
 ## Utilities
+
+- `font-wordmark` + `wordmark-size` + `wordmark-fit` — the giant "VANDUO MARSE"
+  (Big Shoulders 900, uppercase, `line-height .82`). `wordmark-fit` makes the
+  parent a size container; `wordmark-size` is `30cqw` (two stacked lines) and
+  `16cqw` from `md` (one line, `nowrap`). If the text or font changes, re-measure:
+  the single line is ~6.2 em wide. `font-wordmark` alone is for oversized
+  numerals (`TrackStats`). Coral on blush is ~2.6:1, so it is for display type
+  only; small text stays ink.
 
 - `scrollbar-ink` — thin square scrollbar (ink thumb, `--line` track, coral on
   hover) for horizontal pickers. Chrome/Safari use `::-webkit-scrollbar`; the

@@ -9,6 +9,8 @@ const bigShoulders = Big_Shoulders({
   variable: "--font-big-shoulders",
   subsets: ["latin", "latin-ext"],
   weight: ["600", "700", "800", "900"],
+  // No fallback metrics exist for this face; skip the "Failed to find font override values" warning.
+  adjustFontFallback: false,
 });
 
 const workSans = Work_Sans({

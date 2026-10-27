@@ -3,6 +3,8 @@ import { dateKey } from "@/lib/sauna";
 /**
  * Cabin sizes from the 2026–27 sheet: 8 doubles + 6 quads (40 beds),
  * 50–60 €/night — read as 50 € for a double and 60 € for a quad.
+ * Mirrored by `public.stay_types` (`namelis-2`, `namelis-4`, `kemperis`), where
+ * the database enforces the unit counts; there is no admin editor for them yet.
  */
 export const CABIN_SIZES = [
   { id: 2, label: "2 asmenims", pricePerNight: 50, count: 8 },
@@ -35,20 +37,18 @@ export function roomLabel(id: RoomTypeId, size: CabinSize): string {
   return id === "namelis" ? `Namelis ${cabinSize(size).label}` : ROOM_TYPES.find((r) => r.id === id)!.label;
 }
 
-/** Deterministic pseudo-occupancy so server and client render the same thing. */
-function bookedCabins(dateK: string, size: CabinSize): number {
-  const s = `${dateK}namelis${size}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h % (cabinSize(size).count + 1);
-}
+/** Stay type id in `public.stay_types` for a cabin size. */
+export const cabinStayType = (size: CabinSize) => `namelis-${size}`;
 
-/** Cabins of `size` free for every night of a stay arriving on `checkIn`. */
-export function freeCabins(checkIn: Date, nights: number, size: CabinSize): number {
+/** Free cabins per night and size, from `stay_occupancy()`: `{ "2026-10-22": { 2: 5, 4: 0 } }`. */
+export type CabinAvailability = Record<string, Partial<Record<CabinSize, number>>>;
+
+/** Cabins of `size` free for every night of a stay arriving on `checkIn` (nights outside the data count as free). */
+export function freeCabins(availability: CabinAvailability, checkIn: Date, nights: number, size: CabinSize): number {
   let free: number = cabinSize(size).count;
   for (let i = 0; i < nights; i++) {
     const d = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + i);
-    free = Math.min(free, cabinSize(size).count - bookedCabins(dateKey(d), size));
+    free = Math.min(free, availability[dateKey(d)]?.[size] ?? cabinSize(size).count);
   }
   return free;
 }

@@ -8,7 +8,7 @@ import { BookingStatusBadge, InquiryStatusBadge } from "../status-badge";
 import { StatCard } from "./stat-card";
 import { BOOKING_KIND } from "@/lib/admin/labels";
 import { bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
-import { CLOSE_HOUR, OPEN_HOUR, dateKey } from "@/lib/sauna";
+import { dateKey } from "@/lib/sauna";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function nextDays(n: number): string[] {
@@ -18,7 +18,7 @@ function nextDays(n: number): string[] {
 
 /** Admin landing: today's load, work waiting on staff, money, and what's next. */
 export function Overview() {
-  const { bookings, inquiries, events } = useAdmin();
+  const { bookings, inquiries, events, saunaRates } = useAdmin();
   const [today, ...rest] = nextDays(7);
   const week = [today, ...rest];
   const month = today.slice(0, 7);
@@ -29,7 +29,7 @@ export function Overview() {
   const fresh = inquiries.filter((q) => q.status === "nauja");
   const revenue = live.filter((b) => b.date.startsWith(month)).reduce((sum, b) => sum + b.total, 0);
   const saunaHours = live.filter((b) => b.kind === "pirtis" && week.includes(b.date)).reduce((s, b) => s + (b.hours ?? 0), 0);
-  const occupancy = Math.round((saunaHours / ((CLOSE_HOUR - OPEN_HOUR) * week.length)) * 100);
+  const occupancy = Math.round((saunaHours / ((saunaRates.closeHour - saunaRates.openHour) * week.length)) * 100);
   const upcoming = events.filter((e) => e.date >= today && e.published).slice(0, 4);
 
   return (

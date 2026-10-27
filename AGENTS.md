@@ -23,19 +23,22 @@ architectural choices).
    `size-11`). Two-column layouts and the inline nav start at `lg`. Choice
    chips wrap; only date strips scroll sideways. Check 375 / 768 / 1024 px.
 4. **Lithuanian UI copy**, no i18n library yet. Prices include 21% PVM.
-5. **Prices come from one place.** Sauna: `lib/sauna.ts` + `lib/sauna-upsells.ts`.
-   Events/spaces: `lib/event-pricing.ts` (transcribed from the client's
-   2026–27 sheet; ranges stay ranges). Never hard-code a price in a component.
-6. **Admin is UI-first on mock data** (ADR-0005): all reads/writes go through
-   `useAdmin()` in `components/admin/admin-store.tsx`. There is **no auth** —
-   don't present `/admin` as production-ready.
+5. **Prices come from one place.** Sauna rates and extras: Supabase
+   (`sauna_settings`, `sauna_upsells`), priced with `lib/sauna.ts` +
+   `lib/sauna-upsells.ts`. Cabins: `lib/cabin.ts`. Events/spaces:
+   `lib/event-pricing.ts` (the 2026–27 sheet; ranges stay ranges). Never
+   hard-code a price in a component.
+6. **Data lives in Supabase** (ADR-0007). Admin screens read and write only
+   through `useAdmin()` (`components/admin/admin-store.tsx` → server actions in
+   `app/admin/actions.ts`), behind staff login (`public.staff`) and the role's page permission (`staff_roles`, ADR-0012: new admin data needs a policy keyed to a page permission). Public pages
+   read through `lib/data/public.ts`. No mock or generated data in `lib/`.
 7. **Forms:** React Hook Form + Zod. Validate shape in the schema, live
    conflicts (availability, capacity) on submit with `setError`.
 8. **TypeScript strict**, no `any`; named exports (except Next pages/layouts);
    kebab-case files; Server Components unless interaction needs `"use client"`.
-9. **Never edit `.env*`** — say what to add; keep `.env.example` in sync.
-   Supabase (planned) follows the global rules: RLS on every table, new
-   migrations only.
+9. **Never edit `.env*`** (except `.env.example`, kept in sync) — say what to
+   add. Supabase follows the global rules: RLS on every table, new migrations
+   only, regenerate `lib/supabase/database.types.ts` after schema changes.
 10. **Verify in the browser** before calling UI work done, and say what you
     could not check.
 
@@ -50,9 +53,10 @@ architectural choices).
 | Calculator | `components/calculator/` |
 | Admin | `components/admin/` (store, shell, one folder per screen) |
 | shadcn primitives | `components/ui/` (locally modified — see `obsidian/frontend/components/ui.md`) |
-| Domain logic & data | `lib/` (`lib/admin/` for dashboard models, mock data, occupancy) |
+| Domain logic & data | `lib/` (`lib/admin/` models, mappers, repository, occupancy; `lib/data/public.ts` public reads; `lib/supabase/` clients + types) |
 | Hooks | `hooks/` |
 | Brand assets | `public/brand/` |
+| Database | `supabase/migrations/`, demo `supabase/seed.sql`, `proxy.ts` (admin session) — see `obsidian/backend/database.md` |
 
 ## Commands
 

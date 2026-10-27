@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Environment Variables
@@ -16,19 +16,21 @@ updated: 2026-10-19
 
 ## Variables
 
-None are read by the code yet. Planned with Supabase (listed, commented
-out, in `.env.example`):
-
 | Name | Scope | Required | Purpose |
 |------|-------|----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | client | with backend | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | with backend | Public anon key (RLS-protected) |
-| `SUPABASE_SERVICE_ROLE_KEY` | server | with backend | Admin operations in server actions only |
+| `NEXT_PUBLIC_SUPABASE_URL` | client + server | **yes** | Supabase project URL (project "Vanduo") |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | **yes** | Public anon key; RLS decides what it can see |
+| `RESEND_API_KEY` | server | no | Coupon emails (`lib/email/send-coupon.ts`, Resend HTTP API, no SDK). Without it "Pažymėti apmokėtu" still issues the code and the admin is told the email was not sent |
+| `COUPON_FROM_EMAIL` | server | no | Sender for coupon emails, e.g. `Vanduo Marse <kuponai@vanduomarse.lt>`; must be on a Resend-verified domain. Needs `RESEND_API_KEY` too |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | only for staff management | Read by `lib/supabase/admin.ts` and used **only** by the owner-only actions in `app/admin/staff-actions.ts` to create, reset and delete logins. Never touches data tables. Without it the Darbuotojai screen shows a clear message and everything else works |
+
+Values: Supabase dashboard → Project Settings → API.
 
 ## Access
 
-No typed accessor yet. When the first variable is read, add `lib/env.ts`
-that parses `process.env` with Zod and import from it everywhere.
+`lib/supabase/env.ts` (`supabaseEnv()`) is the only reader; it throws a clear
+error when either variable is missing. Every client (`lib/supabase/server.ts`,
+`lib/supabase/public.ts`, `proxy.ts`) goes through it.
 
 ## Related
 

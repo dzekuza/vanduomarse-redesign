@@ -1,8 +1,7 @@
-import { MASTER_PRICE, VIHTA_PRICE } from "./sauna";
-
 /**
- * Optional extras sold with a private sauna booking. Managed in /admin/pirtis;
- * the public booking renders whatever is active here.
+ * Optional extras sold with a private sauna booking. Stored in
+ * `public.sauna_upsells` and managed in /admin/pirtis; the public booking
+ * renders whatever is active there.
  */
 export type UpsellUnit = "rezervacijai" | "asmeniui" | "vienetui" | "valandai";
 
@@ -30,20 +29,6 @@ export const UPSELL_UNIT_SHORT: Record<UpsellUnit, string> = {
   vienetui: "€/vnt.",
   valandai: "€/val.",
 };
-
-export const DEFAULT_UPSELLS: Upsell[] = [
-  {
-    id: "pirtininkas",
-    name: "Pirtininkas",
-    description: "Veda seansą: vantos, aromatai, garų ratai.",
-    price: MASTER_PRICE,
-    unit: "rezervacijai",
-    maxQty: null,
-    active: true,
-  },
-  { id: "vantos", name: "Beržinė vanta", description: "Šviežia vanta pirčiai.", price: VIHTA_PRICE, unit: "vienetui", maxQty: null, active: true },
-  { id: "ranksluostis", name: "Rankšluostis", description: "Didelis pirties rankšluostis.", price: 5, unit: "vienetui", maxQty: null, active: true },
-];
 
 /** Items a counted upsell allows for this group. */
 export function upsellMax(u: Upsell, partySize: number): number {

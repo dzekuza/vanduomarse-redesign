@@ -1,6 +1,6 @@
 ---
 tags: [frontend, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Routing
@@ -30,11 +30,15 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 | Route | View | Status |
 |-------|------|--------|
 | `/` | `app/page.tsx` (homepage sections, live-brand theme) | stable |
-| `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab | stable |
-| `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking` | stable |
-| `/renginiai` | `BookingPage` + `EventsBoard` | stable |
+| `/keturraciai` | `BookingPage` + `BookingHero` + `QuadReservation` (tabs: hourly rental / guided tours; `?skirtukas=zygiai` opens tours); data from `getQuadPageData()`; rules block only when set in admin | stable |
+| `/kuponai` | `BookingPage` + `CouponIntro` + `CouponShop` (picker, order form, confirmation); products from `getCouponProducts()`; orders wait for staff to confirm payment | stable |
+| `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab; data from `getSaunaPageData()` | stable |
+| `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking`; data from `getCabinPageData()` | stable |
+| `/renginiai` | `BookingPage` + `EventsBoard`; data from `getParkEvents()` | stable |
 | `/skaiciuokle` | `BookingPage` + `EventCalculator` | stable |
-| `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/renginiai`, `/pirtis`, `/kainos`) | `app/admin/layout.tsx` (sidebar shell, `AdminStoreProvider`, noindex) + one view per page | UI-first, mock data, **no auth** (ADR-0005) |
+| `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/keturraciai`, `/kuponai`, `/renginiai`, `/pirtis`, `/kainos`) | `app/admin/layout.tsx` (noindex metadata) → `app/admin/(panel)/layout.tsx` (staff check, `loadAdminData`, sidebar shell, `AdminStoreProvider`) + one view per page | Supabase, staff login (ADR-0007); each page checks its role permission (`requirePermission`, ADR-0012) and bounces to the first page the role allows |
+| `/admin/darbuotojai` | `StaffView` (tabs Darbuotojai / Rolės). Owner-only: `requirePermission("owner")` | stable |
+| `/admin/prisijungti` | `AuthCard` + `LoginForm` (outside the panel group) | stable |
 
 
 ## Conventions

@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { EventRow } from "./event-row";
-import { EVENT_CATEGORIES, monthHeading, parkEvents, type EventCategory, type ParkEvent } from "@/lib/park-events";
-import { startOfToday } from "@/lib/sauna-events";
+import { EVENT_CATEGORIES, monthHeading, toParkEvent, type EventCategory, type ParkEvent, type ParkEventData } from "@/lib/park-events";
 
 type Filter = EventCategory | "visi";
 
@@ -19,8 +18,8 @@ function groupByMonth(events: ParkEvent[]): { heading: string; events: ParkEvent
 }
 
 /** Filterable feed of upcoming park and sauna events, grouped by month. */
-export function EventsBoard() {
-  const events = useMemo(() => parkEvents(startOfToday()), []);
+export function EventsBoard({ data }: { data: ParkEventData[] }) {
+  const events = useMemo(() => data.map(toParkEvent), [data]);
   const [filter, setFilter] = useState<Filter>("visi");
 
   const visible = filter === "visi" ? events : events.filter((e) => e.category === filter);

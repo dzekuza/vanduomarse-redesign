@@ -24,7 +24,7 @@ const EXTRAS: Item[] = [
 
 function Tile({ item }: { item: Item }) {
   return (
-    <div className="flex flex-col justify-between border border-ink bg-foam px-3 py-3 sm:px-4">
+    <div className="flex flex-col justify-between rounded-tile bg-card px-4 py-4">
       <p className="text-sm">{item.label}</p>
       <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
         {item.note ? <span className="text-xs text-ink/50">{item.note}</span> : <span />}

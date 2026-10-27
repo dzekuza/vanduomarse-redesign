@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-19
+updated: 2026-10-22
 ---
 
 # Tech Stack
@@ -34,8 +34,11 @@ added, removed, or majorly upgraded — and add a [[changelog]] entry.
 | react-hook-form | ^7.90.0 | Admin forms |
 | zod | ^4.6.7 | Form and (later) API validation |
 | @hookform/resolvers | ^5.9.2 | Zod ↔ RHF bridge |
+| @supabase/supabase-js | ^2.118.0 | Database client; typed with `lib/supabase/database.types.ts` |
+| @supabase/ssr | ^0.7.0 | Cookie-based auth session for Server Components, Server Actions and `proxy.ts` |
+| server-only | ^0.0.1 | Build error if a server data module (`lib/data/public.ts`, `lib/admin/repository.ts`, `lib/supabase/server.ts`) is imported by client code |
 
-No backend yet: admin runs on an in-memory store (ADR-0005). Supabase planned.
+Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 
 ## Tooling
 
@@ -49,7 +52,7 @@ No backend yet: admin runs on an in-memory store (ADR-0005). Supabase planned.
 
 | Package | Why not | Use instead |
 |---------|---------|-------------|
-| TanStack Query | No server data yet | Add with the Supabase backend |
+| TanStack Query | Server Components + server actions cover the reads and writes | Add only if client-side refetching is needed |
 | i18n library | Single language (LT) for now | Inline Lithuanian copy, constants for repeated strings |
 | Geist font (shadcn default) | Off-brand | Termina (licensed, local files) via `font-sans` |
 | Zustand / Redux | One admin store is enough | `useReducer` + context (`AdminStoreProvider`) |
