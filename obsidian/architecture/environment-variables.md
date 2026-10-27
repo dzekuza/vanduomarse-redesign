@@ -20,7 +20,9 @@ updated: 2026-10-22
 |------|-------|----------|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | **yes** | Supabase project URL (project "Vanduo") |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | **yes** | Public anon key; RLS decides what it can see |
-| `SUPABASE_SERVICE_ROLE_KEY` | server | no | Not read by the app. Reserved for future public-booking writes or scripts |
+| `RESEND_API_KEY` | server | no | Coupon emails (`lib/email/send-coupon.ts`, Resend HTTP API, no SDK). Without it "Pažymėti apmokėtu" still issues the code and the admin is told the email was not sent |
+| `COUPON_FROM_EMAIL` | server | no | Sender for coupon emails, e.g. `Vanduo Marse <kuponai@vanduomarse.lt>`; must be on a Resend-verified domain. Needs `RESEND_API_KEY` too |
+| `SUPABASE_SERVICE_ROLE_KEY` | server | only for staff management | Read by `lib/supabase/admin.ts` and used **only** by the owner-only actions in `app/admin/staff-actions.ts` to create, reset and delete logins. Never touches data tables. Without it the Darbuotojai screen shows a clear message and everything else works |
 
 Values: Supabase dashboard → Project Settings → API.
 

@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-22
+updated: 2026-10-27
 ---
 
 # Utils Catalog
@@ -19,14 +19,26 @@ them pure and typed; anything with client state belongs in a hook instead.
 | `openEventCount` / `toSaunaEvent` / `eventReference` | `lib/sauna-events.ts` | `(events) => number` / `(SaunaEventData) => SaunaEvent` | Tab badge count; server data → `Date`; display-only ticket reference |
 | `estimate` / `formatMoney` | `lib/event-pricing.ts` | `(input: EstimateInput) => Estimate` / `(m: Money) => string` | Event price estimate as min–max ranges from the 2026–27 sheet |
 | `toParkEvent` / `monthHeading` | `lib/park-events.ts` | `(ParkEventData) => ParkEvent` / `(date) => string` | Server data → `Date`; "Spalis 2026" headings |
-| `getSaunaPageData` / `getCabinPageData` / `getParkEvents` | `lib/data/public.ts` (server-only) | `() => Promise<…>` | Public page reads from Supabase (anon, per request) |
+| `getSaunaPageData` / `getCabinPageData` / `getParkEvents` / `getCouponProducts` | `lib/data/public.ts` (server-only) | `() => Promise<…>` | Public page reads from Supabase (anon, per request) |
+| `PERMISSIONS` / `hasPermission` / `hasAnyPermission` / `firstAllowedHref` / `permissionLabel` | `lib/admin/permissions.ts` | `(access, permissionId) => boolean` etc. | Admin page keys (match the DB check constraint), labels and hints; owners pass every check; where a role lands first |
+| `requirePermission` | `lib/admin/guard.ts` (server-only) | `(permission or "owner") => Promise<void>` | Page guard: redirects to the first allowed page; a role with no pages is left to the layout's "no access" screen (no redirect loop) |
+| `staffClient` / `dbError` / `fail` / `done` | `lib/admin/action-helpers.ts` (server-only) | `staffClient(need)` | Shared by the staff server actions: active staff with the needed permission, Lithuanian Postgres error messages (`last_owner`, `owner_role`, …) |
+| `createAdminClient` | `lib/supabase/admin.ts` (server-only) | `() => SupabaseClient` | Service-role client for creating/resetting/deleting logins only; throws `MissingServiceKeyError` without the key |
+| `visibleNav` / `canOpen` | `components/admin/admin-nav.ts` | `(access) => AdminNavItem[]` | The menu for one role |
+| `freeAt` / `longestFrom` / `mostFreeOnDay` / `rentalPrice` / `maxRiders` / `hourLabel` | `lib/quads.ts` | `(type, taken, day, hour) => number` etc. | Quad availability maths from `quad_taken`: free now, longest rental from a start (capped by closing and max hours), best hour of a day, price, rider limit |
+| `quadRentalSchema` / `quadContactSchema` / `tourTicketSchema` / `tourContactSchema` | `lib/quad-schema.ts` | Zod objects | Rental and tour requests (full, validated again by the actions) and the contact-only forms (phone or email required) |
+| `getQuadPageData` | `lib/data/public.ts` (server-only) | `() => Promise<QuadPageData>` | Fleet, settings, hourly `taken` map, Vilnius "now hour" and upcoming tours |
+| `normalizeCode` / `formatCode` / `formatEuro` / `formatExpiry` | `lib/coupons.ts` | `(string) => string` / `(n) => string` | Coupon codes ("ab12-cd34" → `AB12CD34…`, 12 chars → `XXXX-XXXX-XXXX`), euro and expiry-date wording |
+| `couponApplies` / `couponDiscount` | `lib/coupons.ts` | `(couponService, flow) => boolean` / `(total, balance) => number` | Whether a coupon can pay for a sauna or cabin booking; euros taken off, never above balance or total |
+| `couponOrderSchema` | `lib/coupon-schema.ts` | Zod object | Checkout form shape, shared by `OrderForm` and the `createCouponOrder` action (honeypot `website` must stay empty) |
+| `sendCouponEmail` / `emailConfigured` | `lib/email/send-coupon.ts` (server-only) | `(CouponEmail) => Promise<boolean>` / `() => boolean` | Coupon delivery over the Resend HTTP API (no SDK); false when unconfigured or refused |
 | `loadAdminData` / `currentStaff` | `lib/admin/repository.ts` (server-only) | `(supabase) => Promise<AdminData>` / `(supabase) => { user, staff }` | Dashboard reads as the signed-in user; staff check |
-| `toBooking` / `toInquiry` / `toManagedEvent` / `toPriceItem` / `toSaunaRates` / `toUpsell` / `toBlock` / `toHHMM` | `lib/admin/mappers.ts` | `(row) => model` | Supabase rows → app models (null → optional, `HH:MM:SS` → `HH:MM`, extras → labels) |
+| `toBooking` / `toInquiry` / `toManagedEvent` / `toPriceItem` / `toSaunaRates` / `toUpsell` / `toBlock` / `toCoupon` / `toCouponProduct` / `toQuadType` / `toQuadSettings` / `toQuadRental` / `toTourTicket` / `toStaffRole` / `toStaffMember` / `toHHMM` | `lib/admin/mappers.ts` | `(row) => model` | Supabase rows → app models (null → optional, `HH:MM:SS` → `HH:MM`, extras → labels) |
 | `createClient` / `createPublicClient` / `supabaseEnv` | `lib/supabase/server.ts` / `public.ts` / `env.ts` | — | Cookie client (acts as the user) / cookieless anon client / env reader |
 | `formatDay` / `formatDateTime` / `formatEur` / `bookingWhen` | `lib/admin/format.ts` | `(yyyy-mm-dd) => string` etc. | Admin date and money formatting in site wording |
 | `bookingsToCsv` / `toCsv` / `csvCell` / `exportFileName` | `lib/admin/export.ts` | `(bookings: Booking[]) => string` / `(prefix, dayKey) => string` | Excel-ready CSV (UTF-8 BOM, `;`, decimal comma, Lithuanian headers); quotes `;` `"` and line breaks, defuses formula-like cells |
 | `downloadText` | `lib/download.ts` | `(text, fileName, type?) => void` | Client-only: save a string as a file via a Blob link |
-| `useNavCounts` | `components/admin/use-nav-counts.ts` | `() => { pendingBookings, newInquiries }` | Badge counts shared by sidebar and bottom bar |
+| `useNavCounts` | `components/admin/use-nav-counts.ts` | `() => { pendingBookings, newInquiries, pendingCoupons, pendingQuads }` | Badge counts shared by sidebar and bottom bar |
 | `useIsMobile` | `hooks/use-mobile.ts` | `(breakpoint = 768) => boolean` | Media-query hook (`useSyncExternalStore`) |
 | `saunaBookingAt` / `staysOn` / `freeStartHours` / `freeHoursFrom` / `fullCabinNights` | `lib/admin/occupancy.ts` | `(bookings, blocks?, rates?, day, …)` | Admin availability pre-checks before submit (the database has the final say) |
 | `upsellTotal` / `upsellMax` / `upsellSummary` | `lib/sauna-upsells.ts` | `(upsell, qty, {partySize, hours}) => number` etc. | Price and describe sauna extras by unit |

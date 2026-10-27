@@ -1,6 +1,6 @@
 ---
 tags: [backend, wip]
-updated: 2026-10-22
+updated: 2026-10-27
 ---
 
 # Database
@@ -54,7 +54,8 @@ repo). After connecting, the database is the source of truth for prices.
 
 | Table | Mirrors | Notes | RLS |
 |-------|---------|-------|-----|
-| `staff` | — | `user_id` → `auth.users`. Membership = admin access | staff read; insert by service role |
+| `staff` | — | `user_id` → `auth.users`, `display_name`, `email`, `role_id`, `active`. A row = an admin login; its role says which pages (ADR-0012) | own row, or all for an owner; owners write |
+| `staff_roles` | `StaffRole` | `name` (unique, case-insensitive), `is_owner` (exactly one: "Savininkas", all pages + staff), `permissions text[]` of page keys, check-constrained to the known keys | active staff read; owners write |
 | `sauna_settings` | `SaunaRates` | Singleton (`id = true`); same cross-field checks as `rates-schema.ts` | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
@@ -64,7 +65,13 @@ repo). After connecting, the database is the source of truth for prices.
 | `inquiries` + `inquiry_notes` | `Inquiry` | `estimate_min/max` both null or both set; `calculator_input jsonb` | staff only |
 | `sauna_event_templates` | `lib/sauna-events.ts` templates | weekday, start, duration, price/person, capacity | staff only |
 | `events` | `ManagedEvent` | `start_time` (`time`), `duration_minutes`, `sold` kept by trigger, `template_id` + `date` unique | anon reads `published`; staff all |
-| `event_tickets` | — (new) | Public sauna-session tickets, `PR-` reference | staff only |
+| `event_tickets` | `TourTicket` | Per-person tickets for scheduled events: sauna sessions (`PR-`) and quad tours (`KZ-`, public ones start `laukia`) | staff only |
+| `coupon_products` | `CouponProduct` | Catalogue: `kind` (`verte` / `paslauga`), `service` (`visi` iff `verte`), `value`; seeded from sauna rate x min hours and the cabin price | anon reads `active`; staff all |
+| `coupons` | `Coupon` | One row per order and issued coupon. `code` (12 chars, 60 bits) null until paid; snapshots of product name/kind/service/value; `balance` 0..`face_value`; `KP-` reference; status `laukia_apmokejimo` → `aktyvus` → `panaudotas` / `atsauktas` | staff only |
+| `coupon_redemptions` | `Coupon.redemptions` | One row per spend; a `before insert` trigger locks the coupon, checks status/expiry/balance and updates `balance` + status | staff only |
+| `quad_types` | `QuadType` | Fleet: `seats` 1-2, `units` owned, `price_per_hour`, `active`. Placeholder seed: 4 singles (30 €/h), 2 doubles (45 €/h) | anon reads `active`; staff all |
+| `quad_settings` | `QuadSettings` | Singleton (`id = true`): `open_hour`, `close_hour`, `max_hours`, `deposit` (0 hides it), `min_age`, `rules` (empty hides the block) | public read; staff update |
+| `quad_rentals` | `QuadRental` | Hourly rental requests: type, date, `start_hour`, `hours`, `units`, `riders`, contact, `total`, status/source reuse `booking_status` / `booking_source`; `KT-` reference. Public requests start `laukia` | staff only |
 | `price_items` | `PriceItem` | Column `"group"` is quoted (reserved word) | public read; staff write |
 
 ### Rules the database enforces (SQLSTATE `23P01` on conflict)
@@ -76,6 +83,39 @@ repo). After connecting, the database is the source of truth for prices.
 - Cancelled rows (`atsaukta`) never block anything.
 - A booking's `stay_type_id` must match its `kind` (composite FK).
 
+Quad rentals: `quad_full` (`23P01`) when a type would go over its `units` in any
+hour; the public RPCs also raise `quad_unavailable`, `quad_closed`, `quad_past`,
+`quad_riders`, `tour_unavailable`, `tour_people` (`23503` / `23514`) and
+`too_many_requests` (`54000`).
+
+Coupon redemptions raise `23514` with a hint: `coupon_inactive`, `coupon_expired`,
+`coupon_balance` (admin maps them to messages); `activate_coupon` raises
+`coupon_not_pending` on a second call.
+
+### Who can read and write what
+
+Every staff policy checks a page permission through `private.has_permission(key)` /
+`has_any_permission(keys)`; owners pass everything. Read-only dependencies are
+deliberate, so a page never opens onto silently empty data.
+
+| Page key | Writes | Also reads (read-only) |
+|----------|--------|------------------------|
+| `apzvalga` | nothing | bookings + extras, inquiries, events (incl. drafts) |
+| `rezervacijos` | bookings, booking_extras | sauna_blocks, sauna_upsells |
+| `uzimtumas` | sauna_blocks | bookings + extras |
+| `uzklausos` | inquiries, inquiry_notes | — |
+| `keturraciai` | quad_types, quad_settings, quad_rentals; tickets of `keturratis` events | events |
+| `kuponai` | coupon_products, coupons, coupon_redemptions; `activate_coupon()` | — |
+| `renginiai` | events, event_tickets, sauna_event_templates; `materialize_sauna_events()` | — |
+| `pirtis` | sauna_settings, sauna_upsells | — |
+| `kainos` | price_items | — |
+| owner only | staff, staff_roles, stay_types | everything |
+
+Public reads (anon) are unchanged. The capacity and `sold` triggers are
+`security definer` so every role gets the same checks whatever rows it can see.
+Guards: the last active owner can't be removed, demoted or switched off
+(`last_owner`); the owner role can't be edited or deleted (`owner_role`).
+
 Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 `sauna_blocked`, `sauna_booked`, `stay_full`, `event_full`).
 
@@ -86,7 +126,15 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `sauna_taken_hours(from, to)` | anon, authenticated | Booked + closed sauna hours, no customer data |
 | `stay_occupancy(from, to)` | anon, authenticated | Nights taken vs units per stay type per day |
 | `private.is_staff()` | authenticated | Used by every staff policy. Lives in the non-exposed `private` schema, so it isn't an RPC |
-| `materialize_sauna_events(from, days)` | staff | Creates events from active templates; idempotent |
+| `materialize_sauna_events(from, days)` | `renginiai` | Creates events from active templates; idempotent |
+| `create_coupon_order(product, name, email, recipient, message)` | anon, authenticated | `security definer`. Creates an order awaiting payment; amount from the product row; refuses at 100 pending orders per hour |
+| `check_coupon(code)` | anon, authenticated | `security definer`. Balance, scope and expiry for an active code; nothing for unknown, unpaid, spent, cancelled or expired ones |
+| `quad_taken(from, to)` | anon, authenticated | `security definer`. Quads taken per type and hour (counts only); range capped at 60 days |
+| `create_quad_rental(type, date, start, hours, units, riders, name, email, phone, note)` | anon, authenticated | `security definer`. Files a `laukia` request; price, opening hours, max hours and rider limit come from the fleet/settings rows; refuses at 100 pending per hour |
+| `create_tour_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Only for published `keturratis` events with capacity; `laukia`, `KZ-` reference; seats enforced by the existing ticket trigger |
+| `private.has_permission(key)` / `has_any_permission(keys)` / `is_owner()` / `is_staff()` | authenticated (private schema, not RPCs) | The checks behind every staff policy; all require an **active** staff row |
+| `activate_coupon(id)` | `kuponai` (`security invoker`) | Issues the code and a 12-month expiry; only for `laukia_apmokejimo` |
+| `private.generate_coupon_code()` | internal | 12 symbols of `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` from `gen_random_uuid()` bytes |
 
 Both availability functions cap the range at 370 days. Supabase grants
 EXECUTE on new `public` functions to `anon`/`authenticated` directly, so any new
@@ -101,6 +149,23 @@ function that isn't meant to be an RPC needs an explicit `revoke … from anon, 
 | `20261021230515_rls.sql` | 2026-10-22 | `is_staff()`, RLS on every table, policies, `materialize_sauna_events()` |
 | `20261021230538_reference_data.sql` | 2026-10-22 | Sauna settings, 3 upsells, 3 stay types, 3 sauna templates, 39 price items |
 | `20261021230629_harden_function_grants.sql` | 2026-10-22 | Moves `is_staff()` to `private`, revokes RPC access to trigger functions, covering index for the stay-type FK |
+
+| `20261027203000_coupons.sql` | 2026-10-27 | Coupon enums, `coupon_products` / `coupons` / `coupon_redemptions`, redemption trigger, code generator, the three RPCs, RLS and grants |
+| `20261027203100_coupon_products.sql` | 2026-10-27 | 7 starter products (3 euro values, ride 2 h / day, sauna, cabin) priced from the live tables |
+
+> [!info] Coupon migrations: applied
+> Written and verified on PGlite (34 checks: anon can't read coupons, activation is staff-only, balance maths, expiry, snapshots, RLS on every table), then applied to the live "Vanduo" project by the owner on 2026-10-27 (the Supabase MCP session available while building them pointed at a different project and was left untouched). `lib/supabase/database.types.ts` was regenerated with `supabase gen types` and matched the hand-written draft. Checked live as anon: 7 products readable, `coupons` / `coupon_redemptions` / `activate_coupon` denied (`42501`), `check_coupon` returns nothing for an unknown code, and a real order through `/kuponai` stored as `KP-1001`. Still open: run both advisors, and cancel the test order `KP-1001` ("TESTAS", 50 €) in /admin/kuponai.
+
+| `20261028090000_quad_event_category.sql` | 2026-10-28 | `event_category` gains `keturratis` (own file: a new enum value can't be used in the transaction that adds it) |
+| `20261028090100_quads.sql` | 2026-10-28 | `quad_types`, `quad_settings`, `quad_rentals`, hourly capacity trigger, `quad_taken` / `create_quad_rental` / `create_tour_ticket`, RLS and grants |
+| `20261028090200_quad_reference_data.sql` | 2026-10-28 | **Placeholder** fleet (2 types) and settings (10-20 h, max 3 h, no deposit, 18+, no rules text) |
+| `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |
+
+> [!warning] Roles migration: apply before deploying the app
+> `20261028120000_staff_roles.sql` is verified on PGlite (112 permission checks plus the 80 coupon and quad checks as regression) but not applied until the owner pushes it. **Order matters:** the admin layout reads `staff_roles`, so code deployed before the migration breaks `/admin` for everyone. After the push: regenerate `lib/supabase/database.types.ts` (the staff parts are hand-written), and add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` / the host to create staff logins.
+
+> [!warning] Quad migrations: not applied yet
+> Written and verified on PGlite (46 checks: anon boundary, request validation hints, per-hour capacity incl. cancel/reopen, `quad_taken` numbers, tour seats and `sold`, spam brake, RLS on every table), but **not applied to the live project** until the owner pushes them. `lib/supabase/database.types.ts` holds a hand-written match; regenerate it with `supabase gen types` after the push. The seeded fleet and prices are placeholders: correct them in /admin/keturraciai before promoting the page.
 
 Verified on 2026-10-22 against PGlite (Postgres 17) with a stub `auth` schema:
 all migrations and the seed apply cleanly, and 32 checks pass (overlaps,
