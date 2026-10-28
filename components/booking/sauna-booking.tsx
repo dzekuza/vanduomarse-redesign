@@ -1,8 +1,12 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { createSaunaBooking } from "@/app/actions/requests";
 import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal } from "./booking-card";
+import { ContactStep } from "./contact-step";
 import { Confirmation } from "./confirmation";
 import { CouponField } from "./coupon-field";
 import { DayPicker } from "./day-picker";
@@ -12,7 +16,6 @@ import { StepLabel } from "./step-label";
 import { UpsellPicker } from "./upsell-picker";
 import { Stepper } from "./stepper";
 import {
-  bookingReference,
   dateKey,
   formatHour,
   hourRate,
@@ -23,6 +26,7 @@ import {
   type SaunaRates,
 } from "@/lib/sauna";
 import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
+import { contactSchema, type ContactInput } from "@/lib/request-schema";
 import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 
 interface SaunaBookingProps {
@@ -45,6 +49,11 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
   const [confirmed, setConfirmed] = useState<{ reference: string; total: number; coupon?: { code: string; discount: number } } | null>(null);
+
+  const form = useForm<ContactInput>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: { customerName: "", customerPhone: "", customerEmail: "", website: "" },
+  });
 
   const dateK = dateKey(selectedDate);
   const taken = takenByDay[dateK] ?? [];
@@ -74,14 +83,22 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
     setExtras((e) => Object.fromEntries(upsells.map((u) => [u.id, Math.min(e[u.id] ?? 0, u.unit === "vienetui" ? upsellMax(u, next) : 1)])));
   }
 
-  function confirm() {
+  /** Stored as a pending request: the database re-prices it and re-checks the slot. */
+  const submit = form.handleSubmit(async (contact) => {
     if (startHour === null) return;
-    setConfirmed({
-      reference: bookingReference(dateK, startHour, hours, partySize),
-      total,
-      coupon: coupon && discount > 0 ? { code: coupon.code, discount } : undefined,
+    const result = await createSaunaBooking({
+      date: dateK,
+      startHour,
+      hours,
+      party: partySize,
+      extras: Object.fromEntries(Object.entries(extras).filter(([, qty]) => qty > 0)),
+      coupon: coupon?.code,
+      ...contact,
     });
-  }
+    if ("error" in result) return form.setError("root", { message: result.error.message });
+    const { reference, total: charged, discount: applied } = result.data;
+    setConfirmed({ reference, total: charged, coupon: coupon && applied > 0 ? { code: coupon.code, discount: applied } : undefined });
+  });
 
   if (confirmed && startHour !== null) {
     return (
@@ -101,12 +118,15 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
           setStartHour(null);
           setHours(rates.minHours);
           setExtras({});
+          form.reset();
         }}
       />
     );
   }
 
   return (
+    <FormProvider {...form}>
+    <form onSubmit={submit} noValidate>
     <BookingCard
       summary={
         <BookingTotal
@@ -116,8 +136,8 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
         />
       }
       action={
-        <ArrowButton onClick={confirm} disabled={startHour === null}>
-          Patvirtinti rezervaciją
+        <ArrowButton type="submit" disabled={startHour === null || form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
         </ArrowButton>
       }
     >
@@ -157,6 +177,9 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
         <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
       </div>
       <CouponField flow="pirtis" coupon={coupon} discount={discount} onChange={setCoupon} />
+      <ContactStep step={startHour === null ? 5 : 6} idPrefix="sauna" />
     </BookingCard>
+    </form>
+    </FormProvider>
   );
 }

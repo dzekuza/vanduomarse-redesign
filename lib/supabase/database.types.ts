@@ -977,6 +977,90 @@ export type Database = {
           total: number
         }[]
       }
+      create_sauna_booking: {
+        Args: {
+          p_coupon?: string
+          p_date: string
+          p_email?: string
+          p_extras: Json
+          p_hours: number
+          p_name: string
+          p_note?: string
+          p_party: number
+          p_phone?: string
+          p_start_hour: number
+        }
+        Returns: {
+          discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_stay_booking: {
+        Args: {
+          p_coupon?: string
+          p_date: string
+          p_email?: string
+          p_guests: number
+          p_name: string
+          p_nights: number
+          p_note?: string
+          p_phone?: string
+          p_stay_type_id: string
+        }
+        Returns: {
+          discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_event_ticket: {
+        Args: {
+          p_email?: string
+          p_event_id: string
+          p_name: string
+          p_people: number
+          p_phone?: string
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      register_for_event: {
+        Args: {
+          p_email?: string
+          p_event_id: string
+          p_message?: string
+          p_name: string
+          p_people: number
+          p_phone?: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      create_inquiry: {
+        Args: {
+          p_date: string | null
+          p_email?: string
+          p_estimate_max: number
+          p_estimate_min: number
+          p_event_type: string
+          p_guests: number
+          p_input: Json
+          p_message: string
+          p_name: string
+          p_phone?: string
+          p_space: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       create_tour_ticket: {
         Args: {
           p_email?: string

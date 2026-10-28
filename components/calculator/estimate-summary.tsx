@@ -1,31 +1,20 @@
 import { WarningIcon } from "@phosphor-icons/react/dist/ssr";
-import { ArrowLink } from "@/components/arrow-link";
-import { formatMoney, type Estimate, type EstimateLine, type Money } from "@/lib/event-pricing";
+import { InquiryForm } from "./inquiry-form";
+import { formatMoney, type Estimate, type EstimateInput, type EstimateLine, type Money } from "@/lib/event-pricing";
 
 const GROUPS: EstimateLine["group"][] = ["Erdvė", "Maistas ir gėrimai", "Paslaugos", "Pramogos", "Nakvynė"];
-const CONTACT = "info@vanduomarse.lt";
 
 interface EstimateSummaryProps {
   estimate: Estimate;
+  input: EstimateInput;
   guests: number;
+  spaceLabel: string;
   /** Typical per-guest range from the price sheet for the chosen event type. */
   typical: { label: string; perGuest: Money } | null;
 }
 
-function inquiryHref(estimate: Estimate, guests: number, eventLabel: string): string {
-  const body = [
-    `Renginys: ${eventLabel}`,
-    `Svečių: ${guests}`,
-    "",
-    ...estimate.lines.map((l) => `${l.label}: ${formatMoney(l.amount)}`),
-    "",
-    `Preliminari suma: ${formatMoney(estimate.total)}`,
-  ].join("\n");
-  return `mailto:${CONTACT}?subject=${encodeURIComponent(`Renginio užklausa: ${eventLabel}`)}&body=${encodeURIComponent(body)}`;
-}
-
 /** Live breakdown of the estimate, grouped like the price sheet, with an inquiry CTA. */
-export function EstimateSummary({ estimate, guests, typical }: EstimateSummaryProps) {
+export function EstimateSummary({ estimate, input, guests, spaceLabel, typical }: EstimateSummaryProps) {
   return (
     <div className="border border-ink bg-foam">
       <div className="border-b border-ink px-6 py-5">
@@ -77,7 +66,7 @@ export function EstimateSummary({ estimate, guests, typical }: EstimateSummaryPr
           Kainos su 21% PVM, galioja iki 2027-12-31. Erdvei taikomas 100% avansas, galutinis meniu tvirtinamas prieš 14 d.
           Tai orientacinė sąmata, ne pasiūlymas.
         </p>
-        <ArrowLink href={inquiryHref(estimate, guests, typical?.label ?? "Renginys")}>Siųsti užklausą</ArrowLink>
+        <InquiryForm estimate={estimate} input={input} guests={guests} eventLabel={typical?.label ?? "Renginys"} spaceLabel={spaceLabel} />
       </div>
     </div>
   );

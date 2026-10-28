@@ -23,7 +23,8 @@ export interface ParkEvent {
   price: number | null;
   /** Spots left, when the event is capacity-limited. */
   spotsLeft?: number;
-  cta: { label: string; href: string };
+  /** No `href`: registration happens in an inline form (events without a seat limit). */
+  cta: { label: string; href?: string };
 }
 
 export const EVENTS_WINDOW_DAYS = 30;

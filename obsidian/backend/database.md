@@ -132,6 +132,11 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `quad_taken(from, to)` | anon, authenticated | `security definer`. Quads taken per type and hour (counts only); range capped at 60 days |
 | `create_quad_rental(type, date, start, hours, units, riders, name, email, phone, note)` | anon, authenticated | `security definer`. Files a `laukia` request; price, opening hours, max hours and rider limit come from the fleet/settings rows; refuses at 100 pending per hour |
 | `create_tour_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Only for published `keturratis` events with capacity; `laukia`, `KZ-` reference; seats enforced by the existing ticket trigger |
+| `create_sauna_booking(date, start, hours, party, extras jsonb, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Prices from `sauna_settings` + `sauna_upsells`; `laukia` booking + `booking_extras`; overlap and closed hours enforced by the existing triggers; a valid coupon is recorded in the note for staff to redeem |
+| `create_stay_booking(stay_type, date, nights, guests, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Prices from `stay_types`; `laukia`; cabin capacity trigger |
+| `create_event_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Published capacity events except `keturratis`; `laukia`, `PR-` reference |
+| `register_for_event(event, people, name, email, phone, message)` | anon, authenticated | `security definer`. Published events without capacity; stored as an `inquiries` row (source `renginys`) |
+| `create_inquiry(...)` | anon, authenticated | `security definer`. Calculator quote with its input; source `skaiciuokle` |
 | `private.has_permission(key)` / `has_any_permission(keys)` / `is_owner()` / `is_staff()` | authenticated (private schema, not RPCs) | The checks behind every staff policy; all require an **active** staff row |
 | `activate_coupon(id)` | `kuponai` (`security invoker`) | Issues the code and a 12-month expiry; only for `laukia_apmokejimo` |
 | `private.generate_coupon_code()` | internal | 12 symbols of `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` from `gen_random_uuid()` bytes |
@@ -158,6 +163,7 @@ function that isn't meant to be an RPC needs an explicit `revoke … from anon, 
 
 | `20261028090000_quad_event_category.sql` | 2026-10-28 | `event_category` gains `keturratis` (own file: a new enum value can't be used in the transaction that adds it) |
 | `20261028090100_quads.sql` | 2026-10-28 | `quad_types`, `quad_settings`, `quad_rentals`, hourly capacity trigger, `quad_taken` / `create_quad_rental` / `create_tour_ticket`, RLS and grants |
+| `20261028130000_public_requests.sql` | 2026-10-28 | `create_sauna_booking`, `create_stay_booking`, `create_event_ticket`, `register_for_event`, `create_inquiry` (public bookings, tickets and inquiries are stored instead of staying in the browser) |
 | `20261028090200_quad_reference_data.sql` | 2026-10-28 | **Placeholder** fleet (2 types) and settings (10-20 h, max 3 h, no deposit, 18+, no rules text) |
 | `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |
 

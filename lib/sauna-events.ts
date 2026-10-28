@@ -34,10 +34,3 @@ export const toSaunaEvent = (e: SaunaEventData): SaunaEvent => ({ ...e, date: pa
 export function openEventCount(events: readonly { spotsLeft: number }[]): number {
   return events.filter((e) => e.spotsLeft > 0).length;
 }
-
-export function eventReference(key: string, people: number): string {
-  const s = `${key}${people}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) >>> 0;
-  return `PR-${(h % 9000) + 1000}`;
-}

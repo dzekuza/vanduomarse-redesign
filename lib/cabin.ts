@@ -52,11 +52,3 @@ export function freeCabins(availability: CabinAvailability, checkIn: Date, night
   }
   return free;
 }
-
-export function cabinReference(dateK: string, roomId: string, nights: number): string {
-  const s = `${dateK}${roomId}${nights}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) >>> 0;
-  const code = (h % 9000) + 1000;
-  return `MM-${code}`;
-}

@@ -140,7 +140,7 @@ export interface QuadRental {
   createdAt: string;
 }
 
-/** A ticket for a guided quad tour (a row of event_tickets on a `keturratis` event). */
+/** A ticket for an event (a row of event_tickets); quad tours and other events share the shape. */
 export interface TourTicket {
   id: string;
   reference: string;
@@ -193,6 +193,8 @@ export interface AdminData {
   quadSettings: QuadSettings;
   quadRentals: QuadRental[];
   tourTickets: TourTicket[];
+  /** Seat requests for public sauna sessions and other limited events (not quad tours). */
+  eventTickets: TourTicket[];
   /** The signed-in staff member. */
   me: StaffAccess;
   roles: StaffRole[];

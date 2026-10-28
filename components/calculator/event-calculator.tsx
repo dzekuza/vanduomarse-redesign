@@ -133,7 +133,7 @@ export function EventCalculator() {
       </div>
 
       <div id="samata" className="min-w-0 scroll-mt-28 lg:sticky lg:top-28">
-        <EstimateSummary estimate={result} guests={guests} typical={preset ? { label: preset.label, perGuest: preset.perGuest } : null} />
+        <EstimateSummary estimate={result} input={input} guests={guests} spaceLabel={space.label} typical={preset ? { label: preset.label, perGuest: preset.perGuest } : null} />
       </div>
 
       <MobileTotalBar total={formatMoney(result.total)} />

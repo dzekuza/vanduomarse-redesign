@@ -1,9 +1,13 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { createStayBooking } from "@/app/actions/requests";
 import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
+import { ContactStep } from "./contact-step";
 import { CabinSizePicker } from "./cabin-size-picker";
 import { CouponField } from "./coupon-field";
 import { DayPicker, type DayNote } from "./day-picker";
@@ -13,7 +17,7 @@ import { Stepper } from "./stepper";
 import {
   CABIN_SIZES,
   CAMPER_MAX_GUESTS,
-  cabinReference,
+  cabinStayType,
   freeCabins,
   roomPrice,
   type CabinAvailability,
@@ -22,6 +26,7 @@ import {
 } from "@/lib/cabin";
 import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
 import type { CabinPageData } from "@/lib/data/public-types";
+import { contactSchema, type ContactInput } from "@/lib/request-schema";
 import { dateKey, nextDays } from "@/lib/sauna";
 
 /** Cabins of any size free for every night of the stay. */
@@ -40,6 +45,11 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
   const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
   const [confirmed, setConfirmed] = useState<{ reference: string; total: number; coupon?: { code: string; discount: number } } | null>(null);
 
+  const form = useForm<ContactInput>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: { customerName: "", customerPhone: "", customerEmail: "", website: "" },
+  });
+
   const cabin = roomId === "namelis";
   const free = (size: CabinSize) => freeCabins(availability, checkIn, nights, size);
   // Fall back to the other size when the preferred one is booked out for this stay.
@@ -57,14 +67,20 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
     return { text: left > 0 ? `liko ${left}` : "Užimta", disabled: left === 0 };
   }
 
-  function confirm() {
-    const ref = cabin ? `${roomId}${size}` : roomId;
-    setConfirmed({
-      reference: cabinReference(dateKey(checkIn), ref, nights),
-      total,
-      coupon: coupon && discount > 0 ? { code: coupon.code, discount } : undefined,
+  /** Stored as a pending request: the database prices it and re-checks the free cabins. */
+  const submit = form.handleSubmit(async (contact) => {
+    const result = await createStayBooking({
+      stayTypeId: cabin ? cabinStayType(size) : roomId,
+      date: dateKey(checkIn),
+      nights,
+      guests: shownGuests,
+      coupon: coupon?.code,
+      ...contact,
     });
-  }
+    if ("error" in result) return form.setError("root", { message: result.error.message });
+    const { reference, total: charged, discount: applied } = result.data;
+    setConfirmed({ reference, total: charged, coupon: coupon && applied > 0 ? { code: coupon.code, discount: applied } : undefined });
+  });
 
   if (confirmed) {
     return (
@@ -80,12 +96,15 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         onReset={() => {
           setConfirmed(null);
           setCoupon(null);
+          form.reset();
         }}
       />
     );
   }
 
   return (
+    <FormProvider {...form}>
+    <form onSubmit={submit} noValidate>
     <BookingCard
       summary={
         <BookingTotal
@@ -95,8 +114,8 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         />
       }
       action={
-        <ArrowButton onClick={confirm} disabled={soldOut}>
-          Patvirtinti rezervaciją
+        <ArrowButton type="submit" disabled={soldOut || form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
         </ArrowButton>
       }
     >
@@ -119,6 +138,9 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         </div>
       </div>
       <CouponField flow="miegas" coupon={coupon} discount={discount} onChange={setCoupon} />
+      <ContactStep step={4} idPrefix="cabin" />
     </BookingCard>
+    </form>
+    </FormProvider>
   );
 }

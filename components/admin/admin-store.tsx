@@ -6,7 +6,7 @@ import * as actions from "@/app/admin/actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
-import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole } from "@/lib/admin/types";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { SaunaRates } from "@/lib/sauna";
@@ -116,8 +116,10 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, quadRentals: state.quadRentals.map((r) => (r.id === action.id ? { ...r, status: action.status } : r)) };
     case "rental/add":
       return { ...state, quadRentals: [...state.quadRentals, action.rental] };
-    case "ticket/status":
-      return { ...state, tourTickets: state.tourTickets.map((t) => (t.id === action.id ? { ...t, status: action.status } : t)) };
+    case "ticket/status": {
+      const apply = (t: TourTicket) => (t.id === action.id ? { ...t, status: action.status } : t);
+      return { ...state, tourTickets: state.tourTickets.map(apply), eventTickets: state.eventTickets.map(apply) };
+    }
     case "quadType/upsert": {
       const exists = state.quadTypes.some((t) => t.id === action.quadType.id);
       return {

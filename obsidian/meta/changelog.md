@@ -9,6 +9,18 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-28 — Public requests are stored
+
+- **What:** private sauna hire, cabin/camper stays, event tickets, event
+  registrations and calculator quotes used to end in a client-side receipt with
+  a made-up reference (or a `mailto:`), so nothing reached the dashboard.
+  They now call server actions (`app/actions/requests.ts`) → security definer
+  RPCs (`20261028130000_public_requests.sql`) that re-price, re-check
+  availability and store a `laukia` / `nauja` row. Forms gained a contact step.
+- **Admin:** `/admin/renginiai` lists tickets for non-quad events; event
+  registrations and quotes appear in Užklausos.
+- **Receipt wording** now says the request was received, not confirmed.
+
 ## 2026-10-27 — Hero wordmark melts under the cursor
 
 - **What:** the home hero wordmark reacts to the pointer like the Max Bennet

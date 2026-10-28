@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const contactFields = z.object({
+export const contactFields = z.object({
   customerName: z.string().trim().min(2, "Įveskite vardą").max(80, "Per ilgas vardas"),
   customerPhone: z.string().trim().max(30, "Per ilgas numeris"),
   customerEmail: z.union([z.literal(""), z.email("Neteisingas el. paštas").max(120)]),
@@ -8,8 +8,8 @@ const contactFields = z.object({
   website: z.string().max(0).optional(),
 });
 
-const needsContact = (v: { customerPhone: string; customerEmail: string }) => v.customerPhone !== "" || v.customerEmail !== "";
-const contactError = { message: "Nurodykite telefoną arba el. paštą", path: ["customerPhone"] };
+export const needsContact = (v: { customerPhone: string; customerEmail: string }) => v.customerPhone !== "" || v.customerEmail !== "";
+export const contactError = { message: "Nurodykite telefoną arba el. paštą", path: ["customerPhone"] };
 
 /** What the visitor types in the last step (the choices above it live in component state). */
 export const quadContactSchema = contactFields.extend({ note: z.string().trim().max(300, "Daugiausia 300 simbolių") }).refine(needsContact, contactError);

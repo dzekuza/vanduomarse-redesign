@@ -37,7 +37,7 @@ export function Receipt({ title, reference, rows, total, coupon, calendar, reset
       </dl>
       <div className="flex items-center justify-between gap-4 border-t border-dashed border-ink px-6 py-4">
         <p className="text-sm text-ink/70">
-          Rezervacija patvirtinta. Patvirtinimą atsiųsime el. paštu.
+          Užklausą gavome. Patvirtinsime telefonu arba el. paštu; kol kas vieta dar nėra garantuota.
           {coupon ? ` Kuponas ${formatCode(coupon.code)} (−${coupon.discount} €): pasakykite kodą atvykę, likutį nuskaitysime vietoje.` : ""}
         </p>
         <p className="font-display text-2xl font-bold">{total} €</p>

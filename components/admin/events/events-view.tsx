@@ -5,6 +5,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
+import { StatusActions } from "../quads/status-actions";
+import { BookingStatusBadge } from "../status-badge";
 import { DeleteEventDialog } from "./delete-event-dialog";
 import { EventDialog } from "./event-dialog";
 import { CategoryTag } from "@/components/events/category-tag";
@@ -22,11 +24,14 @@ type Editing = { mode: "new" } | { mode: "edit"; event: ManagedEvent } | null;
 
 /** Events list: publish toggle, sales, edit and delete. */
 export function EventsView() {
-  const { events, setEventPublished } = useAdmin();
+  const { events, eventTickets, setEventPublished, setTourTicketStatus } = useAdmin();
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<ManagedEvent | null>(null);
   const today = dateKey(new Date());
   const upcoming = events.filter((e) => e.date >= today);
+  const tickets = eventTickets.toSorted(
+    (a, b) => Number(b.status === "laukia") - Number(a.status === "laukia") || `${a.eventDate}${a.eventTime}`.localeCompare(`${b.eventDate}${b.eventTime}`),
+  );
 
   function togglePublished(e: ManagedEvent) {
     setEventPublished(e.id, !e.published);
@@ -115,6 +120,34 @@ export function EventsView() {
           </TableBody>
         </Table>
       </Card>
+
+      <section className="space-y-4">
+        <h2 className="font-display text-lg font-bold">Bilietai ir registracijos</h2>
+        <p className="text-sm text-muted-foreground">
+          Vietos į viešas pirties sesijas ir kitus renginius su limitu. Registracijos į renginius be limito atsiranda skyriuje Užklausos.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {tickets.map((t) => (
+            <Card key={t.id} className="h-full gap-3 p-5">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-medium">{t.eventTitle}</p>
+                <BookingStatusBadge status={t.status} />
+              </div>
+              <p className="text-sm">
+                {formatDay(t.eventDate)} · {t.eventTime}
+              </p>
+              <p className="text-sm">
+                <span className="font-display text-lg font-bold">{t.people}</span> asm. · {formatEur(t.total)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t.customer.name} · {t.customer.phone || t.customer.email} · {t.reference}
+              </p>
+              <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} />
+            </Card>
+          ))}
+        </div>
+        {tickets.length === 0 ? <p className="text-sm text-muted-foreground">Bilietų dar nėra.</p> : null}
+      </section>
 
       {editing ? (
         <EventDialog

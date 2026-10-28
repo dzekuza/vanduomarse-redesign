@@ -132,11 +132,3 @@ const MONTHS_LT = [
 export function longDateLabel(date: Date): string {
   return `${date.getDate()} ${MONTHS_LT[date.getMonth()]}`;
 }
-
-export function bookingReference(dateK: string, startHour: number, hours: number, partySize: number): string {
-  const s = `${dateK}${startHour}${hours}${partySize}`;
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) >>> 0;
-  const code = (h % 9000) + 1000;
-  return `PM-${code}`;
-}

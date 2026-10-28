@@ -33,7 +33,7 @@ export async function currentStaff(supabase: ServerSupabase) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, settings, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, roles, staff] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, settings, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -51,11 +51,16 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
       .select("*, events!inner(title, date, start_time, category)")
       .eq("events.category", "keturratis")
       .order("created_at", { ascending: false }),
+    supabase
+      .from("event_tickets")
+      .select("*, events!inner(title, date, start_time, category)")
+      .neq("events.category", "keturratis")
+      .order("created_at", { ascending: false }),
     supabase.from("staff_roles").select("*").order("is_owner", { ascending: false }).order("name"),
     supabase.from("staff").select("*").order("created_at"),
   ]);
 
-  for (const res of [bookings, blocks, inquiries, events, prices, settings, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, roles, staff]) {
+  for (const res of [bookings, blocks, inquiries, events, prices, settings, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
@@ -73,6 +78,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     quadSettings: toQuadSettings(quadSettings.data!),
     quadRentals: quadRentals.data!.map(toQuadRental),
     tourTickets: tourTickets.data!.map(toTourTicket),
+    eventTickets: eventTickets.data!.map(toTourTicket),
     me,
     roles: roles.data!.map(toStaffRole),
     // RLS already hides other people's rows from non-owners; this keeps the payload explicit.

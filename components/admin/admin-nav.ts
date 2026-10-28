@@ -18,7 +18,7 @@ export interface AdminNavItem {
   /** Page permission needed to see this item; `"owner"` for staff management. */
   permission: PermissionId | "owner";
   /** Store-driven count shown as a badge. */
-  badge?: "pendingBookings" | "newInquiries" | "pendingCoupons" | "pendingQuads";
+  badge?: "pendingBookings" | "newInquiries" | "pendingCoupons" | "pendingQuads" | "pendingEvents";
   /** Shown directly in the mobile tab bar; the rest live under "Daugiau". */
   primary?: boolean;
 }
@@ -30,7 +30,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, group: "darbai", permission: "uzklausos", badge: "newInquiries" },
   { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "darbai", permission: "keturraciai", badge: "pendingQuads" },
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "darbai", permission: "kuponai", badge: "pendingCoupons" },
-  { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai" },
+  { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
   { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "nustatymai", permission: "pirtis" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },
   { href: STAFF_HREF, label: "Darbuotojai", icon: UsersThreeIcon, group: "nustatymai", permission: "owner" },

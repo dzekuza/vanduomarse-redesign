@@ -22,8 +22,6 @@ export const SAUNA_DAYS = 14;
 export const CABIN_DAYS = 21;
 const MAX_NIGHTS = 14;
 
-const CONTACT = "info@vanduomarse.lt";
-
 function addDays(key: string, days: number): string {
   const [y, m, d] = key.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d + days));
@@ -130,7 +128,7 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
         ? { label: "Pirkti bilietą", href: "/pirtis?skirtukas=renginiai" }
         : e.category === "keturratis" && e.capacity !== null
           ? { label: "Registruotis į žygį", href: "/keturraciai?skirtukas=zygiai" }
-          : { label: "Registruotis", href: `mailto:${CONTACT}?subject=${encodeURIComponent(e.title)}` },
+          : { label: "Registruotis" },
   }));
 }
 

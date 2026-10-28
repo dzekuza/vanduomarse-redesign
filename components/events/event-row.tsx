@@ -1,11 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowLink } from "@/components/arrow-link";
 import { CategoryTag } from "./category-tag";
+import { EventRegister } from "./event-register";
 import { longDateLabel, weekdayLabel } from "@/lib/sauna";
 import type { ParkEvent } from "@/lib/park-events";
 
 /** One event in the Renginiai feed: date block, details, price and call to action. */
 export function EventRow({ event }: { event: ParkEvent }) {
   const full = event.spotsLeft === 0;
+  const [registering, setRegistering] = useState(false);
   return (
     <article className="grid grid-cols-[4rem_1fr] gap-x-5 gap-y-4 border border-ink bg-foam px-5 py-5 md:grid-cols-[4.5rem_1fr_auto] md:items-center">
       <div className="flex flex-col items-center border-r border-ink/25 pr-5">
@@ -31,12 +36,26 @@ export function EventRow({ event }: { event: ParkEvent }) {
         <p className="font-display text-lg font-bold md:text-xl">{event.price === null ? "Nemokamai" : `${event.price} €`}</p>
         {full ? (
           <span className="px-4 py-2 text-xs uppercase text-ink/40">Išparduota</span>
+        ) : event.cta.href === undefined ? (
+          <button
+            type="button"
+            aria-expanded={registering}
+            onClick={() => setRegistering((o) => !o)}
+            className="min-h-11 border border-ink bg-ink px-4 text-xs uppercase text-foam transition-[background-color,border-color,transform] hover:border-rust hover:bg-rust active:scale-[0.97]"
+          >
+            {registering ? "Uždaryti" : event.cta.label}
+          </button>
         ) : (
           <ArrowLink href={event.cta.href} size="sm">
             {event.cta.label}
           </ArrowLink>
         )}
       </div>
+      {registering ? (
+        <div className="col-span-2 border-t border-ink/25 pt-4 md:col-span-3">
+          <EventRegister eventId={event.key} title={event.title} />
+        </div>
+      ) : null}
     </article>
   );
 }
