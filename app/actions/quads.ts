@@ -26,6 +26,7 @@ const BY_HINT: Record<string, string> = {
   tour_unavailable: "Šis žygis nebeprieinamas. Atnaujinkite puslapį.",
   tour_people: "Netinkamas žmonių skaičius.",
   event_full: "Žygyje nebeliko tiek vietų.",
+  contact_invalid: "Nurodykite teisingą el. paštą arba telefoną (bent 8 skaitmenys).",
   too_many_pending: "Jau turite kelias nepatvirtintas užklausas. Palaukite patvirtinimo arba skambinkite.",
   too_many_requests: "Šiuo metu priimame per daug užklausų. Bandykite vėliau arba skambinkite.",
 };

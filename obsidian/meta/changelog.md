@@ -9,6 +9,17 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-28 — Per-contact caps hardened
+
+- Phones compare in one canonical form (`private.norm_phone`: `+370`, `8…`,
+  `00370…` and bare 8 digits match); web requests need an email or a phone with
+  8+ digits; concurrent requests from one contact are serialised with advisory
+  locks. `20261028150255_contact_limit_hardening.sql`.
+- Migration history repaired: earlier hand-applied migrations were recorded in
+  `supabase_migrations.schema_migrations` so `supabase db push` is consistent.
+- Known limit: contact-keyed caps can be used to block someone else's contact
+  for 48 h; a CAPTCHA/email confirmation would be the real fix.
+
 ## 2026-10-28 — Pending web requests expire and are capped
 
 - **Why:** public requests hold their slot as `laukia`, so a script could hoard

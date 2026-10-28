@@ -164,7 +164,8 @@ function that isn't meant to be an RPC needs an explicit `revoke … from anon, 
 | `20261028090000_quad_event_category.sql` | 2026-10-28 | `event_category` gains `keturratis` (own file: a new enum value can't be used in the transaction that adds it) |
 | `20261028090100_quads.sql` | 2026-10-28 | `quad_types`, `quad_settings`, `quad_rentals`, hourly capacity trigger, `quad_taken` / `create_quad_rental` / `create_tour_ticket`, RLS and grants |
 | `20261028130000_public_requests.sql` | 2026-10-28 | `create_sauna_booking`, `create_stay_booking`, `create_event_ticket`, `register_for_event`, `create_inquiry` (public bookings, tickets and inquiries are stored instead of staying in the browser) |
-| `20261028140000_pending_request_limits.sql` | 2026-10-28 | `expire_pending_requests()` + pg_cron job (48 h expiry of unanswered web requests), per-contact pending caps via triggers |
+| `20261028150024_pending_request_limits.sql` | 2026-10-28 | `expire_pending_requests()` + pg_cron job (48 h expiry of unanswered web requests), per-contact pending caps via triggers |
+| `20261028150255_contact_limit_hardening.sql` | 2026-10-28 | canonical phone compare, 8-digit minimum, advisory locks on the per-contact caps |
 | `20261028090200_quad_reference_data.sql` | 2026-10-28 | **Placeholder** fleet (2 types) and settings (10-20 h, max 3 h, no deposit, 18+, no rules text) |
 | `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |
 

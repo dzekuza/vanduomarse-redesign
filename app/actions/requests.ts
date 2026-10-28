@@ -47,6 +47,7 @@ const BY_HINT: Record<string, string> = {
   event_full: "Renginyje nebeliko tiek vietų.",
   inquiry_guests: "Netinkamas svečių skaičius.",
   inquiry_input: "Per daug duomenų užklausoje.",
+  contact_invalid: "Nurodykite teisingą el. paštą arba telefoną (bent 8 skaitmenys).",
   too_many_pending: "Jau turite kelias nepatvirtintas užklausas. Palaukite patvirtinimo arba skambinkite.",
   too_many_requests: "Šiuo metu priimame per daug užklausų. Bandykite vėliau arba skambinkite.",
 };
