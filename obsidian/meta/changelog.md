@@ -9,6 +9,16 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-28 — Pending web requests expire and are capped
+
+- **Why:** public requests hold their slot as `laukia`, so a script could hoard
+  sauna hours, cabins and seats without logging in.
+- **What:** `20261028140000_pending_request_limits.sql`: web requests (source
+  `svetaine`) still `laukia` after 48 h are cancelled by a pg_cron job every 30
+  minutes (`expire_pending_requests()`); a trigger on bookings, event tickets
+  and quad rentals lets one email/phone hold at most 3 pending requests (5 new
+  inquiries per day). Staff-entered rows are untouched.
+
 ## 2026-10-28 — Public requests are stored
 
 - **What:** private sauna hire, cabin/camper stays, event tickets, event
