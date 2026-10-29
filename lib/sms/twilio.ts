@@ -22,13 +22,29 @@ export function toE164(phone: string | null | undefined): string | null {
   return digits.length >= 10 && digits.length <= 15 ? `+${digits}` : null;
 }
 
+/**
+ * Only these country prefixes get SMS (default: Lithuania, Latvia, Estonia, Poland).
+ * Anyone can submit a booking form with any number, so an open destination list
+ * would let a script run up premium-rate or foreign SMS costs. Override with
+ * SMS_ALLOWED_PREFIXES="+370,+371,+372,+48".
+ */
+const DEFAULT_PREFIXES = ["+370", "+371", "+372", "+48"];
+
+function destinationAllowed(e164: string): boolean {
+  const prefixes = (process.env.SMS_ALLOWED_PREFIXES ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return (prefixes.length > 0 ? prefixes : DEFAULT_PREFIXES).some((p) => e164.startsWith(p));
+}
+
 /** Returns true when Twilio accepted the message. Never throws. */
 export async function sendSms(to: string | null | undefined, body: string): Promise<boolean> {
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_FROM_NUMBER;
   const number = toE164(to);
-  if (!sid || !token || !from || !number) return false;
+  if (!sid || !token || !from || !number || !destinationAllowed(number)) return false;
 
   try {
     const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
