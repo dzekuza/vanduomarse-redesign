@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ratesSchema } from "@/components/admin/sauna/rates-schema";
@@ -9,6 +10,7 @@ import type { Booking, BookingStatus, ManagedEvent, PriceItem, QuadRental } from
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
+import { describeRequest, notifyOutcome } from "@/lib/sms/notify";
 import type { SaunaRates } from "@/lib/sauna";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
@@ -55,13 +57,31 @@ export async function changeOwnPassword(password: string): Promise<ActionResult>
 
 const bookingStatus = z.enum(["laukia", "patvirtinta", "ivykdyta", "atsaukta"]);
 
+/** Tells a website customer their request was confirmed or cancelled; staff-entered bookings and other status changes send nothing. */
+function notifyCustomer(source: string, phone: string | null, reference: string, status: BookingStatus, summary: string) {
+  if (source !== "svetaine" || (status !== "patvirtinta" && status !== "atsaukta")) return;
+  after(async () => {
+    await notifyOutcome(phone, reference, status, summary);
+  });
+}
+
 export async function setBookingStatus(id: string, status: Booking["status"]): Promise<ActionResult> {
   const ctx = await staffClient("rezervacijos");
   if (!ctx.ok) return ctx.error;
   const parsed = z.object({ id: z.uuid(), status: bookingStatus }).safeParse({ id, status });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
-  const { error } = await ctx.supabase.from("bookings").update({ status }).eq("id", id);
-  return error ? dbError(error) : done(null);
+  const { data, error } = await ctx.supabase
+    .from("bookings")
+    .update({ status })
+    .eq("id", id)
+    .select("reference, customer_phone, source, kind, date, start_hour")
+    .maybeSingle();
+  if (error) return dbError(error);
+  if (data) {
+    const hour = data.start_hour === null ? null : `${String(data.start_hour).padStart(2, "0")}:00`;
+    notifyCustomer(data.source, data.customer_phone, data.reference, status, describeRequest([data.kind === "pirtis" ? "Pirtis" : "Nakvyne", data.date, hour]));
+  }
+  return done(null);
 }
 
 const newBookingInput = z
@@ -556,8 +576,17 @@ export async function setRentalStatus(id: string, status: BookingStatus): Promis
   if (!ctx.ok) return ctx.error;
   const parsed = z.object({ id: z.uuid(), status: bookingStatus }).safeParse({ id, status });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
-  const { error } = await ctx.supabase.from("quad_rentals").update({ status }).eq("id", id);
-  return error ? dbError(error) : done(null);
+  const { data, error } = await ctx.supabase
+    .from("quad_rentals")
+    .update({ status })
+    .eq("id", id)
+    .select("reference, customer_phone, source, date, start_hour")
+    .maybeSingle();
+  if (error) return dbError(error);
+  if (data) {
+    notifyCustomer(data.source, data.customer_phone, data.reference, status, describeRequest(["Keturraciai", data.date, `${String(data.start_hour).padStart(2, "0")}:00`]));
+  }
+  return done(null);
 }
 
 export async function setTourTicketStatus(id: string, status: BookingStatus): Promise<ActionResult> {
@@ -565,6 +594,13 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
   if (!ctx.ok) return ctx.error;
   const parsed = z.object({ id: z.uuid(), status: bookingStatus }).safeParse({ id, status });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
-  const { error } = await ctx.supabase.from("event_tickets").update({ status }).eq("id", id);
-  return error ? dbError(error) : done(null);
+  const { data, error } = await ctx.supabase
+    .from("event_tickets")
+    .update({ status })
+    .eq("id", id)
+    .select("reference, customer_phone, source, people")
+    .maybeSingle();
+  if (error) return dbError(error);
+  if (data) notifyCustomer(data.source, data.customer_phone, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));
+  return done(null);
 }

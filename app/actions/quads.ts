@@ -1,7 +1,9 @@
 "use server";
 
+import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
 import { quadRentalSchema, tourTicketSchema, type QuadRentalInput, type TourTicketInput } from "@/lib/quad-schema";
+import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -38,6 +40,13 @@ function dbFail(e: DbError) {
   return fail("Nepavyko pateikti užklausos. Bandykite dar kartą.", "db");
 }
 
+/** SMS the visitor and the staff alert line once the request is stored; never delays or fails the request. */
+function notify(phone: string, reference: string, summary: string) {
+  after(async () => {
+    await Promise.all([notifyReceived(phone, reference, summary), notifyStaff(reference, summary)]);
+  });
+}
+
 export interface RequestReceipt {
   reference: string;
   total: number;
@@ -65,6 +74,7 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
     p_note: v.note || undefined,
   });
   if (error) return dbFail(error);
+  notify(v.customerPhone, data[0].reference, describeRequest(["Keturraciai", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -83,5 +93,6 @@ export async function createTourTicket(input: TourTicketInput): Promise<ActionRe
     p_phone: v.customerPhone || undefined,
   });
   if (error) return dbFail(error);
+  notify(v.customerPhone, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }

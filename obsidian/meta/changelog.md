@@ -9,6 +9,19 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-29 — Booking SMS (Twilio)
+
+- **What:** `lib/sms/twilio.ts` (REST, no SDK) + `lib/sms/notify.ts` (ASCII-only
+  texts, 160-char segments). Customers get "request received" right after the
+  public actions store a request (sauna, stay, tickets, registrations,
+  calculator, quads) and "confirmed / cancelled" when staff change the status
+  in /admin (website-sourced rows only). Optional staff alert via
+  `STAFF_NOTIFY_PHONE`. Sends run in `after()` and never fail a booking.
+- **Env (server only):** `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
+  `TWILIO_FROM_NUMBER`; without them SMS is skipped.
+- **Not covered:** automatic 48 h expiries (pg_cron) and status changes made
+  outside the admin actions send no SMS.
+
 ## 2026-10-28 — Per-contact caps hardened
 
 - Phones compare in one canonical form (`private.norm_phone`: `+370`, `8…`,

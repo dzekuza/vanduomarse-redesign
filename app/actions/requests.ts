@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
 import {
   eventRegistrationSchema,
@@ -14,6 +15,7 @@ import {
   type StayBookingInput,
 } from "@/lib/request-schema";
 import type { Json } from "@/lib/supabase/database.types";
+import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -73,6 +75,13 @@ export interface TicketReceipt {
 
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
+/** SMS the visitor and the staff alert line once the request is stored; never delays or fails the booking. */
+function notify(phone: string, reference: string | undefined, summary: string) {
+  after(async () => {
+    await Promise.all([notifyReceived(phone, reference, summary), notifyStaff(reference, summary)]);
+  });
+}
+
 export async function createSaunaBooking(input: SaunaBookingInput): Promise<ActionResult<BookingReceipt>> {
   const parsed = saunaBookingSchema.safeParse(input);
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
@@ -93,6 +102,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, TAKEN);
+  notify(v.customerPhone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -114,6 +124,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, BY_HINT.stay_full);
+  notify(v.customerPhone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -132,6 +143,7 @@ export async function createEventTicket(input: EventTicketInput): Promise<Action
     p_phone: v.customerPhone || undefined,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
+  notify(v.customerPhone, data[0].reference, describeRequest(["Bilietai", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -151,6 +163,7 @@ export async function registerForEvent(input: EventRegistrationInput): Promise<A
     p_message: v.message || undefined,
   });
   if (error) return dbFail(error);
+  notify(v.customerPhone, undefined, describeRequest(["Registracija", `${v.people} asm.`]));
   return { data: null };
 }
 
@@ -175,5 +188,6 @@ export async function createInquiry(input: InquiryInput): Promise<ActionResult<n
     p_phone: v.customerPhone || undefined,
   });
   if (error) return dbFail(error);
+  notify(v.customerPhone, undefined, describeRequest(["Skaiciuokle", `${v.guests} sv.`]));
   return { data: null };
 }
