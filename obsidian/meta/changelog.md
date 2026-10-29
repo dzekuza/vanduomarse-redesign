@@ -1,6 +1,6 @@
 ---
 tags: [meta, changelog]
-updated: 2026-10-27
+updated: 2026-10-29
 ---
 
 # Changelog
@@ -8,6 +8,17 @@ updated: 2026-10-27
 Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
+
+## 2026-10-29 — Detailed sauna booking SMS
+
+- **What:** sauna bookings send a full summary right after submit
+  (`notifyBookingReceived` + `saunaSummary` in `lib/sms/notify.ts`):
+  "rezervacija PM-1063 gauta. Pirtis 2026-11-11 18:00-20:00, 4 zm., 140 EUR.
+  Patvirtinsime netrukus." The staff alert and the admin confirm/cancel SMS use
+  the same time range. Bookings still wait for staff confirmation; other
+  request types keep the short "gavome jusu uzklausa" text.
+- **Verified:** real SMS delivered from the Twilio trial number (trial adds a
+  "Sent from your Twilio trial account" prefix and only reaches verified numbers).
 
 ## 2026-10-29 — Booking SMS (Twilio)
 

@@ -10,7 +10,7 @@ import type { Booking, BookingStatus, ManagedEvent, PriceItem, QuadRental } from
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
-import { describeRequest, notifyOutcome } from "@/lib/sms/notify";
+import { describeRequest, notifyOutcome, saunaSummary } from "@/lib/sms/notify";
 import type { SaunaRates } from "@/lib/sauna";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
@@ -74,12 +74,15 @@ export async function setBookingStatus(id: string, status: Booking["status"]): P
     .from("bookings")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, source, kind, date, start_hour")
+    .select("reference, customer_phone, source, kind, date, start_hour, hours")
     .maybeSingle();
   if (error) return dbError(error);
   if (data) {
-    const hour = data.start_hour === null ? null : `${String(data.start_hour).padStart(2, "0")}:00`;
-    notifyCustomer(data.source, data.customer_phone, data.reference, status, describeRequest([data.kind === "pirtis" ? "Pirtis" : "Nakvyne", data.date, hour]));
+    const summary =
+      data.start_hour !== null && data.hours !== null
+        ? saunaSummary({ date: data.date, startHour: data.start_hour, hours: data.hours })
+        : describeRequest([data.kind === "pirtis" ? "Pirtis" : "Nakvyne", data.date]);
+    notifyCustomer(data.source, data.customer_phone, data.reference, status, summary);
   }
   return done(null);
 }

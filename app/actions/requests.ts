@@ -15,7 +15,7 @@ import {
   type StayBookingInput,
 } from "@/lib/request-schema";
 import type { Json } from "@/lib/supabase/database.types";
-import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
+import { describeRequest, notifyBookingReceived, notifyReceived, notifyStaff, saunaSummary } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -76,9 +76,14 @@ export interface TicketReceipt {
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
 /** SMS the visitor and the staff alert line once the request is stored; never delays or fails the booking. */
-function notify(phone: string, reference: string | undefined, summary: string) {
+function notify(
+  phone: string,
+  reference: string | undefined,
+  summary: string,
+  toCustomer: (phone: string, reference: string | undefined, summary: string) => Promise<boolean> = notifyReceived,
+) {
   after(async () => {
-    await Promise.all([notifyReceived(phone, reference, summary), notifyStaff(reference, summary)]);
+    await Promise.all([toCustomer(phone, reference, summary), notifyStaff(reference, summary)]);
   });
 }
 
@@ -102,7 +107,12 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  notify(v.customerPhone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  notify(
+    v.customerPhone,
+    data[0].reference,
+    saunaSummary({ date: v.date, startHour: v.startHour, hours: v.hours, party: v.party, total: data[0].total }),
+    notifyBookingReceived,
+  );
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 

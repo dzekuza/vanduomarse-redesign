@@ -1,5 +1,6 @@
 import "server-only";
 import { MAIN_CONTACT } from "@/lib/contacts";
+import { formatHour } from "@/lib/sauna";
 import { sendSms } from "./twilio";
 
 /**
@@ -14,12 +15,24 @@ export function describeRequest(parts: (string | number | null | undefined)[]): 
   return parts.filter((p) => p !== null && p !== undefined && p !== "").join(" ");
 }
 
+/** "Pirtis 2026-11-08 15:00-17:00, 4 zm., 140 EUR": the sauna booking in one line; party and total when known. */
+export function saunaSummary(b: { date: string; startHour: number; hours: number; party?: number | null; total?: number | null }): string {
+  const parts = [`Pirtis ${b.date} ${formatHour(b.startHour)}-${formatHour(b.startHour + b.hours)}`];
+  if (b.party) parts.push(`${b.party} zm.`);
+  if (b.total !== null && b.total !== undefined) parts.push(`${Number.isInteger(b.total) ? b.total : b.total.toFixed(2)} EUR`);
+  return parts.join(", ");
+}
+
 const ref = (reference?: string) => (reference ? ` ${reference}` : "");
 const what = (summary?: string) => (summary ? ` (${summary})` : "");
 
 /** Sent right after a visitor submits; the slot is not confirmed yet. */
 export const notifyReceived = (phone: string | null | undefined, reference: string | undefined, summary?: string) =>
   sendSms(phone, `Vanduo Marse: gavome jusu uzklausa${ref(reference)}${what(summary)}. Patvirtinsime netrukus.`);
+
+/** The sauna version: a booking with a reference and full details, still waiting for staff to confirm. */
+export const notifyBookingReceived = (phone: string | null | undefined, reference: string | undefined, summary: string) =>
+  sendSms(phone, `Vanduo Marse: rezervacija${ref(reference)} gauta. ${summary}. Patvirtinsime netrukus.`);
 
 /** Sent when staff confirm or cancel a request made on the website. */
 export const notifyOutcome = (phone: string | null | undefined, reference: string, outcome: Outcome, summary?: string) =>
