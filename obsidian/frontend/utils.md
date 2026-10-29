@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-27
+updated: 2026-10-29
 ---
 
 # Utils Catalog
@@ -28,6 +28,9 @@ them pure and typed; anything with client state belongs in a hook instead.
 | `freeAt` / `longestFrom` / `mostFreeOnDay` / `rentalPrice` / `maxRiders` / `hourLabel` | `lib/quads.ts` | `(type, taken, day, hour) => number` etc. | Quad availability maths from `quad_taken`: free now, longest rental from a start (capped by closing and max hours), best hour of a day, price, rider limit |
 | `quadRentalSchema` / `quadContactSchema` / `tourTicketSchema` / `tourContactSchema` | `lib/quad-schema.ts` | Zod objects | Rental and tour requests (full, validated again by the actions) and the contact-only forms (phone or email required) |
 | `getQuadPageData` | `lib/data/public.ts` (server-only) | `() => Promise<QuadPageData>` | Fleet, settings, hourly `taken` map, Vilnius "now hour" and upcoming tours |
+| `sendSms` / `toE164` / `smsConfigured` | `lib/sms/twilio.ts` (server-only) | `(to, body) => Promise<boolean>` / `(phone) => string \| null` | Twilio REST send (never throws; skipped without env or outside `SMS_ALLOWED_PREFIXES`); LT phone → E.164 |
+| `notifyReceived` / `notifyBookingReceived` / `notifyOutcome` / `notifyStaff` | `lib/sms/notify.ts` (server-only) | `(phone, reference, summary) => Promise<boolean>` | ASCII SMS texts: request received, sauna booking received (full details), confirmed/cancelled, staff alert |
+| `saunaSummary` / `describeRequest` | `lib/sms/notify.ts` (server-only) | `({ date, startHour, hours, party?, total? }) => string` / `(parts) => string` | "Pirtis 2026-11-11 18:00-20:00, 4 zm., 140 EUR"; generic space-joined summary |
 | `normalizeCode` / `formatCode` / `formatEuro` / `formatExpiry` | `lib/coupons.ts` | `(string) => string` / `(n) => string` | Coupon codes ("ab12-cd34" → `AB12CD34…`, 12 chars → `XXXX-XXXX-XXXX`), euro and expiry-date wording |
 | `couponApplies` / `couponDiscount` | `lib/coupons.ts` | `(couponService, flow) => boolean` / `(total, balance) => number` | Whether a coupon can pay for a sauna or cabin booking; euros taken off, never above balance or total |
 | `couponOrderSchema` | `lib/coupon-schema.ts` | Zod object | Checkout form shape, shared by `OrderForm` and the `createCouponOrder` action (honeypot `website` must stay empty) |
