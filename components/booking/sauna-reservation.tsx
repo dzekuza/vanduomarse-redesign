@@ -29,7 +29,7 @@ export function SaunaReservation({ initialMode = "private", data, days }: SaunaR
   return (
     <BookingTabs tabs={tabs} value={mode} onChange={setMode}>
       {mode === "private" ? (
-        <SaunaBooking today={data.today} days={days} rates={data.rates} upsells={data.upsells} takenByDay={data.takenByDay} />
+        <SaunaBooking today={data.today} nowHour={data.nowHour} days={days} rates={data.rates} upsells={data.upsells} takenByDay={data.takenByDay} />
       ) : (
         <SaunaEventBooking events={events} />
       )}

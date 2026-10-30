@@ -9,6 +9,8 @@ import type { Upsell } from "@/lib/sauna-upsells";
 export interface SaunaPageData {
   /** Park date, yyyy-mm-dd. */
   today: string;
+  /** Park hour (0-23) when the page was rendered; today's starts at or before it are gone. */
+  nowHour: number;
   rates: SaunaRates;
   upsells: Upsell[];
   /** yyyy-mm-dd -> hours that are booked or closed. */

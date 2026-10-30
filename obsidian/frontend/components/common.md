@@ -80,7 +80,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos: 2x2 lead tile plus four small tiles, hover zoom; one image goes full width | stable |
 | `Stepper` | `components/booking/stepper.tsx` | Label + −/value/+ (44 px buttons) between `min` and `max`; the controls wrap under a long label in narrow widths | stable |
 | `UpsellPicker` | `components/booking/upsell-picker.tsx` | Active sauna extras: on/off rows or steppers (capped at group size) with live cost; one column below `sm` that shrinks to fit (`grid-cols-1`) | stable |
-| `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times from the live rates showing the longest bookable run (taken hours from `sauna_taken_hours()`); disabled when the minimum does not fit | stable |
+| `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times from the live rates showing the longest bookable run (taken hours from `sauna_taken_hours()`); disabled when the minimum does not fit ("Užimta") or, today, when the hour has passed (`pastHour`, "Praėjo") | stable |
 | `DurationPicker` | `components/booking/duration-picker.tsx` | Min–max hour options from the live rates, each with end time and price for the group size | stable |
 | `DayPicker` | `components/booking/day-picker.tsx` | Sideways date strip; optional `note` adds a third line (e.g. "liko 3") and can disable a day | stable |
 | `CabinSizePicker` | `components/booking/cabin-size-picker.tsx` | Namelis 2 / 4 asmenims with nightly price and cabins left for the stay; booked-out size disabled | stable |

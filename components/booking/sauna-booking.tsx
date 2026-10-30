@@ -20,9 +20,12 @@ import {
   formatHour,
   hourRate,
   hoursLabel,
+  isOpenStart,
   maxHoursFrom,
   nextDays,
+  pastHourOn,
   sessionPrice,
+  startHours,
   type SaunaRates,
 } from "@/lib/sauna";
 import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
@@ -32,6 +35,8 @@ import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-
 interface SaunaBookingProps {
   /** Park date (yyyy-mm-dd) the day strip starts from. */
   today: string;
+  /** Park hour (0-23) from the server; today's starts at or before it are gone. */
+  nowHour: number;
   days: number;
   rates: SaunaRates;
   upsells: Upsell[];
@@ -39,9 +44,16 @@ interface SaunaBookingProps {
   takenByDay: Record<string, number[]>;
 }
 
-export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay }: SaunaBookingProps) {
+export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, takenByDay }: SaunaBookingProps) {
   const days = useMemo(() => nextDays(today, dayCount), [today, dayCount]);
-  const [selectedDate, setSelectedDate] = useState(days[0]);
+  /** A day is bookable when at least one start has not passed and fits the minimum session. */
+  const hasOpenStart = (d: Date) => {
+    const k = dateKey(d);
+    return startHours(rates).some((h) => isOpenStart(takenByDay[k] ?? [], h, rates, pastHourOn(k, today, nowHour)));
+  };
+  const allStartsPassed = (d: Date) => startHours(rates).every((h) => h <= pastHourOn(dateKey(d), today, nowHour));
+  // Late in the day today has nothing left: open on the first day that does.
+  const [selectedDate, setSelectedDate] = useState(() => days.find(hasOpenStart) ?? days[0]);
   const [startHour, setStartHour] = useState<number | null>(null);
   const [hours, setHours] = useState(rates.minHours);
   const [partySize, setPartySize] = useState(4);
@@ -57,6 +69,7 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
 
   const dateK = dateKey(selectedDate);
   const taken = takenByDay[dateK] ?? [];
+  const pastHour = pastHourOn(dateK, today, nowHour);
   const maxHours = startHour === null ? 0 : maxHoursFrom(taken, startHour, rates);
   const basePrice = startHour === null ? 0 : sessionPrice(hours, partySize, rates);
   const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize, hours }), 0);
@@ -143,7 +156,12 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
     >
       <div>
         <StepLabel step={1}>Pasirink dieną</StepLabel>
-        <DayPicker days={days} selected={selectedDate} onSelect={selectDate} />
+        <DayPicker
+          days={days}
+          selected={selectedDate}
+          onSelect={selectDate}
+          note={(d) => (hasOpenStart(d) ? undefined : { text: allStartsPassed(d) ? "Uždaryta" : "Užimta", disabled: true })}
+        />
       </div>
       <div>
         <StepLabel step={2}>Grupė</StepLabel>
@@ -159,7 +177,7 @@ export function SaunaBooking({ today, days: dayCount, rates, upsells, takenByDay
       </div>
       <div>
         <StepLabel step={3}>Pradžios laikas</StepLabel>
-        <StartTimeGrid taken={taken} rates={rates} selected={startHour} onSelect={selectStart} />
+        <StartTimeGrid taken={taken} rates={rates} pastHour={pastHour} selected={startHour} onSelect={selectStart} />
       </div>
       {startHour !== null ? (
         <div>

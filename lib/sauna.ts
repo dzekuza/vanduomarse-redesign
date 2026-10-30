@@ -85,12 +85,27 @@ export function maxHoursFrom(taken: readonly number[], startHour: number, rates:
   return hours;
 }
 
+/** Last hour already started on `day` (starts at or before it are gone); -1 on any later day. */
+export function pastHourOn(day: string, today: string, nowHour: number): number {
+  return day === today ? nowHour : -1;
+}
+
+/** Whether a start can still be booked: not already past and the minimum session fits. */
+export function isOpenStart(taken: readonly number[], startHour: number, rates: SaunaRates, pastHour: number): boolean {
+  return startHour > pastHour && maxHoursFrom(taken, startHour, rates) >= rates.minHours;
+}
+
 export function formatHour(hour: number): string {
   return `${String(hour).padStart(2, "0")}:00`;
 }
 
 export function hoursLabel(hours: number): string {
   return `${hours} val.`;
+}
+
+/** Current park hour (0-23, Europe/Vilnius), wherever the server runs. */
+export function vilniusHour(now: Date = new Date()): number {
+  return Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Vilnius" }).format(now)) % 24;
 }
 
 /** Today's park date (Europe/Vilnius) as yyyy-mm-dd, wherever the server runs. */

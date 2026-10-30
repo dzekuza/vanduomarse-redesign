@@ -6,7 +6,7 @@ import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
 import { EVENTS_WINDOW_DAYS, type ParkEventData } from "@/lib/park-events";
-import { todayKey } from "@/lib/sauna";
+import { todayKey, vilniusHour } from "@/lib/sauna";
 import { EVENT_WINDOW_DAYS } from "@/lib/sauna-events";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -61,6 +61,7 @@ export async function getSaunaPageData(): Promise<SaunaPageData> {
 
   return {
     today,
+    nowHour: vilniusHour(),
     rates: toSaunaRates(must(settings, "Sauna settings")),
     upsells: must(upsells, "Sauna upsells").map(toUpsell),
     takenByDay,
@@ -142,8 +143,6 @@ export async function getCouponProducts(): Promise<CouponProduct[]> {
 /** Days of guided tours the quad page lists. */
 const TOUR_DAYS = 60;
 
-const vilniusHour = () =>
-  Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Vilnius" }).format(new Date())) % 24;
 
 /** Fleet, opening hours, hourly availability and upcoming tours for /keturraciai. */
 export async function getQuadPageData(): Promise<QuadPageData> {
