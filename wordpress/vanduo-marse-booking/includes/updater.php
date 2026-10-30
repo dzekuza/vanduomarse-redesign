@@ -15,7 +15,7 @@ define( 'VM_BOOKING_MANIFEST_CACHE', 'vm_booking_update_manifest' );
 define( 'VM_BOOKING_UPDATE_HOST', 'vanduomarse-redesign.vercel.app' );
 /**
  * Updates come only from this fixed HTTPS origin, never from the configurable
- * app address (Settings → Vanduo Marse), which may be plain http or changed by
+ * app address (Rezervacijų sistema page), which may be plain http or changed by
  * anyone with options access: whoever serves the zip runs code in WordPress.
  */
 define( 'VM_BOOKING_UPDATE_ORIGIN', 'https://' . VM_BOOKING_UPDATE_HOST );

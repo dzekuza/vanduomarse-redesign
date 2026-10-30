@@ -2,7 +2,7 @@
 Requires at least: 6.1
 Requires PHP: 7.4
 Tested up to: 6.8
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPL-2.0-or-later
 
 Vanduo Marse rezervacijų formos (pirtis, keturračiai, nameliai, renginiai, kuponai) WordPress svetainėje.
@@ -25,7 +25,7 @@ Skirtukai: pirtis → tab="renginiai", keturraciai → tab="zygiai".
 Plotis: forma užima visą bloko, stulpelio ar šoninės juostos plotį ir prisitaiko prie jo
 (veikia nuo ~285 px). Bloke galima rinktis „Platus“ ar „Visas plotis“ lygiavimą.
 
-Išvaizda: Nustatymai → Vanduo Marse → „Išvaizda“: fono, turinio, suvestinės,
+Išvaizda: meniu „Rezervacijų sistema“ → „Išvaizda“: fono, turinio, suvestinės,
 teksto, akcento ir skirtukų spalvos, teksto ir antraščių šriftai (Google Fonts),
 antraščių raidės. Apačioje yra gyva peržiūra.
 
@@ -36,6 +36,6 @@ atnaujinimus. Iš karto patikrinti: Pultas → Atnaujinimai → „Tikrinti dar 
 == Installation ==
 
 1. Supakuokite aplanką vanduo-marse-booking į zip ir įkelkite: Įskiepiai → Pridėti → Įkelti.
-2. Sistemos adresas pagal nutylėjimą https://vanduomarse-redesign.vercel.app; kitą (pvz. savo domeną) galima nurodyti Nustatymai → Vanduo Marse.
+2. Sistemos adresas pagal nutylėjimą https://vanduomarse-redesign.vercel.app; kitą (pvz. savo domeną) galima nurodyti meniu „Rezervacijų sistema“.
 3. Sistemos aplinkos kintamajame EMBED_ALLOWED_ORIGINS nurodykite šios svetainės adresą
    (pvz. https://vanduomarse.lt). Be jo naršyklė formos neparodys.

@@ -9,6 +9,14 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-30 — Plugin admin page is its own menu item
+
+- **What:** plugin 1.2.1 moves the settings from Settings → Vanduo Marse to
+  a top-level admin menu item "Rezervacijų sistema" (calendar icon, below
+  Comments) and shows the "settings saved" notice there. First release to
+  reach installed copies through the Plugins page updater.
+- **Why:** staff should find the booking system in the main admin menu.
+
 ## 2026-10-30 — Sauna hides start times that have passed
 
 - **What:** `/pirtis` (and its embed) get the Vilnius hour from the server
