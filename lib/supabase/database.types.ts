@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.18"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       booking_extras: {
@@ -1075,76 +1100,6 @@ export type Database = {
           reference: string
         }[]
       }
-      create_quad_rental: {
-        Args: {
-          p_date: string
-          p_email?: string
-          p_hours: number
-          p_name: string
-          p_note?: string
-          p_phone?: string
-          p_riders: number
-          p_start_hour: number
-          p_type_id: string
-          p_units: number
-        }
-        Returns: {
-          id: string
-          reference: string
-          total: number
-        }[]
-      }
-      create_sauna_booking: {
-        Args: {
-          p_coupon?: string
-          p_date: string
-          p_email?: string
-          p_extras: Json
-          p_hours: number
-          p_name: string
-          p_note?: string
-          p_party: number
-          p_phone?: string
-          p_start_hour: number
-        } | {
-          p_coupon?: string
-          p_date: string
-          p_email?: string
-          p_extras: Json
-          p_hours: number
-          p_name: string
-          p_note?: string
-          p_party: number
-          p_phone?: string
-          p_sauna_id: string
-          p_start_hour: number
-        }
-        Returns: {
-          discount: number
-          id: string
-          reference: string
-          total: number
-        }[]
-      }
-      create_stay_booking: {
-        Args: {
-          p_coupon?: string
-          p_date: string
-          p_email?: string
-          p_guests: number
-          p_name: string
-          p_nights: number
-          p_note?: string
-          p_phone?: string
-          p_stay_type_id: string
-        }
-        Returns: {
-          discount: number
-          id: string
-          reference: string
-          total: number
-        }[]
-      }
       create_event_ticket: {
         Args: {
           p_email?: string
@@ -1157,19 +1112,6 @@ export type Database = {
           id: string
           reference: string
           total: number
-        }[]
-      }
-      register_for_event: {
-        Args: {
-          p_email?: string
-          p_event_id: string
-          p_message?: string
-          p_name: string
-          p_people: number
-          p_phone?: string
-        }
-        Returns: {
-          id: string
         }[]
       }
       create_inquiry: {
@@ -1190,6 +1132,86 @@ export type Database = {
           id: string
         }[]
       }
+      create_quad_rental: {
+        Args: {
+          p_date: string
+          p_email?: string
+          p_hours: number
+          p_name: string
+          p_note?: string
+          p_phone?: string
+          p_riders: number
+          p_start_hour: number
+          p_type_id: string
+          p_units: number
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_sauna_booking:
+        | {
+            Args: {
+              p_coupon?: string
+              p_date: string
+              p_email?: string
+              p_extras: Json
+              p_hours: number
+              p_name: string
+              p_note?: string
+              p_party: number
+              p_phone?: string
+              p_start_hour: number
+            }
+            Returns: {
+              discount: number
+              id: string
+              reference: string
+              total: number
+            }[]
+          }
+        | {
+            Args: {
+              p_coupon?: string
+              p_date: string
+              p_email?: string
+              p_extras: Json
+              p_hours: number
+              p_name: string
+              p_note?: string
+              p_party: number
+              p_phone?: string
+              p_sauna_id: string
+              p_start_hour: number
+            }
+            Returns: {
+              discount: number
+              id: string
+              reference: string
+              total: number
+            }[]
+          }
+      create_stay_booking: {
+        Args: {
+          p_coupon?: string
+          p_date: string
+          p_email?: string
+          p_guests: number
+          p_name: string
+          p_nights: number
+          p_note?: string
+          p_phone?: string
+          p_stay_type_id: string
+        }
+        Returns: {
+          discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
       create_tour_ticket: {
         Args: {
           p_email?: string
@@ -1204,6 +1226,14 @@ export type Database = {
           total: number
         }[]
       }
+      expire_pending_requests: {
+        Args: never
+        Returns: {
+          bookings: number
+          rentals: number
+          tickets: number
+        }[]
+      }
       materialize_sauna_events: {
         Args: { p_days?: number; p_from: string }
         Returns: number
@@ -1215,6 +1245,19 @@ export type Database = {
           hour: number
           quad_type_id: string
           taken: number
+        }[]
+      }
+      register_for_event: {
+        Args: {
+          p_email?: string
+          p_event_id: string
+          p_message?: string
+          p_name: string
+          p_people: number
+          p_phone?: string
+        }
+        Returns: {
+          id: string
         }[]
       }
       sauna_taken: {
@@ -1398,6 +1441,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       booking_kind: ["pirtis", "namelis", "kemperis"],

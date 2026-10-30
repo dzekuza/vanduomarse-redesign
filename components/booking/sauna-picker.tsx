@@ -32,7 +32,7 @@ function SaunaCard({ sauna, active, onSelect }: { sauna: Sauna; active: boolean;
         active ? "border-ink bg-ink text-foam" : "border-ink text-ink hover:border-rust"
       }`}
     >
-      <span className="relative block aspect-4/3 w-full overflow-hidden bg-dust-soft">
+      <span className="relative block aspect-4/3 w-full sm:aspect-video overflow-hidden bg-dust-soft">
         {cover ? (
           <Image src={cover.url} alt={sauna.name} fill sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" />
         ) : (
