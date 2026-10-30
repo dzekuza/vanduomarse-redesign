@@ -15,7 +15,9 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
   `/wordpress/vanduo-marse-booking.zip` and `.json` (version manifest) with
   every deploy. Plugin 1.2.0 has an `Update URI` header and
   `includes/updater.php`, so WordPress shows "Update now", "View details" and
-  the auto-update toggle. New dev dependency `fflate` (ADR-0016).
+  the auto-update toggle. Updates come only from the fixed HTTPS update
+  origin, not the configurable app address. New dev dependency `fflate`
+  (ADR-0016).
 - **Why:** no more re-uploading the zip for each change.
 
 ## 2026-10-30 — Widget appearance from the WordPress admin

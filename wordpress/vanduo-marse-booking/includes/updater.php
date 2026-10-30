@@ -13,6 +13,12 @@ define( 'VM_BOOKING_SLUG', 'vanduo-marse-booking' );
 define( 'VM_BOOKING_MANIFEST_CACHE', 'vm_booking_update_manifest' );
 /** Must match the host in the plugin's `Update URI` header. */
 define( 'VM_BOOKING_UPDATE_HOST', 'vanduomarse-redesign.vercel.app' );
+/**
+ * Updates come only from this fixed HTTPS origin, never from the configurable
+ * app address (Settings → Vanduo Marse), which may be plain http or changed by
+ * anyone with options access: whoever serves the zip runs code in WordPress.
+ */
+define( 'VM_BOOKING_UPDATE_ORIGIN', 'https://' . VM_BOOKING_UPDATE_HOST );
 
 /** The app's manifest, cached for 6 hours (1 hour after a failed fetch); null when unavailable. */
 function vm_booking_update_manifest() {
@@ -21,16 +27,14 @@ function vm_booking_update_manifest() {
 		return $cached ? $cached : null;
 	}
 
-	$origin   = vm_booking_app_origin();
 	$manifest = null;
-	if ( '' !== $origin ) {
-		$response = wp_remote_get( $origin . '/wordpress/' . VM_BOOKING_SLUG . '.json', array( 'timeout' => 8 ) );
-		if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
-			$data = json_decode( wp_remote_retrieve_body( $response ), true );
-			// The package must be a path on the app itself, never a URL from elsewhere.
-			if ( is_array( $data ) && ! empty( $data['version'] ) && isset( $data['package'] ) && 0 === strpos( (string) $data['package'], '/wordpress/' ) ) {
-				$manifest = $data;
-			}
+	// TLS is verified by default (sslverify); no redirects to other hosts.
+	$response = wp_safe_remote_get( VM_BOOKING_UPDATE_ORIGIN . '/wordpress/' . VM_BOOKING_SLUG . '.json', array( 'timeout' => 8, 'redirection' => 0 ) );
+	if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		// The package must be a path on the update origin, never a URL from elsewhere.
+		if ( is_array( $data ) && ! empty( $data['version'] ) && isset( $data['package'] ) && 0 === strpos( (string) $data['package'], '/wordpress/' ) ) {
+			$manifest = $data;
 		}
 	}
 
@@ -39,7 +43,7 @@ function vm_booking_update_manifest() {
 }
 
 function vm_booking_package_url( $manifest ) {
-	return vm_booking_app_origin() . $manifest['package'];
+	return VM_BOOKING_UPDATE_ORIGIN . $manifest['package'];
 }
 
 /** Core asks this for plugins whose Update URI host matches; it compares versions itself. */
@@ -57,7 +61,7 @@ add_filter(
 			'id'           => VM_BOOKING_UPDATE_HOST . '/' . VM_BOOKING_SLUG,
 			'slug'         => VM_BOOKING_SLUG,
 			'version'      => (string) $manifest['version'],
-			'url'          => vm_booking_app_origin(),
+			'url'          => VM_BOOKING_UPDATE_ORIGIN,
 			'package'      => vm_booking_package_url( $manifest ),
 			'requires'     => isset( $manifest['requires'] ) ? (string) $manifest['requires'] : '',
 			'requires_php' => isset( $manifest['requires_php'] ) ? (string) $manifest['requires_php'] : '',
@@ -84,7 +88,7 @@ add_filter(
 			'slug'          => VM_BOOKING_SLUG,
 			'version'       => (string) $manifest['version'],
 			'author'        => 'Vanduo Marse',
-			'homepage'      => vm_booking_app_origin(),
+			'homepage'      => VM_BOOKING_UPDATE_ORIGIN,
 			'requires'      => isset( $manifest['requires'] ) ? (string) $manifest['requires'] : '',
 			'requires_php'  => isset( $manifest['requires_php'] ) ? (string) $manifest['requires_php'] : '',
 			'tested'        => isset( $manifest['tested'] ) ? (string) $manifest['tested'] : '',

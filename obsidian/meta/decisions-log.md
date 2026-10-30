@@ -25,9 +25,12 @@ header, which must match `VM_BOOKING_VERSION`). Every Vercel deploy therefore
 publishes the current plugin. The plugin's `Update URI` header stops core from
 asking wordpress.org; `includes/updater.php` answers core's
 `update_plugins_{host}` filter from that manifest (cached 6 h, cleared by
-"Check again") and `plugins_api` for "View details". The download URL is always
-the configured app origin + a `/wordpress/` path from the manifest, never a URL
-the manifest supplies.
+"Check again") and `plugins_api` for "View details". Manifest and zip come only
+from the fixed `https://` + `Update URI` host (`VM_BOOKING_UPDATE_ORIGIN`), with
+TLS verified and no redirects, never from the configurable app address (which
+may be http or changed by an admin), and the download URL is that origin + a
+`/wordpress/` path, never a URL the manifest supplies. The zip is not signed:
+trust rests on HTTPS to Vercel; add an Ed25519 signature if that is not enough.
 
 **Consequences.** Release = bump `Version:` and `VM_BOOKING_VERSION` together,
 merge, let Vercel deploy; WordPress shows "Update now" and can auto-update.
