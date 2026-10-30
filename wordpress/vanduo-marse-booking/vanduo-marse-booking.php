@@ -2,12 +2,13 @@
 /**
  * Plugin Name:       Vanduo Marse rezervacijos
  * Description:       Pirties, keturračių, namelių, renginių ir kuponų rezervacijos iš Vanduo Marse sistemos: trumpasis kodas [vm_booking], Gutenberg blokas ir valdiklis.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Vanduo Marse
  * License:           GPL-2.0-or-later
  * Text Domain:       vanduo-marse-booking
+ * Update URI:        https://vanduomarse-redesign.vercel.app/wordpress/vanduo-marse-booking.json
  *
  * The booking flows stay in the Next.js app: this plugin only frames its
  * /embed/* pages and resizes the iframe to fit. Prices, availability and
@@ -17,15 +18,18 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VM_BOOKING_VERSION', '1.1.0' );
+define( 'VM_BOOKING_VERSION', '1.2.0' );
 define( 'VM_BOOKING_OPTION', 'vm_booking_app_url' );
 /** Production booking app; Settings → Vanduo Marse overrides it (e.g. a custom domain). */
 define( 'VM_BOOKING_DEFAULT_URL', 'https://vanduomarse-redesign.vercel.app' );
+define( 'VM_BOOKING_FILE', __FILE__ );
 define( 'VM_BOOKING_URL', plugin_dir_url( __FILE__ ) );
 define( 'VM_BOOKING_DIR', plugin_dir_path( __FILE__ ) );
 
+require_once VM_BOOKING_DIR . 'includes/appearance.php';
 require_once VM_BOOKING_DIR . 'includes/settings.php';
 require_once VM_BOOKING_DIR . 'includes/widget.php';
+require_once VM_BOOKING_DIR . 'includes/updater.php';
 
 /** Widget type => [iframe title, allowed `tab` values]. Mirrors the app's /embed routes. */
 function vm_booking_widgets() {
@@ -74,8 +78,12 @@ function vm_booking_render( $type, $tab = '', $wrapper_attributes = 'class="vm-b
 
 	list( $title, $tabs ) = $widgets[ $type ];
 	$src = $origin . '/embed/' . $type;
+	$args = vm_booking_appearance_args();
 	if ( in_array( $tab, $tabs, true ) ) {
-		$src = add_query_arg( 'skirtukas', $tab, $src );
+		$args['skirtukas'] = $tab;
+	}
+	if ( $args ) {
+		$src = add_query_arg( array_map( 'rawurlencode', $args ), $src );
 	}
 
 	wp_enqueue_style( 'vm-booking' );

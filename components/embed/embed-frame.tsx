@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { EMBED_HEIGHT_MESSAGE, toEmbedPath } from "@/lib/embed";
+import { carryEmbedTheme } from "@/lib/embed-theme";
 
 /**
  * Wrapper for /embed/* pages inside an iframe. Reports the content height to the
@@ -37,7 +38,11 @@ export function EmbedFrame({ children }: { children: React.ReactNode }) {
       e.preventDefault();
       e.stopPropagation();
       const embedded = toEmbedPath(url.pathname);
-      if (embedded) router.push(`${embedded}${url.search}`);
+      if (embedded) {
+        // Keep the WordPress appearance settings when moving between widgets.
+        carryEmbedTheme(new URLSearchParams(window.location.search), url.searchParams);
+        router.push(`${embedded}${url.search}`);
+      }
       else window.open(url.href, "_blank", "noopener");
     };
     document.addEventListener("click", onClick, true);

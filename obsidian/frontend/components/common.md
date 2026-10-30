@@ -25,6 +25,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `QuadReservation` | `components/quads/quad-reservation.tsx` | `/keturraciai` tabs (`BookingTabs`): hourly rental / guided tours (badge = tours with seats) | stable |
 | `QuadRules` | `components/quads/quad-rules.tsx` | Bordered "Taisyklės" block with the admin rules text; renders nothing when empty. Used on `/keturraciai` and `/embed/keturraciai` | stable |
 | `EmbedFrame` | `components/embed/embed-frame.tsx` | `/embed/*` wrapper (no side padding below `sm`, so it fills narrow blocks; all widgets fit from 285 px): posts `{ type: "vm-embed:height", height }` to the parent on every resize (ResizeObserver); internal links to a booking route open its `/embed` twin in place, any other internal link opens in a new tab | stable |
+| `EmbedTheme` | `components/embed/embed-theme.tsx` | Server component on each `/embed` page: renders the validated appearance overrides as a `<style>` plus Google Fonts `<link>`s; nothing when the URL has none | stable |
 | `QuadRental` / `QuadTypeStep` / `StartGrid` / `DurationGrid` | `components/quads/` | Day strip (free count per day) → quad type + count + riders → start hours (only while `units` stay free; today's past hours off) → length → contact (RHF + `quadContactSchema`). Submits a request via `createQuadRental`; availability comes from `quad_taken` | stable |
 | `TourBooking` | `components/quads/tour-booking.tsx` | Reuses `EventList` (tours mapped to `SaunaEvent`), seats stepper, contact; empty state when no tours | stable |
 | `ContactFields` / `RequestConfirmation` | `components/quads/` | Name/phone/email (+ honeypot) via `useFormContext`; ticket-style "request received" panel that says staff still confirm | stable |
@@ -61,7 +62,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `BookingPage` | `components/booking/booking-page.tsx` | Page shell: header, content, footer (theme now comes from `<body>`) | stable |
 | `BookingHero` | `components/booking/booking-hero.tsx` | Eyebrow, uppercase title, intro, facts, bento gallery on the left; booking form (`children`) sticky on the right | stable |
 | `StepLabel` | `components/booking/step-label.tsx` | Numbered step heading (`01 PASIRINK DIENĄ`) | stable |
-| `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` (wraps under the label in narrow widths) | stable |
+| `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` (wraps under the label in narrow widths); colours from the `--tab*` tokens | stable |
 | `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai`; takes `SaunaPageData` (rates, extras, taken hours, sessions) from the page | stable |
 | `SaunaEventBooking` | `components/booking/sauna-event-booking.tsx` | Pick a public session (`EventList`), choose tickets, confirm | stable |
 | `EventList` | `components/booking/event-list.tsx` | Radio-group rows of upcoming sessions with spots left and price | stable |

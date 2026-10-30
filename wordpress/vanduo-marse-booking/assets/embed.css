@@ -18,3 +18,9 @@
   min-height: 640px;
   border: 0;
 }
+
+/* Settings page preview: keep it readable inside wp-admin. */
+.vm-booking-preview {
+  max-width: 960px;
+  border: 1px solid #c3c4c7;
+}

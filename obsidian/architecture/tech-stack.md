@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-22
+updated: 2026-10-30
 ---
 
 # Tech Stack
@@ -47,6 +47,7 @@ Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 | pnpm | 11 | Package manager (`packageManager` in `package.json`) |
 | eslint + eslint-config-next | 9 / 16.4.2 | Lint, incl. React hooks/compiler rules |
 | @tailwindcss/turbopack | 4 | Tailwind in the Turbopack dev server |
+| fflate (dev) | ^0.8.3 | Zips the WordPress plugin in `scripts/build-wp-plugin.mts` (`pnpm build:wp-plugin`, run by `pnpm build`), ADR-0016 |
 
 ## Deliberately NOT used
 

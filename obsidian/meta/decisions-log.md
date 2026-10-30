@@ -10,6 +10,62 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0016 — The plugin updates itself from the app
+
+- **Status:** Accepted
+- **Date:** 2026-10-30
+
+**Context.** Re-uploading a zip to WordPress for every plugin change is slow
+and easy to forget. The plugin is private, so wordpress.org is not an option.
+
+**Decision.** `pnpm build` first runs `scripts/build-wp-plugin.mts`, which zips
+`wordpress/vanduo-marse-booking/` (plugin folder at the zip root) and writes
+`public/wordpress/vanduo-marse-booking.json` (version from the `Version:`
+header, which must match `VM_BOOKING_VERSION`). Every Vercel deploy therefore
+publishes the current plugin. The plugin's `Update URI` header stops core from
+asking wordpress.org; `includes/updater.php` answers core's
+`update_plugins_{host}` filter from that manifest (cached 6 h, cleared by
+"Check again") and `plugins_api` for "View details". Manifest and zip come only
+from the fixed `https://` + `Update URI` host (`VM_BOOKING_UPDATE_ORIGIN`), with
+TLS verified and no redirects, never from the configurable app address (which
+may be http or changed by an admin), and the download URL is that origin + a
+`/wordpress/` path, never a URL the manifest supplies. The zip is not signed:
+trust rests on HTTPS to Vercel; add an Ed25519 signature if that is not enough.
+
+**Consequences.** Release = bump `Version:` and `VM_BOOKING_VERSION` together,
+merge, let Vercel deploy; WordPress shows "Update now" and can auto-update.
+Copies installed before 1.2.0 have no updater and need one manual upload. The
+filter hook is keyed to the host in `Update URI`
+(`vanduomarse-redesign.vercel.app`): moving the app to another domain means a
+release with the new host there and in `VM_BOOKING_UPDATE_HOST`.
+
+---
+
+## ADR-0015 — Widget appearance travels as validated query params
+
+- **Status:** Accepted
+- **Date:** 2026-10-30
+
+**Context.** The WordPress site needs the booking widgets in its own colours
+and fonts (background, content, tabs, accent, text and heading fonts), set
+from the plugin's admin page.
+
+**Decision.** The plugin stores one `vm_booking_appearance` option and adds it
+to the iframe URL (`bg`, `surface`, `muted`, `text`, `accent`, `tab`,
+`tab_active`, `tab_text`, `font`, `heading`, `heading_case`). `EmbedTheme`
+validates them with `lib/embed-theme.ts` (hex colours only; font names
+`[A-Za-z0-9 ]` only) and emits `body.theme-marse{…}` overriding the semantic
+tokens, plus Google Fonts links. Tabs got their own `--tab*` tokens so they can
+differ from the page background. In-widget navigation carries the params.
+
+**Consequences.** No database table or app-side settings: WordPress owns its
+look, and a crafted URL can only restyle its own iframe. Values are a fixed
+set of tokens, not free CSS, so the booking UI cannot be broken from WP.
+Appearance is global per WordPress site (not per block). Fonts must be on
+Google Fonts.
+
+---
+
 ## ADR-0014 — WordPress booking widgets frame /embed routes
 
 - **Status:** Accepted

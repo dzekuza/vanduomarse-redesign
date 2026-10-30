@@ -1,6 +1,7 @@
 <?php
 /**
- * Settings → Vanduo Marse: the address of the booking app (the Next.js site).
+ * Settings → Vanduo Marse: the address of the booking app (the Next.js site),
+ * the widget appearance (includes/appearance.php) and a live preview.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -59,8 +60,18 @@ function vm_booking_settings_page() {
 					</td>
 				</tr>
 			</table>
+			<h2><?php esc_html_e( 'Išvaizda', 'vanduo-marse-booking' ); ?></h2>
+			<p><?php esc_html_e( 'Tuščias laukelis = Vanduo Marse spalvos ir šriftai. Taikoma visoms formoms svetainėje.', 'vanduo-marse-booking' ); ?></p>
+			<table class="form-table" role="presentation">
+				<?php vm_booking_appearance_rows(); ?>
+			</table>
 			<?php submit_button(); ?>
 		</form>
+		<h2><?php esc_html_e( 'Peržiūra', 'vanduo-marse-booking' ); ?></h2>
+		<p><?php esc_html_e( 'Pirties forma su išsaugotais nustatymais (atsinaujina išsaugojus).', 'vanduo-marse-booking' ); ?></p>
+		<div class="vm-booking-preview">
+			<?php echo vm_booking_render( 'pirtis' ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in vm_booking_render(). ?>
+		</div>
 		<h2><?php esc_html_e( 'Naudojimas', 'vanduo-marse-booking' ); ?></h2>
 		<p><?php esc_html_e( 'Blokas „Vanduo Marse rezervacija“ redaktoriuje, valdiklis Išvaizda → Valdikliai arba trumpasis kodas:', 'vanduo-marse-booking' ); ?></p>
 		<p><code>[vm_booking type="pirtis"]</code> <code>[vm_booking type="pirtis" tab="renginiai"]</code> <code>[vm_booking type="keturraciai" tab="zygiai"]</code> <code>[vm_booking type="miegas"]</code> <code>[vm_booking type="renginiai"]</code> <code>[vm_booking type="kuponai"]</code></p>

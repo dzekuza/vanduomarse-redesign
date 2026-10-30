@@ -9,6 +9,27 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-30 — WordPress plugin updates from the Plugins page
+
+- **What:** `pnpm build` runs `build:wp-plugin` first, publishing
+  `/wordpress/vanduo-marse-booking.zip` and `.json` (version manifest) with
+  every deploy. Plugin 1.2.0 has an `Update URI` header and
+  `includes/updater.php`, so WordPress shows "Update now", "View details" and
+  the auto-update toggle. Updates come only from the fixed HTTPS update
+  origin, not the configurable app address. New dev dependency `fflate`
+  (ADR-0016).
+- **Why:** no more re-uploading the zip for each change.
+
+## 2026-10-30 — Widget appearance from the WordPress admin
+
+- **What:** plugin 1.2.0 adds Settings → Vanduo Marse → Išvaizda: colour
+  pickers for background, content, summary bar, text/borders, accent, tab,
+  active tab and its text; text and heading fonts (any Google Fonts family,
+  with suggestions); heading case; and a live preview. Values go on the iframe
+  URL; `EmbedTheme` + `lib/embed-theme.ts` validate them and override the
+  tokens. New `--tab*` tokens in `BookingTabs` (ADR-0015).
+- **Why:** the widgets have to match the WordPress site's look.
+
 ## 2026-10-30 — Booking widgets fit any block width
 
 - **What:** the embed drops its side padding below `sm`, so a widget fills

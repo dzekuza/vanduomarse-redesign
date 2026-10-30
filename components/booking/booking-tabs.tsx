@@ -46,14 +46,14 @@ export function BookingTabs<T extends string>({ tabs, value, onChange, children 
               onClick={() => onChange(tab.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={`-mb-px min-w-0 border border-ink px-3 py-4 text-left wrap-break-word transition-colors sm:px-6 [&+&]:-ml-px ${
-                active ? "bg-ink text-foam" : "bg-dust text-ink hover:bg-dust-soft"
+                active ? "bg-tab-active text-tab-active-foreground" : "bg-tab text-ink hover:bg-tab-hover"
               }`}
             >
               <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold uppercase">
                 {tab.label}
                 {tab.badge ? <CountBadge count={tab.badge} /> : null}
               </span>
-              <span className={`mt-0.5 block text-xs ${active ? "text-foam/70" : "text-ink/60"}`}>{tab.hint}</span>
+              <span className={`mt-0.5 block text-xs ${active ? "text-tab-active-foreground/70" : "text-ink/60"}`}>{tab.hint}</span>
             </button>
           );
         })}

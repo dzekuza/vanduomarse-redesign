@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# generated WordPress plugin zip + update manifest (scripts/build-wp-plugin.mts)
+/public/wordpress/
+
 # vercel
 .vercel
 

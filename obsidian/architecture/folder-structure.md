@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-22
+updated: 2026-10-30
 ---
 
 # Folder Structure
@@ -30,7 +30,8 @@ supabase/               ← config.toml, migrations/, seed.sql (demo) — see [[
 lib/supabase/           ← env, server (cookie) + public (anon) clients, generated database.types.ts
 lib/data/               ← public.ts (server-only reads for public pages), public-types.ts
 proxy.ts                ← Next 16 proxy: Supabase session refresh + /admin login gate; frame-ancestors on /embed
-wordpress/vanduo-marse-booking/ ← WordPress plugin (PHP + plain JS): shortcode, block, widget framing /embed/*
+wordpress/vanduo-marse-booking/ ← WordPress plugin (PHP + plain JS): shortcode, block, widget framing /embed/*, appearance settings, self-updater
+scripts/build-wp-plugin.mts ← zips the plugin + writes its update manifest to public/wordpress/ (generated, gitignored)
 obsidian/               ← this vault
 ```
 
