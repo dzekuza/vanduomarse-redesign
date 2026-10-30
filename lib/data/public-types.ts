@@ -1,6 +1,6 @@
 import type { CabinAvailability } from "@/lib/cabin";
 import type { QuadSettings, QuadTaken, QuadTourData, QuadType } from "@/lib/quads";
-import type { SaunaRates } from "@/lib/sauna";
+import type { Sauna } from "@/lib/sauna";
 import type { SaunaEventData } from "@/lib/sauna-events";
 import type { Upsell } from "@/lib/sauna-upsells";
 
@@ -11,10 +11,12 @@ export interface SaunaPageData {
   today: string;
   /** Park hour (0-23) when the page was rendered; today's starts at or before it are gone. */
   nowHour: number;
-  rates: SaunaRates;
+  /** Active saunas in display order; `upsellIds` only lists active extras. */
+  saunas: Sauna[];
+  /** Active extras catalogue; each sauna offers a subset. */
   upsells: Upsell[];
-  /** yyyy-mm-dd -> hours that are booked or closed. */
-  takenByDay: Record<string, number[]>;
+  /** Sauna id -> yyyy-mm-dd -> hours that are booked or closed. */
+  takenBySauna: Record<string, Record<string, number[]>>;
   events: SaunaEventData[];
 }
 

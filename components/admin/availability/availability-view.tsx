@@ -6,11 +6,12 @@ import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { BookingSheet } from "../bookings/booking-sheet";
 import { daysFrom } from "@/lib/admin/occupancy";
+import { SaunaSelect } from "../sauna/sauna-select";
 import { SaunaGrid } from "./sauna-grid";
 import { StaysStrip } from "./stays-strip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function startOfToday(): Date {
   const d = new Date();
@@ -26,7 +27,9 @@ const LEGEND = [
 
 /** Week view of sauna hours plus nightly stays; one day at a time on phones. */
 export function AvailabilityView() {
-  const { bookings } = useAdmin();
+  const { bookings, saunas } = useAdmin();
+  const [saunaId, setSaunaId] = useState(() => (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "");
+  const sauna = saunas.find((s) => s.id === saunaId) ?? saunas[0];
   const mobile = useIsMobile();
   const span = mobile ? 1 : 7;
   const [start, setStart] = useState(startOfToday);
@@ -55,7 +58,12 @@ export function AvailabilityView() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>Pirtis</CardTitle>
+          <CardTitle>{saunas.length > 1 ? "Pirtys" : (sauna?.name ?? "Pirtis")}</CardTitle>
+          {saunas.length > 1 && sauna ? (
+            <CardAction>
+              <SaunaSelect value={sauna.id} onChange={setSaunaId} className="w-44" />
+            </CardAction>
+          ) : null}
           <CardDescription className="flex flex-wrap gap-x-4 gap-y-1">
             {LEGEND.map((l) => (
               <span key={l.label} className="inline-flex items-center gap-1.5">
@@ -66,7 +74,7 @@ export function AvailabilityView() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SaunaGrid days={days} onOpenBooking={setOpenId} />
+          {sauna ? <SaunaGrid sauna={sauna} days={days} onOpenBooking={setOpenId} /> : <p className="text-sm text-muted-foreground">Pirčių dar nėra.</p>}
         </CardContent>
       </Card>
 

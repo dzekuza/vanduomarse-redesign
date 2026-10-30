@@ -3,6 +3,7 @@
 import { Controller, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { FormField } from "../form-field";
 import type { NewBookingValues } from "./new-booking-schema";
+import { SaunaSelect } from "../sauna/sauna-select";
 import { formatHour } from "@/lib/sauna";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,16 +18,47 @@ interface BookingWhenFieldsProps {
   /** Allowed lengths from the chosen start. */
   lengths: number[];
   maxGuests: number;
-  /** Date or start changed: dependent selections must be re-picked. */
+  /** Sauna, date or start changed: dependent selections must be re-picked. */
+  onSaunaChange: () => void;
   onDateChange: () => void;
   onStartChange: () => void;
 }
 
 /** Date, then free sauna slot + length, or nights for a stay; plus guests. */
-export function BookingWhenFields({ control, register, errors, kind, starts, lengths, maxGuests, onDateChange, onStartChange }: BookingWhenFieldsProps) {
+export function BookingWhenFields({
+  control,
+  register,
+  errors,
+  kind,
+  starts,
+  lengths,
+  maxGuests,
+  onSaunaChange,
+  onDateChange,
+  onStartChange,
+}: BookingWhenFieldsProps) {
   const sauna = kind === "pirtis";
   return (
     <>
+      {sauna ? (
+        <FormField id="nb-sauna" label="Pirtis" error={errors.saunaId?.message} className="sm:col-span-2">
+          <Controller
+            control={control}
+            name="saunaId"
+            render={({ field }) => (
+              <SaunaSelect
+                id="nb-sauna"
+                value={field.value}
+                invalid={!!errors.saunaId}
+                onChange={(v) => {
+                  field.onChange(v);
+                  onSaunaChange();
+                }}
+              />
+            )}
+          />
+        </FormField>
+      ) : null}
       <FormField id="nb-date" label="Data" error={errors.date?.message}>
         <Input id="nb-date" type="date" aria-invalid={!!errors.date} {...register("date", { onChange: onDateChange })} />
       </FormField>

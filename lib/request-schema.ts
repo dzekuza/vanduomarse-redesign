@@ -12,6 +12,7 @@ const couponCode = z.string().trim().max(20).optional();
 /** Private sauna hire, validated again by `createSaunaBooking`; the database prices it. */
 export const saunaBookingSchema = refined(
   contactFields.extend({
+    saunaId: z.string().regex(/^[a-z0-9-]+$/).max(60),
     date: z.iso.date(),
     startHour: z.number().int().min(0).max(23),
     hours: z.number().int().min(1).max(12),

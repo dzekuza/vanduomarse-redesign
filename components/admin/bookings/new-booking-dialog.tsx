@@ -11,9 +11,9 @@ import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingWhenFields } from "./booking-when-fields";
 import { STAY_MAX_GUESTS, newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { formatEur } from "@/lib/admin/format";
-import { freeHoursFrom, freeStartHours, fullCabinNights } from "@/lib/admin/occupancy";
+import { freeHoursFrom, freeStartHours, fullCabinNights, saunaSlice } from "@/lib/admin/occupancy";
 import { ROOM_TYPES } from "@/lib/cabin";
-import { dateKey, sessionPrice } from "@/lib/sauna";
+import { DEFAULT_SAUNA_RATES, dateKey, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -30,12 +30,13 @@ const range = (from: number, to: number) => (to < from ? [] : Array.from({ lengt
 
 /** Staff-entered booking (phone or walk-in): free slots only, price from admin rates. */
 export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogProps) {
-  const { bookings, blocks, saunaRates, upsells, prices, createBooking } = useAdmin();
+  const { bookings, blocks, saunas, upsells: catalogue, prices, createBooking } = useAdmin();
   const [extras, setExtras] = useState<Record<string, number>>({});
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
     defaultValues: {
       kind: "pirtis",
+      saunaId: (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "",
       date: dateKey(new Date()),
       startHour: "",
       hours: "",
@@ -50,16 +51,20 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
       note: "",
     },
   });
-  const [kind, date, startHour, hours, nights, guests, priceOverride] = useWatch({
+  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride] = useWatch({
     control,
-    name: ["kind", "date", "startHour", "hours", "nights", "guests", "priceOverride"],
+    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride"],
   });
   const err = formState.errors;
   const party = Number(guests) || 0;
   const sauna = kind === "pirtis";
+  const chosen = saunas.find((s) => s.id === saunaId);
+  const saunaRates = chosen?.rates ?? DEFAULT_SAUNA_RATES;
+  const upsells = chosen ? catalogue.filter((u) => chosen.upsellIds.includes(u.id)) : [];
+  const slice = saunaSlice(bookings, blocks, saunaId);
 
-  const starts = sauna && date ? freeStartHours(bookings, blocks, saunaRates, date) : [];
-  const run = sauna && startHour ? freeHoursFrom(bookings, blocks, saunaRates, date, Number(startHour)) : 0;
+  const starts = sauna && chosen && date ? freeStartHours(slice.bookings, slice.blocks, saunaRates, date) : [];
+  const run = sauna && chosen && startHour ? freeHoursFrom(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : 0;
   const lengths = range(saunaRates.minHours, run);
   const maxGuests = sauna ? saunaRates.maxParty : STAY_MAX_GUESTS[kind];
 
@@ -76,7 +81,7 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
 
   const submit = handleSubmit(async (v) => {
     if (party > maxGuests) return setError("guests", { message: `Daugiausia ${maxGuests} žm.` });
-    if (sauna && freeHoursFrom(bookings, blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
+    if (sauna && freeHoursFrom(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
       return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
     if (kind === "namelis") {
       const full = fullCabinNights(bookings, v.date, Number(v.nights));
@@ -84,6 +89,7 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
     }
     const result = await createBooking({
       kind: v.kind,
+      ...(sauna ? { saunaId: v.saunaId } : {}),
       customer: { name: v.name, phone: v.phone, email: v.email },
       date: v.date,
       ...(sauna ? { startHour: Number(v.startHour), hours: Number(v.hours) } : { nights: Number(v.nights) }),
@@ -135,6 +141,10 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
             starts={starts}
             lengths={lengths}
             maxGuests={maxGuests}
+            onSaunaChange={() => {
+              resetSlot();
+              setExtras({});
+            }}
             onDateChange={resetSlot}
             onStartChange={() => setValue("hours", "")}
           />

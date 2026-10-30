@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { ratesSchema } from "@/components/admin/sauna/rates-schema";
-import { toBooking, toQuadRental } from "@/lib/admin/mappers";
+import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-schema";
+import { fromSaunaRates, toBooking, toQuadRental } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus, ManagedEvent, PriceItem, QuadRental } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
 import { describeRequest, notifyOutcome, saunaSummary } from "@/lib/sms/notify";
-import type { SaunaRates } from "@/lib/sauna";
+import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 import { createClient } from "@/lib/supabase/server";
@@ -90,6 +90,8 @@ export async function setBookingStatus(id: string, status: Booking["status"]): P
 const newBookingInput = z
   .object({
     kind: z.enum(["pirtis", "namelis", "kemperis"]),
+    /** Sauna only. */
+    saunaId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
     date: z.iso.date(),
     startHour: z.number().int().min(0).max(23).optional(),
     hours: z.number().int().min(1).max(24).optional(),
@@ -103,7 +105,7 @@ const newBookingInput = z
     source: z.enum(["telefonu", "vietoje"]),
     note: z.string().trim().max(300),
   })
-  .refine((v) => (v.kind === "pirtis" ? v.startHour !== undefined && v.hours !== undefined : v.nights !== undefined));
+  .refine((v) => (v.kind === "pirtis" ? v.saunaId !== undefined && v.startHour !== undefined && v.hours !== undefined : v.nights !== undefined));
 
 export type NewBookingInput = z.infer<typeof newBookingInput>;
 
@@ -126,6 +128,7 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
       // Assigned by the bookings_reference trigger.
       reference: undefined as unknown as string,
       kind: v.kind,
+      sauna_id: sauna ? v.saunaId : null,
       customer_name: v.customer.name,
       customer_phone: v.customer.phone || null,
       customer_email: v.customer.email || null,
@@ -145,8 +148,10 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
   if (error) return dbError(error);
 
   if (sauna) {
-    const { data: upsells } = await supabase.from("sauna_upsells").select("*").eq("active", true);
-    const lines = (upsells ?? [])
+    // Extras this sauna offers, priced from the current catalogue.
+    const { data: links } = await supabase.from("sauna_upsell_links").select("sauna_upsells(*)").eq("sauna_id", v.saunaId ?? "");
+    const upsells = (links ?? []).flatMap((l) => (l.sauna_upsells?.active ? [l.sauna_upsells] : []));
+    const lines = upsells
       .map((u) => ({ u, qty: v.extras[u.id] ?? 0 }))
       .filter(({ qty }) => qty > 0)
       .map(({ u, qty }) => {
@@ -181,17 +186,19 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
 
 /* ---------------- sauna blocks ---------------- */
 
-export async function toggleBlock(date: string, hour: number, reason: string): Promise<ActionResult> {
+export async function toggleBlock(saunaId: string, date: string, hour: number, reason: string): Promise<ActionResult> {
   const ctx = await staffClient("uzimtumas");
   if (!ctx.ok) return ctx.error;
-  const parsed = z.object({ date: z.iso.date(), hour: z.number().int().min(0).max(23), reason: z.string().trim().min(1).max(80) }).safeParse({ date, hour, reason });
+  const parsed = z
+    .object({ saunaId: saunaIdSchema, date: z.iso.date(), hour: z.number().int().min(0).max(23), reason: z.string().trim().min(1).max(80) })
+    .safeParse({ saunaId, date, hour, reason });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const { supabase, userId } = ctx;
 
-  const { data: existing } = await supabase.from("sauna_blocks").select("id").eq("date", date).eq("hour", hour).maybeSingle();
+  const { data: existing } = await supabase.from("sauna_blocks").select("id").eq("sauna_id", saunaId).eq("date", date).eq("hour", hour).maybeSingle();
   const { error } = existing
     ? await supabase.from("sauna_blocks").delete().eq("id", existing.id)
-    : await supabase.from("sauna_blocks").insert({ date, hour, reason, created_by: userId });
+    : await supabase.from("sauna_blocks").insert({ sauna_id: saunaId, date, hour, reason, created_by: userId });
   return error ? dbError(error) : done(null);
 }
 
@@ -288,30 +295,146 @@ export async function updatePrices(items: PriceItem[]): Promise<ActionResult> {
   return done(null);
 }
 
-/* ---------------- sauna settings & upsells ---------------- */
+/* ---------------- saunas & upsells ---------------- */
 
-export async function updateSaunaRates(rates: SaunaRates): Promise<ActionResult> {
+const saunaRevalidate = () => {
+  revalidatePath("/pirtis");
+  revalidatePath("/embed/pirtis");
+};
+
+/** Create (`id` null) or update a sauna and the extras it offers; returns its id. */
+export async function saveSauna(id: string | null, input: SaunaValues): Promise<ActionResult<{ id: string }>> {
   const ctx = await staffClient("pirtis");
   if (!ctx.ok) return ctx.error;
-  const parsed = ratesSchema.safeParse(rates);
-  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
-  const r = parsed.data;
-  const { error } = await ctx.supabase
-    .from("sauna_settings")
-    .update({
-      small_group_max: r.smallGroupMax,
-      small_group_rate: r.smallGroupRate,
-      large_group_rate: r.largeGroupRate,
-      max_party: r.maxParty,
-      min_hours: r.minHours,
-      max_hours: r.maxHours,
-      package_hours: r.packageHours,
-      package_price: r.packagePrice,
-      open_hour: r.openHour,
-      close_hour: r.closeHour,
-    })
-    .eq("id", true);
-  revalidatePath("/pirtis");
+  const parsed = saunaSchema.safeParse(input);
+  if (!parsed.success || (id !== null && !saunaIdSchema.safeParse(id).success)) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+  const { supabase } = ctx;
+  const row = { name: v.name, description: v.description, features: v.features.map((f) => f.value), active: v.active, ...fromSaunaRates(v.rates) };
+
+  let saunaId = id;
+  if (saunaId) {
+    const { data, error } = await supabase.from("saunas").update(row).eq("id", saunaId).select("id").maybeSingle();
+    if (error) return dbError(error);
+    if (!data) return fail("Pirtis nerasta.", "not_found");
+  } else {
+    const { data: existing, error: readError } = await supabase.from("saunas").select("id, sort_order");
+    if (readError) return dbError(readError);
+    // "nauja" is the create route (/admin/pirtis/nauja).
+    const taken = new Set(["nauja", ...existing.map((s) => s.id)]);
+    const base = slugify(v.name) || "pirtis";
+    saunaId = base;
+    for (let n = 2; taken.has(saunaId); n++) saunaId = `${base}-${n}`;
+    const sortOrder = Math.max(-1, ...existing.map((s) => s.sort_order)) + 1;
+    const { error } = await supabase.from("saunas").insert({ id: saunaId, ...row, sort_order: sortOrder });
+    if (error) return dbError(error);
+  }
+
+  const drop = supabase.from("sauna_upsell_links").delete().eq("sauna_id", saunaId);
+  const { error: dropError } = v.upsellIds.length ? await drop.not("upsell_id", "in", `(${v.upsellIds.join(",")})`) : await drop;
+  if (dropError) return dbError(dropError);
+  if (v.upsellIds.length) {
+    const { error } = await supabase
+      .from("sauna_upsell_links")
+      .upsert(v.upsellIds.map((upsellId) => ({ sauna_id: saunaId, upsell_id: upsellId })), { ignoreDuplicates: true });
+    if (error) return dbError(error);
+  }
+  saunaRevalidate();
+  return done({ id: saunaId });
+}
+
+const saunaIdSchema = z.string().regex(/^[a-z0-9-]+$/).max(60);
+
+export async function setSaunaActive(id: string, active: boolean): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  if (!saunaIdSchema.safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("saunas").update({ active }).eq("id", id);
+  saunaRevalidate();
+  return error ? dbError(error) : done(null);
+}
+
+/** Display order: `ids` from first to last. */
+export async function reorderSaunas(ids: string[]): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  if (!z.array(saunaIdSchema).max(50).safeParse(ids).success) return fail("Netinkamos reikšmės.", "invalid");
+  for (const [i, id] of ids.entries()) {
+    const { error } = await ctx.supabase.from("saunas").update({ sort_order: i }).eq("id", id);
+    if (error) return dbError(error);
+  }
+  saunaRevalidate();
+  return done(null);
+}
+
+/** Only saunas without bookings; closed hours, extra links and photos go with it. */
+export async function deleteSauna(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  if (!saunaIdSchema.safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data, error } = await ctx.supabase.from("saunas").delete().eq("id", id).select("photos").maybeSingle();
+  if (error?.code === "23503") return fail("Pirtis turi rezervacijų – ją galima tik paslėpti.", "in_use");
+  if (error) return dbError(error);
+  if (data?.photos.length) await ctx.supabase.storage.from(SAUNA_PHOTO_BUCKET).remove(data.photos);
+  saunaRevalidate();
+  return done(null);
+}
+
+const PHOTO_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };
+
+/** Uploads one photo (form field `file`) and adds it after the sauna's other photos. */
+export async function uploadSaunaPhoto(saunaId: string, form: FormData): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  const file = form.get("file");
+  if (!saunaIdSchema.safeParse(saunaId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
+  const ext = PHOTO_TYPES[file.type];
+  if (!ext) return fail("Tinka JPG, PNG, WebP arba AVIF nuotraukos.", "invalid");
+  if (file.size > 5 * 1024 * 1024) return fail("Nuotrauka per didelė (daugiausia 5 MB).", "invalid");
+  const { supabase } = ctx;
+
+  const { data: sauna } = await supabase.from("saunas").select("photos").eq("id", saunaId).maybeSingle();
+  if (!sauna) return fail("Pirtis nerasta.", "not_found");
+  if (sauna.photos.length >= MAX_SAUNA_PHOTOS) return fail(`Daugiausia ${MAX_SAUNA_PHOTOS} nuotraukų.`, "invalid");
+
+  const path = `${saunaId}/${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await supabase.storage.from(SAUNA_PHOTO_BUCKET).upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+  if (uploadError) return fail("Nepavyko įkelti nuotraukos. Bandykite dar kartą.", "storage");
+  const { error } = await supabase.from("saunas").update({ photos: [...sauna.photos, path] }).eq("id", saunaId);
+  if (error) {
+    await supabase.storage.from(SAUNA_PHOTO_BUCKET).remove([path]);
+    return dbError(error);
+  }
+  saunaRevalidate();
+  return done(null);
+}
+
+export async function removeSaunaPhoto(saunaId: string, path: string): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  if (!saunaIdSchema.safeParse(saunaId).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { supabase } = ctx;
+  const { data: sauna } = await supabase.from("saunas").select("photos").eq("id", saunaId).maybeSingle();
+  if (!sauna?.photos.includes(path)) return fail("Nuotrauka nerasta.", "not_found");
+  const { error } = await supabase.from("saunas").update({ photos: sauna.photos.filter((p) => p !== path) }).eq("id", saunaId);
+  if (error) return dbError(error);
+  await supabase.storage.from(SAUNA_PHOTO_BUCKET).remove([path]);
+  saunaRevalidate();
+  return done(null);
+}
+
+/** New photo order; must be the same photos the sauna already has. */
+export async function reorderSaunaPhotos(saunaId: string, paths: string[]): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  if (!saunaIdSchema.safeParse(saunaId).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { supabase } = ctx;
+  const { data: sauna } = await supabase.from("saunas").select("photos").eq("id", saunaId).maybeSingle();
+  if (!sauna || sauna.photos.length !== paths.length || !paths.every((p) => sauna.photos.includes(p))) {
+    return fail("Nuotraukos pasikeitė. Atnaujinkite puslapį.", "stale");
+  }
+  const { error } = await supabase.from("saunas").update({ photos: paths }).eq("id", saunaId);
+  saunaRevalidate();
   return error ? dbError(error) : done(null);
 }
 
@@ -334,7 +457,7 @@ export async function saveUpsell(upsell: Upsell): Promise<ActionResult> {
   const { error } = await ctx.supabase
     .from("sauna_upsells")
     .upsert({ id: u.id, name: u.name, description: u.description, price: u.price, unit: u.unit, max_qty: u.maxQty, active: u.active });
-  revalidatePath("/pirtis");
+  saunaRevalidate();
   return error ? dbError(error) : done(null);
 }
 
@@ -342,7 +465,7 @@ export async function deleteUpsell(id: string): Promise<ActionResult> {
   const ctx = await staffClient("pirtis");
   if (!ctx.ok) return ctx.error;
   const { error } = await ctx.supabase.from("sauna_upsells").delete().eq("id", id);
-  revalidatePath("/pirtis");
+  saunaRevalidate();
   return error ? dbError(error) : done(null);
 }
 

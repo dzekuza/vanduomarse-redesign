@@ -1,6 +1,6 @@
 ---
 tags: [backend, wip]
-updated: 2026-10-27
+updated: 2026-10-30
 ---
 
 # Database
@@ -56,12 +56,14 @@ repo). After connecting, the database is the source of truth for prices.
 |-------|---------|-------|-----|
 | `staff` | — | `user_id` → `auth.users`, `display_name`, `email`, `role_id`, `active`. A row = an admin login; its role says which pages (ADR-0012) | own row, or all for an owner; owners write |
 | `staff_roles` | `StaffRole` | `name` (unique, case-insensitive), `is_owner` (exactly one: "Savininkas", all pages + staff), `permissions text[]` of page keys, check-constrained to the known keys | active staff read; owners write |
-| `sauna_settings` | `SaunaRates` | Singleton (`id = true`); same cross-field checks as `rates-schema.ts` | public read; staff update |
+| `saunas` | `Sauna` | Slug id; name, description, `features text[]`, `photos text[]` (paths in the public `sauna-photos` bucket, array order = display order), the rate/limit columns with the `rates-schema.ts` cross-checks, `active`, `sort_order` (ADR-0017) | anon reads `active`; `pirtis` writes |
+| `sauna_upsell_links` | `Sauna.upsellIds` | (`sauna_id`, `upsell_id`): which extras a sauna offers | public read; `pirtis` writes |
+| `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
 | `bookings` | `Booking` | Customer columns inline; `stay_type_id` for stays (new: cabin size); `reference` auto `PM-`/`MM-` | staff only |
 | `booking_extras` | `Booking.extras` | Snapshot of name, unit, price, qty, line total | staff only |
-| `sauna_blocks` | `Block` | unique (`date`, `hour`) | staff only (public via RPC) |
+| `sauna_blocks` | `Block` | `sauna_id`; unique (`sauna_id`, `date`, `hour`) | staff only (public via RPC) |
 | `inquiries` + `inquiry_notes` | `Inquiry` | `estimate_min/max` both null or both set; `calculator_input jsonb` | staff only |
 | `sauna_event_templates` | `lib/sauna-events.ts` templates | weekday, start, duration, price/person, capacity | staff only |
 | `events` | `ManagedEvent` | `start_time` (`time`), `duration_minutes`, `sold` kept by trigger, `template_id` + `date` unique | anon reads `published`; staff all |
@@ -76,8 +78,8 @@ repo). After connecting, the database is the source of truth for prices.
 
 ### Rules the database enforces (SQLSTATE `23P01` on conflict)
 
-- No two live sauna sessions overlap (`exclude using gist`, needs `btree_gist`).
-- A live sauna session can't cover a staff-closed hour, and staff can't close a booked hour.
+- No two live sessions in the **same sauna** overlap (`exclude using gist` on `sauna_id`, date, hours; needs `btree_gist`). A sauna booking needs a `sauna_id`; stays have none.
+- A live sauna session can't cover a staff-closed hour of its sauna, and staff can't close a booked hour.
 - Stays never exceed `stay_types.units` on any night (advisory-locked trigger).
 - Event tickets never exceed `events.capacity`; `events.sold` = sum of live tickets.
 - Cancelled rows (`atsaukta`) never block anything.
@@ -107,7 +109,7 @@ deliberate, so a page never opens onto silently empty data.
 | `keturraciai` | quad_types, quad_settings, quad_rentals; tickets of `keturratis` events | events |
 | `kuponai` | coupon_products, coupons, coupon_redemptions; `activate_coupon()` | — |
 | `renginiai` | events, event_tickets, sauna_event_templates; `materialize_sauna_events()` | — |
-| `pirtis` | sauna_settings, sauna_upsells | — |
+| `pirtis` | saunas, sauna_upsell_links, sauna_upsells, `sauna-photos` objects | — (saunas are also read by `rezervacijos`, `uzimtumas`, `apzvalga`) |
 | `kainos` | price_items | — |
 | owner only | staff, staff_roles, stay_types | everything |
 
@@ -123,7 +125,8 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 
 | Function | Who | Purpose |
 |----------|-----|---------|
-| `sauna_taken_hours(from, to)` | anon, authenticated | Booked + closed sauna hours, no customer data |
+| `sauna_taken(from, to)` | anon, authenticated | Booked + closed hours per sauna (`sauna_id`, day, hour), no customer data |
+| `sauna_taken_hours(from, to)` | anon, authenticated | **Deprecated**: hours taken in any sauna; kept for the deploy window |
 | `stay_occupancy(from, to)` | anon, authenticated | Nights taken vs units per stay type per day |
 | `private.is_staff()` | authenticated | Used by every staff policy. Lives in the non-exposed `private` schema, so it isn't an RPC |
 | `materialize_sauna_events(from, days)` | `renginiai` | Creates events from active templates; idempotent |
@@ -132,7 +135,7 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `quad_taken(from, to)` | anon, authenticated | `security definer`. Quads taken per type and hour (counts only); range capped at 60 days |
 | `create_quad_rental(type, date, start, hours, units, riders, name, email, phone, note)` | anon, authenticated | `security definer`. Files a `laukia` request; price, opening hours, max hours and rider limit come from the fleet/settings rows; refuses at 100 pending per hour |
 | `create_tour_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Only for published `keturratis` events with capacity; `laukia`, `KZ-` reference; seats enforced by the existing ticket trigger |
-| `create_sauna_booking(date, start, hours, party, extras jsonb, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Prices from `sauna_settings` + `sauna_upsells`; `laukia` booking + `booking_extras`; overlap and closed hours enforced by the existing triggers; a valid coupon is recorded in the note for staff to redeem |
+| `create_sauna_booking(sauna, date, start, hours, party, extras jsonb, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Active sauna only (`sauna_unavailable`); prices from its `saunas` row + linked, active `sauna_upsells`; the old signature without `sauna` books the first active sauna (deprecated); `laukia` booking + `booking_extras`; overlap and closed hours enforced by the existing triggers; a valid coupon is recorded in the note for staff to redeem |
 | `create_stay_booking(stay_type, date, nights, guests, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Prices from `stay_types`; `laukia`; cabin capacity trigger |
 | `create_event_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Published capacity events except `keturratis`; `laukia`, `PR-` reference |
 | `register_for_event(event, people, name, email, phone, message)` | anon, authenticated | `security definer`. Published events without capacity; stored as an `inquiries` row (source `renginys`) |
@@ -166,8 +169,12 @@ function that isn't meant to be an RPC needs an explicit `revoke … from anon, 
 | `20261028130000_public_requests.sql` | 2026-10-28 | `create_sauna_booking`, `create_stay_booking`, `create_event_ticket`, `register_for_event`, `create_inquiry` (public bookings, tickets and inquiries are stored instead of staying in the browser) |
 | `20261028150024_pending_request_limits.sql` | 2026-10-28 | `expire_pending_requests()` + pg_cron job (48 h expiry of unanswered web requests), per-contact pending caps via triggers |
 | `20261028150255_contact_limit_hardening.sql` | 2026-10-28 | canonical phone compare, 8-digit minimum, advisory locks on the per-contact caps |
+| `20261030100000_saunas.sql` | 2026-10-30 | `saunas`, `sauna_upsell_links`, `sauna_id` on bookings + blocks (backfilled into "Pirtis Marse"), per-sauna overlap/closed-hour rules, `sauna_taken()`, new `create_sauna_booking` overload, RLS, `sauna-photos` bucket + policies |
 | `20261028090200_quad_reference_data.sql` | 2026-10-28 | **Placeholder** fleet (2 types) and settings (10-20 h, max 3 h, no deposit, 18+, no rules text) |
 | `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |
+
+> [!warning] Saunas migration: verified, apply status below
+> `20261030100000_saunas.sql` passes 41 checks on PGlite with all migrations and the demo seed (backfill, per-sauna overlap and closed hours, both RPC signatures, anon/`pirtis`/`rezervacijos`/`kainos` RLS, storage policies, RLS on every table). Live apply: pending owner approval.
 
 > [!info] Roles migration: applied
 > `20261028120000_staff_roles.sql` was verified on PGlite (112 permission checks plus the 80 coupon and quad checks as regression), then applied to the live project by the owner on 2026-10-28. Live check: `staff_roles` exists, the public role reads nothing from it, the one existing staff row is active with the Owner role, and `supabase gen types` is identical to the hand-written staff types. **Deploy order for any new environment:** apply this migration before the app code, because the admin layout reads `staff_roles`; and set `SUPABASE_SERVICE_ROLE_KEY` to create staff logins.

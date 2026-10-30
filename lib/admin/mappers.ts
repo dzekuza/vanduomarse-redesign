@@ -2,7 +2,7 @@ import { isPermissionId } from "@/lib/admin/permissions";
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
-import type { SaunaRates } from "@/lib/sauna";
+import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { Upsell } from "@/lib/sauna-upsells";
 import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "./types";
 
@@ -30,6 +30,7 @@ export function toBooking(r: BookingRow): Booking {
     hours: r.hours ?? undefined,
     nights: r.nights ?? undefined,
     stayTypeId: r.stay_type_id ?? undefined,
+    saunaId: r.sauna_id ?? undefined,
     guests: r.guests,
     extras: r.booking_extras.map((x) => (x.unit === "vienetui" ? `${x.name} × ${x.quantity}` : x.name)),
     total: r.total,
@@ -41,7 +42,7 @@ export function toBooking(r: BookingRow): Booking {
 }
 
 export function toBlock(r: Tables<"sauna_blocks">): Block {
-  return { id: r.id, date: r.date, hour: r.hour, reason: r.reason };
+  return { id: r.id, saunaId: r.sauna_id, date: r.date, hour: r.hour, reason: r.reason };
 }
 
 export function toInquiry(r: InquiryRow): Inquiry {
@@ -84,7 +85,12 @@ export function toPriceItem(r: Tables<"price_items">): PriceItem {
   return { id: r.id, group: r.group, label: r.label, unit: r.unit, value: r.value, max: r.max ?? undefined };
 }
 
-export function toSaunaRates(r: Tables<"sauna_settings">): SaunaRates {
+type RatesRow = Pick<
+  Tables<"saunas">,
+  "small_group_max" | "small_group_rate" | "large_group_rate" | "max_party" | "min_hours" | "max_hours" | "package_hours" | "package_price" | "open_hour" | "close_hour"
+>;
+
+export function toSaunaRates(r: RatesRow): SaunaRates {
   return {
     smallGroupMax: r.small_group_max,
     smallGroupRate: r.small_group_rate,
@@ -96,6 +102,37 @@ export function toSaunaRates(r: Tables<"sauna_settings">): SaunaRates {
     packagePrice: r.package_price,
     openHour: r.open_hour,
     closeHour: r.close_hour,
+  };
+}
+
+/** Model -> `saunas` rate columns. */
+export function fromSaunaRates(r: SaunaRates): RatesRow {
+  return {
+    small_group_max: r.smallGroupMax,
+    small_group_rate: r.smallGroupRate,
+    large_group_rate: r.largeGroupRate,
+    max_party: r.maxParty,
+    min_hours: r.minHours,
+    max_hours: r.maxHours,
+    package_hours: r.packageHours,
+    package_price: r.packagePrice,
+    open_hour: r.openHour,
+    close_hour: r.closeHour,
+  };
+}
+
+/** `links` are the sauna's rows of `sauna_upsell_links`; photo paths become public URLs of `supabaseUrl`. */
+export function toSauna(r: Tables<"saunas">, links: Pick<Tables<"sauna_upsell_links">, "upsell_id">[], supabaseUrl: string): Sauna {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    features: r.features,
+    photos: r.photos.map((path) => ({ path, url: saunaPhotoUrl(supabaseUrl, path) })),
+    rates: toSaunaRates(r),
+    upsellIds: links.map((l) => l.upsell_id),
+    active: r.active,
+    sortOrder: r.sort_order,
   };
 }
 

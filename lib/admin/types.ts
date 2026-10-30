@@ -2,7 +2,7 @@ import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/l
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { QuadSettings, QuadType } from "@/lib/quads";
-import type { SaunaRates } from "@/lib/sauna";
+import type { Sauna } from "@/lib/sauna";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
@@ -35,6 +35,8 @@ export interface Booking {
   nights?: number;
   /** Stays only: `namelis-2`, `namelis-4` or `kemperis` (public.stay_types). */
   stayTypeId?: string;
+  /** Sauna only: `public.saunas` id. */
+  saunaId?: string;
   guests: number;
   extras: string[];
   total: number;
@@ -48,6 +50,7 @@ export interface Booking {
 /** Sauna hours closed by staff (maintenance, private use). */
 export interface Block {
   id: string;
+  saunaId: string;
   date: string;
   hour: number;
   reason: string;
@@ -185,7 +188,8 @@ export interface AdminData {
   inquiries: Inquiry[];
   events: ManagedEvent[];
   prices: PriceItem[];
-  saunaRates: SaunaRates;
+  /** All saunas incl. hidden ones, in display order. */
+  saunas: Sauna[];
   upsells: Upsell[];
   coupons: Coupon[];
   couponProducts: CouponProduct[];

@@ -53,6 +53,55 @@ export const DEFAULT_SAUNA_RATES: SaunaRates = {
   closeHour: CLOSE_HOUR,
 };
 
+/** Storage bucket with sauna photos (public read; staff with `pirtis` upload). */
+export const SAUNA_PHOTO_BUCKET = "sauna-photos";
+export const MAX_SAUNA_PHOTOS = 12;
+export const MAX_SAUNA_FEATURES = 12;
+
+export interface SaunaPhoto {
+  /** Object path in `SAUNA_PHOTO_BUCKET`, e.g. `malkine/3f…e1.webp`. */
+  path: string;
+  url: string;
+}
+
+/** A sauna type for private hire; a `public.saunas` row with its offered extras. */
+export interface Sauna {
+  /** Slug, also used in `?pirtis=` links. */
+  id: string;
+  name: string;
+  description: string;
+  /** Short facts shown on the picker card, e.g. "Iki 8 žmonių". */
+  features: string[];
+  /** In display order; the first is the cover. */
+  photos: SaunaPhoto[];
+  rates: SaunaRates;
+  /** `sauna_upsells` ids this sauna offers. */
+  upsellIds: string[];
+  active: boolean;
+  sortOrder: number;
+}
+
+/** Cheapest hourly rate, for "nuo X €/val.". */
+export function fromRate(rates: SaunaRates): number {
+  return Math.min(rates.smallGroupRate, rates.largeGroupRate);
+}
+
+/** Public URL of a photo in the sauna bucket. */
+export function saunaPhotoUrl(supabaseUrl: string, path: string): string {
+  return `${supabaseUrl}/storage/v1/object/public/${SAUNA_PHOTO_BUCKET}/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+/** URL-safe id from a name: "Malkinė pirtis" -> "malkine-pirtis". */
+export function slugify(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
+}
+
 export function hourRate(partySize: number, rates: SaunaRates = DEFAULT_SAUNA_RATES): number {
   return partySize <= rates.smallGroupMax ? rates.smallGroupRate : rates.largeGroupRate;
 }
