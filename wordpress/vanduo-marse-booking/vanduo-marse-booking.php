@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Vanduo Marse rezervacijos
  * Description:       Pirties, keturračių, namelių, renginių ir kuponų rezervacijos iš Vanduo Marse sistemos: trumpasis kodas [vm_booking], Gutenberg blokas ir valdiklis.
- * Version:           1.2.0
+ * Version:           1.2.1
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Vanduo Marse
@@ -18,9 +18,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VM_BOOKING_VERSION', '1.2.0' );
+define( 'VM_BOOKING_VERSION', '1.2.1' );
 define( 'VM_BOOKING_OPTION', 'vm_booking_app_url' );
-/** Production booking app; Settings → Vanduo Marse overrides it (e.g. a custom domain). */
+/** Production booking app; the Rezervacijų sistema page overrides it (e.g. a custom domain). */
 define( 'VM_BOOKING_DEFAULT_URL', 'https://vanduomarse-redesign.vercel.app' );
 define( 'VM_BOOKING_FILE', __FILE__ );
 define( 'VM_BOOKING_URL', plugin_dir_url( __FILE__ ) );
@@ -72,7 +72,7 @@ function vm_booking_render( $type, $tab = '', $wrapper_attributes = 'class="vm-b
 	}
 	if ( '' === $origin ) {
 		return current_user_can( 'manage_options' )
-			? '<p class="vm-booking-notice">' . esc_html__( 'Vanduo Marse rezervacijos: nustatykite sistemos adresą Nustatymai → Vanduo Marse.', 'vanduo-marse-booking' ) . '</p>'
+			? '<p class="vm-booking-notice">' . esc_html__( 'Vanduo Marse rezervacijos: nustatykite sistemos adresą meniu „Rezervacijų sistema“.', 'vanduo-marse-booking' ) . '</p>'
 			: '';
 	}
 

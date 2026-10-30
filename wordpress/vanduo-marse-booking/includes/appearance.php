@@ -1,6 +1,6 @@
 <?php
 /**
- * Widget appearance: colours and fonts chosen in Settings → Vanduo Marse.
+ * Widget appearance: colours and fonts chosen under Rezervacijų sistema (top-level admin menu).
  * Stored as one option and sent to the app as query params on the iframe URL;
  * the app validates them again (lib/embed-theme.ts) and applies them as tokens.
  * Empty = the live Vanduo Marse look.
@@ -93,7 +93,7 @@ add_action(
 add_action(
 	'admin_enqueue_scripts',
 	function ( $hook ) {
-		if ( 'settings_page_vm-booking' !== $hook ) {
+		if ( 'toplevel_page_vm-booking' !== $hook ) {
 			return;
 		}
 		wp_enqueue_style( 'wp-color-picker' );

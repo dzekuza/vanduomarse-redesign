@@ -1,6 +1,6 @@
 <?php
 /**
- * Settings → Vanduo Marse: the address of the booking app (the Next.js site),
+ * Top-level admin menu "Rezervacijų sistema": the address of the booking app (the Next.js site),
  * the widget appearance (includes/appearance.php) and a live preview.
  */
 
@@ -27,12 +27,15 @@ add_action(
 add_action(
 	'admin_menu',
 	function () {
-		add_options_page(
-			__( 'Vanduo Marse rezervacijos', 'vanduo-marse-booking' ),
-			__( 'Vanduo Marse', 'vanduo-marse-booking' ),
+		// Own top-level item (not under Settings), right below Comments.
+		add_menu_page(
+			__( 'Rezervacijų sistema', 'vanduo-marse-booking' ),
+			__( 'Rezervacijų sistema', 'vanduo-marse-booking' ),
 			'manage_options',
 			'vm-booking',
-			'vm_booking_settings_page'
+			'vm_booking_settings_page',
+			'dashicons-calendar-alt',
+			26
 		);
 	}
 );
@@ -40,7 +43,8 @@ add_action(
 function vm_booking_settings_page() {
 	?>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Vanduo Marse rezervacijos', 'vanduo-marse-booking' ); ?></h1>
+		<h1><?php esc_html_e( 'Rezervacijų sistema', 'vanduo-marse-booking' ); ?></h1>
+		<?php settings_errors(); ?>
 		<form method="post" action="options.php">
 			<?php settings_fields( 'vm_booking' ); ?>
 			<table class="form-table" role="presentation">

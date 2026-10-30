@@ -1,4 +1,4 @@
-/** Settings → Vanduo Marse: WordPress colour pickers on the appearance fields. */
+/** Rezervacijų sistema (admin page): WordPress colour pickers on the appearance fields. */
 (function ($) {
   $(function () {
     $(".vm-booking-color").wpColorPicker();
