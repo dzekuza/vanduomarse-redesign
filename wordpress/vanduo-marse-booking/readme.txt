@@ -1,7 +1,7 @@
 === Vanduo Marse rezervacijos ===
 Requires at least: 6.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 
 Vanduo Marse rezervacijų formos (pirtis, keturračiai, nameliai, renginiai, kuponai) WordPress svetainėje.
@@ -23,6 +23,10 @@ Skirtukai: pirtis → tab="renginiai", keturraciai → tab="zygiai".
 
 Plotis: forma užima visą bloko, stulpelio ar šoninės juostos plotį ir prisitaiko prie jo
 (veikia nuo ~285 px). Bloke galima rinktis „Platus“ ar „Visas plotis“ lygiavimą.
+
+Išvaizda: Nustatymai → Vanduo Marse → „Išvaizda“: fono, turinio, suvestinės,
+teksto, akcento ir skirtukų spalvos, teksto ir antraščių šriftai (Google Fonts),
+antraščių raidės. Apačioje yra gyva peržiūra.
 
 == Installation ==
 

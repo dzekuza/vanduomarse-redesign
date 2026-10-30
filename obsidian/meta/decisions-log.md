@@ -10,6 +10,31 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0015 — Widget appearance travels as validated query params
+
+- **Status:** Accepted
+- **Date:** 2026-10-30
+
+**Context.** The WordPress site needs the booking widgets in its own colours
+and fonts (background, content, tabs, accent, text and heading fonts), set
+from the plugin's admin page.
+
+**Decision.** The plugin stores one `vm_booking_appearance` option and adds it
+to the iframe URL (`bg`, `surface`, `muted`, `text`, `accent`, `tab`,
+`tab_active`, `tab_text`, `font`, `heading`, `heading_case`). `EmbedTheme`
+validates them with `lib/embed-theme.ts` (hex colours only; font names
+`[A-Za-z0-9 ]` only) and emits `body.theme-marse{…}` overriding the semantic
+tokens, plus Google Fonts links. Tabs got their own `--tab*` tokens so they can
+differ from the page background. In-widget navigation carries the params.
+
+**Consequences.** No database table or app-side settings: WordPress owns its
+look, and a crafted URL can only restyle its own iframe. Values are a fixed
+set of tokens, not free CSS, so the booking UI cannot be broken from WP.
+Appearance is global per WordPress site (not per block). Fonts must be on
+Google Fonts.
+
+---
+
 ## ADR-0014 — WordPress booking widgets frame /embed routes
 
 - **Status:** Accepted

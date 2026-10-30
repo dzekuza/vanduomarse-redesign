@@ -17,6 +17,12 @@
   --signal: #f2b705;
   --line: rgba(17, 32, 31, 0.14);
   --line-on-ink: rgba(245, 241, 232, 0.16);
+  /* Booking tabs: own tokens so the WordPress widgets can recolour them apart
+     from the page background (ADR-0015). Redeclared in .theme-marse, because a
+     var() in a custom property resolves where it is declared. */
+  --tab: var(--dust);
+  --tab-active: var(--ink);
+  --tab-active-foreground: var(--foam);
   /* shadcn/ui tokens, mapped to the live brand (admin dashboard + any ui/ primitives). */
   --background: #fbf3ef;
   --foreground: #382e38;
@@ -75,6 +81,9 @@
   --color-signal: var(--signal);
   --color-line: var(--line);
   --color-line-on-ink: var(--line-on-ink);
+  --color-tab: var(--tab);
+  --color-tab-active: var(--tab-active);
+  --color-tab-active-foreground: var(--tab-active-foreground);
   --font-body: var(--font-work-sans);
   --font-heading: var(--font-termina);
   --font-sans: var(--font-termina);
@@ -212,6 +221,9 @@ html {
   --foam: var(--raw-blush-paper);
   --line: rgba(56, 46, 56, 0.14);
   --line-on-ink: rgba(251, 243, 239, 0.16);
+  --tab: var(--dust);
+  --tab-active: var(--ink);
+  --tab-active-foreground: var(--foam);
   background: var(--dust);
   color: var(--ink);
   font-family: var(--font-termina), system-ui, sans-serif;
