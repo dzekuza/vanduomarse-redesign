@@ -6,6 +6,15 @@
 (function () {
   var MESSAGE = "vm-embed:height";
 
+  /** Normalised origin of the configured app URL (drops default ports, lowercases host). */
+  function originOf(value) {
+    try {
+      return new URL(value).origin;
+    } catch (e) {
+      return null;
+    }
+  }
+
   window.addEventListener("message", function (event) {
     var data = event.data;
     if (!data || data.type !== MESSAGE || typeof data.height !== "number") return;
@@ -13,7 +22,7 @@
     var frames = document.querySelectorAll("iframe.vm-booking-frame");
     for (var i = 0; i < frames.length; i++) {
       var frame = frames[i];
-      if (frame.contentWindow !== event.source || frame.getAttribute("data-vm-origin") !== event.origin) continue;
+      if (frame.contentWindow !== event.source || originOf(frame.getAttribute("data-vm-origin")) !== event.origin) continue;
 
       var previous = frame.offsetHeight;
       var next = Math.max(0, Math.ceil(data.height));

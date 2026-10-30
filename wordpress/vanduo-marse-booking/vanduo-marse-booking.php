@@ -45,8 +45,12 @@ function vm_booking_app_origin() {
 	if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
 		return '';
 	}
-	$port = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
-	return $parts['scheme'] . '://' . $parts['host'] . $port;
+	$scheme = strtolower( $parts['scheme'] );
+	$host   = strtolower( $parts['host'] );
+	// Browsers omit default ports in event.origin, so drop them here too or embed.js never matches.
+	$default_port = ( 'https' === $scheme && 443 === (int) ( $parts['port'] ?? 0 ) ) || ( 'http' === $scheme && 80 === (int) ( $parts['port'] ?? 0 ) );
+	$port         = isset( $parts['port'] ) && ! $default_port ? ':' . $parts['port'] : '';
+	return $scheme . '://' . $host . $port;
 }
 
 /**

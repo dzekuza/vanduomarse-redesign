@@ -28,6 +28,8 @@ export function EmbedFrame({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Capture phase runs before next/link's own click handler.
     const onClick = (e: MouseEvent) => {
+      // Cmd/Ctrl/Shift/middle clicks keep the browser's own new-tab/window handling.
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const anchor = e.target instanceof Element ? e.target.closest("a[href]") : null;
       if (!(anchor instanceof HTMLAnchorElement) || anchor.target) return;
       const url = new URL(anchor.href);
