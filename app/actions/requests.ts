@@ -33,6 +33,7 @@ interface DbError {
 }
 
 const BY_HINT: Record<string, string> = {
+  sauna_unavailable: "Ši pirtis šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   sauna_closed: "Pasirinktas laikas už darbo valandų.",
   sauna_party: "Netinkamas žmonių skaičius.",
   sauna_past: "Pasirinkta data jau praėjo arba yra per toli.",
@@ -102,6 +103,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_sauna_booking", {
+    p_sauna_id: v.saunaId,
     p_date: v.date,
     p_start_hour: v.startHour,
     p_hours: v.hours,

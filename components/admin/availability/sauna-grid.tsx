@@ -2,19 +2,22 @@
 
 import { LockSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 import { useAdmin } from "../admin-store";
-import { saunaBookingAt } from "@/lib/admin/occupancy";
+import { saunaBookingAt, saunaSlice } from "@/lib/admin/occupancy";
 import { formatDay } from "@/lib/admin/format";
-import { formatHour } from "@/lib/sauna";
+import { formatHour, type Sauna } from "@/lib/sauna";
 
 interface SaunaGridProps {
+  sauna: Sauna;
   days: string[];
   onOpenBooking: (id: string) => void;
 }
 
-/** Hour-by-day sauna grid: booked, closed by staff, or free (click to close). */
-export function SaunaGrid({ days, onOpenBooking }: SaunaGridProps) {
-  const { bookings, blocks, saunaRates, toggleBlock } = useAdmin();
-  const hours = Array.from({ length: saunaRates.closeHour - saunaRates.openHour }, (_, i) => saunaRates.openHour + i);
+/** Hour-by-day grid for one sauna: booked, closed by staff, or free (click to close). */
+export function SaunaGrid({ sauna, days, onOpenBooking }: SaunaGridProps) {
+  const admin = useAdmin();
+  const { bookings, blocks } = saunaSlice(admin.bookings, admin.blocks, sauna.id);
+  const { openHour, closeHour } = sauna.rates;
+  const hours = Array.from({ length: closeHour - openHour }, (_, i) => openHour + i);
   const cols = days.length === 1 ? "grid-cols-[4rem_minmax(0,1fr)]" : "grid-cols-[4rem_repeat(7,minmax(0,1fr))]";
 
   return (
@@ -53,7 +56,7 @@ export function SaunaGrid({ days, onOpenBooking }: SaunaGridProps) {
               <button
                 key={day}
                 type="button"
-                onClick={() => toggleBlock(day, hour)}
+                onClick={() => admin.toggleBlock(sauna.id, day, hour)}
                 aria-label={`${blocked ? "Atidaryti" : "Uždaryti"} ${formatDay(day)} ${formatHour(hour)}`}
                 className={`group flex min-h-11 items-center justify-center border-r border-b ${
                   blocked ? "bg-hatch text-rust" : "hover:bg-muted"

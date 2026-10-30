@@ -16,7 +16,8 @@ type Editing = { upsell?: Upsell } | null;
 
 /** Extras offered in the sauna booking: price, unit, on/off, edit and delete. */
 export function UpsellsCard() {
-  const { upsells, saveUpsell, deleteUpsell } = useAdmin();
+  const { upsells, saunas, saveUpsell, deleteUpsell } = useAdmin();
+  const offeredBy = (id: string) => saunas.filter((s) => s.upsellIds.includes(id)).map((s) => s.name);
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<Upsell | null>(null);
 
@@ -24,7 +25,7 @@ export function UpsellsCard() {
     <Card>
       <CardHeader>
         <CardTitle>Papildomos paslaugos</CardTitle>
-        <CardDescription>Pirtininkas, vantos ir kiti priedai, kuriuos klientas renkasi rezervuodamas.</CardDescription>
+        <CardDescription>Bendras priedų sąrašas: pirtininkas, vantos ir kt. Kuri pirtis ką siūlo, nustatoma pirties nustatymuose.</CardDescription>
         <CardAction>
           <Button onClick={() => setEditing({})}>
             <PlusIcon size={18} /> <span className="hidden sm:inline">Nauja paslauga</span>
@@ -39,6 +40,7 @@ export function UpsellsCard() {
             <div className="min-w-0 flex-1">
               <p className={`truncate text-sm font-medium ${u.active ? "" : "text-muted-foreground line-through"}`}>{u.name}</p>
               <p className="truncate text-xs text-muted-foreground">{u.description}</p>
+              <p className="truncate text-xs text-muted-foreground">{offeredBy(u.id).join(", ") || "Nesiūloma jokioje pirtyje"}</p>
             </div>
             <p className="shrink-0 text-right text-sm tabular-nums">
               <span className="font-display font-bold">{u.price} €</span>

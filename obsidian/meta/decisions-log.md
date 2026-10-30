@@ -10,6 +10,37 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0017 — Several saunas, each with its own rates, photos and extras
+
+- **Status:** Accepted
+- **Date:** 2026-10-30
+
+**Context.** The park wants to offer more than one sauna type ("Suomiška",
+"Malkinė"). Rates lived in the single-row `sauna_settings`, extras applied to
+the one sauna, and bookings, closed hours and the overlap rule had no notion of
+which sauna.
+
+**Decision.** `public.saunas` (slug id) holds each sauna's details, `features
+text[]`, `photos text[]` (paths in the public Storage bucket `sauna-photos`,
+array order = display order) and the rate/limit columns that `sauna_settings`
+had. Extras stay one catalogue (`sauna_upsells`); `sauna_upsell_links` says which
+sauna offers which. `bookings.sauna_id` (required iff `kind = 'pirtis'`) and
+`sauna_blocks.sauna_id` scope the overlap exclusion and the closed-hour triggers
+per sauna. Public reads use `sauna_taken()` and `create_sauna_booking(p_sauna_id, …)`;
+the old signatures stay as thin compat wrappers for the deploy window. Staff
+access is keyed to the `pirtis` page (ADR-0012); reads also for `rezervacijos`,
+`uzimtumas`, `apzvalga`. Photos are resized to WebP in the browser and uploaded
+through a server action, so admin writes still go through `useAdmin()`.
+
+**Consequences.** Migration `20261030100000_saunas.sql` moves the current
+settings, every sauna booking, closed hour and extra into "Pirtis Marse", so
+nothing changes for visitors until a second sauna is switched on. The picker
+step appears only with two or more active saunas. `sauna_settings` is no longer
+read; drop it, the old `create_sauna_booking` overload and `sauna_taken_hours`
+in a later migration once no deployed app calls them.
+
+---
+
 ## ADR-0016 — The plugin updates itself from the app
 
 - **Status:** Accepted

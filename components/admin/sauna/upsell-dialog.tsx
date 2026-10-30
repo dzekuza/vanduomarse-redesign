@@ -66,7 +66,7 @@ export function UpsellDialog({ upsell, onOpenChange }: UpsellDialogProps) {
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{upsell ? "Redaguoti paslaugą" : "Nauja papildoma paslauga"}</DialogTitle>
-          <DialogDescription>Rodoma pirties rezervacijos žingsnyje „Papildomai“.</DialogDescription>
+          <DialogDescription>Rodoma žingsnyje „Papildomai“ tose pirtyse, kuriose ją įjungsite (pirties nustatymuose).</DialogDescription>
         </DialogHeader>
         <form id="upsell-form" onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">

@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.18"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       booking_extras: {
@@ -76,6 +101,7 @@ export type Database = {
           nights: number | null
           note: string | null
           reference: string
+          sauna_id: string | null
           source: Database["public"]["Enums"]["booking_source"]
           start_hour: number | null
           status: Database["public"]["Enums"]["booking_status"]
@@ -96,6 +122,7 @@ export type Database = {
           nights?: number | null
           note?: string | null
           reference: string
+          sauna_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
           start_hour?: number | null
           status?: Database["public"]["Enums"]["booking_status"]
@@ -116,6 +143,7 @@ export type Database = {
           nights?: number | null
           note?: string | null
           reference?: string
+          sauna_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
           start_hour?: number | null
           status?: Database["public"]["Enums"]["booking_status"]
@@ -124,6 +152,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_sauna_id_fkey"
+            columns: ["sauna_id"]
+            isOneToOne: false
+            referencedRelation: "saunas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_stay_type_fk"
             columns: ["stay_type_id", "kind"]
@@ -673,6 +708,7 @@ export type Database = {
           hour: number
           id: string
           reason: string
+          sauna_id: string
         }
         Insert: {
           created_at?: string
@@ -681,6 +717,7 @@ export type Database = {
           hour: number
           id?: string
           reason?: string
+          sauna_id: string
         }
         Update: {
           created_at?: string
@@ -689,8 +726,17 @@ export type Database = {
           hour?: number
           id?: string
           reason?: string
+          sauna_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sauna_blocks_sauna_id_fkey"
+            columns: ["sauna_id"]
+            isOneToOne: false
+            referencedRelation: "saunas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sauna_event_templates: {
         Row: {
@@ -779,6 +825,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sauna_upsell_links: {
+        Row: {
+          sauna_id: string
+          upsell_id: string
+        }
+        Insert: {
+          sauna_id: string
+          upsell_id: string
+        }
+        Update: {
+          sauna_id?: string
+          upsell_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sauna_upsell_links_sauna_id_fkey"
+            columns: ["sauna_id"]
+            isOneToOne: false
+            referencedRelation: "saunas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sauna_upsell_links_upsell_id_fkey"
+            columns: ["upsell_id"]
+            isOneToOne: false
+            referencedRelation: "sauna_upsells"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sauna_upsells: {
         Row: {
           active: boolean
@@ -814,6 +890,72 @@ export type Database = {
           price?: number
           sort_order?: number
           unit?: Database["public"]["Enums"]["upsell_unit"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saunas: {
+        Row: {
+          active: boolean
+          close_hour: number
+          created_at: string
+          description: string
+          features: string[]
+          id: string
+          large_group_rate: number
+          max_hours: number
+          max_party: number
+          min_hours: number
+          name: string
+          open_hour: number
+          package_hours: number
+          package_price: number
+          photos: string[]
+          small_group_max: number
+          small_group_rate: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          close_hour: number
+          created_at?: string
+          description?: string
+          features?: string[]
+          id: string
+          large_group_rate: number
+          max_hours: number
+          max_party: number
+          min_hours: number
+          name: string
+          open_hour: number
+          package_hours: number
+          package_price: number
+          photos?: string[]
+          small_group_max: number
+          small_group_rate: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          close_hour?: number
+          created_at?: string
+          description?: string
+          features?: string[]
+          id?: string
+          large_group_rate?: number
+          max_hours?: number
+          max_party?: number
+          min_hours?: number
+          name?: string
+          open_hour?: number
+          package_hours?: number
+          package_price?: number
+          photos?: string[]
+          small_group_max?: number
+          small_group_rate?: number
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -958,64 +1100,6 @@ export type Database = {
           reference: string
         }[]
       }
-      create_quad_rental: {
-        Args: {
-          p_date: string
-          p_email?: string
-          p_hours: number
-          p_name: string
-          p_note?: string
-          p_phone?: string
-          p_riders: number
-          p_start_hour: number
-          p_type_id: string
-          p_units: number
-        }
-        Returns: {
-          id: string
-          reference: string
-          total: number
-        }[]
-      }
-      create_sauna_booking: {
-        Args: {
-          p_coupon?: string
-          p_date: string
-          p_email?: string
-          p_extras: Json
-          p_hours: number
-          p_name: string
-          p_note?: string
-          p_party: number
-          p_phone?: string
-          p_start_hour: number
-        }
-        Returns: {
-          discount: number
-          id: string
-          reference: string
-          total: number
-        }[]
-      }
-      create_stay_booking: {
-        Args: {
-          p_coupon?: string
-          p_date: string
-          p_email?: string
-          p_guests: number
-          p_name: string
-          p_nights: number
-          p_note?: string
-          p_phone?: string
-          p_stay_type_id: string
-        }
-        Returns: {
-          discount: number
-          id: string
-          reference: string
-          total: number
-        }[]
-      }
       create_event_ticket: {
         Args: {
           p_email?: string
@@ -1028,19 +1112,6 @@ export type Database = {
           id: string
           reference: string
           total: number
-        }[]
-      }
-      register_for_event: {
-        Args: {
-          p_email?: string
-          p_event_id: string
-          p_message?: string
-          p_name: string
-          p_people: number
-          p_phone?: string
-        }
-        Returns: {
-          id: string
         }[]
       }
       create_inquiry: {
@@ -1061,6 +1132,86 @@ export type Database = {
           id: string
         }[]
       }
+      create_quad_rental: {
+        Args: {
+          p_date: string
+          p_email?: string
+          p_hours: number
+          p_name: string
+          p_note?: string
+          p_phone?: string
+          p_riders: number
+          p_start_hour: number
+          p_type_id: string
+          p_units: number
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_sauna_booking:
+        | {
+            Args: {
+              p_coupon?: string
+              p_date: string
+              p_email?: string
+              p_extras: Json
+              p_hours: number
+              p_name: string
+              p_note?: string
+              p_party: number
+              p_phone?: string
+              p_start_hour: number
+            }
+            Returns: {
+              discount: number
+              id: string
+              reference: string
+              total: number
+            }[]
+          }
+        | {
+            Args: {
+              p_coupon?: string
+              p_date: string
+              p_email?: string
+              p_extras: Json
+              p_hours: number
+              p_name: string
+              p_note?: string
+              p_party: number
+              p_phone?: string
+              p_sauna_id: string
+              p_start_hour: number
+            }
+            Returns: {
+              discount: number
+              id: string
+              reference: string
+              total: number
+            }[]
+          }
+      create_stay_booking: {
+        Args: {
+          p_coupon?: string
+          p_date: string
+          p_email?: string
+          p_guests: number
+          p_name: string
+          p_nights: number
+          p_note?: string
+          p_phone?: string
+          p_stay_type_id: string
+        }
+        Returns: {
+          discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
       create_tour_ticket: {
         Args: {
           p_email?: string
@@ -1075,6 +1226,14 @@ export type Database = {
           total: number
         }[]
       }
+      expire_pending_requests: {
+        Args: never
+        Returns: {
+          bookings: number
+          rentals: number
+          tickets: number
+        }[]
+      }
       materialize_sauna_events: {
         Args: { p_days?: number; p_from: string }
         Returns: number
@@ -1086,6 +1245,27 @@ export type Database = {
           hour: number
           quad_type_id: string
           taken: number
+        }[]
+      }
+      register_for_event: {
+        Args: {
+          p_email?: string
+          p_event_id: string
+          p_message?: string
+          p_name: string
+          p_people: number
+          p_phone?: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
+      sauna_taken: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          day: string
+          hour: number
+          sauna_id: string
         }[]
       }
       sauna_taken_hours: {
@@ -1261,6 +1441,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       booking_kind: ["pirtis", "namelis", "kemperis"],

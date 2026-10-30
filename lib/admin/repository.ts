@@ -1,7 +1,8 @@
 import "server-only";
 import { isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toInquiry, toManagedEvent, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSaunaRates, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toInquiry, toManagedEvent, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSauna, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
 /**
@@ -33,13 +34,13 @@ export async function currentStaff(supabase: ServerSupabase) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, settings, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
     supabase.from("events").select("*").order("date").order("start_time"),
     supabase.from("price_items").select("*").order("sort_order"),
-    supabase.from("sauna_settings").select("*").single(),
+    supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").order("sort_order").order("created_at"),
     supabase.from("sauna_upsells").select("*").order("sort_order"),
     supabase.from("coupons").select("*, coupon_redemptions(id, amount, note, created_at)").order("created_at", { ascending: false }),
     supabase.from("coupon_products").select("*").order("sort_order"),
@@ -60,7 +61,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("staff").select("*").order("created_at"),
   ]);
 
-  for (const res of [bookings, blocks, inquiries, events, prices, settings, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
+  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
@@ -70,7 +71,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     inquiries: inquiries.data!.map(toInquiry),
     events: events.data!.map(toManagedEvent),
     prices: prices.data!.map(toPriceItem),
-    saunaRates: toSaunaRates(settings.data!),
+    saunas: saunas.data!.map((r) => toSauna(r, r.sauna_upsell_links, supabaseEnv().url)),
     upsells: upsells.data!.map(toUpsell),
     coupons: coupons.data!.map(toCoupon),
     couponProducts: couponProducts.data!.map(toCouponProduct),

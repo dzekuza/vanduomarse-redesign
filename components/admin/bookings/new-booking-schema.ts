@@ -9,6 +9,7 @@ const int = (msg: string) => z.string().trim().regex(/^\d+$/, msg);
 export const newBookingSchema = z
   .object({
     kind: z.enum(["pirtis", "namelis", "kemperis"]),
+    saunaId: z.string(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite datą."),
     startHour: z.string(),
     hours: z.string(),
@@ -24,6 +25,7 @@ export const newBookingSchema = z
   })
   .superRefine((v, ctx) => {
     if (v.kind === "pirtis") {
+      if (!v.saunaId) ctx.addIssue({ code: "custom", path: ["saunaId"], message: "Pasirinkite pirtį." });
       if (!v.startHour) ctx.addIssue({ code: "custom", path: ["startHour"], message: "Pasirinkite laisvą laiką." });
       if (!v.hours) ctx.addIssue({ code: "custom", path: ["hours"], message: "Pasirinkite trukmę." });
     } else if (!/^\d+$/.test(v.nights) || Number(v.nights) < 1 || Number(v.nights) > 14) {

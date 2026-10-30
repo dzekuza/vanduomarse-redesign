@@ -9,7 +9,7 @@ import type { PermissionId } from "@/lib/admin/permissions";
 import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
-import type { SaunaRates } from "@/lib/sauna";
+import type { SaunaValues } from "./sauna/sauna-schema";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
@@ -23,14 +23,17 @@ type Action =
   | { type: "reset"; data: AdminData }
   | { type: "booking/status"; id: string; status: BookingStatus }
   | { type: "booking/add"; booking: Booking }
-  | { type: "block/toggle"; date: string; hour: number; reason: string }
+  | { type: "block/toggle"; saunaId: string; date: string; hour: number; reason: string }
   | { type: "inquiry/status"; id: string; status: InquiryStatus }
   | { type: "inquiry/note"; id: string; text: string }
   | { type: "event/upsert"; event: ManagedEvent }
   | { type: "event/delete"; id: string }
   | { type: "event/publish"; id: string; published: boolean }
   | { type: "prices/update"; items: PriceItem[] }
-  | { type: "sauna/rates"; rates: SaunaRates }
+  | { type: "sauna/active"; id: string; active: boolean }
+  | { type: "sauna/order"; ids: string[] }
+  | { type: "sauna/delete"; id: string }
+  | { type: "sauna/photos"; id: string; paths: string[] }
   | { type: "upsell/upsert"; upsell: Upsell }
   | { type: "upsell/delete"; id: string }
   | { type: "coupon/cancel"; id: string }
@@ -58,12 +61,15 @@ function reducer(state: AdminData, action: Action): AdminData {
     case "booking/add":
       return { ...state, bookings: [...state.bookings, action.booking] };
     case "block/toggle": {
-      const exists = state.blocks.some((b) => b.date === action.date && b.hour === action.hour);
+      const same = (b: { saunaId: string; date: string; hour: number }) => b.saunaId === action.saunaId && b.date === action.date && b.hour === action.hour;
       return {
         ...state,
-        blocks: exists
-          ? state.blocks.filter((b) => !(b.date === action.date && b.hour === action.hour))
-          : [...state.blocks, { id: `pending-${action.date}-${action.hour}`, date: action.date, hour: action.hour, reason: action.reason }],
+        blocks: state.blocks.some(same)
+          ? state.blocks.filter((b) => !same(b))
+          : [
+              ...state.blocks,
+              { id: `pending-${action.saunaId}-${action.date}-${action.hour}`, saunaId: action.saunaId, date: action.date, hour: action.hour, reason: action.reason },
+            ],
       };
     }
     case "inquiry/status":
@@ -88,8 +94,21 @@ function reducer(state: AdminData, action: Action): AdminData {
       const next = new Map(action.items.map((i) => [i.id, i]));
       return { ...state, prices: state.prices.map((p) => next.get(p.id) ?? p) };
     }
-    case "sauna/rates":
-      return { ...state, saunaRates: action.rates };
+    case "sauna/active":
+      return { ...state, saunas: state.saunas.map((s) => (s.id === action.id ? { ...s, active: action.active } : s)) };
+    case "sauna/order": {
+      const at = new Map(action.ids.map((id, i) => [id, i]));
+      return { ...state, saunas: [...state.saunas].sort((a, b) => (at.get(a.id) ?? 0) - (at.get(b.id) ?? 0)) };
+    }
+    case "sauna/delete":
+      return { ...state, saunas: state.saunas.filter((s) => s.id !== action.id) };
+    case "sauna/photos":
+      return {
+        ...state,
+        saunas: state.saunas.map((s) =>
+          s.id === action.id ? { ...s, photos: action.paths.flatMap((p) => s.photos.filter((ph) => ph.path === p)) } : s,
+        ),
+      };
     case "upsell/upsert": {
       const exists = state.upsells.some((u) => u.id === action.upsell.id);
       return {
@@ -173,9 +192,9 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "booking/add", booking: result.data });
         return result;
       },
-      toggleBlock: (date: string, hour: number, reason = "Uždaryta") => {
-        dispatch({ type: "block/toggle", date, hour, reason });
-        return report(actions.toggleBlock(date, hour, reason));
+      toggleBlock: (saunaId: string, date: string, hour: number, reason = "Uždaryta") => {
+        dispatch({ type: "block/toggle", saunaId, date, hour, reason });
+        return report(actions.toggleBlock(saunaId, date, hour, reason));
       },
       setInquiryStatus: (id: string, status: InquiryStatus) => {
         dispatch({ type: "inquiry/status", id, status });
@@ -201,9 +220,27 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "prices/update", items });
         return report(actions.updatePrices(items));
       },
-      updateSaunaRates: (rates: SaunaRates) => {
-        dispatch({ type: "sauna/rates", rates });
-        return report(actions.updateSaunaRates(rates));
+      /** Not optimistic: a new sauna's id comes from the server. */
+      saveSauna: (id: string | null, values: SaunaValues) => report(actions.saveSauna(id, values)),
+      setSaunaActive: (id: string, active: boolean) => {
+        dispatch({ type: "sauna/active", id, active });
+        return report(actions.setSaunaActive(id, active));
+      },
+      reorderSaunas: (ids: string[]) => {
+        dispatch({ type: "sauna/order", ids });
+        return report(actions.reorderSaunas(ids));
+      },
+      /** Not optimistic: refused while the sauna has bookings. */
+      deleteSauna: (id: string) => report(actions.deleteSauna(id)),
+      /** Not optimistic: the stored path comes from the server. */
+      uploadSaunaPhoto: (saunaId: string, form: FormData) => report(actions.uploadSaunaPhoto(saunaId, form)),
+      removeSaunaPhoto: (saunaId: string, path: string, remaining: string[]) => {
+        dispatch({ type: "sauna/photos", id: saunaId, paths: remaining });
+        return report(actions.removeSaunaPhoto(saunaId, path));
+      },
+      reorderSaunaPhotos: (saunaId: string, paths: string[]) => {
+        dispatch({ type: "sauna/photos", id: saunaId, paths });
+        return report(actions.reorderSaunaPhotos(saunaId, paths));
       },
       saveUpsell: (upsell: Upsell) => {
         dispatch({ type: "upsell/upsert", upsell });

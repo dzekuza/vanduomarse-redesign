@@ -52,18 +52,23 @@ feature components in `components/<feature>/`. Admin screens build on
 | `NewBookingDialog` | `components/admin/bookings/new-booking-dialog.tsx` | Staff-entered booking: free slots only, live price, override; saves via `createBooking`, DB conflicts land on the slot field | stable |
 | `BookingWhenFields` / `BookingCustomerFields` / `BookingExtrasFields` | `components/admin/bookings/` | Sections of the manual booking form (slot or nights; contact/status/note; sauna extras) | stable |
 | `FormField` | `components/admin/form-field.tsx` | Label + control + inline error/hint for admin forms | stable |
-| `AvailabilityView` / `SaunaGrid` / `StaysStrip` | `components/admin/availability/` | Week (or day, on phones) sauna grid with close/reopen; cabin occupancy | stable |
+| `AvailabilityView` / `SaunaGrid` / `StaysStrip` | `components/admin/availability/` | Week (or day, on phones) grid for one sauna (picker when there are several) with close/reopen; cabin occupancy | stable |
 | `InquiriesView` / `InquirySheet` / `NoteForm` | `components/admin/inquiries/` | Status chips, cards, sheet with status + notes | stable |
 | `EventsView` / `EventDialog` / `DeleteEventDialog` | `components/admin/events/` | Events table, RHF+Zod create/edit, delete confirm | stable |
-| `SaunaView` / `SaunaRatesForm` / `PricePreview` | `components/admin/sauna/` | Sauna rates + rules (Zod cross-checks) with live price table | stable |
-| `UpsellsCard` / `UpsellDialog` | `components/admin/sauna/` | Manage sauna extras: add/edit/hide/delete, unit and max items | stable |
+| `SaunaView` / `SaunasCard` | `components/admin/sauna/` | Sauna list: cover, from-rate, on/off, up/down order, edit link, delete (refused while bookings exist) | stable |
+| `SaunaEditor` / `SaunaForm` | `components/admin/sauna/` | `/admin/pirtis/nauja` and `/[id]`: `SaunaDetailsFields` (name, description, features field array, visibility), `SaunaRatesFields` + `PricePreview`, `SaunaUpsellsField` (offered extras); `saunaSchema` | stable |
+| `SaunaPhotosCard` | `components/admin/sauna/sauna-photos-card.tsx` | Upload (resized to WebP), reorder, remove; first photo is the cover; saves immediately | stable |
+| `SaunaSelect` | `components/admin/sauna/sauna-select.tsx` | Sauna dropdown (hidden ones marked) for Užimtumas and the manual booking form | stable |
+| `UpsellsCard` / `UpsellDialog` | `components/admin/sauna/` | Shared extras catalogue: add/edit/hide/delete, unit and max items; shows which saunas offer each | stable |
 | `PricingView` / `PriceGroupForm` | `components/admin/pricing/` | Grouped price editor, range validation | stable |
 | `BookingStatusBadge` / `InquiryStatusBadge` | `components/admin/status-badge.tsx` | Status chips with brand tones | stable |
 | `BookingPage` | `components/booking/booking-page.tsx` | Page shell: header, content, footer (theme now comes from `<body>`) | stable |
 | `BookingHero` | `components/booking/booking-hero.tsx` | Eyebrow, uppercase title, intro, facts, bento gallery on the left; booking form (`children`) sticky on the right | stable |
 | `StepLabel` | `components/booking/step-label.tsx` | Numbered step heading (`01 PASIRINK DIENĄ`) | stable |
 | `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` (wraps under the label in narrow widths); colours from the `--tab*` tokens | stable |
-| `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai`; takes `SaunaPageData` (rates, extras, taken hours, sessions) from the page | stable |
+| `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai`; `initialSaunaId` from `?pirtis=`; takes `SaunaPageData` (saunas, extras, taken hours per sauna, sessions) from the page | stable |
+| `SaunaHire` | `components/booking/sauna-hire.tsx` | Private hire: `SaunaPicker` as step 1 when 2+ saunas are active, then `SaunaBooking` keyed by sauna (state resets on switch); empty state without saunas | stable |
+| `SaunaPicker` | `components/booking/sauna-picker.tsx` | Sauna cards: cover photo (or icon), name, description, feature chips, "nuo X €/val." | stable |
 | `SaunaEventBooking` | `components/booking/sauna-event-booking.tsx` | Pick a public session (`EventList`), choose tickets, confirm | stable |
 | `EventList` | `components/booking/event-list.tsx` | Radio-group rows of upcoming sessions with spots left and price | stable |
 | `BookingCard` / `BookingTotal` | `components/booking/booking-card.tsx` | Outlined form shell with summary + action footer bar | stable |

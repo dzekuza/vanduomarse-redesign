@@ -5,6 +5,8 @@ import { VENUE, at } from "@/lib/calendar";
 import { longDateLabel } from "@/lib/sauna";
 
 interface ConfirmationProps {
+  /** Sauna name. */
+  title: string;
   reference: string;
   date: Date;
   time: string;
@@ -18,10 +20,10 @@ interface ConfirmationProps {
   onReset: () => void;
 }
 
-export function Confirmation({ reference, date, time, startHour, hours, partySize, extras, total, coupon, onReset }: ConfirmationProps) {
+export function Confirmation({ title, reference, date, time, startHour, hours, partySize, extras, total, coupon, onReset }: ConfirmationProps) {
   return (
     <Receipt
-      title="Pirtis Marse"
+      title={title}
       reference={reference}
       rows={[
         { label: "Data", value: longDateLabel(date) },
