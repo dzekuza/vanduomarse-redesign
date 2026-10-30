@@ -45,11 +45,11 @@ export function BookingTabs<T extends string>({ tabs, value, onChange, children 
               tabIndex={active ? 0 : -1}
               onClick={() => onChange(tab.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
-              className={`-mb-px border border-ink px-4 py-4 text-left transition-colors sm:px-6 [&+&]:-ml-px ${
+              className={`-mb-px min-w-0 border border-ink px-3 py-4 text-left wrap-break-word transition-colors sm:px-6 [&+&]:-ml-px ${
                 active ? "bg-ink text-foam" : "bg-dust text-ink hover:bg-dust-soft"
               }`}
             >
-              <span className="flex items-center gap-2 text-sm font-semibold uppercase">
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold uppercase">
                 {tab.label}
                 {tab.badge ? <CountBadge count={tab.badge} /> : null}
               </span>

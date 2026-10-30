@@ -14,7 +14,7 @@ export function Stepper({
   label: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border border-ink py-2 pl-4 pr-2">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border border-ink py-2 pl-4 pr-2">
       <span className="text-sm text-ink/70">{label}</span>
       <div className="flex shrink-0 items-center gap-1">
         <button

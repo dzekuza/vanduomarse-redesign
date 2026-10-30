@@ -1,8 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { frameAncestors } from "@/lib/embed";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 const LOGIN_PATH = "/admin/prisijungti";
+
+/**
+ * /embed/* (booking widgets): only the origins in EMBED_ALLOWED_ORIGINS may
+ * frame them. Read per request (on Vercel an env change still needs a redeploy).
+ */
+function embedResponse() {
+  const response = NextResponse.next();
+  response.headers.set("Content-Security-Policy", `frame-ancestors ${frameAncestors(process.env.EMBED_ALLOWED_ORIGINS)}`);
+  return response;
+}
 
 /**
  * Refreshes the Supabase session cookie on /admin requests and sends signed-out
@@ -10,6 +21,8 @@ const LOGIN_PATH = "/admin/prisijungti";
  * layout (and in RLS) — this only gates on "signed in at all".
  */
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/embed")) return embedResponse();
+
   let response = NextResponse.next({ request });
   const { url, anonKey } = supabaseEnv();
 
@@ -39,5 +52,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/embed/:path*"],
 };

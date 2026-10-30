@@ -1,6 +1,6 @@
 ---
 tags: [frontend, stable]
-updated: 2026-10-22
+updated: 2026-10-30
 ---
 
 # Routing
@@ -36,6 +36,7 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 | `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking`; data from `getCabinPageData()` | stable |
 | `/renginiai` | `BookingPage` + `EventsBoard`; data from `getParkEvents()` | stable |
 | `/skaiciuokle` | `BookingPage` + `EventCalculator` | stable |
+| `/embed/pirtis`, `/embed/keturraciai`, `/embed/miegas`, `/embed/renginiai`, `/embed/kuponai` | `app/embed/layout.tsx` (`EmbedFrame`, noindex) + the bare booking component of the matching page (same data reads, same `?skirtukas=`); no header, footer, hero or sticker dock. Framed by the WordPress plugin; only `EMBED_ALLOWED_ORIGINS` may frame them (ADR-0014) | stable |
 | `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/keturraciai`, `/kuponai`, `/renginiai`, `/pirtis`, `/kainos`) | `app/admin/layout.tsx` (noindex metadata) → `app/admin/(panel)/layout.tsx` (staff check, `loadAdminData`, sidebar shell, `AdminStoreProvider`) + one view per page | Supabase, staff login (ADR-0007); each page checks its role permission (`requirePermission`, ADR-0012) and bounces to the first page the role allows |
 | `/admin/darbuotojai` | `StaffView` (tabs Darbuotojai / Rolės). Owner-only: `requirePermission("owner")` | stable |
 | `/admin/prisijungti` | `AuthCard` + `LoginForm` (outside the panel group) | stable |

@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-22
+updated: 2026-10-30
 ---
 
 # Common Components Catalog
@@ -20,9 +20,11 @@ feature components in `components/<feature>/`. Admin screens build on
 | `TrackStats` | `components/track-stats.tsx` | Park numbers (620 m, 6, 17, 8) as oversized coral figures in a `dl`, 2 cols below `lg`, 4 from `lg` (numerals `7xl` → `8xl` at `md` → `9xl` at `xl`, so "620 m" never collides with the next figure) | stable |
 | `StatusBar` | `components/status-bar.tsx` | Rounded `bg-card` block: pulsing status line (half width from `lg`) + one labelled day/time list per season (`dl`, tabular numbers); stacks below `md` | stable |
 | `ContactBar` | `components/contact-bar.tsx` | Thin blush strip above `SiteHeader` (rendered by it): main phone (`tel:`), email (icon-only below `sm`), map link ("Žemėlapis" / address from `md`); scrolls away, header stays sticky | stable |
-| `StickerDock` | `components/sticker-dock.tsx` | Zone stickers (Vanduo, Akademija, Skoniai, Miegas) from `public/brand/sticker-*.svg`: frosted glass (`bg-foam/50` + `backdrop-blur-xl backdrop-saturate-150`); full-width bottom bar below `lg`, floating hug-width dock 24 px above the edge from `lg`; active page raised; hidden in `/admin` and, below `lg`, on `/skaiciuokle` (own bottom bar). Rendered in the root layout | stable |
+| `StickerDock` | `components/sticker-dock.tsx` | Zone stickers (Vanduo, Akademija, Skoniai, Miegas) from `public/brand/sticker-*.svg`: frosted glass (`bg-foam/50` + `backdrop-blur-xl backdrop-saturate-150`); full-width bottom bar below `lg`, floating hug-width dock 24 px above the edge from `lg`; active page raised; hidden in `/admin` and `/embed`, and below `lg`, on `/skaiciuokle` (own bottom bar). Rendered in the root layout | stable |
 | `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-11/12; no longer in the footer) | stable |
 | `QuadReservation` | `components/quads/quad-reservation.tsx` | `/keturraciai` tabs (`BookingTabs`): hourly rental / guided tours (badge = tours with seats) | stable |
+| `QuadRules` | `components/quads/quad-rules.tsx` | Bordered "Taisyklės" block with the admin rules text; renders nothing when empty. Used on `/keturraciai` and `/embed/keturraciai` | stable |
+| `EmbedFrame` | `components/embed/embed-frame.tsx` | `/embed/*` wrapper (no side padding below `sm`, so it fills narrow blocks; all widgets fit from 285 px): posts `{ type: "vm-embed:height", height }` to the parent on every resize (ResizeObserver); internal links to a booking route open its `/embed` twin in place, any other internal link opens in a new tab | stable |
 | `QuadRental` / `QuadTypeStep` / `StartGrid` / `DurationGrid` | `components/quads/` | Day strip (free count per day) → quad type + count + riders → start hours (only while `units` stay free; today's past hours off) → length → contact (RHF + `quadContactSchema`). Submits a request via `createQuadRental`; availability comes from `quad_taken` | stable |
 | `TourBooking` | `components/quads/tour-booking.tsx` | Reuses `EventList` (tours mapped to `SaunaEvent`), seats stepper, contact; empty state when no tours | stable |
 | `ContactFields` / `RequestConfirmation` | `components/quads/` | Name/phone/email (+ honeypot) via `useFormContext`; ticket-style "request received" panel that says staff still confirm | stable |
@@ -59,7 +61,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `BookingPage` | `components/booking/booking-page.tsx` | Page shell: header, content, footer (theme now comes from `<body>`) | stable |
 | `BookingHero` | `components/booking/booking-hero.tsx` | Eyebrow, uppercase title, intro, facts, bento gallery on the left; booking form (`children`) sticky on the right | stable |
 | `StepLabel` | `components/booking/step-label.tsx` | Numbered step heading (`01 PASIRINK DIENĄ`) | stable |
-| `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` | stable |
+| `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` (wraps under the label in narrow widths) | stable |
 | `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai`; takes `SaunaPageData` (rates, extras, taken hours, sessions) from the page | stable |
 | `SaunaEventBooking` | `components/booking/sauna-event-booking.tsx` | Pick a public session (`EventList`), choose tickets, confirm | stable |
 | `EventList` | `components/booking/event-list.tsx` | Radio-group rows of upcoming sessions with spots left and price | stable |
@@ -75,7 +77,8 @@ feature components in `components/<feature>/`. Admin screens build on
 | `PresetPicker` | `components/calculator/preset-picker.tsx` | Event-type chips that pre-fill a typical setup | stable |
 | `OptionToggle` | `components/calculator/option-toggle.tsx` | Full-width on/off add-on row (`role="switch"`) with price hint | stable |
 | `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos: 2x2 lead tile plus four small tiles, hover zoom; one image goes full width | stable |
-| `UpsellPicker` | `components/booking/upsell-picker.tsx` | Active sauna extras: on/off rows or steppers (capped at group size) with live cost | stable |
+| `Stepper` | `components/booking/stepper.tsx` | Label + −/value/+ (44 px buttons) between `min` and `max`; the controls wrap under a long label in narrow widths | stable |
+| `UpsellPicker` | `components/booking/upsell-picker.tsx` | Active sauna extras: on/off rows or steppers (capped at group size) with live cost; one column below `sm` that shrinks to fit (`grid-cols-1`) | stable |
 | `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times from the live rates showing the longest bookable run (taken hours from `sauna_taken_hours()`); disabled when the minimum does not fit | stable |
 | `DurationPicker` | `components/booking/duration-picker.tsx` | Min–max hour options from the live rates, each with end time and price for the group size | stable |
 | `DayPicker` | `components/booking/day-picker.tsx` | Sideways date strip; optional `note` adds a third line (e.g. "liko 3") and can disable a day | stable |
