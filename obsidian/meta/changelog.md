@@ -9,6 +9,16 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-30 — Sauna hides start times that have passed
+
+- **What:** `/pirtis` (and its embed) get the Vilnius hour from the server
+  (`SaunaPageData.nowHour`). Today's starts up to and including the current
+  hour show "Praėjo" and are disabled; days with no open start are disabled
+  in the day strip ("Uždaryta" once today is over, "Užimta" when fully
+  booked) and the form opens on the first bookable day. `createSaunaBooking`
+  refuses past dates and starts too, for pages left open for hours.
+- **Why:** at 17:00 the form still offered 10:00 today.
+
 ## 2026-10-30 — WordPress plugin updates from the Plugins page
 
 - **What:** `pnpm build` runs `build:wp-plugin` first, publishing

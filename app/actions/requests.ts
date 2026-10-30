@@ -16,6 +16,7 @@ import {
 } from "@/lib/request-schema";
 import type { Json } from "@/lib/supabase/database.types";
 import { describeRequest, notifyBookingReceived, notifyReceived, notifyStaff, saunaSummary } from "@/lib/sms/notify";
+import { todayKey, vilniusHour } from "@/lib/sauna";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -93,6 +94,11 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
   const v = parsed.data;
   // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
   if (v.website) return { data: { reference: "PM-0000", total: 0, discount: 0 } };
+  // The page may have been open for hours: a start that has passed since is refused here too.
+  const today = todayKey();
+  if (v.date < today || (v.date === today && v.startHour <= vilniusHour())) {
+    return fail("Šis laikas jau praėjo. Pasirinkite kitą.", "taken");
+  }
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_sauna_booking", {
