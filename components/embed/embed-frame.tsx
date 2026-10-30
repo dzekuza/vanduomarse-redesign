@@ -8,6 +8,8 @@ import { EMBED_HEIGHT_MESSAGE, toEmbedPath } from "@/lib/embed";
  * Wrapper for /embed/* pages inside an iframe. Reports the content height to the
  * parent page (the WordPress plugin resizes the iframe) and keeps internal links
  * sane: a booking route opens its embed twin in place, anything else a new tab.
+ * Width follows the iframe, i.e. the block it sits in: no side padding below
+ * `sm` so narrow blocks (sidebars) get the full width.
  */
 export function EmbedFrame({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,7 +43,7 @@ export function EmbedFrame({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <div ref={ref} className="px-4 py-6 md:px-6">
+    <div ref={ref} className="py-4 sm:px-4 sm:py-6 md:px-6">
       {children}
     </div>
   );

@@ -46,12 +46,12 @@ function vm_booking_settings_page() {
 				<tr>
 					<th scope="row"><label for="vm-booking-url"><?php esc_html_e( 'Sistemos adresas', 'vanduo-marse-booking' ); ?></label></th>
 					<td>
-						<input type="url" id="vm-booking-url" class="regular-text" name="<?php echo esc_attr( VM_BOOKING_OPTION ); ?>" value="<?php echo esc_attr( get_option( VM_BOOKING_OPTION, '' ) ); ?>" placeholder="https://rezervacijos.vanduomarse.lt" />
+						<input type="url" id="vm-booking-url" class="regular-text" name="<?php echo esc_attr( VM_BOOKING_OPTION ); ?>" value="<?php echo esc_attr( get_option( VM_BOOKING_OPTION, '' ) ); ?>" placeholder="<?php echo esc_attr( VM_BOOKING_DEFAULT_URL ); ?>" />
 						<p class="description">
 							<?php
 							printf(
 								/* translators: %s: this site's origin */
-								esc_html__( 'Rezervacijų sistemos (Next.js) adresas. Sistemos aplinkos kintamajame EMBED_ALLOWED_ORIGINS turi būti šios svetainės adresas: %s', 'vanduo-marse-booking' ),
+								esc_html__( 'Rezervacijų sistemos (Next.js) adresas; tuščias = numatytasis. Sistemos aplinkos kintamajame EMBED_ALLOWED_ORIGINS turi būti šios svetainės adresas: %s', 'vanduo-marse-booking' ),
 								'<code>' . esc_html( untrailingslashit( home_url() ) ) . '</code>'
 							);
 							?>

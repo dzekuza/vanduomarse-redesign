@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Vanduo Marse rezervacijos
  * Description:       Pirties, keturračių, namelių, renginių ir kuponų rezervacijos iš Vanduo Marse sistemos: trumpasis kodas [vm_booking], Gutenberg blokas ir valdiklis.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Vanduo Marse
@@ -17,8 +17,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VM_BOOKING_VERSION', '1.0.0' );
+define( 'VM_BOOKING_VERSION', '1.1.0' );
 define( 'VM_BOOKING_OPTION', 'vm_booking_app_url' );
+/** Production booking app; Settings → Vanduo Marse overrides it (e.g. a custom domain). */
+define( 'VM_BOOKING_DEFAULT_URL', 'https://vanduomarse-redesign.vercel.app' );
 define( 'VM_BOOKING_URL', plugin_dir_url( __FILE__ ) );
 define( 'VM_BOOKING_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -36,9 +38,10 @@ function vm_booking_widgets() {
 	);
 }
 
-/** App origin (scheme + host + port) from the saved URL, or '' when unset. */
+/** App origin (scheme + host + port) from the saved URL (default: production), or '' when invalid. */
 function vm_booking_app_origin() {
-	$parts = wp_parse_url( (string) get_option( VM_BOOKING_OPTION, '' ) );
+	$saved = (string) get_option( VM_BOOKING_OPTION, '' );
+	$parts = wp_parse_url( '' !== $saved ? $saved : VM_BOOKING_DEFAULT_URL );
 	if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
 		return '';
 	}
@@ -47,10 +50,13 @@ function vm_booking_app_origin() {
 }
 
 /**
- * The iframe markup for one widget. Unknown types render nothing; unknown tabs
- * fall back to the default tab.
+ * The iframe markup for one widget, in a full-width wrapper so it takes the
+ * width of whatever block, column or sidebar it sits in (the embed reflows to
+ * that width, embed.js sets the height). Unknown types render nothing; unknown
+ * tabs fall back to the default tab. `$wrapper_attributes` lets the block pass
+ * get_block_wrapper_attributes() (alignment, spacing, custom class).
  */
-function vm_booking_render( $type, $tab = '' ) {
+function vm_booking_render( $type, $tab = '', $wrapper_attributes = 'class="vm-booking"' ) {
 	$widgets = vm_booking_widgets();
 	$origin  = vm_booking_app_origin();
 	if ( ! isset( $widgets[ $type ] ) ) {
@@ -72,7 +78,8 @@ function vm_booking_render( $type, $tab = '' ) {
 	wp_enqueue_script( 'vm-booking' );
 
 	return sprintf(
-		'<iframe class="vm-booking-frame" src="%1$s" title="%2$s" data-vm-origin="%3$s" loading="lazy" allow="clipboard-write"></iframe>',
+		'<div %1$s><iframe class="vm-booking-frame" src="%2$s" title="%3$s" data-vm-origin="%4$s" loading="lazy" allow="clipboard-write"></iframe></div>',
+		$wrapper_attributes, // Escaped by the caller (fixed string or get_block_wrapper_attributes()).
 		esc_url( $src ),
 		esc_attr( $title ),
 		esc_attr( $origin )
@@ -118,7 +125,7 @@ add_action(
 				'render_callback' => function ( $attributes ) {
 					$type = isset( $attributes['type'] ) ? sanitize_key( $attributes['type'] ) : 'pirtis';
 					$tab  = isset( $attributes['tab'] ) ? sanitize_key( $attributes['tab'] ) : '';
-					return vm_booking_render( $type, $tab );
+					return vm_booking_render( $type, $tab, get_block_wrapper_attributes( array( 'class' => 'vm-booking' ) ) );
 				},
 			)
 		);

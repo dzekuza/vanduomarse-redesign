@@ -1,8 +1,20 @@
-/* Full width, no border; height comes from embed.js, which also drops the
-   min-height that holds space until the first message. */
+/* The widget takes the full width of whatever holds it (block, column,
+   sidebar), including flex and grid parents; the embed reflows to that width.
+   Height comes from embed.js, which also drops the min-height that holds
+   space until the first message. */
+.vm-booking {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0; /* no max-width here: it would undo the theme's alignwide / alignfull */
+  align-self: stretch;
+  justify-self: stretch;
+}
+
 .vm-booking-frame {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 640px;
   border: 0;
 }

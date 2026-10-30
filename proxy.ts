@@ -7,7 +7,7 @@ const LOGIN_PATH = "/admin/prisijungti";
 
 /**
  * /embed/* (booking widgets): only the origins in EMBED_ALLOWED_ORIGINS may
- * frame them. Read per request so a new WordPress domain needs no rebuild.
+ * frame them. Read per request (on Vercel an env change still needs a redeploy).
  */
 function embedResponse() {
   const response = NextResponse.next();

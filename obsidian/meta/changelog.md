@@ -9,6 +9,19 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-30 — Booking widgets fit any block width
+
+- **What:** the embed drops its side padding below `sm`, so a widget fills
+  the block it sits in. Fixed three narrow-width overflows that also hit
+  phones at 320 px: tab label + count badge now wrap (`BookingTabs`), the
+  sauna extras grid can shrink (`grid-cols-1` in `UpsellPicker`), and
+  `Stepper` controls wrap under a long label. Every widget now fits from
+  285 px (sidebar width). Plugin 1.1.0: the iframe sits in a full-width
+  `.vm-booking` wrapper (block uses `get_block_wrapper_attributes()`, so
+  wide/full alignment and spacing work), and the app URL defaults to
+  `https://vanduomarse-redesign.vercel.app`.
+- **Why:** the widget goes on vanduomarse.lt in blocks of any width.
+
 ## 2026-10-30 — WordPress booking widgets
 
 - **What:** `/embed/pirtis|keturraciai|miegas|renginiai|kuponai` render the

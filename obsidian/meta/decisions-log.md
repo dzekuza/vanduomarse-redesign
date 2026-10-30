@@ -26,7 +26,8 @@ them in an iframe through a shortcode, a dynamic block and a classic widget.
 The embed posts its height to the parent (`vm-embed:height`); the plugin's
 `embed.js` resizes only its own iframes and only for messages from the
 configured app origin. `proxy.ts` sets `frame-ancestors 'self'` plus
-`EMBED_ALLOWED_ORIGINS` on `/embed/*`, read per request. A JS/web-component
+`EMBED_ALLOWED_ORIGINS` on `/embed/*`. Width is never fixed: the iframe
+fills its block and the embed reflows (breakpoints follow the iframe width). A JS/web-component
 widget and a public booking API were rejected: both would duplicate the flows
 or open the actions to cross-origin calls.
 
