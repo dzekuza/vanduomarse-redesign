@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BookingHero } from "@/components/booking/booking-hero";
 import { BookingPage } from "@/components/booking/booking-page";
 import { QuadReservation } from "@/components/quads/quad-reservation";
+import { QuadRules } from "@/components/quads/quad-rules";
 import { getQuadPageData } from "@/lib/data/public";
 import { hourLabel, type QuadSettings, type QuadType } from "@/lib/quads";
 
@@ -43,12 +44,7 @@ export default async function QuadsPage({ searchParams }: PageProps<"/keturracia
         gallery={GALLERY}
       >
         <QuadReservation initialMode={skirtukas === "zygiai" ? "tour" : "rental"} data={data} />
-        {data.settings.rules ? (
-          <section className="mt-8 border border-ink p-6">
-            <h2 className="font-display text-sm font-bold">Taisyklės</h2>
-            <p className="mt-2 whitespace-pre-line text-sm text-ink/80">{data.settings.rules}</p>
-          </section>
-        ) : null}
+        <QuadRules rules={data.settings.rules} />
       </BookingHero>
     </BookingPage>
   );

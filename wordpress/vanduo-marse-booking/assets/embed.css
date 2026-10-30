@@ -1,0 +1,8 @@
+/* Full width, no border; height comes from embed.js, which also drops the
+   min-height that holds space until the first message. */
+.vm-booking-frame {
+  display: block;
+  width: 100%;
+  min-height: 640px;
+  border: 0;
+}

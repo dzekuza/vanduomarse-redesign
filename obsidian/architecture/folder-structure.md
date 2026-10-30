@@ -12,6 +12,7 @@ app/                    ← routes; pages compose components directly
 ├── layout.tsx          ← fonts, theme-marse on <body>, site metadata
 ├── globals.css         ← all tokens (site + shadcn), utilities, theme
 ├── pirtis/ miegas/ renginiai/ skaiciuokle/
+├── embed/              ← bare booking widgets for the WordPress plugin (ADR-0014)
 └── admin/              ← dashboard: layout (shell, store) + one page per screen
 components/
 ├── *.tsx               ← site sections (hero, pricing, header, footer, logo…)
@@ -28,7 +29,8 @@ public/brand/           ← logo badge, zone stickers (sticker-*.svg)
 supabase/               ← config.toml, migrations/, seed.sql (demo) — see [[database]]
 lib/supabase/           ← env, server (cookie) + public (anon) clients, generated database.types.ts
 lib/data/               ← public.ts (server-only reads for public pages), public-types.ts
-proxy.ts                ← Next 16 proxy: Supabase session refresh + /admin login gate
+proxy.ts                ← Next 16 proxy: Supabase session refresh + /admin login gate; frame-ancestors on /embed
+wordpress/vanduo-marse-booking/ ← WordPress plugin (PHP + plain JS): shortcode, block, widget framing /embed/*
 obsidian/               ← this vault
 ```
 

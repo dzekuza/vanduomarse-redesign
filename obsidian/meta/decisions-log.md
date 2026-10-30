@@ -1,12 +1,40 @@
 ---
 tags: [meta, decision]
-updated: 2026-10-27
+updated: 2026-10-30
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0014 — WordPress booking widgets frame /embed routes
+
+- **Status:** Accepted
+- **Date:** 2026-10-30
+
+**Context.** The booking flows (sauna, quads, cabins, events, coupons) also had
+to appear on the client's WordPress site. They submit through server actions,
+which only accept same-origin calls, and their prices and availability come
+from Supabase.
+
+**Decision.** The app serves bare `/embed/*` pages (the booking component only,
+inside `EmbedFrame`) and the plugin in `wordpress/vanduo-marse-booking/` shows
+them in an iframe through a shortcode, a dynamic block and a classic widget.
+The embed posts its height to the parent (`vm-embed:height`); the plugin's
+`embed.js` resizes only its own iframes and only for messages from the
+configured app origin. `proxy.ts` sets `frame-ancestors 'self'` plus
+`EMBED_ALLOWED_ORIGINS` on `/embed/*`, read per request. A JS/web-component
+widget and a public booking API were rejected: both would duplicate the flows
+or open the actions to cross-origin calls.
+
+**Consequences.** One booking implementation; WordPress picks up price and
+copy changes with no plugin release. The rest of the site is unchanged (no
+framing header outside `/embed`). The plugin is PHP + plain ES5 JS with no
+build, so it sits outside the TypeScript/ESLint rules (`wordpress/**` ignored).
+Links inside a widget to other pages open in a new tab.
 
 ---
 

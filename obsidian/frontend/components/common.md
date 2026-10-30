@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-22
+updated: 2026-10-30
 ---
 
 # Common Components Catalog
@@ -20,9 +20,11 @@ feature components in `components/<feature>/`. Admin screens build on
 | `TrackStats` | `components/track-stats.tsx` | Park numbers (620 m, 6, 17, 8) as oversized coral figures in a `dl`, 2 cols below `lg`, 4 from `lg` (numerals `7xl` → `8xl` at `md` → `9xl` at `xl`, so "620 m" never collides with the next figure) | stable |
 | `StatusBar` | `components/status-bar.tsx` | Rounded `bg-card` block: pulsing status line (half width from `lg`) + one labelled day/time list per season (`dl`, tabular numbers); stacks below `md` | stable |
 | `ContactBar` | `components/contact-bar.tsx` | Thin blush strip above `SiteHeader` (rendered by it): main phone (`tel:`), email (icon-only below `sm`), map link ("Žemėlapis" / address from `md`); scrolls away, header stays sticky | stable |
-| `StickerDock` | `components/sticker-dock.tsx` | Zone stickers (Vanduo, Akademija, Skoniai, Miegas) from `public/brand/sticker-*.svg`: frosted glass (`bg-foam/50` + `backdrop-blur-xl backdrop-saturate-150`); full-width bottom bar below `lg`, floating hug-width dock 24 px above the edge from `lg`; active page raised; hidden in `/admin` and, below `lg`, on `/skaiciuokle` (own bottom bar). Rendered in the root layout | stable |
+| `StickerDock` | `components/sticker-dock.tsx` | Zone stickers (Vanduo, Akademija, Skoniai, Miegas) from `public/brand/sticker-*.svg`: frosted glass (`bg-foam/50` + `backdrop-blur-xl backdrop-saturate-150`); full-width bottom bar below `lg`, floating hug-width dock 24 px above the edge from `lg`; active page raised; hidden in `/admin` and `/embed`, and below `lg`, on `/skaiciuokle` (own bottom bar). Rendered in the root layout | stable |
 | `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-11/12; no longer in the footer) | stable |
 | `QuadReservation` | `components/quads/quad-reservation.tsx` | `/keturraciai` tabs (`BookingTabs`): hourly rental / guided tours (badge = tours with seats) | stable |
+| `QuadRules` | `components/quads/quad-rules.tsx` | Bordered "Taisyklės" block with the admin rules text; renders nothing when empty. Used on `/keturraciai` and `/embed/keturraciai` | stable |
+| `EmbedFrame` | `components/embed/embed-frame.tsx` | `/embed/*` wrapper: posts `{ type: "vm-embed:height", height }` to the parent on every resize (ResizeObserver); internal links to a booking route open its `/embed` twin in place, any other internal link opens in a new tab | stable |
 | `QuadRental` / `QuadTypeStep` / `StartGrid` / `DurationGrid` | `components/quads/` | Day strip (free count per day) → quad type + count + riders → start hours (only while `units` stay free; today's past hours off) → length → contact (RHF + `quadContactSchema`). Submits a request via `createQuadRental`; availability comes from `quad_taken` | stable |
 | `TourBooking` | `components/quads/tour-booking.tsx` | Reuses `EventList` (tours mapped to `SaunaEvent`), seats stepper, contact; empty state when no tours | stable |
 | `ContactFields` / `RequestConfirmation` | `components/quads/` | Name/phone/email (+ honeypot) via `useFormContext`; ticket-style "request received" panel that says staff still confirm | stable |

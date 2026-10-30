@@ -1,6 +1,6 @@
 ---
 tags: [meta, changelog]
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
 # Changelog
@@ -8,6 +8,17 @@ updated: 2026-10-29
 Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
+
+## 2026-10-30 — WordPress booking widgets
+
+- **What:** `/embed/pirtis|keturraciai|miegas|renginiai|kuponai` render the
+  booking flows without site chrome (`EmbedFrame` reports height, keeps links
+  inside the widget). `proxy.ts` restricts framing to `EMBED_ALLOWED_ORIGINS`.
+  New plugin `wordpress/vanduo-marse-booking/`: `[vm_booking type="…" tab="…"]`,
+  block "Vanduo Marse rezervacija", classic widget, Settings → Vanduo Marse for
+  the app URL. `QuadRules` extracted from `/keturraciai` (ADR-0014).
+- **Why:** the client's WordPress site needs the same bookings without a second
+  implementation of the flows or prices.
 
 ## 2026-10-29 — Detailed sauna booking SMS
 

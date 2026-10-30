@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "vanduo-marse/booking",
+  "title": "Vanduo Marse rezervacija",
+  "category": "widgets",
+  "icon": "calendar-alt",
+  "description": "Pirties, keturračių, namelių, renginių ar kuponų rezervacija iš Vanduo Marse sistemos.",
+  "keywords": ["pirtis", "keturračiai", "rezervacija", "kuponai"],
+  "textdomain": "vanduo-marse-booking",
+  "attributes": {
+    "type": { "type": "string", "default": "pirtis" },
+    "tab": { "type": "string", "default": "" }
+  },
+  "supports": { "html": false, "align": ["wide", "full"] },
+  "editorScript": "vm-booking-block-editor"
+}

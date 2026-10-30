@@ -15,10 +15,10 @@ const STICKERS = [
 /** Routes with their own fixed bottom bar on phones: the dock steps aside below `lg`. */
 const OWN_BOTTOM_BAR = ["/skaiciuokle"];
 
-/** Zone stickers on the public site (not in /admin): full-width bar on phones, a floating hug-width dock from `lg`. */
+/** Zone stickers on the public site (not in /admin or the /embed widgets): full-width bar on phones, a floating hug-width dock from `lg`. */
 export function StickerDock() {
   const pathname = usePathname();
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/embed")) return null;
   const visibility = OWN_BOTTOM_BAR.includes(pathname) ? "hidden lg:block" : "block";
 
   return (
