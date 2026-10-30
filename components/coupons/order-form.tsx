@@ -1,9 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { createCouponOrder, type CouponOrderResult } from "@/app/actions/coupons";
 import { ArrowButton } from "@/components/booking/arrow-button";
+import { VerifiedPhoneField } from "@/components/booking/verified-phone-field";
+import { usePhoneVerification } from "@/hooks/use-phone-verification";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,11 +31,22 @@ interface OrderFormProps {
 
 /** Buyer, recipient and message for the selected coupon. Validates with the same schema as the server action. */
 export function OrderForm({ product, onOrdered }: OrderFormProps) {
-  const { register, handleSubmit, control, setError, formState } = useForm<CouponOrderInput>({
+  const verification = usePhoneVerification();
+  const form = useForm<CouponOrderInput>({
     resolver: zodResolver(couponOrderSchema),
-    values: { productId: product.id, buyerName: "", buyerEmail: "", recipientName: "", message: "", website: "" },
+    values: {
+      productId: product.id,
+      buyerName: "",
+      buyerEmail: "",
+      buyerPhone: verification?.phone ?? "",
+      verificationToken: verification?.token ?? "",
+      recipientName: "",
+      message: "",
+      website: "",
+    },
     resetOptions: { keepDirtyValues: true },
   });
+  const { register, handleSubmit, control, setError, formState } = form;
   const { errors, isSubmitting } = formState;
   const messageLength = useWatch({ control, name: "message" })?.length ?? 0;
 
@@ -47,6 +60,7 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
   });
 
   return (
+    <FormProvider {...form}>
     <form onSubmit={submit} noValidate className="space-y-5 rounded-tile bg-card p-6 md:p-8">
       <div>
         <p className="text-xs uppercase text-ink/70">Užsakymas</p>
@@ -59,6 +73,7 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       <Field id="buyerEmail" label="El. paštas (čia atsiųsime kodą)" error={errors.buyerEmail?.message}>
         <Input id="buyerEmail" type="email" autoComplete="email" aria-invalid={!!errors.buyerEmail} {...register("buyerEmail")} />
       </Field>
+      {verification ? <VerifiedPhoneField id="buyerPhone" name="buyerPhone" verification={verification} /> : null}
       <Field id="recipientName" label="Kam dovanojate (nebūtina)" error={errors.recipientName?.message}>
         <Input id="recipientName" {...register("recipientName")} />
       </Field>
@@ -73,5 +88,6 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       </ArrowButton>
       <p className="text-xs text-ink/60">Kainos nurodytos su 21% PVM. Apmokėjimo detales atsiųsime el. paštu.</p>
     </form>
+    </FormProvider>
   );
 }

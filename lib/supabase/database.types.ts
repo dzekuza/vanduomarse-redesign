@@ -257,6 +257,7 @@ export type Database = {
           balance: number
           buyer_email: string
           buyer_name: string
+          buyer_phone: string | null
           code: string | null
           created_at: string
           expires_at: string | null
@@ -277,6 +278,7 @@ export type Database = {
           balance: number
           buyer_email: string
           buyer_name: string
+          buyer_phone?: string | null
           code?: string | null
           created_at?: string
           expires_at?: string | null
@@ -297,6 +299,7 @@ export type Database = {
           balance?: number
           buyer_email?: string
           buyer_name?: string
+          buyer_phone?: string | null
           code?: string | null
           created_at?: string
           expires_at?: string | null
@@ -1076,6 +1079,10 @@ export type Database = {
           expires_at: string
         }[]
       }
+      cancel_phone_code: {
+        Args: { p_code_hash: string; p_phone: string }
+        Returns: undefined
+      }
       check_coupon: {
         Args: { p_code: string }
         Returns: {
@@ -1089,6 +1096,7 @@ export type Database = {
         Args: {
           p_buyer_email: string
           p_buyer_name: string
+          p_buyer_phone: string
           p_message?: string
           p_product_id: string
           p_recipient_name?: string
@@ -1260,6 +1268,13 @@ export type Database = {
           id: string
         }[]
       }
+      request_phone_code: {
+        Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
+        Returns: {
+          reason: string
+          retry_after: number
+        }[]
+      }
       sauna_taken: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -1283,6 +1298,10 @@ export type Database = {
           taken: number
           units: number
         }[]
+      }
+      verify_phone_code: {
+        Args: { p_code_hash: string; p_phone: string }
+        Returns: string
       }
     }
     Enums: {

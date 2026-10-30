@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EmbedTheme } from "@/components/embed/embed-theme";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { CabinBooking } from "@/components/booking/cabin-booking";
 import { CABIN_DAYS, getCabinPageData } from "@/lib/data/public";
 
@@ -12,7 +13,9 @@ export default async function EmbedMiegasPage({ searchParams }: PageProps<"/embe
   return (
     <>
       <EmbedTheme params={params} />
-      <CabinBooking data={data} days={CABIN_DAYS} />
+      <PhoneGate>
+        <CabinBooking data={data} days={CABIN_DAYS} />
+      </PhoneGate>
     </>
   );
 }

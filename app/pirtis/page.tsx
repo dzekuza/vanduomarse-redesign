@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BookingHero } from "@/components/booking/booking-hero";
 import { BookingPage } from "@/components/booking/booking-page";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { SaunaReservation } from "@/components/booking/sauna-reservation";
 import { SAUNA_DAYS, getSaunaPageData } from "@/lib/data/public";
 import type { SaunaPageData } from "@/lib/data/public-types";
@@ -55,12 +56,14 @@ export default async function PirtisPage({ searchParams }: PageProps<"/pirtis">)
         facts={facts(data)}
         gallery={gallery(data)}
       >
-        <SaunaReservation
-          initialMode={skirtukas === "renginiai" ? "event" : "private"}
-          initialSaunaId={typeof pirtis === "string" ? pirtis : undefined}
-          data={data}
-          days={SAUNA_DAYS}
-        />
+        <PhoneGate>
+          <SaunaReservation
+            initialMode={skirtukas === "renginiai" ? "event" : "private"}
+            initialSaunaId={typeof pirtis === "string" ? pirtis : undefined}
+            data={data}
+            days={SAUNA_DAYS}
+          />
+        </PhoneGate>
       </BookingHero>
     </BookingPage>
   );

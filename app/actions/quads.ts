@@ -3,6 +3,7 @@
 import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
 import { quadRentalSchema, tourTicketSchema, type QuadRentalInput, type TourTicketInput } from "@/lib/quad-schema";
+import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -29,6 +30,7 @@ const BY_HINT: Record<string, string> = {
   tour_people: "Netinkamas žmonių skaičius.",
   event_full: "Žygyje nebeliko tiek vietų.",
   contact_invalid: "Nurodykite teisingą el. paštą arba telefoną (bent 8 skaitmenys).",
+  phone_unverified: UNVERIFIED.error.message,
   too_many_pending: "Jau turite kelias nepatvirtintas užklausas. Palaukite patvirtinimo arba skambinkite.",
   too_many_requests: "Šiuo metu priimame per daug užklausų. Bandykite vėliau arba skambinkite.",
 };
@@ -59,6 +61,8 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
 
   // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
   if (v.website) return { data: { reference: "KT-0000", total: 0 } };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_quad_rental", {
@@ -70,11 +74,11 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
     p_riders: v.riders,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
-    p_phone: v.customerPhone || undefined,
+    p_phone: phone,
     p_note: v.note || undefined,
   });
   if (error) return dbFail(error);
-  notify(v.customerPhone, data[0].reference, describeRequest(["Keturraciai", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -83,6 +87,8 @@ export async function createTourTicket(input: TourTicketInput): Promise<ActionRe
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: { reference: "KZ-0000", total: 0 } };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_tour_ticket", {
@@ -90,9 +96,9 @@ export async function createTourTicket(input: TourTicketInput): Promise<ActionRe
     p_people: v.people,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
-    p_phone: v.customerPhone || undefined,
+    p_phone: phone,
   });
   if (error) return dbFail(error);
-  notify(v.customerPhone, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
+  notify(phone, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }

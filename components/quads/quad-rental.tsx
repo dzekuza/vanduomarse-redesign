@@ -79,6 +79,7 @@ export function QuadRental({ data }: { data: QuadPageData }) {
       customerPhone: c.customerPhone,
       customerEmail: c.customerEmail,
       website: c.website,
+      verificationToken: c.verificationToken,
     });
     if ("error" in result) return form.setError("root", { message: result.error.message });
     setSent({

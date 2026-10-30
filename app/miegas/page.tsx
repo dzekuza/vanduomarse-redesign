@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BookingHero } from "@/components/booking/booking-hero";
 import { BookingPage } from "@/components/booking/booking-page";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { CabinBooking } from "@/components/booking/cabin-booking";
 import { CABIN_DAYS, getCabinPageData } from "@/lib/data/public";
 
@@ -27,7 +28,9 @@ export default async function MiegasPage() {
         facts={FACTS}
         gallery={[{ src: "https://picsum.photos/seed/lakeside-wooden-cabin-campsite-dusk/1600/600", alt: "Namelis prie ežero" }]}
       >
-        <CabinBooking data={data} days={CABIN_DAYS} />
+        <PhoneGate>
+          <CabinBooking data={data} days={CABIN_DAYS} />
+        </PhoneGate>
       </BookingHero>
     </BookingPage>
   );

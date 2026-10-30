@@ -3,6 +3,7 @@
 import type { ActionResult } from "@/app/admin/actions";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
 import { normalizeCode, COUPON_CODE_LENGTH, type CheckedCoupon, type RedeemableService, couponApplies } from "@/lib/coupons";
+import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -26,18 +27,22 @@ export async function createCouponOrder(input: CouponOrderInput): Promise<Action
 
   // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
   if (v.website) return { data: { reference: "KP-0000", amount: 0, productName: "" } };
+  const phone = verifiedPhone(v.verificationToken, v.buyerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_coupon_order", {
     p_product_id: v.productId,
     p_buyer_name: v.buyerName,
     p_buyer_email: v.buyerEmail,
+    p_buyer_phone: phone,
     p_recipient_name: v.recipientName,
     p_message: v.message,
   });
 
   if (error) {
     if (error.hint === "product_unavailable") return fail("Šio kupono jau nebeparduodame. Atnaujinkite puslapį.", "unavailable");
+    if (error.hint === "phone_unverified") return UNVERIFIED;
     if (error.hint === "too_many_orders") return fail("Šiuo metu priimame per daug užsakymų. Bandykite vėliau arba skambinkite.", "busy");
     return fail("Nepavyko pateikti užsakymo. Bandykite dar kartą.", "db");
   }

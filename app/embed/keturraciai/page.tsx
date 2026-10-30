@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EmbedTheme } from "@/components/embed/embed-theme";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { QuadReservation } from "@/components/quads/quad-reservation";
 import { QuadRules } from "@/components/quads/quad-rules";
 import { getQuadPageData } from "@/lib/data/public";
@@ -14,7 +15,9 @@ export default async function EmbedQuadsPage({ searchParams }: PageProps<"/embed
   return (
     <>
       <EmbedTheme params={params} />
-      <QuadReservation initialMode={params.skirtukas === "zygiai" ? "tour" : "rental"} data={data} />
+      <PhoneGate>
+        <QuadReservation initialMode={params.skirtukas === "zygiai" ? "tour" : "rental"} data={data} />
+      </PhoneGate>
       <QuadRules rules={data.settings.rules} />
     </>
   );

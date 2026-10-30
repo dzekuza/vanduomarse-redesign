@@ -9,6 +9,24 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-10-30 — SMS phone check before every public booking
+
+- **What:** `/pirtis`, `/miegas`, `/keturraciai`, event registration on
+  `/renginiai`, the `/kuponai` order form and the same `/embed/*` widgets
+  start with a `PhoneGate`: phone → 6-digit SMS code → the booking flow, with
+  the verified number locked in the contact step. Every public action
+  (`createSaunaBooking`, `createStayBooking`, `createEventTicket`,
+  `registerForEvent`, `createQuadRental`, `createTourTicket`,
+  `createCouponOrder`) checks a signed token against the booking's phone and
+  stores the verified E.164 number; a database trigger refuses anon web
+  inserts without a recently verified phone. Coupons now keep `buyer_phone`.
+  The calculator quote request (`createInquiry`) is not gated.
+- **Why:** stop fake and spam bookings that hold inventory. The send side is
+  an SMS-pumping target, so codes are capped per phone, per IP and site-wide,
+  limited to the allowed country prefixes. ADR-0018.
+- **Env:** new `PHONE_VERIFICATION_SECRET`; `SUPABASE_SERVICE_ROLE_KEY` and
+  Twilio become required for online booking.
+
 ## 2026-10-30 — Several saunas
 
 - **What:** `/admin/pirtis` lists saunas (cover, "nuo X €/val.", on/off,

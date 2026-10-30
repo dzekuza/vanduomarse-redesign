@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowLink } from "@/components/arrow-link";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { CategoryTag } from "./category-tag";
 import { EventRegister } from "./event-register";
 import { longDateLabel, weekdayLabel } from "@/lib/sauna";
@@ -53,7 +54,9 @@ export function EventRow({ event }: { event: ParkEvent }) {
       </div>
       {registering ? (
         <div className="col-span-2 border-t border-ink/25 pt-4 md:col-span-3">
-          <EventRegister eventId={event.key} title={event.title} />
+          <PhoneGate>
+            <EventRegister eventId={event.key} title={event.title} />
+          </PhoneGate>
         </div>
       ) : null}
     </article>
