@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { verificationToken } from "@/lib/phone-schema";
 
 export const contactFields = z.object({
   customerName: z.string().trim().min(2, "Įveskite vardą").max(80, "Per ilgas vardas"),
@@ -6,6 +7,8 @@ export const contactFields = z.object({
   customerEmail: z.union([z.literal(""), z.email("Neteisingas el. paštas").max(120)]),
   /** Honeypot: real visitors never see or fill it. */
   website: z.string().max(0).optional(),
+  /** From the phone gate; the actions check it matches customerPhone. */
+  verificationToken,
 });
 
 export const needsContact = (v: { customerPhone: string; customerEmail: string }) => v.customerPhone !== "" || v.customerEmail !== "";

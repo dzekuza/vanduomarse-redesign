@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BookingHero } from "@/components/booking/booking-hero";
 import { BookingPage } from "@/components/booking/booking-page";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { QuadReservation } from "@/components/quads/quad-reservation";
 import { QuadRules } from "@/components/quads/quad-rules";
 import { getQuadPageData } from "@/lib/data/public";
@@ -43,7 +44,9 @@ export default async function QuadsPage({ searchParams }: PageProps<"/keturracia
         facts={facts(data.types, data.settings)}
         gallery={GALLERY}
       >
-        <QuadReservation initialMode={skirtukas === "zygiai" ? "tour" : "rental"} data={data} />
+        <PhoneGate>
+          <QuadReservation initialMode={skirtukas === "zygiai" ? "tour" : "rental"} data={data} />
+        </PhoneGate>
         <QuadRules rules={data.settings.rules} />
       </BookingHero>
     </BookingPage>

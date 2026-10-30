@@ -30,7 +30,7 @@ export function toE164(phone: string | null | undefined): string | null {
  */
 const DEFAULT_PREFIXES = ["+370", "+371", "+372", "+48"];
 
-function destinationAllowed(e164: string): boolean {
+export function smsDestinationAllowed(e164: string): boolean {
   const prefixes = (process.env.SMS_ALLOWED_PREFIXES ?? "")
     .split(",")
     .map((p) => p.trim())
@@ -44,7 +44,7 @@ export async function sendSms(to: string | null | undefined, body: string): Prom
   const token = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_FROM_NUMBER;
   const number = toE164(to);
-  if (!sid || !token || !from || !number || !destinationAllowed(number)) return false;
+  if (!sid || !token || !from || !number || !smsDestinationAllowed(number)) return false;
 
   try {
     const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {

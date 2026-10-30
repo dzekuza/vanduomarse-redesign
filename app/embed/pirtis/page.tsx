@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EmbedTheme } from "@/components/embed/embed-theme";
+import { PhoneGate } from "@/components/booking/phone-gate";
 import { SaunaReservation } from "@/components/booking/sauna-reservation";
 import { SAUNA_DAYS, getSaunaPageData } from "@/lib/data/public";
 
@@ -13,7 +14,9 @@ export default async function EmbedPirtisPage({ searchParams }: PageProps<"/embe
   return (
     <>
       <EmbedTheme params={params} />
-      <SaunaReservation initialMode={params.skirtukas === "renginiai" ? "event" : "private"} data={data} days={SAUNA_DAYS} />
+      <PhoneGate>
+        <SaunaReservation initialMode={params.skirtukas === "renginiai" ? "event" : "private"} data={data} days={SAUNA_DAYS} />
+      </PhoneGate>
     </>
   );
 }

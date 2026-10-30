@@ -10,6 +10,44 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0018 — Public bookings need an SMS-verified phone
+
+- **Status:** accepted (2026-10-30)
+- **Context:** anyone could file bookings, tickets and coupon orders under any
+  contact, holding sauna slots and cabins for 48 hours. The public functions
+  are callable straight through PostgREST with the anon key, so a check in
+  the server action alone is not enough. Sending codes costs money and is a
+  classic SMS-pumping target. The `/embed/*` widgets run in third-party
+  iframes, where cookies are unreliable (Safari blocks them).
+- **Decision:**
+  1. Codes: 6 digits, stored only as HMAC(phone:code) in
+     `private.phone_verifications`, 10 min, 5 tries, newest code only. Send
+     limits live in `request_phone_code` (advisory locks): 60 s cooldown,
+     3/h and 5/day per phone, 10/h and 20/day per hashed IP, 200/h site-wide;
+     plus `SMS_ALLOWED_PREFIXES`. Both code functions are service-role only;
+     `app/actions/phone.ts` is the only caller.
+  2. Proof: a signed token `v1.<{p,e}>.<HMAC>` (60 min) from
+     `confirmPhoneCode`, kept in `sessionStorage` and sent as
+     `verificationToken` with each action, not a cookie, so the iframe works.
+  3. Enforcement in two layers: each public action requires the token's phone
+     to equal the booking's phone and stores that E.164 number; a BEFORE
+     INSERT trigger refuses **anon** web inserts (bookings, event tickets,
+     quad rentals with `source = 'svetaine'`, `renginys` inquiries, coupons)
+     unless the phone was verified in the last 65 min. Staff inserts are
+     untouched; new RPC overloads are covered automatically.
+  4. UI: `PhoneGate` wraps the flow components on each page;
+     `ContactFields` locks the verified phone and carries the token as a
+     hidden field (in the shared `contactFields` schema), so call sites that
+     spread the contact values needed no change.
+- **Consequences:** online booking needs Twilio, the service-role key and
+  `PHONE_VERIFICATION_SECRET` in production; the migration must ship in the
+  same window as the code. A visitor who verified a number can still book
+  with it directly via PostgREST within the hour; the per-contact pending caps
+  bound that. Quote requests from the calculator stay open. Codes are printed
+  to the dev server log only when `NODE_ENV=development` and Twilio is unset.
+
+---
+
 ## ADR-0016 — The plugin updates itself from the app
 
 - **Status:** Accepted

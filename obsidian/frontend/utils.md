@@ -10,6 +10,9 @@ them pure and typed; anything with client state belongs in a hook instead.
 
 | Util | File | Signature | Purpose |
 |------|------|-----------|---------|
+| `verifiedPhone` / `UNVERIFIED` | `lib/phone-verification.ts` (server-only) | `(token, typedPhone) => string \| null` | The E.164 phone when the signed token is valid, unexpired and for the same number; every public booking action returns `UNVERIFIED` otherwise. Same file: `newCode`, `hashCode`, `hashIp`, `signToken`, `readToken` (ADR-0018) |
+| `phoneNumberSchema` / `phoneCodeSchema` / `verificationToken` | `lib/phone-schema.ts` | Zod | Phone gate forms; `verificationToken` is part of `contactFields` and `couponOrderSchema` |
+| `smsDestinationAllowed` | `lib/sms/twilio.ts` | `(e164) => boolean` | `SMS_ALLOWED_PREFIXES` country guard (default LT, LV, EE, PL), shared by booking SMS and the phone gate |
 | `googleCalendarUrl` | `lib/calendar.ts` | `(ev: CalendarEvent) => string` | Google Calendar "add event" template link |
 | `icsContent` | `lib/calendar.ts` | `(ev: CalendarEvent, uid: string) => string` | RFC 5545 `.ics` body (UTC or all-day) |
 | `at` | `lib/calendar.ts` | `(day: Date, hour: number, minute?: number) => Date` | Local date-time on a given day |

@@ -6,8 +6,9 @@ import { supabaseEnv } from "./env";
 /**
  * Service-role client, used only by the owner-only staff actions to create,
  * reset and delete logins (the auth admin API has no row level security to
- * lean on). It bypasses RLS entirely, so it must never touch data tables, never
- * reach the browser, and every caller checks the owner role first.
+ * lean on), and by the phone gate to call request_phone_code/verify_phone_code,
+ * which anon may not run. It bypasses RLS entirely, so it must never touch data
+ * tables, never reach the browser, and staff callers check the owner role first.
  */
 export function createAdminClient() {
   const { url } = supabaseEnv();

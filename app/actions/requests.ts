@@ -15,6 +15,7 @@ import {
   type StayBookingInput,
 } from "@/lib/request-schema";
 import type { Json } from "@/lib/supabase/database.types";
+import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { describeRequest, notifyBookingReceived, notifyReceived, notifyStaff, saunaSummary } from "@/lib/sms/notify";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -53,6 +54,7 @@ const BY_HINT: Record<string, string> = {
   contact_invalid: "Nurodykite teisingą el. paštą arba telefoną (bent 8 skaitmenys).",
   too_many_pending: "Jau turite kelias nepatvirtintas užklausas. Palaukite patvirtinimo arba skambinkite.",
   too_many_requests: "Šiuo metu priimame per daug užklausų. Bandykite vėliau arba skambinkite.",
+  phone_unverified: UNVERIFIED.error.message,
 };
 
 function dbFail(e: DbError, taken?: string) {
@@ -99,6 +101,8 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
   if (v.date < today || (v.date === today && v.startHour <= vilniusHour())) {
     return fail("Šis laikas jau praėjo. Pasirinkite kitą.", "taken");
   }
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_sauna_booking", {
@@ -109,12 +113,12 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_extras: v.extras,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
-    p_phone: v.customerPhone || undefined,
+    p_phone: phone,
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, TAKEN);
   notify(
-    v.customerPhone,
+    phone,
     data[0].reference,
     saunaSummary({ date: v.date, startHour: v.startHour, hours: v.hours, party: v.party, total: data[0].total }),
     notifyBookingReceived,
@@ -127,6 +131,8 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: { reference: "MM-0000", total: 0, discount: 0 } };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_stay_booking", {
@@ -136,11 +142,11 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     p_guests: v.guests,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
-    p_phone: v.customerPhone || undefined,
+    p_phone: phone,
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, BY_HINT.stay_full);
-  notify(v.customerPhone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`]));
+  notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -149,6 +155,8 @@ export async function createEventTicket(input: EventTicketInput): Promise<Action
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: { reference: "PR-0000", total: 0 } };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_event_ticket", {
@@ -156,10 +164,10 @@ export async function createEventTicket(input: EventTicketInput): Promise<Action
     p_people: v.people,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
-    p_phone: v.customerPhone || undefined,
+    p_phone: phone,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
-  notify(v.customerPhone, data[0].reference, describeRequest(["Bilietai", `${v.people} asm.`]));
+  notify(phone, data[0].reference, describeRequest(["Bilietai", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -168,6 +176,8 @@ export async function registerForEvent(input: EventRegistrationInput): Promise<A
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: null };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
   const { error } = await supabase.rpc("register_for_event", {
@@ -175,11 +185,11 @@ export async function registerForEvent(input: EventRegistrationInput): Promise<A
     p_people: v.people,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
-    p_phone: v.customerPhone || undefined,
+    p_phone: phone,
     p_message: v.message || undefined,
   });
   if (error) return dbFail(error);
-  notify(v.customerPhone, undefined, describeRequest(["Registracija", `${v.people} asm.`]));
+  notify(phone, undefined, describeRequest(["Registracija", `${v.people} asm.`]));
   return { data: null };
 }
 
