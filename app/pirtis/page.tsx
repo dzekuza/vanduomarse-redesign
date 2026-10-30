@@ -4,19 +4,33 @@ import { BookingPage } from "@/components/booking/booking-page";
 import { PhoneGate } from "@/components/booking/phone-gate";
 import { SaunaReservation } from "@/components/booking/sauna-reservation";
 import { SAUNA_DAYS, getSaunaPageData } from "@/lib/data/public";
-import type { SaunaRates } from "@/lib/sauna";
+import type { SaunaPageData } from "@/lib/data/public-types";
+import { fromRate } from "@/lib/sauna";
 
 export const metadata: Metadata = {
   title: "Pirtis Marse - rezervacija",
 };
 
-/** Capacity and price follow the live rates from /admin/pirtis. */
-const facts = (rates: SaunaRates) => [
-  { label: "Vieta", value: "Prie pat ežero kranto" },
-  { label: "Talpa", value: `Iki ${rates.maxParty} žmonių` },
-  { label: "Kaina", value: `Nuo ${rates.smallGroupRate} €/val., min. ${rates.minHours} val.` },
-  { label: "Kūrenimas", value: "Malkomis, iš anksto" },
-];
+/** Capacity and price follow the live saunas from /admin/pirtis: the largest group and the lowest rate. */
+function facts({ saunas }: SaunaPageData) {
+  const rates = saunas.map((s) => s.rates);
+  return [
+    { label: "Vieta", value: "Prie pat ežero kranto" },
+    ...(rates.length
+      ? [
+          { label: "Talpa", value: `Iki ${Math.max(...rates.map((r) => r.maxParty))} žmonių` },
+          { label: "Kaina", value: `Nuo ${Math.min(...rates.map(fromRate))} €/val., min. ${Math.min(...rates.map((r) => r.minHours))} val.` },
+        ]
+      : []),
+    { label: "Kūrenimas", value: "Malkomis, iš anksto" },
+  ];
+}
+
+/** Uploaded sauna photos when there are any, otherwise the stand-ins. */
+function gallery({ saunas }: SaunaPageData) {
+  const photos = saunas.flatMap((s) => s.photos.map((p) => ({ src: p.url, alt: s.name })));
+  return photos.length ? photos : GALLERY;
+}
 
 // Unsplash (free licence) stand-ins until the client supplies Pirtis Marse photos.
 const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=75`;
@@ -29,9 +43,9 @@ const GALLERY = [
   { src: unsplash("1786800005702-5d65229a3e5c"), alt: "Medinės pirties vidus su gultais ir kibirėliu" },
 ];
 
-/** `?skirtukas=renginiai` opens the public-events tab (linked from /renginiai). */
+/** `?skirtukas=renginiai` opens the public-events tab (linked from /renginiai); `?pirtis=<id>` preselects a sauna. */
 export default async function PirtisPage({ searchParams }: PageProps<"/pirtis">) {
-  const [{ skirtukas }, data] = await Promise.all([searchParams, getSaunaPageData()]);
+  const [{ skirtukas, pirtis }, data] = await Promise.all([searchParams, getSaunaPageData()]);
 
   return (
     <BookingPage>
@@ -39,11 +53,16 @@ export default async function PirtisPage({ searchParams }: PageProps<"/pirtis">)
         eyebrow="Pirtis Marse"
         title={["Karšta pirtis.", "Šaltas ežeras."]}
         intro="Malkomis kūrenama pirtis prie pat vandens. Išeini iš garų tiesiai į ežerą. Rezervuojama visai grupei, ne vietoms."
-        facts={facts(data.rates)}
-        gallery={GALLERY}
+        facts={facts(data)}
+        gallery={gallery(data)}
       >
         <PhoneGate>
-          <SaunaReservation initialMode={skirtukas === "renginiai" ? "event" : "private"} data={data} days={SAUNA_DAYS} />
+          <SaunaReservation
+            initialMode={skirtukas === "renginiai" ? "event" : "private"}
+            initialSaunaId={typeof pirtis === "string" ? pirtis : undefined}
+            data={data}
+            days={SAUNA_DAYS}
+          />
         </PhoneGate>
       </BookingHero>
     </BookingPage>

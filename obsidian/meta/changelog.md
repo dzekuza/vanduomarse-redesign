@@ -27,6 +27,18 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
 - **Env:** new `PHONE_VERIFICATION_SECRET`; `SUPABASE_SERVICE_ROLE_KEY` and
   Twilio become required for online booking.
 
+## 2026-10-30 — Several saunas
+
+- **What:** `/admin/pirtis` lists saunas (cover, "nuo X €/val.", on/off,
+  order, delete) above the shared extras catalogue; `/admin/pirtis/nauja` and
+  `/admin/pirtis/[id]` edit name, description, features, rates and hours,
+  offered extras (RHF + Zod) and photos (upload, reorder, remove; Supabase
+  Storage). `/pirtis` and `/embed/pirtis` start with "Pasirink pirtį" when more
+  than one sauna is active (`?pirtis=<id>` preselects); the rest of the flow
+  runs for the chosen sauna. Užimtumas and the manual booking dialog pick a
+  sauna. Migration `20261030100000_saunas.sql` (ADR-0017).
+- **Why:** the park is adding sauna types with different prices and capacity.
+
 ## 2026-10-30 — Plugin admin page is its own menu item
 
 - **What:** plugin 1.2.1 moves the settings from Settings → Vanduo Marse to

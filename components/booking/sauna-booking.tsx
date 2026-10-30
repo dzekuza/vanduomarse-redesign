@@ -26,7 +26,7 @@ import {
   pastHourOn,
   sessionPrice,
   startHours,
-  type SaunaRates,
+  type Sauna,
 } from "@/lib/sauna";
 import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
 import { contactSchema, type ContactInput } from "@/lib/request-schema";
@@ -38,13 +38,20 @@ interface SaunaBookingProps {
   /** Park hour (0-23) from the server; today's starts at or before it are gone. */
   nowHour: number;
   days: number;
-  rates: SaunaRates;
+  sauna: Sauna;
+  /** The extras this sauna offers. */
   upsells: Upsell[];
-  /** yyyy-mm-dd -> booked or closed hours. */
+  /** yyyy-mm-dd -> this sauna's booked or closed hours. */
   takenByDay: Record<string, number[]>;
+  /** Number of the first step here (2 when a sauna picker comes before it). */
+  firstStep?: number;
+  /** Rendered as the first step inside the card (the sauna picker). */
+  lead?: React.ReactNode;
 }
 
-export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, takenByDay }: SaunaBookingProps) {
+/** Day, group, start, length, extras and contact for one sauna; remount (key) when the sauna changes. */
+export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, takenByDay, firstStep = 1, lead }: SaunaBookingProps) {
+  const rates = sauna.rates;
   const days = useMemo(() => nextDays(today, dayCount), [today, dayCount]);
   /** A day is bookable when at least one start has not passed and fits the minimum session. */
   const hasOpenStart = (d: Date) => {
@@ -56,7 +63,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
   const [selectedDate, setSelectedDate] = useState(() => days.find(hasOpenStart) ?? days[0]);
   const [startHour, setStartHour] = useState<number | null>(null);
   const [hours, setHours] = useState(rates.minHours);
-  const [partySize, setPartySize] = useState(4);
+  const [partySize, setPartySize] = useState(() => Math.min(4, rates.maxParty));
   /** Upsell id -> item count (counted extras) or 0/1 (on/off extras). */
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
@@ -76,6 +83,8 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
   const subtotal = basePrice + extrasPrice;
   const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
   const total = subtotal - discount;
+  /** Steps shift by one once the duration step appears. */
+  const extrasStep = firstStep + (startHour === null ? 3 : 4);
   const timeLabel = startHour === null ? "" : `${formatHour(startHour)}-${formatHour(startHour + hours)}`;
 
   function selectDate(date: Date) {
@@ -100,6 +109,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
   const submit = form.handleSubmit(async (contact) => {
     if (startHour === null) return;
     const result = await createSaunaBooking({
+      saunaId: sauna.id,
       date: dateK,
       startHour,
       hours,
@@ -118,6 +128,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
       <Confirmation
         reference={confirmed.reference}
         date={selectedDate}
+        title={sauna.name}
         time={`${timeLabel}, ${hoursLabel(hours)}`}
         startHour={startHour}
         hours={hours}
@@ -154,8 +165,9 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
         </ArrowButton>
       }
     >
+      {lead}
       <div>
-        <StepLabel step={1}>Pasirink dieną</StepLabel>
+        <StepLabel step={firstStep}>Pasirink dieną</StepLabel>
         <DayPicker
           days={days}
           selected={selectedDate}
@@ -164,7 +176,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
         />
       </div>
       <div>
-        <StepLabel step={2}>Grupė</StepLabel>
+        <StepLabel step={firstStep + 1}>Grupė</StepLabel>
         <div className="grid gap-3 sm:grid-cols-2">
           <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={rates.maxParty} />
         </div>
@@ -176,12 +188,12 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
         </p>
       </div>
       <div>
-        <StepLabel step={3}>Pradžios laikas</StepLabel>
+        <StepLabel step={firstStep + 2}>Pradžios laikas</StepLabel>
         <StartTimeGrid taken={taken} rates={rates} pastHour={pastHour} selected={startHour} onSelect={selectStart} />
       </div>
       {startHour !== null ? (
         <div>
-          <StepLabel step={4}>Trukmė</StepLabel>
+          <StepLabel step={firstStep + 3}>Trukmė</StepLabel>
           <DurationPicker rates={rates} partySize={partySize} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setHours} />
           {maxHours < rates.maxHours ? (
             <p className="mt-2 text-sm text-ink/60">
@@ -190,12 +202,14 @@ export function SaunaBooking({ today, nowHour, days: dayCount, rates, upsells, t
           ) : null}
         </div>
       ) : null}
-      <div>
-        <StepLabel step={startHour === null ? 4 : 5}>Papildomai</StepLabel>
-        <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
-      </div>
+      {upsells.length ? (
+        <div>
+          <StepLabel step={extrasStep}>Papildomai</StepLabel>
+          <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
+        </div>
+      ) : null}
       <CouponField flow="pirtis" coupon={coupon} discount={discount} onChange={setCoupon} />
-      <ContactStep step={startHour === null ? 5 : 6} idPrefix="sauna" />
+      <ContactStep step={upsells.length ? extrasStep + 1 : extrasStep} idPrefix="sauna" />
     </BookingCard>
     </form>
     </FormProvider>

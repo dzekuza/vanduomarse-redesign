@@ -5,6 +5,11 @@ import { dateKey, type SaunaRates } from "@/lib/sauna";
 
 const active = (b: Booking) => b.status !== "atsaukta";
 
+/** One sauna's bookings and closed hours, for the helpers below. */
+export function saunaSlice(bookings: Booking[], blocks: Block[], saunaId: string) {
+  return { bookings: bookings.filter((b) => b.saunaId === saunaId), blocks: blocks.filter((b) => b.saunaId === saunaId) };
+}
+
 /** The sauna booking covering `hour` on `day`, if any. */
 export function saunaBookingAt(bookings: Booking[], day: string, hour: number): Booking | undefined {
   return bookings.find(

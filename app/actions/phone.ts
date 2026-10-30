@@ -31,9 +31,14 @@ const BY_RESULT: Record<string, string> = {
   locked: "Per daug neteisingų bandymų. Išsiųskite naują kodą.",
 };
 
+/**
+ * Vercel's edge overwrites x-real-ip and x-forwarded-for with the connecting
+ * client, so neither can be spoofed there. Behind another proxy, revisit this:
+ * a client-set header would let one sender dodge the per-IP cap.
+ */
 async function clientIp(): Promise<string> {
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+  return h.get("x-real-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 }
 
 function setupError(e: unknown) {

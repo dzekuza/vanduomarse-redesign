@@ -2,6 +2,7 @@
 
 import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { ACTION_LABEL, NEXT_STATUSES, useBookingStatus } from "./booking-actions";
+import { useAdmin } from "../admin-store";
 import { BookingStatusBadge } from "../status-badge";
 import { BOOKING_KIND, BOOKING_SOURCE } from "@/lib/admin/labels";
 import { bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
@@ -17,6 +18,8 @@ interface BookingSheetProps {
 /** Side panel with the full booking, contact shortcuts and status actions. */
 export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
   const change = useBookingStatus();
+  const { saunas } = useAdmin();
+  const saunaName = saunas.find((s) => s.id === booking?.saunaId)?.name;
   return (
     <Sheet open={!!booking} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md">
@@ -30,7 +33,7 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
             </SheetHeader>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 text-sm">
               {[
-                ["Tipas", BOOKING_KIND[booking.kind]],
+                ["Tipas", saunaName ?? BOOKING_KIND[booking.kind]],
                 ["Data", formatDay(booking.date)],
                 ["Laikas", bookingWhen(booking)],
                 ["Svečiai", `${booking.guests} asm.`],

@@ -1,6 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
-import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSaunaRates, toUpsell } from "@/lib/admin/mappers";
+import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSauna, toUpsell } from "@/lib/admin/mappers";
 import type { CabinAvailability, CabinSize } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
@@ -9,6 +9,7 @@ import { EVENTS_WINDOW_DAYS, type ParkEventData } from "@/lib/park-events";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { EVENT_WINDOW_DAYS } from "@/lib/sauna-events";
 import type { Tables } from "@/lib/supabase/database.types";
+import { supabaseEnv } from "@/lib/supabase/env";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -41,10 +42,11 @@ export async function getSaunaPageData(): Promise<SaunaPageData> {
   const today = todayKey();
   const last = addDays(today, Math.max(SAUNA_DAYS, EVENT_WINDOW_DAYS) - 1);
 
-  const [settings, upsells, taken, events] = await Promise.all([
-    supabase.from("sauna_settings").select("*").single(),
+  const [saunas, upsells, taken, events] = await Promise.all([
+    // RLS limits anon to active saunas.
+    supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").eq("active", true).order("sort_order").order("created_at"),
     supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"),
-    supabase.rpc("sauna_taken_hours", { p_from: today, p_to: last }),
+    supabase.rpc("sauna_taken", { p_from: today, p_to: last }),
     supabase
       .from("events")
       .select("*")
@@ -56,15 +58,22 @@ export async function getSaunaPageData(): Promise<SaunaPageData> {
       .order("start_time"),
   ]);
 
-  const takenByDay: Record<string, number[]> = {};
-  for (const row of must(taken, "Sauna availability")) (takenByDay[row.day] ??= []).push(row.hour);
+  const takenBySauna: Record<string, Record<string, number[]>> = {};
+  for (const row of must(taken, "Sauna availability")) ((takenBySauna[row.sauna_id] ??= {})[row.day] ??= []).push(row.hour);
+
+  const activeUpsells = must(upsells, "Sauna upsells").map(toUpsell);
+  const offered = new Set(activeUpsells.map((u) => u.id));
+  const { url } = supabaseEnv();
 
   return {
     today,
     nowHour: vilniusHour(),
-    rates: toSaunaRates(must(settings, "Sauna settings")),
-    upsells: must(upsells, "Sauna upsells").map(toUpsell),
-    takenByDay,
+    saunas: must(saunas, "Saunas").map((r) => {
+      const sauna = toSauna(r, r.sauna_upsell_links, url);
+      return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
+    }),
+    upsells: activeUpsells,
+    takenBySauna,
     events: must(events, "Sauna events").map((e) => ({
       key: e.id,
       title: e.title,

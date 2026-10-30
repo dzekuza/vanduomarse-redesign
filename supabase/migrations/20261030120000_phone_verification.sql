@@ -149,7 +149,9 @@ $$;
 
 revoke execute on function private.phone_recently_verified(text) from public, anon, authenticated;
 
--- Only requests the anonymous role files from the website; staff entries are untouched.
+-- Every API caller except active staff: anon, and any signed-in non-staff user
+-- (sign-ups may be open). The server (service role) and SQL without a JWT
+-- (migrations, cron, seed) are untouched.
 create function private.require_verified_phone()
 returns trigger
 language plpgsql
@@ -159,7 +161,7 @@ as $$
 declare
   v_phone text;
 begin
-  if coalesce(auth.role(), '') <> 'anon' then
+  if coalesce(auth.role(), '') not in ('anon', 'authenticated') or private.is_staff() then
     return new;
   end if;
 

@@ -18,7 +18,7 @@ function nextDays(n: number): string[] {
 
 /** Admin landing: today's load, work waiting on staff, money, and what's next. */
 export function Overview() {
-  const { bookings, inquiries, events, saunaRates } = useAdmin();
+  const { bookings, inquiries, events, saunas } = useAdmin();
   const [today, ...rest] = nextDays(7);
   const week = [today, ...rest];
   const month = today.slice(0, 7);
@@ -29,7 +29,9 @@ export function Overview() {
   const fresh = inquiries.filter((q) => q.status === "nauja");
   const revenue = live.filter((b) => b.date.startsWith(month)).reduce((sum, b) => sum + b.total, 0);
   const saunaHours = live.filter((b) => b.kind === "pirtis" && week.includes(b.date)).reduce((s, b) => s + (b.hours ?? 0), 0);
-  const occupancy = Math.round((saunaHours / ((saunaRates.closeHour - saunaRates.openHour) * week.length)) * 100);
+  // Open hours of every bookable sauna over the week.
+  const openHours = saunas.filter((s) => s.active).reduce((sum, s) => sum + (s.rates.closeHour - s.rates.openHour), 0) * week.length;
+  const occupancy = openHours ? Math.round((saunaHours / openHours) * 100) : 0;
   const upcoming = events.filter((e) => e.date >= today && e.published).slice(0, 4);
 
   return (
