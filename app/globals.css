@@ -23,6 +23,7 @@
   --tab: var(--dust);
   --tab-active: var(--ink);
   --tab-active-foreground: var(--foam);
+  --tab-hover: var(--dust-soft);
   /* shadcn/ui tokens, mapped to the live brand (admin dashboard + any ui/ primitives). */
   --background: #fbf3ef;
   --foreground: #382e38;
@@ -84,6 +85,7 @@
   --color-tab: var(--tab);
   --color-tab-active: var(--tab-active);
   --color-tab-active-foreground: var(--tab-active-foreground);
+  --color-tab-hover: var(--tab-hover);
   --font-body: var(--font-work-sans);
   --font-heading: var(--font-termina);
   --font-sans: var(--font-termina);
@@ -224,6 +226,7 @@ html {
   --tab: var(--dust);
   --tab-active: var(--ink);
   --tab-active-foreground: var(--foam);
+  --tab-hover: var(--dust-soft);
   background: var(--dust);
   color: var(--ink);
   font-family: var(--font-termina), system-ui, sans-serif;

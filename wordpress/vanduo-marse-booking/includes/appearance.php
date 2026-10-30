@@ -36,7 +36,10 @@ function vm_booking_appearance() {
 
 /** Same rule as the app: letters, digits, spaces. */
 function vm_booking_sanitize_font( $value ) {
-	$value = trim( preg_replace( '/\s+/', ' ', (string) $value ) );
+	if ( ! is_string( $value ) ) {
+		return '';
+	}
+	$value = trim( preg_replace( '/\s+/', ' ', $value ) );
 	return preg_match( '/^[A-Za-z0-9 ]{1,40}$/', $value ) ? $value : '';
 }
 
@@ -44,7 +47,8 @@ function vm_booking_sanitize_appearance( $input ) {
 	$input = is_array( $input ) ? $input : array();
 	$clean = array();
 	foreach ( array_keys( vm_booking_color_fields() ) as $key ) {
-		$hex = isset( $input[ $key ] ) ? sanitize_hex_color( $input[ $key ] ) : '';
+		// Arrays (e.g. a crafted bg[]=…) would make sanitize_hex_color() throw on PHP 8.
+		$hex = isset( $input[ $key ] ) && is_string( $input[ $key ] ) ? sanitize_hex_color( $input[ $key ] ) : '';
 		if ( $hex ) {
 			$clean[ $key ] = $hex;
 		}
@@ -55,7 +59,7 @@ function vm_booking_sanitize_appearance( $input ) {
 			$clean[ $key ] = $font;
 		}
 	}
-	if ( isset( $input['heading_case'] ) && in_array( $input['heading_case'], array( 'upper', 'none' ), true ) ) {
+	if ( isset( $input['heading_case'] ) && is_string( $input['heading_case'] ) && in_array( $input['heading_case'], array( 'upper', 'none' ), true ) ) {
 		$clean['heading_case'] = $input['heading_case'];
 	}
 	return $clean;

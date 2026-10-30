@@ -67,6 +67,9 @@ export function parseEmbedTheme(params: SearchParams): EmbedTheme {
  */
 export function embedThemeCss(theme: EmbedTheme): string | null {
   const decls = theme.colors.map(([token, hex]) => `${token}:${hex}`);
+  // A recoloured tab gets a hover in its own family, not the page's --dust-soft.
+  const tab = theme.colors.find(([token]) => token === "--tab");
+  if (tab) decls.push(`--tab-hover:color-mix(in srgb,${tab[1]} 85%,white)`);
   if (theme.font) decls.push(`font-family:"${theme.font}",system-ui,sans-serif`);
   if (theme.heading) decls.push(`--display-face:"${theme.heading}"`);
   if (theme.headingCase) decls.push(`--display-case:${theme.headingCase}`);
@@ -74,9 +77,11 @@ export function embedThemeCss(theme: EmbedTheme): string | null {
 }
 
 /**
- * Google Fonts stylesheets for the chosen families. Two per family: regular +
- * bold, and plain regular as a fallback for families without a 700 weight
- * (Google rejects the whole request when a weight is missing).
+ * Google Fonts stylesheets for the chosen families. Two per family, both always
+ * loaded in parallel (a <link> has no fallback): regular + bold, and plain
+ * regular, which is the one that works for families without a 700 weight
+ * (Google rejects the whole request when a weight is missing). The extra
+ * request is small and cached; it buys support for any family name.
  */
 export function embedFontHrefs(theme: EmbedTheme): string[] {
   const families = [...new Set([theme.font, theme.heading].filter((f): f is string => f !== null))];

@@ -33,7 +33,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
 | `--tile-radius` `1.25rem` | primitive | landing redesign | bound as `rounded-tile`: photo tiles, panels, cards on the home page. Everything else stays square (`--radius: 0`) |
-| `--tab` / `--tab-active` / `--tab-active-foreground` | semantic | `--dust` / `--ink` / `--foam`, declared in `:root` and `.theme-marse` | `bg-tab`, `bg-tab-active`, `text-tab-active-foreground` in `BookingTabs`; separate so WordPress widgets can recolour tabs apart from the page (ADR-0015) |
+| `--tab` / `--tab-active` / `--tab-active-foreground` / `--tab-hover` | semantic | `--dust` / `--ink` / `--foam` / `--dust-soft` (widget: 85% of the custom tab colour), declared in `:root` and `.theme-marse` | `bg-tab`, `bg-tab-active`, `text-tab-active-foreground`, `hover:bg-tab-hover` in `BookingTabs`; separate so WordPress widgets can recolour tabs apart from the page (ADR-0015) |
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
 
 ## Utilities
