@@ -8,6 +8,7 @@
  * Author:            Vanduo Marse
  * License:           GPL-2.0-or-later
  * Text Domain:       vanduo-marse-booking
+ * Update URI:        https://vanduomarse-redesign.vercel.app/wordpress/vanduo-marse-booking.json
  *
  * The booking flows stay in the Next.js app: this plugin only frames its
  * /embed/* pages and resizes the iframe to fit. Prices, availability and
@@ -21,12 +22,14 @@ define( 'VM_BOOKING_VERSION', '1.2.0' );
 define( 'VM_BOOKING_OPTION', 'vm_booking_app_url' );
 /** Production booking app; Settings → Vanduo Marse overrides it (e.g. a custom domain). */
 define( 'VM_BOOKING_DEFAULT_URL', 'https://vanduomarse-redesign.vercel.app' );
+define( 'VM_BOOKING_FILE', __FILE__ );
 define( 'VM_BOOKING_URL', plugin_dir_url( __FILE__ ) );
 define( 'VM_BOOKING_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once VM_BOOKING_DIR . 'includes/appearance.php';
 require_once VM_BOOKING_DIR . 'includes/settings.php';
 require_once VM_BOOKING_DIR . 'includes/widget.php';
+require_once VM_BOOKING_DIR . 'includes/updater.php';
 
 /** Widget type => [iframe title, allowed `tab` values]. Mirrors the app's /embed routes. */
 function vm_booking_widgets() {

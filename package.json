@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm build:wp-plugin && next build",
+    "build:wp-plugin": "node --experimental-strip-types scripts/build-wp-plugin.mts",
     "start": "next start",
     "lint": "eslint"
   },
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "fflate": "^0.8.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

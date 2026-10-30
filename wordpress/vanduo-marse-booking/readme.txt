@@ -1,6 +1,7 @@
 === Vanduo Marse rezervacijos ===
 Requires at least: 6.1
 Requires PHP: 7.4
+Tested up to: 6.8
 Stable tag: 1.2.0
 License: GPL-2.0-or-later
 
@@ -27,6 +28,10 @@ Plotis: forma užima visą bloko, stulpelio ar šoninės juostos plotį ir prisi
 Išvaizda: Nustatymai → Vanduo Marse → „Išvaizda“: fono, turinio, suvestinės,
 teksto, akcento ir skirtukų spalvos, teksto ir antraščių šriftai (Google Fonts),
 antraščių raidės. Apačioje yra gyva peržiūra.
+
+Atnaujinimai: įskiepis pats tikrina naują versiją sistemoje (kas ~6 val.). Kai ji yra,
+Įskiepiai puslapyje atsiranda „Atnaujinti dabar“; galima įjungti ir automatinius
+atnaujinimus. Iš karto patikrinti: Pultas → Atnaujinimai → „Tikrinti dar kartą“.
 
 == Installation ==
 
