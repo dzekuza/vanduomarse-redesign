@@ -95,11 +95,16 @@ export function PhoneCodeStep({ phone, resendAt, onResent, onChangeNumber }: Cod
 
   async function resend() {
     setResending(true);
-    const result = await requestPhoneCode({ phone });
-    setResending(false);
-    if ("error" in result) return form.setError("code", { message: result.error.message });
-    form.clearErrors("code");
-    onResent(secondsFromNow(result.data.resendIn));
+    try {
+      const result = await requestPhoneCode({ phone });
+      if ("error" in result) return form.setError("code", { message: result.error.message });
+      form.clearErrors("code");
+      onResent(secondsFromNow(result.data.resendIn));
+    } catch {
+      form.setError("code", { message: "Nepavyko išsiųsti kodo. Patikrinkite ryšį ir bandykite dar kartą." });
+    } finally {
+      setResending(false);
+    }
   }
 
   return (

@@ -70,10 +70,11 @@ export async function requestPhoneCode(input: z.infer<typeof phoneNumberSchema>)
   try {
     const code = newCode();
     const supabase = createAdminClient();
+    const codeHash = hashCode(phone, code);
     const { data, error } = await supabase.rpc("request_phone_code", {
       p_phone: phone,
       p_ip_hash: hashIp(await clientIp()),
-      p_code_hash: hashCode(phone, code),
+      p_code_hash: codeHash,
     });
     if (error) return fail("Nepavyko išsiųsti kodo. Bandykite dar kartą.", "db");
     const row = data[0];
@@ -85,6 +86,8 @@ export async function requestPhoneCode(input: z.infer<typeof phoneNumberSchema>)
     if (devLog) {
       console.info(`[dev] Phone verification code: ${code}`);
     } else if (!(await sendSms(phone, `Vanduo Marse patvirtinimo kodas: ${code}. Galioja 10 min.`))) {
+      // Nothing was sent: drop the code and its cooldown so the visitor can retry.
+      await supabase.rpc("cancel_phone_code", { p_phone: phone, p_code_hash: codeHash });
       return fail("Nepavyko išsiųsti SMS. Patikrinkite numerį arba bandykite vėliau.", "sms");
     }
     return { data: { phone, resendIn: 60 } };

@@ -47,9 +47,9 @@ begin
     return;
   end if;
 
-  -- One send at a time per phone and per IP, so the counts below cannot be raced.
-  perform pg_advisory_xact_lock(hashtext('phone_code:' || v_phone));
-  perform pg_advisory_xact_lock(hashtext('phone_code_ip:' || p_ip_hash));
+  -- One send at a time site-wide, so none of the counts below (phone, IP, global)
+  -- can be raced. Sends are rare and the lock is held for a few queries only.
+  perform pg_advisory_xact_lock(hashtext('phone_code'));
 
   select max(v.created_at) into v_last from private.phone_verifications v where v.phone = v_phone;
   if v_last > now() - interval '60 seconds' then
@@ -119,10 +119,26 @@ begin
 end;
 $$;
 
+-- The SMS did not go out: kill that code and lift the 60 s cooldown so the visitor
+-- can retry at once. The row still counts toward the hourly and daily caps, so a
+-- number Twilio keeps rejecting cannot be hammered.
+create function public.cancel_phone_code(p_phone text, p_code_hash text)
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+  update private.phone_verifications v
+     set expires_at = now(), created_at = v.created_at - interval '60 seconds'
+   where v.phone = private.norm_phone(p_phone) and v.code_hash = p_code_hash and v.verified_at is null;
+$$;
+
 revoke execute on function public.request_phone_code(text, text, text) from public, anon, authenticated;
 revoke execute on function public.verify_phone_code(text, text) from public, anon, authenticated;
+revoke execute on function public.cancel_phone_code(text, text) from public, anon, authenticated;
 grant execute on function public.request_phone_code(text, text, text) to service_role;
 grant execute on function public.verify_phone_code(text, text) to service_role;
+grant execute on function public.cancel_phone_code(text, text) to service_role;
 
 -- Rows only matter for the 24-hour limits.
 select cron.schedule('purge-phone-verifications', '17 3 * * *',

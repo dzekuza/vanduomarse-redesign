@@ -19,7 +19,8 @@ export function PhoneGate({ children }: { children: React.ReactNode }) {
       <PhoneCodeStep
         phone={sent.phone}
         resendAt={sent.resendAt}
-        onResent={(resendAt) => setSent({ ...sent, resendAt })}
+        // A resend can finish after "Keisti numerį": only update the step it was sent from.
+        onResent={(resendAt) => setSent((s) => (s?.phone === sent.phone ? { ...s, resendAt } : s))}
         onChangeNumber={() => setSent(null)}
       />
     );

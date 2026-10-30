@@ -1079,6 +1079,10 @@ export type Database = {
           expires_at: string
         }[]
       }
+      cancel_phone_code: {
+        Args: { p_code_hash: string; p_phone: string }
+        Returns: undefined
+      }
       check_coupon: {
         Args: { p_code: string }
         Returns: {

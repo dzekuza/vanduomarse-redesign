@@ -22,10 +22,12 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Decision:**
   1. Codes: 6 digits, stored only as HMAC(phone:code) in
      `private.phone_verifications`, 10 min, 5 tries, newest code only. Send
-     limits live in `request_phone_code` (advisory locks): 60 s cooldown,
-     3/h and 5/day per phone, 10/h and 20/day per hashed IP, 200/h site-wide;
-     plus `SMS_ALLOWED_PREFIXES`. Both code functions are service-role only;
-     `app/actions/phone.ts` is the only caller.
+     limits live in `request_phone_code` (one site-wide advisory lock, so no
+     count can be raced): 60 s cooldown, 3/h and 5/day per phone, 10/h and
+     20/day per hashed IP, 200/h site-wide; plus `SMS_ALLOWED_PREFIXES`. When
+     Twilio rejects the send, `cancel_phone_code` expires that code and lifts
+     the cooldown (the row still counts toward the caps). All three code
+     functions are service-role only; `app/actions/phone.ts` is the only caller.
   2. Proof: a signed token `v1.<{p,e}>.<HMAC>` (60 min) from
      `confirmPhoneCode`, kept in `sessionStorage` and sent as
      `verificationToken` with each action, not a cookie, so the iframe works.
