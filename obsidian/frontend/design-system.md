@@ -1,6 +1,6 @@
 ---
 tags: [frontend, wip]
-updated: 2026-10-30
+updated: 2026-11-01
 ---
 
 # Design System
@@ -32,11 +32,48 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-coral` `#ed5257`, `--raw-coral-deep` | primitive | sampled from vanduomarse.lt | `theme-marse` accent (maps to `--rust`) |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
-| `--tile-radius` `1.25rem` | primitive | landing redesign | bound as `rounded-tile`: photo tiles, panels, cards on the home page. Everything else stays square (`--radius: 0`) |
+| `--tile-radius` `1.25rem` | primitive | first landing redesign (ADR-0009) | `rounded-tile`: used only by the home page activity drawer (floating panel); the rest of the 2026-11 look is square with cut corners (`--radius: 0`) |
 | `--tab` / `--tab-active` / `--tab-active-foreground` / `--tab-hover` | semantic | `--dust` / `--ink` / `--foam` / `--dust-soft` (widget: 85% of the custom tab colour), declared in `:root` and `.theme-marse` | `bg-tab`, `bg-tab-active`, `text-tab-active-foreground`, `hover:bg-tab-hover` in `BookingTabs`; separate so WordPress widgets can recolour tabs apart from the page (ADR-0015) |
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
 
+| `--water` | semantic | `--raw-teal` `#00b2b5` | `bg-water` / `ring-water`: live status dot, focus outline on the home page |
+| `--spacing-gutter` | primitive | `clamp(1.375rem, 4.2vw, 5rem)` | `px-gutter`: side padding of every home section |
+| `text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`, `-micro` (+ `-sm` phone steps) | primitive | fluid sizes with line height + tracking | home page display type (`@theme` in `globals.css`); use `text-x-sm md:text-x` |
+| `--radius-cut` / `--radius-cut-lg` | primitive | 6.25rem / 10rem | `rounded-tl-cut`, `rounded-br-cut`: the two cut photo corners |
+
+| `--ease-out-strong` | primitive | `cubic-bezier(0.23, 1, 0.32, 1)` | `ease-out-strong`: every UI transition and enter animation on the home page (built-in curves are too weak) |
+
+## The look (2026-11 redesign)
+
+One recipe across the home page and every inner page.
+
+- **Palette:** ink (aubergine) bands and text, dust (blush) page, rust (coral) for the second headline line, CTAs, stars and highlights, `lake-soft` (deep teal) as the third surface (location block, hover on dark CTAs), `lake` (tan) for accents on teal, `water` (bright teal) only as status dot / focus.
+- **Type:** Termina only. Titles are **bold uppercase** with tight negative tracking and set from the fluid steps (`text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`) with `-sm` phone twins. Body copy is `text-xs`/`text-sm` with `leading-loose`; labels are `text-micro` (10 px, +0.07em).
+- **Shapes:** square everywhere; the only curves are the circular sticker and the **cut corners** (`rounded-tl-cut`, `rounded-br-cut`) on a few photos. Hairlines are `border-line` (or `border-dust/30` on ink).
+- **Page anatomy:** `SiteHeader` on ink → ink band (home: `LandingHero`; inner pages: `PageIntro` with the hero's grid + orbit lines) → dust content → `FooterWord` + `FooterBar` footer. Inner pages never invent their own heading style: use `PageIntro`.
+- **Forms and cards:** outlined `border-ink` cards on `bg-foam` / `bg-card`, a bottom bar with the total and the primary button. Primary action = dark `Cta` (`ArrowButton`); the home page and header use the coral tone. Choice chips and tiles press to `scale-97`.
+- **Recurring parts:** `SectionKicker` (numbered micro label row), `StarMark`, the coral ticker, accordions (`ui/accordion` via `LandingAccordion`), `Reveal` on scroll.
+- **Motion:** see "Motion (home page)" below; it applies to the inner pages too (`PageIntro` runs the same load cascade, footer and cards use `Reveal`).
+
+## Motion (home + inner pages)
+
+- Gate every movement with `motion-safe:` (or skip it in JS); colour and opacity feedback may stay. Hover transforms are already limited to hover devices by Tailwind v4.
+- Press = `active:scale-97` (chips `98`, big tiles `99`), 150 ms. Transition the individual properties (`translate`, `scale`, `rotate`), not `transform`, because Tailwind v4 uses those.
+- Anchor jumps (header CTA, menu links, "Į viršų") scroll smoothly: `html { scroll-behavior: smooth }` inside `prefers-reduced-motion: no-preference`, plus `data-scroll-behavior="smooth"` on `<html>` so Next.js still jumps instantly on route changes. `scroll-padding-top: 7rem` clears the fixed header.
+- Hero loads as a staggered fade-up (100–700 ms delays); sections use `Reveal`; modals fade + rise 250 ms in, 150 ms out; the menu panel fades in and its links stagger 50 ms apart.
+
+> [!info] Which size for which text
+> `text-micro` (11 px, +0.07em) is for **labels only**: uppercase kickers, step numbers, counters, small tags. Anything a visitor reads as a sentence (card notes, captions, hints, footer links) is `text-xs` (12 px) or larger; body copy is `text-xs`/`text-sm` with `leading-loose`.
+
+> [!warning] Name type steps so they never equal a colour token
+> `text-card` (and `text-foreground`, `text-primary`, …) is a *colour*: a font-size token with the same name loses to it. The card title step is `text-tile` for that reason.
+
+> [!warning] Custom `text-*` sizes and `cn()`
+> `cn()` (tailwind-merge) cannot tell the custom type steps (`text-micro`, `text-hero`, …) from colours, so `cn("text-micro", "text-ink")` silently drops one of them. When merging with `cn`, keep a custom size and a text colour out of the same call (append one as a plain string), and never pass `text-micro` as an override to a component that sets its own colour (`Cta`).
+
 ## Utilities
+
+- Home art utilities: `clip-hero-narrow/-wide`, `bg-grid-hero`, `orbit-wide`, `orbit-round`, `text-outline`, `scrollbar-none`; `animate-marquee`, `animate-spin-slow`.
 
 - `font-wordmark` + `wordmark-size` + `wordmark-fit` — the giant "VANDUO MARSE"
   (Big Shoulders 900, uppercase, `line-height .82`). `wordmark-fit` makes the
@@ -55,7 +92,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 ## Responsive rules
 
 - Breakpoints: mobile-first; two-column page layouts and the inline header
-  nav start at `lg` (1024). Tablets get the stacked layout and `MobileMenu`.
+  nav start at `lg` (1024). Below `lg` the header shows only the CTA and the menu button; `MenuPanel` holds every link.
 - Every tap target is at least 44 px tall (`min-h-11` / `size-11`). Inline
   text links in body copy are the only exception.
 - Choice sets wrap (`flex-wrap`) rather than scroll sideways; horizontal

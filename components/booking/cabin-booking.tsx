@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { createStayBooking } from "@/app/actions/requests";
 import { ArrowButton } from "./arrow-button";
-import { BookingCard, BookingTotal } from "./booking-card";
+import { BookingCard, BookingTotal, type BookingStep } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { ContactStep } from "./contact-step";
 import { CabinSizePicker } from "./cabin-size-picker";
@@ -102,45 +102,76 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
     );
   }
 
+  const steps: BookingStep[] = [
+    {
+      id: "day",
+      label: "Atvykimo diena",
+      content: (
+        <div>
+          <StepLabel step={1}>Atvykimo diena</StepLabel>
+          <DayPicker days={days} selected={checkIn} onSelect={setCheckIn} note={dayNote} />
+        </div>
+      ),
+    },
+    {
+      id: "type",
+      label: "Tipas",
+      ready: !soldOut,
+      content: (
+        <div>
+          <StepLabel step={2}>Tipas</StepLabel>
+          <div className="grid gap-2">
+            <RoomTypePicker selected={roomId} onSelect={setRoomId} />
+            {cabin && <CabinSizePicker selected={size} onSelect={setPreferredSize} free={free} />}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "stay",
+      label: "Trukmė ir svečiai",
+      ready: !soldOut,
+      content: (
+        <div>
+          <StepLabel step={3}>Trukmė ir svečiai</StepLabel>
+          <div className="grid gap-3 @xl:grid-cols-2">
+            <Stepper label="Naktys" value={nights} onChange={setNights} min={1} max={14} />
+            <Stepper label="Svečių" value={shownGuests} onChange={setGuests} min={1} max={maxGuests} />
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "contact",
+      label: "Kontaktai",
+      content: (
+        <>
+          <CouponField flow="miegas" coupon={coupon} discount={discount} onChange={setCoupon} />
+          <ContactStep step={4} idPrefix="cabin" />
+        </>
+      ),
+    },
+  ];
+
   return (
     <FormProvider {...form}>
-    <form onSubmit={submit} noValidate>
-    <BookingCard
-      summary={
-        <BookingTotal
-          note={`${nights} ${nights === 1 ? "naktis" : "naktys"}, nuo ${checkIn.toLocaleDateString("lt-LT")}`}
-          total={total}
-          discount={discount}
+      <form onSubmit={submit} noValidate>
+        <BookingCard
+          steps={steps}
+          summary={
+            <BookingTotal
+              note={`${nights} ${nights === 1 ? "naktis" : "naktys"}, nuo ${checkIn.toLocaleDateString("lt-LT")}`}
+              total={total}
+              discount={discount}
+            />
+          }
+          action={
+            <ArrowButton type="submit" disabled={soldOut || form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
+            </ArrowButton>
+          }
         />
-      }
-      action={
-        <ArrowButton type="submit" disabled={soldOut || form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
-        </ArrowButton>
-      }
-    >
-      <div>
-        <StepLabel step={1}>Atvykimo diena</StepLabel>
-        <DayPicker days={days} selected={checkIn} onSelect={setCheckIn} note={dayNote} />
-      </div>
-      <div>
-        <StepLabel step={2}>Tipas</StepLabel>
-        <div className="grid gap-2">
-          <RoomTypePicker selected={roomId} onSelect={setRoomId} />
-          {cabin && <CabinSizePicker selected={size} onSelect={setPreferredSize} free={free} />}
-        </div>
-      </div>
-      <div>
-        <StepLabel step={3}>Trukmė ir svečiai</StepLabel>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Stepper label="Naktys" value={nights} onChange={setNights} min={1} max={14} />
-          <Stepper label="Svečių" value={shownGuests} onChange={setGuests} min={1} max={maxGuests} />
-        </div>
-      </div>
-      <CouponField flow="miegas" coupon={coupon} discount={discount} onChange={setCoupon} />
-      <ContactStep step={4} idPrefix="cabin" />
-    </BookingCard>
-    </form>
+      </form>
     </FormProvider>
   );
 }

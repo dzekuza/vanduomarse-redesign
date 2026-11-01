@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { createQuadRental } from "@/app/actions/quads";
 import { ArrowButton } from "@/components/booking/arrow-button";
-import { BookingCard, BookingTotal } from "@/components/booking/booking-card";
+import { BookingCard, BookingTotal, type BookingStep } from "@/components/booking/booking-card";
 import { DayPicker } from "@/components/booking/day-picker";
 import { StepLabel } from "@/components/booking/step-label";
 import { Label } from "@/components/ui/label";
@@ -108,10 +108,76 @@ export function QuadRental({ data }: { data: QuadPageData }) {
     );
   }
 
+  const steps: BookingStep[] = [
+    {
+      id: "day",
+      label: "Diena",
+      content: (
+        <div>
+          <StepLabel step={1}>Pasirink dieną</StepLabel>
+          <DayPicker days={days} selected={date} onSelect={(d) => { setDate(d); setStartHour(null); }} note={dayNote} />
+        </div>
+      ),
+    },
+    {
+      id: "type",
+      label: "Keturratis ir važiuotojai",
+      content: (
+        <div>
+          <StepLabel step={2}>Keturratis ir važiuotojai</StepLabel>
+          <QuadTypeStep
+            types={types}
+            typeId={type.id}
+            onType={(id) => { setTypeId(id); setUnits(1); setRiders(1); setStartHour(null); }}
+            units={units}
+            onUnits={(n) => { setUnits(n); setStartHour(null); }}
+            riders={ridersShown}
+            onRiders={setRiders}
+          />
+        </div>
+      ),
+    },
+    {
+      id: "time",
+      label: "Laikas",
+      ready: start !== null,
+      content: (
+        <>
+          <div>
+            <StepLabel step={3}>Pradžios laikas</StepLabel>
+            <StartGrid type={type} units={units} settings={settings} taken={taken} day={day} pastHour={pastHour} selected={start} onSelect={setStartHour} />
+          </div>
+          {start !== null ? (
+            <div>
+              <StepLabel step={4}>Trukmė</StepLabel>
+              <DurationGrid type={type} units={units} settings={settings} taken={taken} day={day} startHour={start} selected={length} onSelect={setHours} />
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: "contact",
+      label: "Kontaktai",
+      content: (
+        <div className="space-y-4">
+          <StepLabel step={start === null ? 4 : 5}>Kontaktai</StepLabel>
+          <ContactFields idPrefix="quad" />
+          <div className="space-y-1.5">
+            <Label htmlFor="quad-note">Pastaba (nebūtina)</Label>
+            <Textarea id="quad-note" rows={2} {...form.register("note")} />
+          </div>
+          {form.formState.errors.root ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <FormProvider {...form}>
       <form onSubmit={submit} noValidate>
         <BookingCard
+          steps={steps}
           summary={
             <BookingTotal
               note={start === null ? "Pasirink dieną ir laiką" : `${date.toLocaleDateString("lt-LT")}, ${hourLabel(start)}-${hourLabel(start + length)}, ${hoursLabel(length)}`}
@@ -123,43 +189,7 @@ export function QuadRental({ data }: { data: QuadPageData }) {
               {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti užklausą"}
             </ArrowButton>
           }
-        >
-          <div>
-            <StepLabel step={1}>Pasirink dieną</StepLabel>
-            <DayPicker days={days} selected={date} onSelect={(d) => { setDate(d); setStartHour(null); }} note={dayNote} />
-          </div>
-          <div>
-            <StepLabel step={2}>Keturratis ir važiuotojai</StepLabel>
-            <QuadTypeStep
-              types={types}
-              typeId={type.id}
-              onType={(id) => { setTypeId(id); setUnits(1); setRiders(1); setStartHour(null); }}
-              units={units}
-              onUnits={(n) => { setUnits(n); setStartHour(null); }}
-              riders={ridersShown}
-              onRiders={setRiders}
-            />
-          </div>
-          <div>
-            <StepLabel step={3}>Pradžios laikas</StepLabel>
-            <StartGrid type={type} units={units} settings={settings} taken={taken} day={day} pastHour={pastHour} selected={start} onSelect={setStartHour} />
-          </div>
-          {start !== null ? (
-            <div>
-              <StepLabel step={4}>Trukmė</StepLabel>
-              <DurationGrid type={type} units={units} settings={settings} taken={taken} day={day} startHour={start} selected={length} onSelect={setHours} />
-            </div>
-          ) : null}
-          <div className="space-y-4">
-            <StepLabel step={start === null ? 4 : 5}>Kontaktai</StepLabel>
-            <ContactFields idPrefix="quad" />
-            <div className="space-y-1.5">
-              <Label htmlFor="quad-note">Pastaba (nebūtina)</Label>
-              <Textarea id="quad-note" rows={2} {...form.register("note")} />
-            </div>
-            {form.formState.errors.root ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
-          </div>
-        </BookingCard>
+        />
       </form>
     </FormProvider>
   );

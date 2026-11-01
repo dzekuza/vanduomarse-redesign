@@ -28,7 +28,7 @@ function SaunaCard({ sauna, active, onSelect }: { sauna: Sauna; active: boolean;
       type="button"
       onClick={onSelect}
       aria-pressed={active}
-      className={`flex flex-col border text-left transition-[color,background-color,border-color,transform] active:scale-[0.99] ${
+      className={`flex flex-col border text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-99 ${
         active ? "border-ink bg-ink text-foam" : "border-ink text-ink hover:border-rust"
       }`}
     >

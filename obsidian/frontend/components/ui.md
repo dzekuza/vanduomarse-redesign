@@ -14,14 +14,18 @@ files are listed in the last column; re-running `shadcn add` would overwrite the
 
 | Component | File | Props summary | Local changes |
 |-----------|------|---------------|---------------|
+| Accordion | `components/ui/accordion.tsx` | Radix accordion parts (`type`, `collapsible`) | added for the home page; open/close animation uses `data-[state=…]` + tw-animate-css `accordion-down/up` |
 | Badge | `components/ui/badge.tsx` | `variant` | — |
 | Breadcrumb | `components/ui/breadcrumb.tsx` | composable parts | — |
 | Button | `components/ui/button.tsx` | `variant`, `size`, `asChild` | sizes raised: default h-11, sm h-10, lg h-12, icon 44/40/48 |
 | Card | `components/ui/card.tsx` | Header/Title/Description/Content/Footer | — |
-| Dialog | `components/ui/dialog.tsx` | controlled `open` | header and footer `sticky` (offset by the content padding) so long forms keep title and actions in view; footer buttons in one row on phones (equal width), right-aligned from `sm`; close button sticks in the header |
+| Dialog | `components/ui/dialog.tsx` | controlled `open` | header and footer `sticky` (offset by the content padding) so long forms keep title and actions in view; footer buttons in one row on phones (equal width), right-aligned from `sm`; close button sticks in the header; `DialogContent` takes `overlayClassName` (home page: dark blurred scrim) |
+| Drawer | `components/ui/drawer.tsx` | shadcn Drawer on `vaul`: `direction` (right / bottom), `DrawerContent` takes `overlayClassName` | square, `bg-popover`; handle shows for bottom; vaul's transition is switched off under reduced motion. Home page activity drawer; floating margins and `--initial-transform` set by the caller |
 | DropdownMenu | `components/ui/dropdown-menu.tsx` | Radix menu parts | — |
 | Input | `components/ui/input.tsx` | native input props | h-11, `bg-card` |
 | Label | `components/ui/label.tsx` | `htmlFor` | — |
+| Popover | `components/ui/popover.tsx` | Radix popover parts (`align`, `sideOffset`, `collisionPadding`) | added for the date picker; square, `border-ink`, capped to the available height, `motion-safe:` enter/exit |
+| DatePicker / CalendarGrid | `components/ui/date-picker.tsx`, `calendar-grid.tsx` | `value` / `onChange` as `yyyy-mm-dd` (like `<input type="date">`), `min`, `max`, `placeholder`, `invalid`, `describedBy` | custom: Lithuanian Monday-first month grid in a popover, 44 px day cells, today underlined, arrow/Home/End/PageUp/PageDown keys, "Šiandien" / "Išvalyti"; use with `Controller`. Replaces native date inputs on the public site (admin still uses native) |
 | Select | `components/ui/select.tsx` | Radix select parts, `size` | h-11 / h-10, `bg-card` |
 | Separator | `components/ui/separator.tsx` | `orientation` | — |
 | Sheet | `components/ui/sheet.tsx` | side panel parts | — |

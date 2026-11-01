@@ -33,7 +33,7 @@ function gallery({ saunas }: SaunaPageData) {
 }
 
 // Unsplash (free licence) stand-ins until the client supplies Pirtis Marse photos.
-const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=75`;
+const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1800&q=90`;
 
 const GALLERY = [
   { src: unsplash("1788515917792-790e6b1d9af5"), alt: "Statinės formos pirtis ant ežero kranto saulėlydžio metu" },

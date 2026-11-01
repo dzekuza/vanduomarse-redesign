@@ -32,7 +32,7 @@ export function SpacePicker({ selected, day, guests, onSelect }: SpacePickerProp
             aria-pressed={active}
             disabled={tooSmall}
             onClick={() => onSelect(s.id)}
-            className={`flex flex-col gap-1 border px-4 py-4 text-left transition-[color,background-color,border-color,transform] active:scale-[0.99] ${
+            className={`flex flex-col gap-1 border px-4 py-4 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-99 ${
               tooSmall
                 ? "cursor-not-allowed border-ink/30 text-ink/40"
                 : active

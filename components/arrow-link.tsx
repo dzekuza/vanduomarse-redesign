@@ -1,28 +1,10 @@
-import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
-import Link from "next/link";
+import { Cta } from "@/components/cta";
 
-interface ArrowLinkProps {
-  href: string;
-  children: React.ReactNode;
-  size?: "sm" | "md";
-  /** Fully rounded ends (landing page); default stays the square block. */
-  pill?: boolean;
-}
-
-const SIZE = {
-  sm: { box: "min-h-11 gap-3 px-4 text-xs", icon: 18 },
-  md: { box: "min-h-12 gap-4 px-5 text-sm", icon: 22 },
-};
-
-/** Link styled as the live-site CTA: dark block, thin arrow, uppercase label. */
-export function ArrowLink({ href, children, size = "md", pill = false }: ArrowLinkProps) {
+/** Link version of the primary CTA (dark block, label left, arrow right). */
+export function ArrowLink({ href, children, size = "md" }: { href: string; children: React.ReactNode; size?: "sm" | "md" }) {
   return (
-    <Link
-      href={href}
-      className={`group inline-flex items-center border border-ink bg-ink uppercase text-foam transition-[background-color,border-color,transform] hover:border-rust hover:bg-rust active:scale-[0.97] ${SIZE[size].box} ${pill ? "rounded-full" : ""}`}
-    >
-      <ArrowRightIcon size={SIZE[size].icon} weight="thin" className="transition-transform group-hover:translate-x-1" />
+    <Cta tone="dark" small={size === "sm"} href={href}>
       {children}
-    </Link>
+    </Cta>
   );
 }

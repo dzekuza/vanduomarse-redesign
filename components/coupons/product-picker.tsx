@@ -32,7 +32,7 @@ export function ProductPicker({ products, value, onChange }: ProductPickerProps)
                     onChange={() => onChange(p.id)}
                     className="peer sr-only"
                   />
-                  <span className="flex h-full min-h-11 flex-col justify-between gap-6 rounded-tile bg-card p-5 transition-[color,background-color,transform] active:scale-[0.98] peer-checked:bg-ink peer-checked:text-foam peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 md:p-6">
+                  <span className="flex h-full min-h-11 flex-col justify-between gap-6 border border-ink bg-card p-5 transition-[color,background-color,scale] duration-150 ease-out-strong motion-safe:active:scale-98 peer-checked:bg-ink peer-checked:text-foam peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 md:p-6">
                     <span>
                       <span className="block font-display text-sm font-bold">{p.name}</span>
                       <span className="mt-2 block text-sm opacity-70">{p.description}</span>

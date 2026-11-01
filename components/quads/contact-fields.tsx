@@ -32,8 +32,9 @@ export function ContactFields({ idPrefix }: { idPrefix: string }) {
   const verification = usePhoneVerification();
   const err = formState.errors;
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <div className="sm:col-span-2">
+    <div className="@container">
+    <div className="grid gap-4 @xl:grid-cols-2">
+      <div className="@xl:col-span-2">
         <Field id={`${idPrefix}-name`} label="Vardas, pavardė" error={err.customerName?.message}>
           <Input id={`${idPrefix}-name`} autoComplete="name" aria-invalid={!!err.customerName} {...register("customerName")} />
         </Field>
@@ -49,6 +50,7 @@ export function ContactFields({ idPrefix }: { idPrefix: string }) {
         <Input id={`${idPrefix}-email`} type="email" autoComplete="email" aria-invalid={!!err.customerEmail} {...register("customerEmail")} />
       </Field>
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" {...register("website")} />
+    </div>
     </div>
   );
 }

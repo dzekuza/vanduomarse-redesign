@@ -20,7 +20,7 @@ export function DayPicker({
   note?: (date: Date) => DayNote | undefined;
 }) {
   return (
-    <div className="scrollbar-ink flex gap-2 overflow-x-auto pb-3">
+    <div className="scrollbar-ink flex gap-1.5 overflow-x-auto pb-3 sm:gap-2">
       {days.map((d) => {
         const key = dateKey(d);
         const active = key === dateKey(selected);
@@ -32,7 +32,7 @@ export function DayPicker({
             onClick={() => onSelect(d)}
             disabled={info?.disabled}
             aria-pressed={active}
-            className={`flex w-16 shrink-0 flex-col items-center gap-1 border py-3 text-sm transition-[color,background-color,border-color,transform] active:scale-[0.97] ${
+            className={`flex w-14 shrink-0 flex-col items-center gap-1 border py-2.5 text-sm sm:w-16 sm:py-3 transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
               info?.disabled
                 ? "cursor-not-allowed border-ink/30 text-ink/30"
                 : active
@@ -42,7 +42,7 @@ export function DayPicker({
           >
             <span className="text-xs">{weekdayLabel(d)}</span>
             <span className="font-display text-xl font-bold leading-none">{d.getDate()}</span>
-            {info && <span className={`text-xs ${active ? "text-foam/70" : ""}`}>{info.text}</span>}
+            {info && <span className={`text-micro sm:text-xs ${active ? "text-foam/70" : ""}`}>{info.text}</span>}
           </button>
         );
       })}

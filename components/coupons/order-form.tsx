@@ -61,7 +61,7 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
 
   return (
     <FormProvider {...form}>
-    <form onSubmit={submit} noValidate className="space-y-5 rounded-tile bg-card p-6 md:p-8">
+    <form onSubmit={submit} noValidate className="space-y-5 border border-ink bg-card p-6 md:p-8">
       <div>
         <p className="text-xs uppercase text-ink/70">Užsakymas</p>
         <p className="mt-1 font-display text-lg font-bold">{product.name}</p>

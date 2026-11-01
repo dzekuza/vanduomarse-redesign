@@ -37,3 +37,8 @@ error when either variable is missing. Every client (`lib/supabase/server.ts`,
 ## Related
 
 [[api-architecture]] · [[tech-stack]]
+
+
+## SMS in local development
+
+`SMS_IN_DEV` (optional, `1`): by default `next dev` sends no SMS and the phone gate auto-confirms the typed number; set it to send real SMS locally. Ignored in production builds.

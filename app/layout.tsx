@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Big_Shoulders, Work_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import { StickerDock } from "@/components/sticker-dock";
 import { cn } from "@/lib/utils";
 
 const bigShoulders = Big_Shoulders({
@@ -36,10 +35,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="lt" className={cn("h-full antialiased font-sans", bigShoulders.variable, workSans.variable, termina.variable)}>
+    <html lang="lt" data-scroll-behavior="smooth" className={cn("h-full antialiased font-sans", bigShoulders.variable, workSans.variable, termina.variable)}>
       <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">
         {children}
-        <StickerDock />
       </body>
     </html>
   );

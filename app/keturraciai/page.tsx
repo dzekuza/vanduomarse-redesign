@@ -21,7 +21,7 @@ const facts = (types: QuadType[], s: QuadSettings) => [
 ];
 
 // Unsplash (free licence) stand-ins until the client supplies real quad photos.
-const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=75`;
+const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1800&q=90`;
 
 const GALLERY = [
   { src: unsplash("1489731254138-5401fb834d9c"), alt: "Žmogus važiuoja keturračiu" },

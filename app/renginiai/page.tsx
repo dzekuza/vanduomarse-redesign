@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { ArrowLink } from "@/components/arrow-link";
 import { BookingPage } from "@/components/booking/booking-page";
+import { Cta } from "@/components/cta";
+import { PageIntro } from "@/components/page-intro";
 import { EventsBoard } from "@/components/events/events-board";
 import { getParkEvents } from "@/lib/data/public";
 
@@ -14,24 +15,17 @@ export default async function RenginiaiPage() {
 
   return (
     <BookingPage>
-      <section className="px-6 pb-20 pt-6 md:px-10 md:pt-10">
-        <div className="max-w-3xl">
-          <p className="mb-6 inline-block border border-ink px-4 py-2 text-xs uppercase">Renginiai Marse</p>
-          <h1 className="font-display text-4xl font-bold leading-[1.02] sm:text-5xl xl:text-6xl">
-            Kas vyksta
-            <br />
-            Marse.
-          </h1>
-          <p className="mt-6 max-w-md text-ink/80">
-            Pirties ritualai, vakarai prie ežero, Akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje.
-          </p>
-          <div className="mt-6">
-            <ArrowLink href="/skaiciuokle">Planuoji savo renginį? Apskaičiuok kainą</ArrowLink>
-          </div>
-        </div>
-        <div className="mt-12">
-          <EventsBoard data={events} />
-        </div>
+      <PageIntro
+        eyebrow="Renginiai Marse"
+        title={["Kas vyksta", "Marse."]}
+        intro="Pirties ritualai, vakarai prie ežero, Akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje."
+      >
+        <Cta tone="coral" href="/skaiciuokle">
+          Apskaičiuok renginio kainą
+        </Cta>
+      </PageIntro>
+      <section className="px-gutter py-12 md:py-16">
+        <EventsBoard data={events} />
       </section>
     </BookingPage>
   );

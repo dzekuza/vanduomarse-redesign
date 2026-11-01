@@ -10,7 +10,7 @@ interface AddToCalendarProps {
 }
 
 const LINK_CLASS =
-  "flex min-h-11 items-center gap-2 border border-ink px-3 text-xs uppercase transition-[color,background-color,transform] hover:bg-ink hover:text-foam active:scale-[0.97]";
+  "flex min-h-11 items-center gap-2 border border-ink px-3 text-xs uppercase transition-[color,background-color,scale] duration-150 ease-out-strong hover:bg-ink hover:text-foam motion-safe:active:scale-97";
 
 /** Google Calendar link plus an .ics file for Apple Calendar and Outlook. */
 export function AddToCalendar({ event, reference }: AddToCalendarProps) {

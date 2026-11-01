@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-30
+updated: 2026-11-01
 ---
 
 # Common Components Catalog
@@ -11,17 +11,24 @@ feature components in `components/<feature>/`. Admin screens build on
 
 | Component | File | Purpose | Status |
 |-----------|------|---------|--------|
-| `MobileMenu` | `components/mobile-menu.tsx` | Below `lg`: 44 px menu button + full-width link panel under the sticky header; Escape closes | stable |
-| `ArrowLink` | `components/arrow-link.tsx` | Link version of the live-site CTA (dark block, thin arrow, uppercase); `sm`/`md`; `pill` makes the ends fully rounded (landing page) | stable |
-| `Hero` | `components/hero.tsx` | Home hero (Max Bennet look): giant `DistortWordmark` H1, three-column uppercase meta row, pill `ArrowLink` + outline "Visos zonos" pill; blocks fade up on load in a `delay-*` cascade (`motion-safe:` only) | stable |
-| `DistortWordmark` | `components/distort-wordmark.tsx` + `lib/distort-gl.ts` | Hero wordmark: real `Wordmark` h1 stays in the DOM; on fine-pointer devices a WebGL canvas (colour read from `text-rust`) redraws it and melts the letters around the cursor (streaky smear + stippled edges). Plain text on touch, `prefers-reduced-motion` or no WebGL; render loop only runs while the pointer is over it | stable |
+| `ArrowLink` | `components/arrow-link.tsx` | Link flavour of the dark `Cta` (`size` sm/md); used in the events feed | stable |
 | `Wordmark` | `components/wordmark.tsx` | "VANDUO MARSE" in Big Shoulders Black, coral, fitted to its container (`wordmark-fit` + `wordmark-size`, cqw units): two lines below `md`, one line from `md`. `as="h1"` on the hero, `aria-hidden` repeat in the footer | stable |
-| `SectorTiles` | `components/sector-tiles.tsx` | `#zonos`: the six sectors as rounded photo tiles (wide / 2-up / 2-up / wide from `md`, stacked below) with tag pill, name, blurb on an ink gradient; tiles with `id` keep the `/#akademija` and `/#skoniai` anchors. Photos are placeholder Unsplash images until real ones exist | stable |
-| `TrackStats` | `components/track-stats.tsx` | Park numbers (620 m, 6, 17, 8) as oversized coral figures in a `dl`, 2 cols below `lg`, 4 from `lg` (numerals `7xl` → `8xl` at `md` → `9xl` at `xl`, so "620 m" never collides with the next figure) | stable |
-| `StatusBar` | `components/status-bar.tsx` | Rounded `bg-card` block: pulsing status line (half width from `lg`) + one labelled day/time list per season (`dl`, tabular numbers); stacks below `md` | stable |
-| `ContactBar` | `components/contact-bar.tsx` | Thin blush strip above `SiteHeader` (rendered by it): main phone (`tel:`), email (icon-only below `sm`), map link ("Žemėlapis" / address from `md`); scrolls away, header stays sticky | stable |
-| `StickerDock` | `components/sticker-dock.tsx` | Zone stickers (Vanduo, Akademija, Skoniai, Miegas) from `public/brand/sticker-*.svg`: frosted glass (`bg-foam/50` + `backdrop-blur-xl backdrop-saturate-150`); full-width bottom bar below `lg`, floating hug-width dock 24 px above the edge from `lg`; active page raised; hidden in `/admin` and `/embed`, and below `lg`, on `/skaiciuokle` (own bottom bar). Rendered in the root layout | stable |
-| `BrandLogo` | `components/brand-logo.tsx` | Astronaut badge SVG linking home; height via `className` (header h-11/12; no longer in the footer) | stable |
+| `LandingProvider` / `useLanding` | `components/landing/landing-provider.tsx` | Client context on `/`: `openService(id)`; owns `ServiceDrawer`. Server sections open it through `ServiceCta` / `ServiceTextCta` (`service-triggers.tsx`); header, hero sticker and footer CTAs are plain `#kryptys` links | stable |
+| Home sections | `components/landing/landing-{header,hero,ticker,activities,night,all-in,moments,faq,place,footer}.tsx` | The 2026-11 "Išsuk į Marsą" landing: dark hero (cut photo, orbits, spin star), coral ticker, filterable activity cards (`ActivityBoard`/`ActivityTile`), night photo, coral "viskas vienoje orbitoje" + accordion, snap-scroll gallery (`MomentsGallery`), FAQ, teal location block, footer. Copy lives in `landing/content.ts` (no prices) | stable |
+| `Reveal` | `components/reveal.tsx` | Scroll reveal: fades + lifts its children in once via IntersectionObserver. Content already on screen at mount is never hidden; reduced motion never hides anything. Stagger with `delay-*` | stable |
+| `MODAL_*` | `components/landing/dialog-motion.ts` | Class strings that give the home dialogs a real enter/exit (the base `ui/dialog` `data-open:` classes do not match Radix's `data-state`) and switch it off under reduced motion | stable |
+| `SiteHeader` | `components/site-header.tsx` | Client shell shared by home and inner pages, **fixed to the top** on every page: logo, section links (`lg`+), coral CTA, 44 px menu button, Escape + body scroll lock. Transparent over the hero, solid `bg-ink/95` with blur and a hairline once scrolled 8 px (not while the menu is open). `placement="overlay"` floats over the hero; `"bar"` also reserves its own ink strip in the page flow | stable |
+| `PageHeader` | `components/page-header.tsx` | `SiteHeader` for inner pages: `PAGE_NAV` links, "Dovanų kuponai" CTA, menu = `NAV_LINKS` + home anchors | stable |
+| `CalculatorDrawer` | `components/landing/calculator-drawer.tsx` | The event price calculator as a drawer, opened from the party drawer's "Apskaičiuok šventės kainą" (`openCalculator()` in `useLanding`, which closes the activity drawer). Ink header pins the live total (`aria-live`) with guests and per-guest price; six question steps + a "Suvestinė" step (breakdown + `InquiryForm`) run through `BookingCard` steps inside `SteppedBooking`. State resets on every open | stable |
+| `useEventCalculator` / `CALCULATOR_SECTIONS` | `components/calculator/use-event-calculator.ts`, `calculator-sections.tsx` | Calculator state + estimate, and the six question sections, shared by the `/skaiciuokle` page (all at once, `EventCalculator`) and the drawer (one per step). `EstimateSummary` takes `showTotal` | stable |
+| `ServiceDrawer` / `ServiceBooking` | `components/landing/service-drawer.tsx`, `service-booking.tsx` | Activity drawer on the home page (`ui/drawer`, vaul): right-hand panel with 16 px margins from `sm`, bottom sheet with 8 px margins and drag handle on phones. Rounded (`rounded-tile`). Swipeable photo carousel (`ServiceGallery`), copy, facts, then the **real booking form** for sauna (`SaunaReservation`), cabins (`CabinBooking`), quads (`QuadReservation` + rules), behind `PhoneGate` and wrapped in `SteppedBooking`, so each form runs as a stepper. Availability loads when it opens through `loadBookingData` (`app/actions/booking-data.ts`), so `/` stays static. Party, wake and food: contacts (+ calculator for parties). The form area is `data-vaul-no-drag` so day strips scroll without closing it | stable |
+| `MenuPanel` | `components/menu-panel.tsx` | Full-screen coral menu: numbered big links, smaller secondary list, email; fades in, links stagger | stable |
+| `PageIntro` | `components/page-intro.tsx` | Dark intro band under the header on every inner page: status-dot eyebrow, uppercase title (2nd line coral), intro, optional facts row and extra children, over the hero's grid + orbit; load-in cascade | stable |
+| `SiteFooter` / `FooterWord` / `FooterBar` | `components/site-footer.tsx` | Inner-page footer: contact grid (`CONTACTS`), giant "Susitinkam Marse", logo + link row. `FooterWord`/`FooterBar` are reused by the home footer | stable |
+| `SectionKicker`, `StarMark`, `Reveal`, `Cta` | `components/` | Shared primitives of the redesign (moved out of `components/landing/`) | stable |
+| `Cta` / `textCtaClass` | `components/cta.tsx` | Label-left/arrow-right block button (`coral`/`cream`/`dark`, `small`), link when `href` is set | stable |
+| `MenuPanel` | `components/menu-panel.tsx` | Full-screen coral menu: four on-page sections + the booking pages (`BOOKING_LINKS`) | stable |
+| `LandingAccordion` | `components/landing/landing-accordion.tsx` | `events` / `faq` variants over `ui/accordion` (`single` or `multiple`) | stable |
 | `QuadReservation` | `components/quads/quad-reservation.tsx` | `/keturraciai` tabs (`BookingTabs`): hourly rental / guided tours (badge = tours with seats) | stable |
 | `QuadRules` | `components/quads/quad-rules.tsx` | Bordered "Taisyklės" block with the admin rules text; renders nothing when empty. Used on `/keturraciai` and `/embed/keturraciai` | stable |
 | `EmbedFrame` | `components/embed/embed-frame.tsx` | `/embed/*` wrapper (no side padding below `sm`, so it fills narrow blocks; all widgets fit from 285 px): posts `{ type: "vm-embed:height", height }` to the parent on every resize (ResizeObserver); internal links to a booking route open its `/embed` twin in place, any other internal link opens in a new tab | stable |
@@ -66,8 +73,9 @@ feature components in `components/<feature>/`. Admin screens build on
 | `PricingView` / `PriceGroupForm` | `components/admin/pricing/` | Grouped price editor, range validation | stable |
 | `BookingStatusBadge` / `InquiryStatusBadge` | `components/admin/status-badge.tsx` | Status chips with brand tones | stable |
 | `BookingPage` | `components/booking/booking-page.tsx` | Page shell: header, content, footer (theme now comes from `<body>`) | stable |
-| `BookingHero` | `components/booking/booking-hero.tsx` | Eyebrow, uppercase title, intro, facts, bento gallery on the left; booking form (`children`) sticky on the right | stable |
+| `BookingHero` | `components/booking/booking-hero.tsx` | Dark `PageIntro` (eyebrow, title, intro, 4 facts) then a 2-col section: sticky `BentoGallery` left, booking form right (form first on phones) | stable |
 | `StepLabel` | `components/booking/step-label.tsx` | Numbered step heading (`01 PASIRINK DIENĄ`) | stable |
+| `BookingCard` steps / `SteppedBooking` | `components/booking/booking-card.tsx`, `stepped.tsx` | `BookingCard` takes `steps` (`id`, `label`, `content`, `ready`). On the booking pages all steps show together as before; inside `SteppedBooking` (the home drawer) one step shows at a time with a progress bar, Back/Next ("Toliau" is disabled while `ready === false`) and the confirm button on the last step. `StepLabel` hides inside a step (the header names it). Cabin, sauna and quad rental flows are built from steps; contact fields stack when their container is narrow (`@xl`) | stable |
 | `BookingTabs` | `components/booking/booking-tabs.tsx` | Accessible segmented tabs (arrow keys, `tablist`/`tabpanel`) above a booking card; optional per-tab count `badge` (wraps under the label in narrow widths); colours from the `--tab*` tokens | stable |
 | `SaunaReservation` | `components/booking/sauna-reservation.tsx` | Pirtis tabs: private hire (`SaunaBooking`) or join an event (`SaunaEventBooking`); `initialMode` from `?skirtukas=renginiai`; `initialSaunaId` from `?pirtis=`; takes `SaunaPageData` (saunas, extras, taken hours per sauna, sessions) from the page | stable |
 | `SaunaHire` | `components/booking/sauna-hire.tsx` | Private hire: `SaunaPicker` as step 1 when 2+ saunas are active, then `SaunaBooking` keyed by sauna (state resets on switch); empty state without saunas | stable |
@@ -85,7 +93,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `SpacePicker` | `components/calculator/space-picker.tsx` | Venue cards with capacity/price for the day type; disables too-small spaces | stable |
 | `PresetPicker` | `components/calculator/preset-picker.tsx` | Event-type chips that pre-fill a typical setup | stable |
 | `OptionToggle` | `components/calculator/option-toggle.tsx` | Full-width on/off add-on row (`role="switch"`) with price hint | stable |
-| `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos: 2x2 lead tile plus four small tiles, hover zoom; one image goes full width | stable |
+| `BentoGallery` | `components/booking/bento-gallery.tsx` | Up to 5 photos. From `md`: a 2x2 lead tile (cut top-left corner) with four tiles beside it. On phones: one wide lead photo with the other four as a row of thumbnails. `quality={90}`, lead is `priority`, `sizes` match each tile's real width; hover zoom is `motion-safe:` | stable |
 | `Stepper` | `components/booking/stepper.tsx` | Label + −/value/+ (44 px buttons) between `min` and `max`; the controls wrap under a long label in narrow widths | stable |
 | `UpsellPicker` | `components/booking/upsell-picker.tsx` | Active sauna extras: on/off rows or steppers (capped at group size) with live cost; one column below `sm` that shrinks to fit (`grid-cols-1`) | stable |
 | `StartTimeGrid` | `components/booking/start-time-grid.tsx` | Hourly start times from the live rates showing the longest bookable run (taken hours from `sauna_taken_hours()`); disabled when the minimum does not fit ("Užimta") or, today, when the hour has passed (`pastHour`, "Praėjo") | stable |
@@ -93,7 +101,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `DayPicker` | `components/booking/day-picker.tsx` | Sideways date strip; optional `note` adds a third line (e.g. "liko 3") and can disable a day | stable |
 | `CabinSizePicker` | `components/booking/cabin-size-picker.tsx` | Namelis 2 / 4 asmenims with nightly price and cabins left for the stay; booked-out size disabled | stable |
 | `ChoiceTile` | `components/booking/choice-tile.tsx` | Two-line selectable tile (active / idle / disabled) | stable |
-| `ArrowButton` | `components/booking/arrow-button.tsx` | Live-site CTA: dark block, thin arrow, uppercase label | stable |
+| `ArrowButton` | `components/booking/arrow-button.tsx` | Primary form button = dark small `Cta` (label left, arrow right); `type`, `disabled`, `onClick` | stable |
 
 ## Related
 

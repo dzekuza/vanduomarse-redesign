@@ -42,7 +42,7 @@ export function EventRow({ event }: { event: ParkEvent }) {
             type="button"
             aria-expanded={registering}
             onClick={() => setRegistering((o) => !o)}
-            className="min-h-11 border border-ink bg-ink px-4 text-xs uppercase text-foam transition-[background-color,border-color,transform] hover:border-rust hover:bg-rust active:scale-[0.97]"
+            className="min-h-11 border border-ink bg-ink px-4 text-xs uppercase text-foam transition-[background-color,border-color,scale] duration-150 ease-out-strong hover:border-rust hover:bg-rust motion-safe:active:scale-97"
           >
             {registering ? "Uždaryti" : event.cta.label}
           </button>

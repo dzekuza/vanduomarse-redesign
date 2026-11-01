@@ -15,6 +15,8 @@
   --dust-soft: #f0e5d3;
   --foam: #f5f1e8;
   --signal: #f2b705;
+  /* Bright brand teal: focus accents and the live status dot on the home page. */
+  --water: var(--raw-teal);
   --line: rgba(17, 32, 31, 0.14);
   --line-on-ink: rgba(245, 241, 232, 0.16);
   /* Booking tabs: own tokens so the WordPress widgets can recolour them apart
@@ -80,6 +82,7 @@
   --color-dust-soft: var(--dust-soft);
   --color-foam: var(--foam);
   --color-signal: var(--signal);
+  --color-water: var(--water);
   --color-line: var(--line);
   --color-line-on-ink: var(--line-on-ink);
   --color-tab: var(--tab);
@@ -135,6 +138,71 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Home page (landing redesign) tokens. Literal values, so a plain @theme.
+   Type steps pair a fluid size with the line height and tracking the design
+   uses; `-sm` steps are the phone sizes (use `text-x-sm md:text-x`). */
+@theme {
+  --spacing-gutter: clamp(1.375rem, 4.2vw, 5rem);
+  --radius-cut: 6.25rem;
+  --radius-cut-lg: 10rem;
+
+  /* Labels and kickers only (11 px). Anything a visitor reads as a sentence uses text-xs or larger. */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.7;
+  --text-micro--letter-spacing: 0.07em;
+  --text-hero-sm: 16.9vw;
+  --text-hero-sm--line-height: 1.04;
+  --text-hero-sm--letter-spacing: -0.075em;
+  --text-hero: clamp(5.25rem, 11.8vw, 12.1875rem);
+  --text-hero--line-height: 0.99;
+  --text-hero--letter-spacing: -0.075em;
+  --text-display: clamp(2.5rem, 5.25vw, 5.25rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.065em;
+  --text-jumbo-sm: 13vw;
+  --text-jumbo-sm--line-height: 1.08;
+  --text-jumbo-sm--letter-spacing: -0.07em;
+  --text-jumbo: clamp(3.625rem, 8.4vw, 8.75rem);
+  --text-jumbo--line-height: 1.01;
+  --text-jumbo--letter-spacing: -0.07em;
+  --text-statement-sm: 3.625rem;
+  --text-statement-sm--line-height: 1.01;
+  --text-statement-sm--letter-spacing: -0.065em;
+  --text-statement: clamp(3.125rem, 5.9vw, 5.875rem);
+  --text-statement--line-height: 1.01;
+  --text-statement--letter-spacing: -0.065em;
+  --text-title: clamp(2.5rem, 4.4vw, 4.375rem);
+  --text-title--line-height: 1.06;
+  --text-title--letter-spacing: -0.065em;
+  /* Named "tile", not "card": `text-card` is already the card colour. */
+  --text-tile: clamp(1.5rem, 2.05vw, 2.125rem);
+  --text-tile--line-height: 1.05;
+  --text-tile--letter-spacing: -0.05em;
+  --text-footer-sm: 10vw;
+  --text-footer-sm--line-height: 1.03;
+  --text-footer-sm--letter-spacing: -0.07em;
+  --text-footer: clamp(3.375rem, 9vw, 9.6875rem);
+  --text-footer--line-height: 1.03;
+  --text-footer--letter-spacing: -0.07em;
+  --text-menu: clamp(1.375rem, 4.2vw, 4.0625rem);
+  --text-menu--line-height: 1.1;
+  --text-menu--letter-spacing: -0.055em;
+
+  /* Strong ease-out for UI motion; the built-in CSS curves are too weak. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  /* iOS-like curve for drawers and sheets. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --animate-marquee: marquee 36s linear infinite;
+  --animate-spin-slow: spin 35s linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
 body {
   background: var(--dust);
   color: var(--ink);
@@ -145,9 +213,17 @@ body {
   box-sizing: border-box;
 }
 
-/* Keep in-page anchors (/#zonos, /#kainos) clear of the sticky header. */
+/* Keep in-page anchors (/#kryptys, /#vieta) clear of the sticky header. */
 html {
   scroll-padding-top: 7rem;
+}
+
+/* Anchor jumps glide, unless the visitor prefers reduced motion. The `data-scroll-behavior`
+   attribute on <html> (layout) lets Next.js jump instantly on route changes. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 ::selection {
@@ -320,6 +396,68 @@ html {
   --dust: var(--raw-aubergine-night);
   --dust-soft: var(--raw-aubergine-dusk);
   --line: rgba(251, 243, 239, 0.14);
+}
+
+/* Home page pieces that are art, not layout: the hero's cut photo, 12-column
+   grid and orbit ellipses, outlined type and a hidden scrollbar. */
+@utility clip-hero-narrow {
+  clip-path: polygon(17% 0, 100% 0, 100% 100%, 0 100%, 0 25%);
+}
+
+@utility clip-hero-wide {
+  clip-path: polygon(13% 0, 100% 0, 100% 100%, 0 100%, 0 30%);
+}
+
+@utility bg-grid-hero {
+  background-image: linear-gradient(var(--dust) 1px, transparent 1px), linear-gradient(90deg, var(--dust) 1px, transparent 1px);
+  background-size: 25% 6.25rem;
+
+  @media (min-width: 48rem) {
+    background-size: calc(100% / 12) 7.5rem;
+  }
+}
+
+@utility orbit-wide {
+  width: 190vw;
+  height: 90vw;
+  left: -40vw;
+  top: 7.5rem;
+  transform: rotate(-22deg);
+
+  @media (min-width: 48rem) {
+    width: 94vw;
+    height: 42vw;
+    left: -14vw;
+    top: 6.5rem;
+  }
+}
+
+@utility orbit-round {
+  width: 100vw;
+  height: 100vw;
+  right: -50vw;
+  top: 3rem;
+
+  @media (min-width: 48rem) {
+    width: 48vw;
+    height: 48vw;
+    right: -15vw;
+    top: -17vw;
+  }
+}
+
+
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--dust);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer base {

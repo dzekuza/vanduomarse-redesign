@@ -25,7 +25,7 @@ components/
 hooks/                  ← shared hooks — catalog: [[hooks]]
 lib/                    ← business rules, prices, data generators — catalog: [[utils]]
 └── admin/              ← admin models, labels, mappers, repository (server), occupancy, formatting
-public/brand/           ← logo badge, zone stickers (sticker-*.svg)
+public/brand/           ← logo badge, logos, zone stickers (sticker-*.svg, currently unused)
 supabase/               ← config.toml, migrations/, seed.sql (demo) — see [[database]]
 lib/supabase/           ← env, server (cookie) + public (anon) clients, generated database.types.ts
 lib/data/               ← public.ts (server-only reads for public pages), public-types.ts

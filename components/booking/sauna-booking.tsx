@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { createSaunaBooking } from "@/app/actions/requests";
 import { ArrowButton } from "./arrow-button";
-import { BookingCard, BookingTotal } from "./booking-card";
+import { BookingCard, BookingTotal, type BookingStep } from "./booking-card";
 import { ContactStep } from "./contact-step";
 import { Confirmation } from "./confirmation";
 import { CouponField } from "./coupon-field";
@@ -148,70 +148,110 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
     );
   }
 
+  const steps: BookingStep[] = [
+    {
+      id: "day",
+      label: lead ? "Pirtis ir diena" : "Diena",
+      content: (
+        <>
+          {lead}
+          <div>
+            <StepLabel step={firstStep}>Pasirink dieną</StepLabel>
+            <DayPicker
+              days={days}
+              selected={selectedDate}
+              onSelect={selectDate}
+              note={(d) => (hasOpenStart(d) ? undefined : { text: allStartsPassed(d) ? "Uždaryta" : "Užimta", disabled: true })}
+            />
+          </div>
+        </>
+      ),
+    },
+    {
+      id: "party",
+      label: "Grupė",
+      content: (
+        <div>
+          <StepLabel step={firstStep + 1}>Grupė</StepLabel>
+          <div className="grid gap-3 @xl:grid-cols-2">
+            <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={rates.maxParty} />
+          </div>
+          <p className="mt-2 text-sm text-ink">Jūsų grupei – {hourRate(partySize, rates)} €/val. už visą pirtį.</p>
+          <p className="mt-1 text-sm text-ink/60">
+            Kaina visai grupei, ne žmogui: iki {rates.smallGroupMax} asm. – {rates.smallGroupRate} €/val., {rates.smallGroupMax + 1}–
+            {rates.maxParty} asm. – {rates.largeGroupRate} €/val. Minimaliai {rates.minHours} val., {rates.packageHours} val. paketas –{" "}
+            {rates.packagePrice} €.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: "time",
+      label: "Laikas",
+      ready: startHour !== null,
+      content: (
+        <>
+          <div>
+            <StepLabel step={firstStep + 2}>Pradžios laikas</StepLabel>
+            <StartTimeGrid taken={taken} rates={rates} pastHour={pastHour} selected={startHour} onSelect={selectStart} />
+          </div>
+          {startHour !== null ? (
+            <div>
+              <StepLabel step={firstStep + 3}>Trukmė</StepLabel>
+              <DurationPicker rates={rates} partySize={partySize} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setHours} />
+              {maxHours < rates.maxHours ? (
+                <p className="mt-2 text-sm text-ink/60">Ilgiausiai iki {formatHour(startHour + maxHours)}: po to pirtis užimta arba uždaroma.</p>
+              ) : null}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    ...(upsells.length
+      ? [
+          {
+            id: "extras",
+            label: "Papildomai",
+            content: (
+              <div>
+                <StepLabel step={extrasStep}>Papildomai</StepLabel>
+                <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
+              </div>
+            ),
+          },
+        ]
+      : []),
+    {
+      id: "contact",
+      label: "Kontaktai",
+      content: (
+        <>
+          <CouponField flow="pirtis" coupon={coupon} discount={discount} onChange={setCoupon} />
+          <ContactStep step={upsells.length ? extrasStep + 1 : extrasStep} idPrefix="sauna" />
+        </>
+      ),
+    },
+  ];
+
   return (
     <FormProvider {...form}>
-    <form onSubmit={submit} noValidate>
-    <BookingCard
-      summary={
-        <BookingTotal
-          note={startHour === null ? "Pasirink pradžios laiką" : `${selectedDate.toLocaleDateString("lt-LT")}, ${timeLabel}`}
-          total={total}
-          discount={discount}
+      <form onSubmit={submit} noValidate>
+        <BookingCard
+          steps={steps}
+          summary={
+            <BookingTotal
+              note={startHour === null ? "Pasirink pradžios laiką" : `${selectedDate.toLocaleDateString("lt-LT")}, ${timeLabel}`}
+              total={total}
+              discount={discount}
+            />
+          }
+          action={
+            <ArrowButton type="submit" disabled={startHour === null || form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
+            </ArrowButton>
+          }
         />
-      }
-      action={
-        <ArrowButton type="submit" disabled={startHour === null || form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
-        </ArrowButton>
-      }
-    >
-      {lead}
-      <div>
-        <StepLabel step={firstStep}>Pasirink dieną</StepLabel>
-        <DayPicker
-          days={days}
-          selected={selectedDate}
-          onSelect={selectDate}
-          note={(d) => (hasOpenStart(d) ? undefined : { text: allStartsPassed(d) ? "Uždaryta" : "Užimta", disabled: true })}
-        />
-      </div>
-      <div>
-        <StepLabel step={firstStep + 1}>Grupė</StepLabel>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={rates.maxParty} />
-        </div>
-        <p className="mt-2 text-sm text-ink">Jūsų grupei – {hourRate(partySize, rates)} €/val. už visą pirtį.</p>
-        <p className="mt-1 text-sm text-ink/60">
-          Kaina visai grupei, ne žmogui: iki {rates.smallGroupMax} asm. – {rates.smallGroupRate} €/val., {rates.smallGroupMax + 1}–
-          {rates.maxParty} asm. – {rates.largeGroupRate} €/val. Minimaliai {rates.minHours} val., {rates.packageHours} val. paketas –{" "}
-          {rates.packagePrice} €.
-        </p>
-      </div>
-      <div>
-        <StepLabel step={firstStep + 2}>Pradžios laikas</StepLabel>
-        <StartTimeGrid taken={taken} rates={rates} pastHour={pastHour} selected={startHour} onSelect={selectStart} />
-      </div>
-      {startHour !== null ? (
-        <div>
-          <StepLabel step={firstStep + 3}>Trukmė</StepLabel>
-          <DurationPicker rates={rates} partySize={partySize} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setHours} />
-          {maxHours < rates.maxHours ? (
-            <p className="mt-2 text-sm text-ink/60">
-              Ilgiausiai iki {formatHour(startHour + maxHours)}: po to pirtis užimta arba uždaroma.
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-      {upsells.length ? (
-        <div>
-          <StepLabel step={extrasStep}>Papildomai</StepLabel>
-          <UpsellPicker upsells={upsells} quantities={extras} onChange={(id, qty) => setExtras((e) => ({ ...e, [id]: qty }))} partySize={partySize} hours={hours} />
-        </div>
-      ) : null}
-      <CouponField flow="pirtis" coupon={coupon} discount={discount} onChange={setCoupon} />
-      <ContactStep step={upsells.length ? extrasStep + 1 : extrasStep} idPrefix="sauna" />
-    </BookingCard>
-    </form>
+      </form>
     </FormProvider>
   );
 }

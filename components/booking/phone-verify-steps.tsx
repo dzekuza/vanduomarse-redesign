@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
-import { confirmPhoneCode, requestPhoneCode } from "@/app/actions/phone";
+import { confirmPhoneCode, requestPhoneCode, skipPhoneVerification } from "@/app/actions/phone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,8 +35,21 @@ export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: 
   const submit = form.handleSubmit(async (values) => {
     const result = await requestPhoneCode(values);
     if ("error" in result) return form.setError("phone", { message: result.error.message });
+    // Local dev without Twilio: confirm the code right away, no SMS step.
+    if (result.data.devCode) {
+      const confirmed = await confirmPhoneCode({ phone: result.data.phone, code: result.data.devCode });
+      if ("error" in confirmed) return form.setError("phone", { message: confirmed.error.message });
+      return setPhoneVerification(confirmed.data);
+    }
     onSent(result.data.phone, secondsFromNow(result.data.resendIn));
   });
+
+  /** Dev only: take the typed number (or a placeholder) as verified, no SMS and no code. */
+  async function skip() {
+    const result = await skipPhoneVerification(form.getValues("phone"));
+    if ("error" in result) return form.setError("phone", { message: result.error.message });
+    setPhoneVerification(result.data);
+  }
 
   return (
     <form onSubmit={submit} noValidate>
@@ -51,11 +64,17 @@ export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: 
         <div className="space-y-4">
           <StepLabel step={1}>{STEP_TITLE}</StepLabel>
           <p className="text-sm text-ink/80">Prieš rezervuodami patvirtinkite telefono numerį: atsiųsime 6 skaitmenų kodą SMS žinute.</p>
-          <div className="max-w-sm space-y-1.5">
+          <div className="space-y-1.5">
             <Label htmlFor={id}>Telefonas</Label>
             <Input id={id} type="tel" autoComplete="tel" placeholder="+370 612 34567" aria-invalid={!!errors.phone} {...form.register("phone")} />
             <FieldError message={errors.phone?.message} />
           </div>
+          {/* Compiled out of production builds (NODE_ENV is inlined), and the action refuses outside `next dev`. */}
+          {process.env.NODE_ENV === "development" ? (
+            <Button type="button" variant="outline" size="lg" className="w-full border-dashed border-ink bg-transparent" onClick={skip}>
+              Praleisti telefono patvirtinimą (tik dev)
+            </Button>
+          ) : null}
         </div>
       </BookingCard>
     </form>
@@ -119,7 +138,7 @@ export function PhoneCodeStep({ phone, resendAt, onResent, onChangeNumber }: Cod
       >
         <div className="space-y-4">
           <StepLabel step={2}>{STEP_TITLE}</StepLabel>
-          <div className="max-w-xs space-y-1.5">
+          <div className="space-y-1.5">
             <Label htmlFor={id}>SMS kodas</Label>
             <Input
               id={id}
@@ -133,11 +152,11 @@ export function PhoneCodeStep({ phone, resendAt, onResent, onChangeNumber }: Cod
             />
             <FieldError message={errors.code?.message} />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" disabled={wait > 0 || resending} onClick={resend}>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button type="button" variant="outline" size="lg" className="w-full border-ink bg-transparent" disabled={wait > 0 || resending} onClick={resend}>
               {wait > 0 ? `Siųsti dar kartą po ${wait} s` : resending ? "Siunčiama..." : "Siųsti dar kartą"}
             </Button>
-            <Button type="button" variant="ghost" onClick={onChangeNumber}>
+            <Button type="button" variant="ghost" size="lg" className="w-full border border-transparent hover:border-ink" onClick={onChangeNumber}>
               Keisti numerį
             </Button>
           </div>

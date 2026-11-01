@@ -32,7 +32,7 @@ export function VerifiedPhoneField({ id, name, verification }: VerifiedPhoneFiel
       <Label htmlFor={id}>Telefonas (patvirtintas)</Label>
       <div className="flex gap-2">
         <Input id={id} type="tel" readOnly {...register(name)} />
-        <Button type="button" variant="outline" onClick={() => setPhoneVerification(null)}>
+        <Button type="button" variant="outline" className="shrink-0 border-ink bg-transparent" onClick={() => setPhoneVerification(null)}>
           Keisti
         </Button>
       </div>

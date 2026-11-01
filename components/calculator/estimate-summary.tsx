@@ -11,12 +11,15 @@ interface EstimateSummaryProps {
   spaceLabel: string;
   /** Typical per-guest range from the price sheet for the chosen event type. */
   typical: { label: string; perGuest: Money } | null;
+  /** The drawer shows the total in its own header, so it can drop the one here. */
+  showTotal?: boolean;
 }
 
 /** Live breakdown of the estimate, grouped like the price sheet, with an inquiry CTA. */
-export function EstimateSummary({ estimate, input, guests, spaceLabel, typical }: EstimateSummaryProps) {
+export function EstimateSummary({ estimate, input, guests, spaceLabel, typical, showTotal = true }: EstimateSummaryProps) {
   return (
     <div className="border border-ink bg-foam">
+      {showTotal ? (
       <div className="border-b border-ink px-6 py-5">
         <p className="text-sm uppercase text-ink/60">Preliminari kaina</p>
         <p className="font-display mt-1 text-3xl font-bold">{formatMoney(estimate.total)}</p>
@@ -31,6 +34,7 @@ export function EstimateSummary({ estimate, input, guests, spaceLabel, typical }
           </p>
         ) : null}
       </div>
+      ) : null}
 
       <div className="space-y-5 px-6 py-5">
         {GROUPS.map((group) => {

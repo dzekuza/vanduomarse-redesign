@@ -2,15 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { createInquiry } from "@/app/actions/requests";
 import { ArrowButton } from "@/components/booking/arrow-button";
 import { ContactFields } from "@/components/quads/contact-fields";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Estimate, EstimateInput } from "@/lib/event-pricing";
 import { z } from "zod";
+import { todayKey } from "@/lib/sauna";
 import { messageContactSchema, type MessageContactValues } from "@/lib/request-schema";
 
 interface InquiryFormProps {
@@ -66,7 +67,11 @@ export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }:
         <ContactFields idPrefix="inquiry" />
         <div className="space-y-1.5">
           <Label htmlFor="inquiry-date">Planuojama data (nebūtina)</Label>
-          <Input id="inquiry-date" type="date" {...form.register("date")} />
+          <Controller
+            control={form.control}
+            name="date"
+            render={({ field }) => <DatePicker id="inquiry-date" value={field.value} onChange={field.onChange} min={todayKey()} placeholder="Pasirink datą (nebūtina)" />}
+          />
         </div>
         <Textarea placeholder="Komentaras (nebūtina)" aria-label="Komentaras" {...form.register("message")} />
         {form.formState.errors.root ? (

@@ -9,6 +9,230 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-11-01 — Sticker dock removed
+
+- **What:** deleted `StickerDock` (the fixed bar of zone stickers) and its
+  mount in the root layout. The `public/brand/sticker-*.svg` files stay in the
+  repo, unused. Nothing sits over the bottom of the page any more, so the
+  footer's last row is never covered.
+
+## 2026-11-01 — Gallery sizes and image quality
+
+- **What:** `BentoGallery` served small, blurry versions (`sizes` said 50 vw / 12 vw)
+  and squeezed a 2x2 grid into a phone. `sizes` now match the real tile widths,
+  photos render at `quality={90}` (`images.qualities: [75, 90]` in
+  `next.config.ts`, which Next 16 requires), the Unsplash stand-ins are
+  requested at 1800 px / q90, and phones get one wide photo plus a thumbnail row.
+  The drawer and home galleries use quality 90 too.
+
+## 2026-11-01 — Type sizes: micro for labels only
+
+- **What:** `--text-micro` is now 11 px (was 10) and reserved for uppercase
+  labels. Sentence-like text that used it (activity card notes, gallery
+  captions, footer link row) moved to `text-xs`; the hero's kicker and bottom
+  strip go to `text-xs` from `md`. A scan of the home page and `/pirtis` finds
+  no sentence under 12 px on desktop.
+
+## 2026-11-01 — Phone sizing of drawers and booking forms
+
+- **What:** below `sm` the nested paddings shrink (drawer `p-4`, card `px-4`),
+  the drawer titles step down (`text-2xl`), booking tabs use `text-xs` labels,
+  the day strip tiles are `w-14` with 10 px notes, `ChoiceTile`s are `text-xs`,
+  and the stepper's total + Back / Toliau stay on **one row** (`BAR_STEPPED`).
+  Desktop sizes are unchanged.
+
+## 2026-11-01 — Fix: phone drawer gap, stepper scroll on open
+
+- **What:** the bottom-sheet drag handle in `ui/drawer` now floats over the top
+  edge instead of sitting in the flow, so the photo / header starts flush with
+  the sheet (the ~36 px gap is gone). The stepper only scrolls its card into
+  view when the step changes, not on mount, so the drawer opens at the top.
+
+## 2026-11-01 — Fix: card heading colour, calculator cards
+
+- **Heading colour:** the activity card title used `md:text-card`, but `text-card`
+  is also the *card colour* (near white), which won on desktop. The type step is
+  now `text-tile` (rule added to `design-system.md`).
+- **Calculator / form cards:** `Stepper` keeps its controls on the right with a
+  `min-h-15` row (no more wrapping under a long label); `OptionToggle` matches
+  its height; one gap everywhere. Columns follow the container (`@container` +
+  `@xl:grid-cols-2`): one column in the drawer, two on `/skaiciuokle`. The cabin
+  and sauna steppers use the same rule.
+
+## 2026-11-01 — Fix: CTA text colour on hover, card tag size
+
+- **What:** the header "Dovanų kuponai" / "Rezervuok" button lost its `text-ink`
+  (a `text-micro` override made `cn()` drop it), so on hover pale text sat on a
+  pale background; its label words were also spread apart. Fixed; the activity
+  card tags had the same clash and rendered at 16 px instead of 10 px. Rule
+  added to `design-system.md`.
+
+## 2026-11-01 — Event calculator as a drawer
+
+- **What:** on the home page, "Apskaičiuok šventės kainą" (party drawer) opens
+  the event price calculator in its own drawer: a stepper (type → guests →
+  space → catering → drinks → extras → summary) with the live total pinned in an
+  ink header. The last step shows the breakdown and the inquiry form. The
+  `/skaiciuokle` page is unchanged; both use the same `useEventCalculator` state
+  and `CALCULATOR_SECTIONS`.
+
+## 2026-11-01 — Smooth scroll
+
+- **What:** in-page anchor links glide instead of jumping (`scroll-behavior:
+  smooth` under `prefers-reduced-motion: no-preference`; reduced-motion visitors
+  get the instant jump). `<html>` carries `data-scroll-behavior="smooth"` as
+  Next.js 16 requires, so route changes still reset scroll instantly.
+
+## 2026-11-01 — Sticker dock no longer reserves space
+
+- **What:** removed the empty spacer `div` from `StickerDock` that added a
+  dock-height gap under the page. The fixed dock now overlays the bottom of the
+  page, so the last footer row can sit behind it until scrolled past.
+
+## 2026-11-01 — Sticky header
+
+- **What:** `SiteHeader` is `fixed` at the top on the home page and every inner
+  page. It stays transparent over the hero and turns solid ink with a blur and
+  a hairline after 8 px of scroll (menu open keeps it transparent over the coral
+  panel). Anchors already clear it (`scroll-padding-top` 7 rem).
+
+## 2026-11-01 — Drawer gallery and rounded corners
+
+- **What:** the activity drawer's photo is a swipeable carousel
+  (`ServiceGallery`, photos listed in `SERVICE_GALLERY` in `landing/content.ts`;
+  dots + arrows when there is more than one) and the drawer has `rounded-tile`
+  corners.
+
+## 2026-11-01 — Activity drawer and stepper booking
+
+- **What:** the home page activity dialog is now a drawer (`ui/drawer`, new
+  dependency **`vaul`**): a floating right panel (16 px margins) on desktop, a
+  bottom sheet with a drag handle and swipe-down on phones. The booking forms
+  inside run as a **stepper** (progress bar, Back / Toliau, confirm on the last
+  step; Toliau waits for required choices such as a sauna start time). The
+  booking pages keep the single long form: `BookingCard` takes `steps` and only
+  stacks them one at a time inside `SteppedBooking`.
+- **Also:** contact fields stack in narrow containers; the dialog height fix
+  and `dialog-motion` helpers now serve the drawer only.
+
+## 2026-11-01 — Home dialogs host the real booking forms
+
+- **What:** clicking an activity opens a dialog with its real booking form
+  instead of the request planner: Pirtis (private hire / event seats), Nakvynė
+  (days, type, nights, guests, coupon, contact) and Keturračiai (rental /
+  guided tours), each behind the shared phone check. Availability loads when
+  the dialog opens (`loadBookingData`), so the home page stays static. Party,
+  wake and food have no online form and show contacts (parties also get the
+  price calculator). Header "Rezervuok", hero sticker, footer CTA jump to the
+  activities; "Planuojam šventę" opens the party dialog.
+- **Removed:** the 3-step planner, `createPlanRequest`, `lib/plan-schema.ts`
+  and the `PlanDialog` / `plan-*` files. ADR-0020 is superseded below.
+- **Notes:** bookings made here go through the same actions as `/pirtis`,
+  `/miegas`, `/keturraciai`, so they need a phone verified in the database
+  (the dev skip button only helps the planner-style flows, not these).
+
+## 2026-11-01 — Custom date picker
+
+- **What:** the home planner's date and the calculator inquiry's date use the
+  new `DatePicker` (popover + `CalendarGrid`) instead of the browser's native
+  date input: Lithuanian month and weekday names, Monday first, past days
+  disabled, keyboard navigation, 44 px cells. Value stays `yyyy-mm-dd`, so the
+  schemas are unchanged. New `ui/popover`.
+- **Not changed:** admin forms keep native date inputs.
+
+## 2026-11-01 — No SMS in local dev
+
+- **What:** under `next dev` the phone gate asks for the number only:
+  `requestPhoneCode` returns the code to the form (`devCode`), which confirms
+  it straight away through the normal `confirmPhoneCode`, so the database still
+  records a real verification (booking tables check it). `sendSms` is a logged
+  no-op in dev, so booking and staff notifications never text either, even with
+  Twilio keys in `.env.local`. `SMS_IN_DEV=1` restores real SMS locally.
+- **Safety:** keyed on `NODE_ENV === "development"` (`smsSkippedInDev`), which
+  is `production` in every build and on Vercel. Per-phone limits (3/h, 5/day)
+  still apply, so use another number if you hit them.
+- **Skip button:** under `next dev` the phone step also shows "Praleisti
+  telefono patvirtinimą (tik dev)": it takes the typed number (or
+  `+37060000000`) as verified with a locally signed token, no code. The action
+  `skipPhoneVerification` refuses outside dev and the button is compiled out of
+  production builds. Fine for the home planner; booking tables still need a
+  verification recorded by the database. If the database's send limits block a
+  code, the fixed dev code `000000` also verifies locally.
+
+## 2026-11-01 — Phone gate fields and buttons fill their card
+
+- **What:** `PhoneNumberStep` / `PhoneCodeStep` inputs lost their `max-w`, the
+  resend and "Keisti numerį" buttons are equal-width (stacked on phones), and
+  `BookingCard`'s action button is full width below `sm`. Applies to every
+  booking flow and the home planner.
+
+## 2026-11-01 — Home planner sends a real request
+
+- **What:** the planner dialog no longer ends in a `mailto:`. Step 3 collects
+  name, phone/email (honeypot included) and **Siųsti užklausą** calls the new
+  `createPlanRequest` action (`lib/plan-schema.ts`), which stores an inquiry
+  for `/admin/uzklausos` and sends the staff SMS alert. A sent screen links to
+  the real booking pages for the chosen activities. `ServiceDialog` leads with
+  "Rezervuoti dabar" for bookable activities. The email link is kept as a
+  fallback.
+- **Why:** staff get the request in the system instead of hoping a visitor
+  presses "Siųsti" in their mail app.
+- **Phone check:** the planner opens on the same `PhoneGate` as the booking
+  pages (number → SMS code). `createPlanRequest` verifies the signed token
+  server-side (`verifiedPhone`, `UNVERIFIED` otherwise) and stores the E.164
+  number; the visitor and staff get an SMS. The `mailto:` fallback was removed
+  because it bypassed verification.
+- **Notes:** no migration: it reuses `create_inquiry` (source shows as
+  "Skaičiuoklė"; a dedicated source needs a migration). The database's
+  `require_verified_phone` trigger only covers `renginys` inquiries, so the
+  check for this one lives in the action.
+
+## 2026-11-01 — Inner pages restyled to match the new home
+
+- **What:** `/pirtis`, `/miegas`, `/keturraciai`, `/renginiai`, `/kuponai`
+  and `/skaiciuokle` now share the home page's look. New `SiteHeader` /
+  `PageHeader` (ink header, coral CTA, full-screen `MenuPanel`), `PageIntro`
+  (dark title band with the hero's grid and orbit, load-in cascade), and a new
+  `SiteFooter` (contacts + giant "Susitinkam Marse" + link row). `BookingHero`
+  = `PageIntro` + sticky gallery + form (form first on phones). `ArrowButton` /
+  `ArrowLink` are the dark `Cta`; chips, tiles and tabs press with `scale-97`.
+  Coupon cards lost `rounded-tile`.
+- **Moved / removed:** `Cta`, `Reveal`, `StarMark`, `SectionKicker`,
+  `MenuPanel` now live in `components/`. Removed `ContactBar`, `MobileMenu`,
+  `BrandLogo` (phone/email are in the footer and menu).
+- **Docs:** `design-system.md` gained "The look" and the motion rules.
+- **Not changed:** admin, `/embed/*` widgets (they keep their own shell and
+  theme) and all booking logic.
+
+## 2026-11-01 — Motion layer on the home page
+
+- **What:** hero load sequence, `Reveal` scroll reveals on every section,
+  press/hover feedback on CTAs, chips, tiles and round buttons, enter/exit
+  animations for both dialogs and the menu panel (links stagger), step
+  transitions in the planner. Marquee and the spinning star are now
+  `motion-safe:` too.
+- **Reduced motion:** nothing moves and nothing is hidden: verified with
+  emulated `prefers-reduced-motion: reduce` (no element has an animation, no
+  `Reveal` is hidden, dialogs have none). The service dialog keeps its content
+  while it animates out.
+
+## 2026-11-01 — New home page "Išsuk į Marsą"
+
+- **What:** `/` is rebuilt from the Claude design (`components/landing/`):
+  hero, ticker, filterable activity cards with detail dialogs, party block,
+  accordion, gallery, FAQ, location, footer, and a 3-step day planner that
+  ends in a prepared `mailto:` (not a booking). Photos in `public/landing/`,
+  logos in `public/brand/logo-{light,dark}.svg`. Removed `Hero`,
+  `SectorTiles`, `TrackStats`, `StatusBar`, `Equipment`, `Pricing`, `FindUs`,
+  `DistortWordmark` and `lib/distort-gl.ts`.
+- **Deviations from the design:** no prices on the page (rule 5; the design's
+  80 € / 72 € quad figures are dropped, quads link to `/keturraciai`); filter
+  chips wrap instead of scrolling; "Dovanoti Marsą" links to `/kuponai`;
+  menu panel and activity dialogs link to the real booking pages; planner
+  mail for events goes to `info@` (no `renginiai@` in `lib/contacts`).
+- **Also:** `NAV_LINKS` `/#zonos` → `/#kryptys` (`/#kainos` removed);
+  `StickerDock` Akademija/Skoniai jump to `/#kryptys`; new `ui/accordion`.
+
 ## 2026-10-30 — SMS phone check before every public booking
 
 - **What:** `/pirtis`, `/miegas`, `/keturraciai`, event registration on

@@ -61,3 +61,5 @@ Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 ## Related
 
 [[system-overview]] · [[changelog]]
+
+- `vaul` — swipeable drawer behind `components/ui/drawer.tsx` (home page activity drawer).

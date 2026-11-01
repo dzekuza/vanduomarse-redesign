@@ -13,7 +13,7 @@ export function RoomTypePicker({ selected, onSelect }: { selected: RoomTypeId; o
             type="button"
             onClick={() => onSelect(room.id)}
             aria-pressed={active}
-            className={`flex items-center justify-between border px-4 py-4 text-left transition-[color,background-color,border-color,transform] active:scale-[0.98] ${
+            className={`flex items-center justify-between border px-4 py-4 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-98 ${
               active ? "border-ink bg-ink text-foam" : "border-ink text-ink hover:border-rust"
             }`}
           >

@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
 import { hashCode, hashIp, MissingVerificationSecretError, newCode, signToken } from "@/lib/phone-verification";
 import { phoneCodeSchema, phoneNumberSchema } from "@/lib/phone-schema";
-import { sendSms, smsConfigured, smsDestinationAllowed, toE164 } from "@/lib/sms/twilio";
+import { sendSms, smsConfigured, smsDestinationAllowed, smsSkippedInDev, toE164 } from "@/lib/sms/twilio";
 import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin";
 
 /**
@@ -15,6 +15,9 @@ import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin"
  */
 
 const fail = (message: string, code?: string): { error: { message: string; code?: string } } => ({ error: { message, code } });
+
+/** The code used (and returned to the form) by `next dev` when SMS is skipped; never reachable in production. */
+const DEV_CODE = "000000";
 
 const SETUP = "Patvirtinimas SMS šiuo metu neveikia. Skambinkite mums ir užregistruosime.";
 
@@ -53,6 +56,8 @@ export interface CodeSent {
   phone: string;
   /** Seconds before another code may be sent. */
   resendIn: number;
+  /** Only in `next dev` without Twilio: the code itself, so the form can confirm it without an SMS. */
+  devCode?: string;
 }
 
 export async function requestPhoneCode(input: z.infer<typeof phoneNumberSchema>): Promise<ActionResult<CodeSent>> {
@@ -60,17 +65,20 @@ export async function requestPhoneCode(input: z.infer<typeof phoneNumberSchema>)
   const phone = parsed.success ? toE164(parsed.data.phone) : null;
   if (!phone) return fail("Neteisingas telefono numeris.", "invalid");
   if (!smsDestinationAllowed(phone)) return fail("SMS siunčiame tik Lietuvos, Latvijos, Estijos ir Lenkijos numeriams.", "country");
-  // Local development without Twilio shows the code in the dev server log instead of sending it.
-  const devLog = process.env.NODE_ENV === "development" && !smsConfigured();
+  // `next dev` sends no SMS: the code goes to the dev server log and back to the form, which confirms
+  // it by itself (SMS_IN_DEV=1 turns real SMS back on). NODE_ENV is "production" in every build.
+  const devLog = smsSkippedInDev();
   if (!smsConfigured() && !devLog) {
     console.error("Phone verification: Twilio is not configured.");
     return fail(SETUP, "setup");
   }
 
   try {
-    const code = newCode();
+    // Dev codes are fixed, so a previous dev code (and its 60 s cooldown) can be dropped before sending again.
+    const code = devLog ? DEV_CODE : newCode();
     const supabase = createAdminClient();
     const codeHash = hashCode(phone, code);
+    if (devLog) await supabase.rpc("cancel_phone_code", { p_phone: phone, p_code_hash: codeHash });
     const { data, error } = await supabase.rpc("request_phone_code", {
       p_phone: phone,
       p_ip_hash: hashIp(await clientIp()),
@@ -78,10 +86,15 @@ export async function requestPhoneCode(input: z.infer<typeof phoneNumberSchema>)
     });
     if (error) return fail("Nepavyko išsiųsti kodo. Bandykite dar kartą.", "db");
     const row = data[0];
-    if (row?.reason === "phone_cooldown") {
+    // In dev the database's send limits (cooldown, per phone/IP caps) must not block testing:
+    // the fixed dev code is accepted by `confirmPhoneCode` even when no code was stored.
+    if (row?.reason && devLog) {
+      console.info(`[dev] Phone code limit hit (${row.reason}): the dev code ${DEV_CODE} still verifies locally.`);
+    } else if (row?.reason === "phone_cooldown") {
       return fail(`Naują kodą galėsite išsiųsti po ${row.retry_after} s.`, "cooldown");
+    } else if (row?.reason) {
+      return fail(BY_REASON[row.reason] ?? BY_REASON.busy, row.reason);
     }
-    if (row?.reason) return fail(BY_REASON[row.reason] ?? BY_REASON.busy, row.reason);
 
     if (devLog) {
       console.info(`[dev] Phone verification code: ${code}`);
@@ -90,7 +103,7 @@ export async function requestPhoneCode(input: z.infer<typeof phoneNumberSchema>)
       await supabase.rpc("cancel_phone_code", { p_phone: phone, p_code_hash: codeHash });
       return fail("Nepavyko išsiųsti SMS. Patikrinkite numerį arba bandykite vėliau.", "sms");
     }
-    return { data: { phone, resendIn: 60 } };
+    return { data: { phone, resendIn: 60, ...(devLog ? { devCode: code } : {}) } };
   } catch (e) {
     return setupError(e);
   }
@@ -111,7 +124,31 @@ export async function confirmPhoneCode(input: z.infer<typeof phoneCodeSchema>): 
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc("verify_phone_code", { p_phone: phone, p_code_hash: hashCode(phone, parsed.data.code) });
     if (error) return fail("Nepavyko patikrinti kodo. Bandykite dar kartą.", "db");
-    if (data !== "ok") return fail(BY_RESULT[data] ?? BY_RESULT.invalid, data);
+    if (data !== "ok") {
+      // Dev only: the fixed dev code verifies even when the database stored no code (send limits).
+      // The booking tables still need a verification recorded by the database, so those may refuse.
+      if (smsSkippedInDev() && parsed.data.code === DEV_CODE) {
+        console.info(`[dev] Phone ${phone} verified locally with the dev code (the database has no code for it).`);
+        return { data: { phone, ...signToken(phone) } };
+      }
+      return fail(BY_RESULT[data] ?? BY_RESULT.invalid, data);
+    }
+    return { data: { phone, ...signToken(phone) } };
+  } catch (e) {
+    return setupError(e);
+  }
+}
+
+/**
+ * `next dev` only: verify without any code, using the typed number (or a
+ * placeholder when it is empty or invalid). Refuses everywhere else, so the
+ * button that calls it is also compiled out of production builds.
+ */
+export async function skipPhoneVerification(typed?: string): Promise<ActionResult<PhoneVerified>> {
+  if (!smsSkippedInDev()) return fail("Praleisti patvirtinimo negalima.", "forbidden");
+  try {
+    const phone = toE164(typed) ?? "+37060000000";
+    console.info(`[dev] Phone ${phone} verified without a code (skip button).`);
     return { data: { phone, ...signToken(phone) } };
   } catch (e) {
     return setupError(e);

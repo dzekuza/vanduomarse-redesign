@@ -17,13 +17,13 @@ export function OptionToggle({ label, hint, checked, onChange }: OptionTogglePro
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`flex w-full items-center justify-between gap-4 border px-4 py-3 text-left transition-[color,background-color,border-color,transform] active:scale-[0.99] ${
+      className={`flex min-h-15 w-full items-center justify-between gap-4 border px-4 py-2 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-99 ${
         checked ? "border-ink bg-ink text-foam" : "border-ink text-ink hover:border-rust"
       }`}
     >
       <span>
-        <span className="block text-sm">{label}</span>
-        <span className={`block text-xs ${checked ? "text-foam/70" : "text-ink/50"}`}>{hint}</span>
+        <span className="block text-sm leading-snug">{label}</span>
+        <span className={`block text-xs ${checked ? "text-foam/70" : "text-ink/60"}`}>{hint}</span>
       </span>
       <span className={`flex size-5 shrink-0 items-center justify-center border ${checked ? "border-foam" : "border-ink"}`}>
         {checked ? <CheckIcon size={14} weight="bold" /> : null}

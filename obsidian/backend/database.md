@@ -139,7 +139,7 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `create_stay_booking(stay_type, date, nights, guests, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Prices from `stay_types`; `laukia`; cabin capacity trigger |
 | `create_event_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Published capacity events except `keturratis`; `laukia`, `PR-` reference |
 | `register_for_event(event, people, name, email, phone, message)` | anon, authenticated | `security definer`. Published events without capacity; stored as an `inquiries` row (source `renginys`) |
-| `create_inquiry(...)` | anon, authenticated | `security definer`. Calculator quote with its input; source `skaiciuokle` |
+| `create_inquiry(...)` | anon, authenticated | `security definer`. Calculator quote with its input; source `skaiciuokle`. |
 | `private.has_permission(key)` / `has_any_permission(keys)` / `is_owner()` / `is_staff()` | authenticated (private schema, not RPCs) | The checks behind every staff policy; all require an **active** staff row |
 | `activate_coupon(id)` | `kuponai` (`security invoker`) | Issues the code and a 12-month expiry; only for `laukia_apmokejimo` |
 | `private.generate_coupon_code()` | internal | 12 symbols of `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` from `gen_random_uuid()` bytes |

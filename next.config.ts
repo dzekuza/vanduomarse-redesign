@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   // Sauna photos are compressed in the browser first; this is headroom for large originals.
   experimental: { serverActions: { bodySizeLimit: "4mb" } },
   images: {
+    // 90 for galleries and photo tiles, 75 (the default) for everything else.
+    qualities: [75, 90],
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "images.unsplash.com" },

@@ -14,15 +14,15 @@ export function Stepper({
   label: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border border-ink py-2 pl-4 pr-2">
-      <span className="text-sm text-ink/70">{label}</span>
+    <div className="flex min-h-15 items-center justify-between gap-3 border border-ink py-2 pl-4 pr-2">
+      <span className="min-w-0 text-sm leading-snug text-ink">{label}</span>
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
           aria-label="Sumažinti"
-          className="flex size-11 items-center justify-center border border-ink text-ink transition-[color,border-color,transform] enabled:hover:border-rust enabled:hover:text-rust enabled:active:scale-90 disabled:opacity-30"
+          className="flex size-11 items-center justify-center border border-ink text-ink transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30"
         >
           −
         </button>
@@ -32,7 +32,7 @@ export function Stepper({
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
           aria-label="Padidinti"
-          className="flex size-11 items-center justify-center border border-ink text-ink transition-[color,border-color,transform] enabled:hover:border-rust enabled:hover:text-rust enabled:active:scale-90 disabled:opacity-30"
+          className="flex size-11 items-center justify-center border border-ink text-ink transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30"
         >
           +
         </button>

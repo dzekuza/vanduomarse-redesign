@@ -7,6 +7,13 @@ import "server-only";
  * because of a missing SMS setup.
  */
 
+/**
+ * `next dev` never texts anyone, even with Twilio keys in `.env.local`: codes and
+ * notifications are logged instead. Set SMS_IN_DEV=1 to send real SMS locally.
+ * NODE_ENV is "production" in every build, so this never applies there.
+ */
+export const smsSkippedInDev = () => process.env.NODE_ENV === "development" && process.env.SMS_IN_DEV !== "1";
+
 export const smsConfigured = () =>
   Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER);
 
@@ -44,6 +51,10 @@ export async function sendSms(to: string | null | undefined, body: string): Prom
   const token = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_FROM_NUMBER;
   const number = toE164(to);
+  if (smsSkippedInDev()) {
+    console.info(`[dev] SMS to ${number ?? "?"} not sent: ${body}`);
+    return true;
+  }
   if (!sid || !token || !from || !number || !smsDestinationAllowed(number)) return false;
 
   try {

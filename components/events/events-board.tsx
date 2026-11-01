@@ -39,7 +39,7 @@ export function EventsBoard({ data }: { data: ParkEventData[] }) {
               type="button"
               aria-pressed={active}
               onClick={() => setFilter(f.id)}
-              className={`flex min-h-11 items-center gap-2 border border-ink px-4 text-sm uppercase transition-[color,background-color,transform] active:scale-[0.97] ${
+              className={`flex min-h-11 items-center gap-2 border border-ink px-4 text-sm uppercase transition-[color,background-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
                 active ? "bg-ink text-foam" : "text-ink hover:bg-dust-soft"
               }`}
             >

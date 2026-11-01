@@ -24,7 +24,7 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
             aria-checked={active}
             disabled={full}
             onClick={() => onSelect(ev.key)}
-            className={`grid grid-cols-[4rem_1fr_auto] items-center gap-4 border px-4 py-4 text-left transition-[color,background-color,border-color,transform] active:scale-[0.99] ${
+            className={`grid grid-cols-[4rem_1fr_auto] items-center gap-4 border px-4 py-4 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-99 ${
               full
                 ? "cursor-not-allowed border-ink/30 text-ink/40"
                 : active

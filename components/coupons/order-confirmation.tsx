@@ -10,7 +10,7 @@ interface OrderConfirmationProps {
 /** Shown after an order is stored. Payment is arranged by the team, so it says exactly that. */
 export function OrderConfirmation({ order, email, onReset }: OrderConfirmationProps) {
   return (
-    <div role="status" className="space-y-5 rounded-tile bg-card p-6 md:p-8">
+    <div role="status" className="space-y-5 border border-ink bg-card p-6 md:p-8">
       <p className="text-xs uppercase text-ink/70">Užsakymas gautas</p>
       <p className="font-wordmark text-6xl text-rust">{order.reference}</p>
       <dl className="grid grid-cols-2 gap-4 text-sm">

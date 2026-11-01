@@ -10,6 +10,32 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0020 — Home dialogs host the real booking forms
+
+- **Status:** Accepted (supersedes the short-lived "home planner as inquiry")
+- **Date:** 2026-11-01
+
+**Context.** A separate planner/request form on the home page duplicated the booking flows and produced inquiries staff had to turn into bookings by hand.
+
+**Decision.** Each bookable activity opens its existing booking form in a dialog (same components and server actions as the booking pages, behind `PhoneGate`). Availability is fetched by a server action when the dialog opens. Activities with no online form show contacts.
+
+**Consequences.** One booking path per activity. The home page stays static; the dialog shows a skeleton while availability loads. Anything changed in a booking form appears on both the page and the dialog.
+
+---
+
+## ADR-0019 — Home page ported from the Claude design onto existing tokens
+
+- **Status:** Accepted
+- **Date:** 2026-11-01
+
+**Context.** The new landing design uses its own hexes and px values.
+
+**Decision.** Map them to the existing brand tokens (ink, rust, dust, lake, lake-soft, new `water`), add type/gutter/cut-radius tokens and a few art utilities in `globals.css` instead of arbitrary values, keep prices out of the page, and keep the planner mail-based as designed.
+
+**Consequences.** Colours differ by a few shades from the mock (site coral `#ed5257`, not `#DD5D58`). The planner is not wired to Supabase; swap `PlanSummary` for a server action when requests should land in `/admin/uzklausos`.
+
+---
+
 ## ADR-0018 — Public bookings need an SMS-verified phone
 
 - **Status:** accepted (2026-10-30)
