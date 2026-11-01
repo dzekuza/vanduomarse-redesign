@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-10-19
+updated: 2026-11-01
 ---
 
 # UI Primitives Catalog

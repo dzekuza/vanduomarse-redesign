@@ -80,7 +80,7 @@ One recipe across the home page and every inner page.
   parent a size container; `wordmark-size` is `30cqw` (two stacked lines) and
   `16cqw` from `md` (one line, `nowrap`). If the text or font changes, re-measure:
   the single line is ~6.2 em wide. `font-wordmark` alone is for oversized
-  numerals (`TrackStats`). Coral on blush is ~2.6:1, so it is for display type
+  numerals. **Currently unused:** the redesign dropped the `Wordmark` component and the giant hero wordmark (the footer line is `text-footer`). Coral on blush is ~2.6:1, so it is for display type
   only; small text stays ink.
 
 - `scrollbar-ink` — thin square scrollbar (ink thumb, `--line` track, coral on

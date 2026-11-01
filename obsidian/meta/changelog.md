@@ -9,6 +9,14 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-11-01 — Docs sweep after the redesign
+
+- **What:** removed references to deleted components from `utils.md` and
+  `design-system.md`; `routing.md`, `README.md`, `AGENTS.md` (Map) and
+  `folder-structure.md` now describe the new home page, `components/landing/`,
+  the shared shell and `app/actions/`; `Wordmark` is marked unused;
+  `updated:` dates refreshed.
+
 ## 2026-11-01 — Sticker dock removed
 
 - **What:** deleted `StickerDock` (the fixed bar of zone stickers) and its

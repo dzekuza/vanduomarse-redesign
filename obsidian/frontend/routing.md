@@ -1,6 +1,6 @@
 ---
 tags: [frontend, stable]
-updated: 2026-10-30
+updated: 2026-11-01
 ---
 
 # Routing
@@ -29,7 +29,7 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 
 | Route | View | Status |
 |-------|------|--------|
-| `/` | `app/page.tsx` (homepage sections, live-brand theme) | stable |
+| `/` | `app/page.tsx`: `LandingProvider` + `components/landing/` sections (hero, ticker, activities, night, all-in, gallery, FAQ, place, footer). Activity cards open the `ServiceDrawer` (real booking forms, availability via `loadBookingData`), which can open the `CalculatorDrawer`; static page | stable |
 | `/keturraciai` | `BookingPage` + `BookingHero` + `QuadReservation` (tabs: hourly rental / guided tours; `?skirtukas=zygiai` opens tours); data from `getQuadPageData()`; rules block only when set in admin | stable |
 | `/kuponai` | `BookingPage` + `CouponIntro` + `CouponShop` (picker, order form, confirmation); products from `getCouponProducts()`; orders wait for staff to confirm payment | stable |
 | `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab; data from `getSaunaPageData()` | stable |

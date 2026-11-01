@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-10-30
+updated: 2026-11-01
 ---
 
 # Folder Structure
@@ -11,11 +11,13 @@ No `src/` directory: folders sit at the repo root (Next's default).
 app/                    ← routes; pages compose components directly
 ├── layout.tsx          ← fonts, theme-marse on <body>, site metadata
 ├── globals.css         ← all tokens (site + shadcn), utilities, theme
-├── pirtis/ miegas/ renginiai/ skaiciuokle/
+├── pirtis/ miegas/ keturraciai/ renginiai/ kuponai/ skaiciuokle/
+├── actions/            ← public server actions (requests, quads, coupons, phone, booking-data)
 ├── embed/              ← bare booking widgets for the WordPress plugin (ADR-0014)
 └── admin/              ← dashboard: layout (shell, store) + one page per screen
 components/
-├── *.tsx               ← site sections (hero, pricing, header, footer, logo…)
+├── *.tsx               ← shared shell + primitives (site-header, page-header, page-intro, site-footer, cta, reveal, menu-panel…)
+├── landing/            ← the home page: sections, activity/calculator drawers, copy in content.ts
 ├── nav-links.ts        ← public nav items
 ├── ui/                 ← shadcn/ui primitives (locally modified, see [[components/ui]])
 ├── booking/            ← /pirtis and /miegas flows, receipts, calendar export

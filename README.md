@@ -8,7 +8,7 @@ headings) and new booking tools.
 
 | Route | What it does |
 |-------|--------------|
-| `/` | Park homepage: hours, zones, prices, equipment |
+| `/` | Park homepage: hero, activity cards that open booking drawers (sauna, cabins, quads), party calculator drawer, gallery, FAQ, location |
 | `/pirtis` | Private sauna hire (hourly, group-size pricing, extras) or tickets to public sauna sessions |
 | `/miegas` | Cabin and camper-pitch booking |
 | `/renginiai` | Next 30 days of park and sauna events |
