@@ -26,7 +26,7 @@ function CalculatorPanel() {
           estimate={result}
           input={input}
           guests={guests}
-          spaceLabel={space.label}
+          spaceLabel={space?.label ?? ""}
           typical={preset ? { label: preset.label, perGuest: preset.perGuest } : null}
           showTotal={false}
         />

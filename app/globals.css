@@ -314,6 +314,25 @@ html {
   --display-tracking: 0;
 }
 
+/* /rezervacija: the palette and surfaces of the client's booking design (sampled
+   from the reference page, 2026-11): a softer coral and slate-teal than the site, 19% hairline borders and a
+   white wash on panels and fields. Scoped, so the rest of the site keeps the live
+   brand tokens; `@theme inline` makes every `rust` / `lake-soft` / `border-input`
+   utility inside it follow. */
+:root {
+  --raw-coral-muted: #dd5d58;
+  --raw-teal-slate: #2f545b;
+}
+
+.theme-reservation {
+  --rust: var(--raw-coral-muted);
+  --rust-soft: var(--raw-coral-muted);
+  --lake-soft: var(--raw-teal-slate);
+  --line: color-mix(in srgb, var(--ink) 19%, transparent);
+  --input: color-mix(in srgb, var(--ink) 19%, transparent);
+  --card: rgb(255 255 255 / 0.16);
+}
+
 .theme-marse ::selection {
   background: var(--rust);
   color: var(--foam);

@@ -36,6 +36,23 @@ export const stayBookingSchema = refined(
 );
 export type StayBookingInput = z.infer<typeof stayBookingSchema>;
 
+/** Seats at a sauna program session: adults and children, priced from the program by `createProgramTicket`. */
+export const programTicketSchema = refined(
+  contactFields.extend({ eventId: z.uuid(), adults: z.number().int().min(0).max(20), children: z.number().int().min(0).max(20) }),
+);
+export type ProgramTicketInput = z.infer<typeof programTicketSchema>;
+
+/** A private sauna program at its flat price, validated again by `createProgramBooking`. */
+export const programBookingSchema = refined(
+  contactFields.extend({
+    programId: z.string().regex(/^[a-z0-9-]+$/).max(60),
+    date: z.iso.date(),
+    startHour: z.number().int().min(0).max(23),
+    party: z.number().int().min(1).max(100),
+  }),
+);
+export type ProgramBookingInput = z.infer<typeof programBookingSchema>;
+
 /** Seats at a public event with a limited capacity (sauna sessions and similar). */
 export const eventTicketSchema = refined(contactFields.extend({ eventId: z.uuid(), people: z.number().int().min(1).max(20) }));
 export type EventTicketInput = z.infer<typeof eventTicketSchema>;

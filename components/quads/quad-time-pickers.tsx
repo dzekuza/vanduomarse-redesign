@@ -4,6 +4,13 @@ import { ChoiceTile } from "@/components/booking/choice-tile";
 import { hourLabel, longestFrom, rentalPrice, type QuadSettings, type QuadTaken, type QuadType } from "@/lib/quads";
 import { hoursLabel } from "@/lib/sauna";
 
+/** Hours (of this day) the visitor already spends elsewhere, e.g. in the sauna; a rental can neither start in them nor run into them. */
+const clip = (longest: number, from: number, busy: readonly number[] = []) => {
+  let n = 0;
+  while (n < longest && !busy.includes(from + n)) n++;
+  return n;
+};
+
 interface PickerContext {
   type: QuadType;
   units: number;
@@ -11,6 +18,7 @@ interface PickerContext {
   taken: QuadTaken;
   /** yyyy-mm-dd */
   day: string;
+  busy?: readonly number[];
 }
 
 interface StartGridProps extends PickerContext {
@@ -21,17 +29,17 @@ interface StartGridProps extends PickerContext {
 }
 
 /** Hourly start times; a start is open only while `units` quads stay free for at least an hour from it. */
-export function StartGrid({ type, units, settings, taken, day, pastHour, selected, onSelect }: StartGridProps) {
+export function StartGrid({ type, units, settings, taken, day, busy, pastHour, selected, onSelect }: StartGridProps) {
   const hours = Array.from({ length: settings.closeHour - settings.openHour }, (_, i) => settings.openHour + i);
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
       {hours.map((h) => {
-        const longest = h <= pastHour ? 0 : longestFrom(type, taken, day, h, units, settings);
+        const longest = h <= pastHour ? 0 : clip(longestFrom(type, taken, day, h, units, settings), h, busy);
         return (
           <ChoiceTile
             key={h}
             primary={hourLabel(h)}
-            secondary={longest === 0 ? "Užimta" : `iki ${hoursLabel(longest)}`}
+            secondary={longest === 0 ? (busy?.includes(h) ? "Jūsų plane" : "Užimta") : `iki ${hoursLabel(longest)}`}
             active={selected === h}
             disabled={longest === 0}
             onClick={() => onSelect(h)}
@@ -49,8 +57,8 @@ interface DurationGridProps extends PickerContext {
 }
 
 /** Rental length from the chosen start, with end time and price on each option. */
-export function DurationGrid({ type, units, settings, taken, day, startHour, selected, onSelect }: DurationGridProps) {
-  const longest = longestFrom(type, taken, day, startHour, units, settings);
+export function DurationGrid({ type, units, settings, taken, day, busy, startHour, selected, onSelect }: DurationGridProps) {
+  const longest = clip(longestFrom(type, taken, day, startHour, units, settings), startHour, busy);
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {Array.from({ length: settings.maxHours }, (_, i) => i + 1).map((h) => (

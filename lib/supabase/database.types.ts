@@ -100,6 +100,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["booking_kind"]
           nights: number | null
           note: string | null
+          program_id: string | null
           reference: string
           sauna_id: string | null
           source: Database["public"]["Enums"]["booking_source"]
@@ -121,6 +122,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
+          program_id?: string | null
           reference: string
           sauna_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
@@ -142,6 +144,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
+          program_id?: string | null
           reference?: string
           sauna_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
@@ -152,6 +155,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "sauna_programs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_sauna_id_fkey"
             columns: ["sauna_id"]
@@ -328,6 +338,7 @@ export type Database = {
       }
       event_tickets: {
         Row: {
+          children: number
           created_at: string
           customer_email: string | null
           customer_name: string
@@ -342,6 +353,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          children?: number
           created_at?: string
           customer_email?: string | null
           customer_name: string
@@ -356,6 +368,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          children?: number
           created_at?: string
           customer_email?: string | null
           customer_name?: string
@@ -390,6 +403,7 @@ export type Database = {
           id: string
           place: string
           price: number | null
+          program_id: string | null
           published: boolean
           sold: number
           start_time: string
@@ -407,6 +421,7 @@ export type Database = {
           id?: string
           place: string
           price?: number | null
+          program_id?: string | null
           published?: boolean
           sold?: number
           start_time: string
@@ -424,6 +439,7 @@ export type Database = {
           id?: string
           place?: string
           price?: number | null
+          program_id?: string | null
           published?: boolean
           sold?: number
           start_time?: string
@@ -432,6 +448,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "sauna_programs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_template_id_fkey"
             columns: ["template_id"]
@@ -782,6 +805,68 @@ export type Database = {
           weekday?: number
         }
         Relationships: []
+      }
+      sauna_programs: {
+        Row: {
+          active: boolean
+          capacity: number | null
+          child_price: number | null
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          kind: string
+          label: string
+          name: string
+          price: number
+          pricing: string
+          sauna_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          capacity?: number | null
+          child_price?: number | null
+          created_at?: string
+          description?: string
+          duration_minutes: number
+          id: string
+          kind: string
+          label?: string
+          name: string
+          price: number
+          pricing: string
+          sauna_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          capacity?: number | null
+          child_price?: number | null
+          created_at?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          kind?: string
+          label?: string
+          name?: string
+          price?: number
+          pricing?: string
+          sauna_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sauna_programs_sauna_id_fkey"
+            columns: ["sauna_id"]
+            isOneToOne: false
+            referencedRelation: "saunas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sauna_settings: {
         Row: {
@@ -1138,6 +1223,38 @@ export type Database = {
         }
         Returns: {
           id: string
+        }[]
+      }
+      create_program_booking: {
+        Args: {
+          p_date: string
+          p_email?: string
+          p_name: string
+          p_note?: string
+          p_party: number
+          p_phone?: string
+          p_program_id: string
+          p_start_hour: number
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_program_ticket: {
+        Args: {
+          p_adults: number
+          p_children: number
+          p_email?: string
+          p_event_id: string
+          p_name: string
+          p_phone?: string
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
         }[]
       }
       create_quad_rental: {

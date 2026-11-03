@@ -22,6 +22,8 @@ export interface SaunaEventData {
   pricePerPerson: number;
   spotsLeft: number;
   blurb: string;
+  /** Set for sessions of a sauna program (priced from the program, booked through it). */
+  programId: string | null;
 }
 
 export interface SaunaEvent extends Omit<SaunaEventData, "date"> {

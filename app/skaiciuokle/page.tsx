@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
-import { PageIntro } from "@/components/page-intro";
 import { EventCalculator } from "@/components/calculator/event-calculator";
 
 export const metadata: Metadata = {
@@ -11,14 +11,17 @@ export const metadata: Metadata = {
 export default function SkaiciuoklePage() {
   return (
     <BookingPage>
-      <PageIntro
-        eyebrow="Renginių kainodara 2026–2027"
-        title={["Suskaičiuok", "savo šventę."]}
-        intro="Pasirink renginio tipą, svečių skaičių ir erdvę – iškart matysi preliminarią kainą pagal mūsų kainodarą."
-      />
-      <section className="px-gutter pb-32 pt-12 md:pt-16 lg:pb-20">
-        <EventCalculator />
-      </section>
+      <div className="theme-reservation px-gutter pb-32 pt-10 md:pt-14 lg:pb-20">
+        <EventCalculator
+          header={
+            <BookingHeader
+              crumb="Skaičiuoklė"
+              title={["Suskaičiuok", "savo šventę."]}
+              intro="Pasirink renginio tipą, svečių skaičių ir erdvę – iškart matysi preliminarią kainą pagal mūsų kainodarą."
+            />
+          }
+        />
+      </div>
     </BookingPage>
   );
 }

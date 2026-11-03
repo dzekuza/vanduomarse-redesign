@@ -1,6 +1,7 @@
 import type { CabinAvailability } from "@/lib/cabin";
 import type { QuadSettings, QuadTaken, QuadTourData, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaEventData } from "@/lib/sauna-events";
 import type { Upsell } from "@/lib/sauna-upsells";
 
@@ -15,6 +16,8 @@ export interface SaunaPageData {
   saunas: Sauna[];
   /** Active extras catalogue; each sauna offers a subset. */
   upsells: Upsell[];
+  /** Active sauna programs in display order. */
+  programs: SaunaProgram[];
   /** Sauna id -> yyyy-mm-dd -> hours that are booked or closed. */
   takenBySauna: Record<string, Record<string, number[]>>;
   events: SaunaEventData[];

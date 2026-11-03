@@ -18,7 +18,7 @@ import { RequestConfirmation } from "./request-confirmation";
 
 /** Guided quad tours: pick a departure, choose seats. Stored as a request staff confirm. */
 export function TourBooking({ tours }: { tours: QuadTourData[] }) {
-  const events = useMemo(() => tours.map((t) => toSaunaEvent({ ...t, host: t.place })), [tours]);
+  const events = useMemo(() => tours.map((t) => toSaunaEvent({ ...t, host: t.place, programId: null })), [tours]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [people, setPeople] = useState(1);
   const [sent, setSent] = useState<{ reference: string; total: number } | null>(null);

@@ -10,6 +10,7 @@ import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, Pr
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { SaunaValues } from "./sauna/sauna-schema";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
@@ -36,6 +37,8 @@ type Action =
   | { type: "sauna/photos"; id: string; paths: string[] }
   | { type: "upsell/upsert"; upsell: Upsell }
   | { type: "upsell/delete"; id: string }
+  | { type: "program/upsert"; program: SaunaProgram }
+  | { type: "program/delete"; id: string }
   | { type: "coupon/cancel"; id: string }
   | { type: "couponProduct/upsert"; product: CouponProduct }
   | { type: "couponProduct/delete"; id: string }
@@ -118,6 +121,13 @@ function reducer(state: AdminData, action: Action): AdminData {
     }
     case "upsell/delete":
       return { ...state, upsells: state.upsells.filter((u) => u.id !== action.id) };
+    case "program/upsert": {
+      const exists = state.programs.some((p) => p.id === action.program.id);
+      const programs = exists ? state.programs.map((p) => (p.id === action.program.id ? action.program : p)) : [...state.programs, action.program];
+      return { ...state, programs: programs.sort((a, b) => a.sortOrder - b.sortOrder) };
+    }
+    case "program/delete":
+      return { ...state, programs: state.programs.filter((p) => p.id !== action.id) };
     case "coupon/cancel":
       return { ...state, coupons: state.coupons.map((c) => (c.id === action.id ? { ...c, status: "atsauktas" } : c)) };
     case "couponProduct/upsert": {
@@ -249,6 +259,14 @@ function useAdminReducer(initial: AdminData) {
       deleteUpsell: (id: string) => {
         dispatch({ type: "upsell/delete", id });
         return report(actions.deleteUpsell(id));
+      },
+      saveProgram: (program: SaunaProgram) => {
+        dispatch({ type: "program/upsert", program });
+        return report(actions.saveProgram(program));
+      },
+      deleteProgram: (id: string) => {
+        dispatch({ type: "program/delete", id });
+        return report(actions.deleteProgram(id));
       },
       saveCouponProduct: (product: CouponProduct) => {
         dispatch({ type: "couponProduct/upsert", product });

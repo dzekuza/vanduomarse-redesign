@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { eventSchema, type EventFormValues } from "./event-schema";
@@ -33,16 +33,21 @@ function toValues(e?: ManagedEvent): EventFormValues {
     capacity: e?.capacity == null ? "" : String(e.capacity),
     blurb: e?.blurb ?? "",
     published: e?.published ?? false,
+    programId: e?.programId ?? "",
   };
 }
 
 /** Create or edit an event. Remounted per event (key) so defaults reset. */
 export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
-  const { saveEvent } = useAdmin();
+  const { saveEvent, programs } = useAdmin();
   const { register, control, handleSubmit, formState } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: toValues(event),
   });
+  const category = useWatch({ control, name: "category" });
+  const programId = useWatch({ control, name: "programId" });
+  const sessionPrograms = programs.filter((p) => p.kind === "session");
+  const program = sessionPrograms.find((p) => p.id === programId);
   const err = formState.errors;
 
   const submit = handleSubmit((v) => {
@@ -55,10 +60,11 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
       durationMinutes: event?.durationMinutes,
       place: v.place,
       blurb: v.blurb,
-      price: v.price === "" ? null : Number(v.price),
+      price: program ? program.price : v.price === "" ? null : Number(v.price),
       capacity: v.capacity === "" ? null : Number(v.capacity),
       sold: event?.sold ?? 0,
       published: v.published,
+      programId: v.category === "pirtis" && program ? program.id : undefined,
     });
     toast.success(event ? "Renginys atnaujintas" : "Renginys sukurtas");
     onOpenChange(false);
@@ -103,10 +109,35 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
               )}
             />,
           )}
+          {category === "pirtis" && sessionPrograms.length
+            ? field(
+                "programId",
+                "Pirties programa",
+                <Controller
+                  control={control}
+                  name="programId"
+                  render={({ field: f }) => (
+                    <Select value={f.value || "none"} onValueChange={(v) => f.onChange(v === "none" ? "" : v)}>
+                      <SelectTrigger id="programId" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Be programos</SelectItem>
+                        {sessionPrograms.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />,
+              )
+            : null}
           {field("place", "Vieta", <Input id="place" aria-invalid={!!err.place} {...register("place")} />)}
           {field("date", "Data", <Input id="date" type="date" aria-invalid={!!err.date} {...register("date")} />)}
           {field("time", "Laikas", <Input id="time" type="time" aria-invalid={!!err.time} {...register("time")} />)}
-          {field("price", "Kaina, €", <Input id="price" inputMode="decimal" placeholder="Nemokamai" aria-invalid={!!err.price} {...register("price")} />)}
+          {field("price", "Kaina, €", <Input id="price" inputMode="decimal" placeholder={program ? `Pagal programą: ${program.price} €` : "Nemokamai"} disabled={!!program} aria-invalid={!!err.price} {...register("price")} />)}
           {field("capacity", "Vietų skaičius", <Input id="capacity" inputMode="numeric" placeholder="Neribota" aria-invalid={!!err.capacity} {...register("capacity")} />)}
           <div className="sm:col-span-2">{field("blurb", "Aprašymas", <Textarea id="blurb" rows={3} aria-invalid={!!err.blurb} {...register("blurb")} />)}</div>
           <Controller

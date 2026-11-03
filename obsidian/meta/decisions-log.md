@@ -10,6 +10,38 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0022 — Sauna programs are data: scheduled sessions and flat-price private programs
+
+- **Status:** Accepted; migration applied and admin + public UI built 2026-11-03 (not yet exercised with real bookings)
+- **Context:** `/rezervacija` should offer named experiences (Bendra, Moterų, Vyrų, Visa šeima, Pirtis tik jūsų kompanijai, Privati su programa) with different pricing models; today only hourly private hire and generic events exist, and prices must not live in code.
+- **Decision:** one table `sauna_programs` (`kind` session | private, `pricing` person | family | group). Sessions are `events` rows with `program_id` (seats from the event capacity, price from the program via `create_program_ticket`, with adults and children). Private programs book their sauna for a fixed length at a flat price via `create_program_booking`, as a normal `bookings` row, so they share the sauna calendar and the overlap constraint. Phone verification comes from the existing insert triggers.
+- **Consequences:** `create_event_ticket` refuses events that have a `program_id` (migration `20261103213000`), so a program session can only be booked through `create_program_ticket` at the program's current price; admin needs a programs editor and a program picker on sessions; the seeded prices are the design's figures to be reviewed by the client. Event `price` is ignored for program sessions (the program wins).
+
+---
+
+## ADR-0021 — `/rezervacija` files one request per activity, in sequence
+
+- **Status:** Accepted (2026-11-03)
+- **Context:** the client wants one form where a visitor gives day, time and
+  group size once and then books sauna, quads and a stay together. Each
+  activity already has its own security-definer RPC that prices and
+  availability-checks it (ADR-0018); there is no table for a combined booking.
+- **Decision:** keep the three RPCs. `submitReservation` calls
+  `createSaunaBooking`, `createQuadRental` and `createStayBooking` one after
+  another with the same contact and verified phone token (the token is
+  stateless and reusable for an hour). Planning (what is bookable, price
+  preview) is pure code in `lib/reservation.ts` reusing `lib/sauna.ts`,
+  `lib/quads.ts` and `lib/cabin.ts`; the database stays the authority.
+- **Consequences:** no migration. A failure after the first request leaves a
+  partial result: the page shows the references that were filed, the error on
+  the one that failed, and "Bandyti dar kartą" skips what already succeeded, so
+  nothing is booked twice. Requests are separate rows in admin (no shared
+  group id), and the per-phone pending limit (`too_many_pending`) counts them
+  individually. Revisit with a `reservation_groups` table if staff want to see
+  them as one visit.
+
+---
+
 ## ADR-0020 — Home dialogs host the real booking forms
 
 - **Status:** Accepted (supersedes the short-lived "home planner as inquiry")

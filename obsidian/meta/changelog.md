@@ -9,6 +9,112 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-11-04 — Program sessions can only be booked through the program function
+
+- **What:** security review finding: `create_event_ticket` priced any published event at `events.price` per person, including program sessions, bypassing the child price and using a stale price after a program change. New migration `20261103213000_program_sessions_only_via_program_ticket.sql` adds `program_id is null` to its event lookup. **Written, committed, not yet applied to the live project** (apply with the Supabase MCP or `supabase db push`); no program sessions exist yet, so nothing is exposed meanwhile.
+
+## 2026-11-04 — Calculator: event types no longer preselect anything
+
+- **What:** choosing an event type used to select the venue, the day type, catering and services as well. `PRESETS` now carry only a typical group size (`apply: { adults, kids }`); `applyPreset` sets the type marker and those guest numbers and leaves every other choice as it was (a venue picked first stays picked). The typical price per guest still shows once a type is chosen. The hint under the types was reworded.
+
+## 2026-11-04 — Calculator: opened chapter scrolls into place
+
+- **What:** opening a calculator chapter collapses the one above it and used to leave the page scrolled past the new chapter. `CalculatorGroups` now scrolls the opened chapter's title to just under the header (the page's own 112 px `scroll-padding-top` plus a 16 px `scroll-mt-4`) after the collapse animation, smoothly unless reduced motion is on; nothing scrolls on first load.
+
+## 2026-11-04 — Calculator: choices can be deselected
+
+- **What:** pressing a selected event type, day type, venue or catering option again clears it (back to nothing chosen). Deselecting an event type only drops the type marker and keeps the values it filled in.
+
+## 2026-11-04 — Calculator: grouped chapters, event date, token cleanup
+
+- **Groups:** the calculator is three chapters (chapter numbers are as large as the titles and coral) (`CalculatorGroups`): Proga ir vieta, Skoniai ir veiksmas, Pasiliekam Marse (the stay accordion is now the third chapter; spelled as in the design reference). One chapter open at a time, the first by default.
+- **Date:** `EstimateInput.date` and a date picker in "Svečiai ir data". Choosing a date sets the day type (Mon-Thu workday, Fri-Sun evening / weekend; `dayTypeOf`), the day tiles can still change it, presets keep the chosen date, and the inquiry now uses this date instead of its own field.
+- **Cleanup:** `StepLabel` is 24 px bold and the calculator chapter sub-labels 18 px bold; `Stepper`, `ChoiceTile` and every reservation / calculator component use the `border-line` token instead of `border-ink/NN` opacities (the `data-slot` CSS override is gone) and `font-bold` instead of the unshipped medium weight. Shared steppers and tiles on the other booking pages now have the lighter `--line` border and bold values. The calculator header no longer has the kicker row (`BookingHeader` `kicker` is optional).
+
+## 2026-11-04 — Calculator: "Pasiliekem Marse" accordion
+
+- **What:** new last section of `/skaiciuokle` (and step of the home drawer): an accordion where Pirtis, Keturračiai and Nakvynė each expand into a few choices (sauna hours + pirtininkas, quad riders, cabin guests + nights) that feed the estimate and the inquiry. The same controls were removed from "Paslaugos ir pramogos" so nothing appears twice. No real booking is made there; it only adds to the quote.
+
+## 2026-11-04 — Calculator: nothing preselected
+
+- **What:** `EstimateInput.space`, `.day` and `.catering` are now `null` until the visitor chooses (`DEFAULT_INPUT`); "Be maitinimo" (`"none"`) stays an explicit choice. `estimate()` skips the space, service fee, minimum bill and catering lines while they are unset and warns when a venue is picked without a day; `perGuest` is null at 0 €. The page opens with an empty estimate ("Pasirink renginio tipą ar erdvę…", 0 €), `SpacePicker` shows "nuo X €" until a day is chosen, and "Siųsti užklausą" appears only once a venue and a day are chosen. Event-type presets still fill everything. The guest steppers keep their starting numbers (20 adults).
+
+## 2026-11-04 — /skaiciuokle restyled like the reservation
+
+- **What:** the calculator page now uses the reservation's design: `.theme-reservation` scope (softer coral and slate teal, hairline borders, washed fields), the new shared `BookingHeader` instead of the dark `PageIntro` band, a two-column layout (header and questions left, sticky estimate right at `lg:top-32`), sections separated by hairlines, `PresetPicker` / `SpacePicker` / `OptionToggle` / `EstimateSummary` restyled (light borders, bold title-case options, beige text on ink). The reservation page now uses `BookingHeader` too. The home calculator drawer shares the restyled components.
+
+## 2026-11-04 — /rezervacija restyled to the client's booking design
+
+- **What:** measured the reference page's computed styles (Termina 400/700, palette `#382E39` ink, `#DD5D58` coral, `#EED9CE` beige, `#2F545B` slate teal, 1px borders at 19% ink, square corners, white wash on panels and fields) and applied them to `/rezervacija` only through a new `.theme-reservation` scope in `globals.css` (design-system note updated). Components: bold title-case card titles with tight tracking, smaller supporting text, light borders, text on ink in beige (`text-dust`), calendar in a washed panel with slate-teal weekday labels, side panel with beige image tag and a "Lengviau pasikalbėti?" phone line. Page header: breadcrumb, water-dot kicker ("Tavo laikas Marse" / "Mažiau derinimo. Daugiau patirties."), big title, loose slate-teal intro.
+- **Kept:** the site-wide palette elsewhere; the earlier layout choices (tabs on top, two columns, no step bar). Font sizes are slightly larger than the reference's 8-12 px for readability.
+
+## 2026-11-04 — /rezervacija: sauna and quads can't overlap in time
+
+- **What:** a sauna in the plan (say 12:00–15:00) occupies those hours: the quad start tiles for 12:00, 13:00 and 14:00 are disabled ("Jūsų plane"), earlier starts are shortened to end before 12:00, and longer durations that would run in are disabled. The reverse holds too: quads in the plan grey out the sauna seansai that overlap them ("Kertasi su jūsų planu"), including scheduled program sessions. Helpers: `planHours` and a `busy` argument on `planSauna` / `planQuads` / `sessionRows`; `planAll` plans each pick without the other first, then again with the other's hours. `StartGrid` / `DurationGrid` take an optional `busy`. Stays have no clock time and never conflict.
+
+## 2026-11-04 — /rezervacija: plan timeline and calendar view
+
+- **Plan overview:** the side panel lists the plan as a timeline ("Dienos planas"): lines ordered by start time (stays last), activity icons on a vertical line with arrows between them (`PlanLine.startMin`, sorted in `describePlans`).
+- **Dates:** new `DayCell` (today dot, quieter style when nothing is free) and a "Juosta | Kalendorius" switch: the strip, or a month calendar (`MonthCalendar`) with the same cells and availability icons. The booking pages keep `DayPicker`.
+
+## 2026-11-04 — /rezervacija: "we also have quads" popup
+
+- **What:** pressing Toliau on the selection step opens a dialog when other activities are still free that day and not yet in the plan ("Tą dieną turime ir daugiau": quads before the sauna, a cabin for the night, ...). Each offer has "Peržiūrėti" (jumps to that tab, stays on step 1); "Ne, tęsti" continues to the contact step. Each activity is offered at most once per day (so adding quads later still offers the sauna if it was never offered), never when nothing else is free. With quads in the plan the sauna line reads "prieš keturračius ar po jų". `ExtrasOfferDialog`, `extraOfferText` in `lib/reservation.ts`.
+
+## 2026-11-04 — /rezervacija: no heading above the selection step
+
+- **What:** the icon legend under the day strip, the numbered step bar (`StepNav`, now deleted), the "Seansai" label above the Pirtis timetable, the "01 / Tavo pasirinkimas — Ką veiksi?" heading and the "…: įtraukta į planą" status line are removed (the coral dot on the tab and the side panel already show it); the selection step starts straight with the activity's choices. Contact and review keep their headings.
+
+## 2026-11-04 — /rezervacija: Pirtis types and times merged into one seansai list
+
+- **What:** the Pirtis tab no longer has program cards plus a separate start-time grid. It lists the day's **seansai** in one timetable (like a class schedule): scheduled program sessions, each open start of the private programs, and each open start of hourly hire, earliest first. Picking a row is picking the type and the time at once; family sessions then ask for children, hourly hire for duration and extras. `ProgramOptions` is removed; `lib/sauna-programs.ts` gains `programRateLine`.
+
+## 2026-11-04 — /rezervacija: one two-column layout, sticky plan overview
+
+- **What:** the plan overview is now a sticky right column that starts level with the page title; the title, intro, tabs, date and guests, stepper and step content all stack in the left two thirds. `ReservationFlow` and `ReservationGate` take a `header` node from the page (the gate shows it above the phone card, so the title is visible before verification). `WhenStep` stacks the day strip and the guests stepper.
+
+## 2026-11-03 — /rezervacija: choices visible without selecting
+
+- **What:** the "Pridėti: …" gate card is gone. Each tab shows its choices (sauna programs and hourly hire, quad types, stay types, with descriptions and prices) immediately; choosing one adds the activity to the plan and then shows the follow-up options (sessions, start times, duration, extras, cabin size, nights). The notice ("Pasirink seansą.") only appears once an activity is in the plan; "Pašalinti iš plano" removes it; the button sits below the options, the status line stays on top.
+
+## 2026-11-03 — /rezervacija layout: tabs and date on top
+
+- **What:** the activity tabs (Pirtis / Nakvynė / Keturračiai) now sit above everything, followed by the date strip and guests, then a three-step form (Pasirinkimas, Kontaktai, Peržiūra). The "Data ir svečiai" step is gone; tabs and date stay visible on every step, and clicking a tab returns to the selection step. `ActivitiesStep` takes the chosen `tab` as a prop; `ACTIVITY_TAB_ORDER` lives in `lib/reservation.ts`.
+- **Fix:** `DayPicker` buttons are `relative`, so the screen-reader text of the availability icons is clipped by the scrolling strip instead of widening the page (it caused horizontal scroll at 375 px).
+
+## 2026-11-03 — Sauna programs in admin and on /rezervacija
+
+- **Admin:** `/admin/pirtis` has a "Programos" card (`ProgramsCard`, `ProgramDialog`, `program-schema.ts`): create, edit, hide, delete programs; the event dialog gets a "Pirties programa" picker for `pirtis` events (the price then follows the program and the field is locked). Data flows through `AdminData.programs`, `saveProgram` / `deleteProgram` (permission `pirtis`) and `ManagedEvent.programId`.
+- **Public:** `/rezervacija` Pirtis tab shows a card per active program plus "Pirtis valandoms". A session program lists that day's scheduled sessions (seats, children stepper for the family program) and files through `createProgramTicket`; a private program shows its own start grid and files through `createProgramBooking`. Program sessions no longer appear in the old `/pirtis` events tab (their price needs the adults/children split). Helpers: `lib/sauna-programs.ts`, `planSauna` modes in `lib/reservation.ts`.
+- **Not verified:** the admin screens (staff login needed), the session booking path (no program sessions exist yet; staff create them in Renginiai), and any real submit.
+
+## 2026-11-03 — Sauna programs migration applied
+
+- **What:** `supabase/migrations/20261103180450_sauna_programs.sql`: table `sauna_programs` (session and private programs, per-person / adult+child / per-group pricing, RLS on the `pirtis` permission), `events.program_id`, `bookings.program_id`, `event_tickets.children`, RPCs `create_program_ticket` and `create_program_booking`, and the six programs from the client design as reference data. See ADR-0022.
+- **State:** **applied to the live Vanduo project** (`mwngljhcvqkvncwbmgeo`) through the official Supabase MCP on 2026-11-03; the six programs are in the table. The local file was renamed to the version the MCP recorded (`20261103180450`). `lib/supabase/database.types.ts` regenerated (additive). Security advisors show nothing new beyond the by-design anon-callable booking RPCs. App code for programs (admin editor, public cards) is not built yet.
+- **Ledger caveat:** the remote history still lacks `20261030100000` (saunas) and `20261030120000` (phone verification); their objects exist. Run `supabase migration repair --status applied` for those two before the next `supabase db push`, or a push will try to re-run them.
+
+## 2026-11-03 — Combined booking page `/rezervacija`
+
+- **What:** new `/rezervacija` route: one form for a whole visit. Step 1 picks
+  day, start hour and group size; step 2 picks any mix of sauna, quads and a
+  stay, each with its variants (sauna + length + extras, quad type + count +
+  length, cabin size / camper + nights); step 3 shows the plan and takes the
+  contact. Components in `components/reservation/`, rules in
+  `lib/reservation.ts`. See ADR-0021. The separate `/pirtis`, `/miegas` and
+  `/keturraciai` pages are unchanged.
+- **Restyle (same day):** layout follows the live-site booking design: big title, 4-step nav, tab row, radio option cards and a sticky side panel with photo and running total (no dark intro band or gallery). Steps are now Data ir laikas, Pasirinkimas, Kontaktai, Peržiūra.
+- **Start time per activity:** step 1 is now only date and guests (step "Data ir svečiai"). The start hour moved into the sauna and quad options in step 2 (`startHour` in `SaunaPick` / `QuadPick`), because each has its own free hours; a stay needs none. Tabs share the row width equally.
+- **Availability icons:** each day cell shows sauna, stay and quad icons (`DayPicker` `icons` prop, `dayAvailability` in `lib/reservation.ts`): dark when something is still bookable for that day and group size, faint when not. Re-evaluated when the group size changes.
+- **Not done:** gift coupons (single-service) are not accepted on this page;
+  `/embed/rezervacija`, header/menu links and sitemap entry are not added yet.
+
+## 2026-11-03 — Dev server reachable from the Tailscale host
+
+- **What:** `next.config.ts` sets `allowedDevOrigins: ["100.66.120.126"]`, so
+  opening the dev server from that address no longer blocks `/__nextjs_font/*`
+  and other dev resources. Dev-only; no effect on production builds.
+
 ## 2026-11-03 — Homepage invitation copy
 
 - **What:** changed the hero headline to "UŽSUK Į MARSĄ." and aligned the

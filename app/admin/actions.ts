@@ -12,6 +12,7 @@ import type { QuadSettings, QuadType } from "@/lib/quads";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
 import { describeRequest, notifyOutcome, saunaSummary } from "@/lib/sms/notify";
 import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 import { createClient } from "@/lib/supabase/server";
@@ -236,6 +237,7 @@ const eventInput = z.object({
   price: z.number().min(0).nullable(),
   capacity: z.number().int().min(0).nullable(),
   published: z.boolean(),
+  programId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
 });
 
 export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
@@ -256,6 +258,7 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     price: e.price,
     capacity: e.capacity,
     published: e.published,
+    program_id: e.programId ?? null,
   });
   return error ? dbError(error) : done(null);
 }
@@ -300,6 +303,7 @@ export async function updatePrices(items: PriceItem[]): Promise<ActionResult> {
 const saunaRevalidate = () => {
   revalidatePath("/pirtis");
   revalidatePath("/embed/pirtis");
+  revalidatePath("/rezervacija");
 };
 
 /** Create (`id` null) or update a sauna and the extras it offers; returns its id. */
@@ -465,6 +469,59 @@ export async function deleteUpsell(id: string): Promise<ActionResult> {
   const ctx = await staffClient("pirtis");
   if (!ctx.ok) return ctx.error;
   const { error } = await ctx.supabase.from("sauna_upsells").delete().eq("id", id);
+  saunaRevalidate();
+  return error ? dbError(error) : done(null);
+}
+
+/** Same cross-field rules as the `sauna_programs` check constraints. */
+const programInput = z
+  .object({
+    id: z.string().regex(/^[a-z0-9-]+$/).max(60),
+    name: z.string().trim().min(2).max(60),
+    label: z.string().trim().max(40),
+    description: z.string().trim().max(240),
+    kind: z.enum(["session", "private"]),
+    pricing: z.enum(["person", "family", "group"]),
+    price: z.number().min(0).max(100000),
+    childPrice: z.number().min(0).max(100000).nullable(),
+    durationMinutes: z.number().int().min(30).max(720),
+    capacity: z.number().int().min(1).max(100).nullable(),
+    saunaId: z.string().regex(/^[a-z0-9-]+$/).max(60).nullable(),
+    active: z.boolean(),
+    sortOrder: z.number().int().min(0).max(1000),
+  })
+  .refine((p) => (p.kind === "session" ? p.pricing !== "group" && p.saunaId === null && p.capacity === null : p.pricing === "group" && p.saunaId !== null && p.capacity !== null && p.durationMinutes % 60 === 0))
+  .refine((p) => (p.pricing === "family") === (p.childPrice !== null));
+
+export async function saveProgram(program: SaunaProgram): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  const parsed = programInput.safeParse(program);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const p = parsed.data;
+  const { error } = await ctx.supabase.from("sauna_programs").upsert({
+    id: p.id,
+    name: p.name,
+    label: p.label,
+    description: p.description,
+    kind: p.kind,
+    pricing: p.pricing,
+    price: p.price,
+    child_price: p.childPrice,
+    duration_minutes: p.durationMinutes,
+    capacity: p.capacity,
+    sauna_id: p.saunaId,
+    active: p.active,
+    sort_order: p.sortOrder,
+  });
+  saunaRevalidate();
+  return error ? dbError(error) : done(null);
+}
+
+export async function deleteProgram(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  const { error } = await ctx.supabase.from("sauna_programs").delete().eq("id", id);
   saunaRevalidate();
   return error ? dbError(error) : done(null);
 }

@@ -3,6 +3,7 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { AdminPage } from "../admin-page";
+import { ProgramsCard } from "./programs-card";
 import { SaunasCard } from "./saunas-card";
 import { UpsellsCard } from "./upsells-card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function SaunaView() {
       }
     >
       <SaunasCard />
+      <ProgramsCard />
       <UpsellsCard />
     </AdminPage>
   );

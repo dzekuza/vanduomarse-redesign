@@ -1,6 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
-import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSauna, toUpsell } from "@/lib/admin/mappers";
+import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
 import type { CabinAvailability, CabinSize } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
@@ -42,10 +42,11 @@ export async function getSaunaPageData(): Promise<SaunaPageData> {
   const today = todayKey();
   const last = addDays(today, Math.max(SAUNA_DAYS, EVENT_WINDOW_DAYS) - 1);
 
-  const [saunas, upsells, taken, events] = await Promise.all([
+  const [saunas, upsells, programs, taken, events] = await Promise.all([
     // RLS limits anon to active saunas.
     supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").eq("active", true).order("sort_order").order("created_at"),
     supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"),
+    supabase.from("sauna_programs").select("*").eq("active", true).order("sort_order"),
     supabase.rpc("sauna_taken", { p_from: today, p_to: last }),
     supabase
       .from("events")
@@ -73,6 +74,7 @@ export async function getSaunaPageData(): Promise<SaunaPageData> {
       return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
     }),
     upsells: activeUpsells,
+    programs: must(programs, "Sauna programs").map(toSaunaProgram),
     takenBySauna,
     events: must(events, "Sauna events").map((e) => ({
       key: e.id,
@@ -84,6 +86,7 @@ export async function getSaunaPageData(): Promise<SaunaPageData> {
       pricePerPerson: e.price ?? 0,
       spotsLeft: spotsLeft(e) ?? 0,
       blurb: e.blurb,
+      programId: e.program_id,
     })),
   };
 }
