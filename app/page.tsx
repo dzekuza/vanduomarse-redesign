@@ -12,7 +12,7 @@ import { LandingProvider } from "@/components/landing/landing-provider";
 import { LandingTicker } from "@/components/landing/landing-ticker";
 
 export const metadata: Metadata = {
-  title: "Vanduo Marse — Išsuk į Marsą",
+  title: "Vanduo Marse — Užsuk į Marsą",
   description:
     "Pirtis, keturračiai, vandenlentės, šventės ir nakvynė prie vandens Kauno rajone. Susiplanuok dieną Vanduo Marse.",
 };

@@ -115,6 +115,11 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
   opening the dev server from that address no longer blocks `/__nextjs_font/*`
   and other dev resources. Dev-only; no effect on production builds.
 
+## 2026-11-03 — Homepage invitation copy
+
+- **What:** changed the hero headline to "UŽSUK Į MARSĄ." and aligned the
+  homepage title with it, using the requested invitation to visit the park.
+
 ## 2026-11-01 — Docs sweep after the redesign
 
 - **What:** removed references to deleted components from `utils.md` and

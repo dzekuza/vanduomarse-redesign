@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-11-01
+updated: 2026-11-03
 ---
 
 # Common Components Catalog
@@ -14,7 +14,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `ArrowLink` | `components/arrow-link.tsx` | Link flavour of the dark `Cta` (`size` sm/md); used in the events feed | stable |
 | `Wordmark` | `components/wordmark.tsx` | "VANDUO MARSE" in Big Shoulders Black, coral, fitted to its container (`wordmark-fit` + `wordmark-size`). **Unused since the 2026-11 redesign**; kept for reference | stable |
 | `LandingProvider` / `useLanding` | `components/landing/landing-provider.tsx` | Client context on `/`: `openService(id)`; owns `ServiceDrawer`. Server sections open it through `ServiceCta` / `ServiceTextCta` (`service-triggers.tsx`); header, hero sticker and footer CTAs are plain `#kryptys` links | stable |
-| Home sections | `components/landing/landing-{header,hero,ticker,activities,night,all-in,moments,faq,place,footer}.tsx` | The 2026-11 "Išsuk į Marsą" landing: dark hero (cut photo, orbits, spin star), coral ticker, filterable activity cards (`ActivityBoard`/`ActivityTile`), night photo, coral "viskas vienoje orbitoje" + accordion, snap-scroll gallery (`MomentsGallery`), FAQ, teal location block, footer. Copy lives in `landing/content.ts` (no prices) | stable |
+| Home sections | `components/landing/landing-{header,hero,ticker,activities,night,all-in,moments,faq,place,footer}.tsx` | The 2026-11 "Užsuk į Marsą" landing: dark hero (cut photo, orbits, spin star), coral ticker, filterable activity cards (`ActivityBoard`/`ActivityTile`), night photo, coral "viskas vienoje orbitoje" + accordion, snap-scroll gallery (`MomentsGallery`), FAQ, teal location block, footer. Copy lives in `landing/content.ts` (no prices) | stable |
 | `Reveal` | `components/reveal.tsx` | Scroll reveal: fades + lifts its children in once via IntersectionObserver. Content already on screen at mount is never hidden; reduced motion never hides anything. Stagger with `delay-*` | stable |
 | `MODAL_*` | `components/landing/dialog-motion.ts` | Class strings that give the home dialogs a real enter/exit (the base `ui/dialog` `data-open:` classes do not match Radix's `data-state`) and switch it off under reduced motion | stable |
 | `SiteHeader` | `components/site-header.tsx` | Client shell shared by home and inner pages, **fixed to the top** on every page: logo, section links (`lg`+), coral CTA, 44 px menu button, Escape + body scroll lock. Transparent over the hero, solid `bg-ink/95` with blur and a hairline once scrolled 8 px (not while the menu is open). `placement="overlay"` floats over the hero; `"bar"` also reserves its own ink strip in the page flow | stable |
