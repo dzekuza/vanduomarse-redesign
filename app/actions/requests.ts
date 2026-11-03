@@ -6,11 +6,15 @@ import {
   eventRegistrationSchema,
   eventTicketSchema,
   inquirySchema,
+  programBookingSchema,
+  programTicketSchema,
   saunaBookingSchema,
   stayBookingSchema,
   type EventRegistrationInput,
   type EventTicketInput,
   type InquiryInput,
+  type ProgramBookingInput,
+  type ProgramTicketInput,
   type SaunaBookingInput,
   type StayBookingInput,
 } from "@/lib/request-schema";
@@ -48,6 +52,7 @@ const BY_HINT: Record<string, string> = {
   stay_past: "Pasirinkta data jau praėjo arba yra per toli.",
   stay_full: "Šioms naktims laisvų vietų nebeliko. Pasirinkite kitą datą.",
   event_unavailable: "Šis renginys nebeprieinamas. Atnaujinkite puslapį.",
+  program_unavailable: "Ši programa šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   event_people: "Netinkamas žmonių skaičius.",
   event_full: "Renginyje nebeliko tiek vietų.",
   inquiry_guests: "Netinkamas svečių skaičius.",
@@ -170,6 +175,53 @@ export async function createEventTicket(input: EventTicketInput): Promise<Action
   });
   if (error) return dbFail(error, BY_HINT.event_full);
   notify(phone, data[0].reference, describeRequest(["Bilietai", `${v.people} asm.`]));
+  return { data: { reference: data[0].reference, total: data[0].total } };
+}
+
+export async function createProgramTicket(input: ProgramTicketInput): Promise<ActionResult<TicketReceipt>> {
+  const parsed = programTicketSchema.safeParse(input);
+  if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
+  const v = parsed.data;
+  if (v.website) return { data: { reference: "PR-0000", total: 0 } };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc("create_program_ticket", {
+    p_event_id: v.eventId,
+    p_adults: v.adults,
+    p_children: v.children,
+    p_name: v.customerName,
+    p_email: v.customerEmail || undefined,
+    p_phone: phone,
+  });
+  if (error) return dbFail(error, BY_HINT.event_full);
+  notify(phone, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
+  return { data: { reference: data[0].reference, total: data[0].total } };
+}
+
+export async function createProgramBooking(input: ProgramBookingInput): Promise<ActionResult<TicketReceipt>> {
+  const parsed = programBookingSchema.safeParse(input);
+  if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
+  const v = parsed.data;
+  if (v.website) return { data: { reference: "PM-0000", total: 0 } };
+  const today = todayKey();
+  if (v.date < today || (v.date === today && v.startHour <= vilniusHour())) return fail("Šis laikas jau praėjo. Pasirinkite kitą.", "taken");
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc("create_program_booking", {
+    p_program_id: v.programId,
+    p_date: v.date,
+    p_start_hour: v.startHour,
+    p_party: v.party,
+    p_name: v.customerName,
+    p_email: v.customerEmail || undefined,
+    p_phone: phone,
+  });
+  if (error) return dbFail(error, TAKEN);
+  notify(phone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

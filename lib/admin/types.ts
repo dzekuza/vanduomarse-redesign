@@ -3,6 +3,7 @@ import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
@@ -91,6 +92,8 @@ export interface ManagedEvent {
   capacity: number | null;
   sold: number;
   published: boolean;
+  /** Sauna program this session belongs to (its price then follows the program). */
+  programId?: string;
 }
 
 export type PriceGroup = "Erdvės" | "Maitinimas" | "Paslaugos" | "Pramogos" | "Nakvynė";
@@ -191,6 +194,8 @@ export interface AdminData {
   /** All saunas incl. hidden ones, in display order. */
   saunas: Sauna[];
   upsells: Upsell[];
+  /** All sauna programs incl. hidden ones, in display order. */
+  programs: SaunaProgram[];
   coupons: Coupon[];
   couponProducts: CouponProduct[];
   quadTypes: QuadType[];

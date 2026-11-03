@@ -25,7 +25,8 @@ interface SaunaReservationProps {
 /** Pirtis Marse booking: private hire or a seat at a public session. */
 export function SaunaReservation({ initialMode = "private", initialSaunaId, data, days }: SaunaReservationProps) {
   const [mode, setMode] = useState<SaunaMode>(initialMode);
-  const events = useMemo(() => data.events.map(toSaunaEvent), [data.events]);
+  // Program sessions are booked through /rezervacija (adults and children, program price).
+  const events = useMemo(() => data.events.filter((e) => !e.programId).map(toSaunaEvent), [data.events]);
   const tabs = TABS.map((t) => (t.id === "event" ? { ...t, badge: openEventCount(events) } : t));
 
   return (

@@ -3,6 +3,7 @@ import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
 import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "./types";
 
@@ -78,6 +79,7 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     capacity: r.capacity,
     sold: r.sold,
     published: r.published,
+    programId: r.program_id ?? undefined,
   };
 }
 
@@ -138,6 +140,24 @@ export function toSauna(r: Tables<"saunas">, links: Pick<Tables<"sauna_upsell_li
 
 export function toUpsell(r: Tables<"sauna_upsells">): Upsell {
   return { id: r.id, name: r.name, description: r.description, price: r.price, unit: r.unit, maxQty: r.max_qty, active: r.active };
+}
+
+export function toSaunaProgram(r: Tables<"sauna_programs">): SaunaProgram {
+  return {
+    id: r.id,
+    name: r.name,
+    label: r.label,
+    description: r.description,
+    kind: r.kind as SaunaProgram["kind"],
+    pricing: r.pricing as SaunaProgram["pricing"],
+    price: r.price,
+    childPrice: r.child_price,
+    durationMinutes: r.duration_minutes,
+    capacity: r.capacity,
+    saunaId: r.sauna_id,
+    active: r.active,
+    sortOrder: r.sort_order,
+  };
 }
 
 export function toCouponProduct(r: Tables<"coupon_products">): CouponProduct {
