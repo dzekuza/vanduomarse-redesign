@@ -19,8 +19,8 @@ export function PresetPicker({ selected, onSelect }: PresetPickerProps) {
             type="button"
             aria-pressed={active}
             onClick={() => onSelect(p.id)}
-            className={`min-h-11 border border-ink px-4 text-sm uppercase transition-[color,background-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
-              active ? "bg-ink text-foam" : "text-ink hover:bg-dust-soft"
+            className={`min-h-11 border px-4 text-xs font-bold tracking-tight transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
+              active ? "border-ink bg-ink text-dust" : "border-line text-ink hover:border-ink"
             }`}
           >
             {p.label}

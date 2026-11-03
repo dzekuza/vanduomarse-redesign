@@ -228,13 +228,17 @@ export const PRESETS: EventPreset[] = [
 
 export interface EstimateInput {
   preset: PresetId | null;
-  space: SpaceId;
-  day: DayType;
+  /** yyyy-mm-dd of the event, null until chosen. */
+  date: string | null;
+  /** null until the visitor picks one: nothing is preselected. */
+  space: SpaceId | null;
+  day: DayType | null;
   adults: number;
   /** Children 3-10 y.: 50% of the buffet price; under 3 eat free and are not counted. */
   kids: number;
   extraHours: number;
-  catering: CateringId;
+  /** null = not chosen yet; "none" is the explicit "Be maitinimo". */
+  catering: CateringId | null;
   coffeeBreak: boolean;
   drinks: Record<DrinkId, number>;
   bartenders: number;
@@ -251,12 +255,13 @@ export interface EstimateInput {
 
 export const DEFAULT_INPUT: EstimateInput = {
   preset: null,
-  space: "terasa",
-  day: "weekend",
+  date: null,
+  space: null,
+  day: null,
   adults: 20,
   kids: 0,
   extraHours: 0,
-  catering: "bufetas-25",
+  catering: null,
   coffeeBreak: false,
   drinks: { keg: 0, wine: 0, sparkling: 0, cocktail: 0, juice: 0 },
   bartenders: 0,
@@ -270,6 +275,13 @@ export const DEFAULT_INPUT: EstimateInput = {
   cabinGuests: 0,
   cabinNights: 1,
 };
+
+/** Mon-Thu are workdays (daytime rates); Fri-Sun are the evening / weekend rates. */
+export function dayTypeOf(isoDate: string): DayType {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const dow = new Date(y, m - 1, d).getDay();
+  return dow >= 1 && dow <= 4 ? "weekday" : "weekend";
+}
 
 export interface EstimateLine {
   group: "Erdvė" | "Maistas ir gėrimai" | "Paslaugos" | "Pramogos" | "Nakvynė";
@@ -289,7 +301,7 @@ export interface Estimate {
 
 
 export function estimate(input: EstimateInput): Estimate {
-  const space = SPACES.find((s) => s.id === input.space)!;
+  const space = input.space ? SPACES.find((s) => s.id === input.space)! : null;
   const guests = input.adults + input.kids;
   const lines: EstimateLine[] = [];
   const warnings: string[] = [];
@@ -298,20 +310,23 @@ export function estimate(input: EstimateInput): Estimate {
   };
 
   // Space
-  const rent = space.rent(input.day, guests);
-  const available = rent !== null && guests <= space.maxGuests;
-  if (guests > space.maxGuests) warnings.push(`${space.label}: daugiausia ${space.maxGuests} svečių.`);
-  if (rent === null && guests <= space.maxGuests)
-    warnings.push(input.space === "kupolas-seminaras" ? "Seminarams kupolas nuomojamas tik darbo dienomis." : `${space.label}: šiai datai netaikoma.`);
-  push("Erdvė", `${space.label} (${space.includedTime})`, fixed(rent ?? 0));
-  if (space.extraHour && input.extraHours > 0)
-    push("Erdvė", `${space.extraHour.label} × ${input.extraHours}`, fixed(space.extraHour.rate * input.extraHours));
-  if (space.note) warnings.push(space.note);
+  const rent = space && input.day ? space.rent(input.day, guests) : null;
+  const available = space !== null && rent !== null && guests <= space.maxGuests;
+  if (space) {
+    if (!input.day) warnings.push("Pasirink, kada vyks renginys (darbo diena ar vakaras / savaitgalis): nuo to priklauso erdvės kaina.");
+    if (guests > space.maxGuests) warnings.push(`${space.label}: daugiausia ${space.maxGuests} svečių.`);
+    if (input.day && rent === null && guests <= space.maxGuests)
+      warnings.push(input.space === "kupolas-seminaras" ? "Seminarams kupolas nuomojamas tik darbo dienomis." : `${space.label}: šiai datai netaikoma.`);
+    push("Erdvė", `${space.label} (${space.includedTime})`, fixed(rent ?? 0));
+    if (space.extraHour && input.extraHours > 0)
+      push("Erdvė", `${space.extraHour.label} × ${input.extraHours}`, fixed(space.extraHour.rate * input.extraHours));
+    if (space.note) warnings.push(space.note);
+  }
 
   // Food and drink
-  const cat = CATERING.find((c) => c.id === input.catering)!;
+  const cat = input.catering ? CATERING.find((c) => c.id === input.catering)! : null;
   let fnb = ZERO;
-  if (cat.perAdult > 0) {
+  if (cat && cat.perAdult > 0) {
     const kidsShare = cat.id.startsWith("bufetas") ? 0.5 : 1;
     const food = fixed(cat.perAdult * input.adults + cat.perAdult * kidsShare * input.kids);
     push("Maistas ir gėrimai", `${cat.label}, ${cat.hint.split(" · ").pop()}`, food);
@@ -332,12 +347,12 @@ export function estimate(input: EstimateInput): Estimate {
       fnb = add(fnb, amount);
     }
   }
-  const minSpend = space.minSpend(input.day, guests);
+  const minSpend = space && input.day ? space.minSpend(input.day, guests) : 0;
   const minSpendGap = range(Math.max(0, minSpend - fnb.max), Math.max(0, minSpend - fnb.min));
   push("Maistas ir gėrimai", `Iki minimalios sąskaitos (${minSpend} €)`, minSpendGap);
 
   // Services
-  push("Paslaugos", "Aptarnavimo mokestis", space.serviceFee);
+  if (space) push("Paslaugos", "Aptarnavimo mokestis", space.serviceFee);
   if (input.bartenders > 0) push("Paslaugos", `Barmenai × ${input.bartenders}`, fixed(PRICES.bartender * input.bartenders));
   if (input.decor) push("Paslaugos", "Šventinis stalo dekoravimas", PRICES.decor);
   if (input.serving) push("Paslaugos", "Stalų serviravimas", fixed(PRICES.serving * guests));
@@ -362,7 +377,7 @@ export function estimate(input: EstimateInput): Estimate {
   }
 
   const total = lines.reduce((sum, l) => add(sum, l.amount), ZERO);
-  const perGuest = guests > 0 ? range(Math.round(total.min / guests), Math.round(total.max / guests)) : null;
+  const perGuest = guests > 0 && total.max > 0 ? range(Math.round(total.min / guests), Math.round(total.max / guests)) : null;
   return { lines, total, perGuest, minSpendGap, warnings, available };
 }
 

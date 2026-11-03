@@ -2,16 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { createInquiry } from "@/app/actions/requests";
 import { ArrowButton } from "@/components/booking/arrow-button";
 import { ContactFields } from "@/components/quads/contact-fields";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { Estimate, EstimateInput } from "@/lib/event-pricing";
-import { z } from "zod";
-import { todayKey } from "@/lib/sauna";
 import { messageContactSchema, type MessageContactValues } from "@/lib/request-schema";
 
 interface InquiryFormProps {
@@ -22,24 +18,20 @@ interface InquiryFormProps {
   spaceLabel: string;
 }
 
-const messageDateSchema = z.object({ date: z.union([z.literal(""), z.iso.date()]) });
-
-type FormValues = MessageContactValues & { date: string };
-
-/** "Siųsti užklausą": stores the quote with the calculator input so staff can reopen it in /admin/uzklausos. */
+/** "Siųsti užklausą": stores the quote, with the event date chosen above, and the calculator input so staff can reopen it in /admin/uzklausos. */
 export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }: InquiryFormProps) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
-  const form = useForm<FormValues>({
-    resolver: zodResolver(messageContactSchema.and(messageDateSchema)),
-    defaultValues: { customerName: "", customerPhone: "", customerEmail: "", website: "", message: "", date: "" },
+  const form = useForm<MessageContactValues>({
+    resolver: zodResolver(messageContactSchema),
+    defaultValues: { customerName: "", customerPhone: "", customerEmail: "", website: "", message: "" },
   });
 
-  const submit = form.handleSubmit(async ({ date, message, ...contact }) => {
+  const submit = form.handleSubmit(async ({ message, ...contact }) => {
     const result = await createInquiry({
       ...contact,
       message,
-      date,
+      date: input.date ?? "",
       eventType: eventLabel,
       guests,
       space: spaceLabel,
@@ -65,14 +57,6 @@ export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }:
     <FormProvider {...form}>
       <form onSubmit={submit} noValidate className="space-y-4">
         <ContactFields idPrefix="inquiry" />
-        <div className="space-y-1.5">
-          <Label htmlFor="inquiry-date">Planuojama data (nebūtina)</Label>
-          <Controller
-            control={form.control}
-            name="date"
-            render={({ field }) => <DatePicker id="inquiry-date" value={field.value} onChange={field.onChange} min={todayKey()} placeholder="Pasirink datą (nebūtina)" />}
-          />
-        </div>
         <Textarea placeholder="Komentaras (nebūtina)" aria-label="Komentaras" {...form.register("message")} />
         {form.formState.errors.root ? (
           <p role="alert" className="text-sm text-destructive">
