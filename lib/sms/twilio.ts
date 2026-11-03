@@ -14,6 +14,13 @@ import "server-only";
  */
 export const smsSkippedInDev = () => process.env.NODE_ENV === "development" && process.env.SMS_IN_DEV !== "1";
 
+/**
+ * Test-only escape hatch for the phone gate: on in `next dev`, and anywhere the server sets
+ * PHONE_VERIFICATION_SKIP=1 (off by default; unset it to close the gate again, no deploy needed
+ * beyond the env change). Skipped numbers are NOT verified by SMS.
+ */
+export const phoneSkipEnabled = () => smsSkippedInDev() || process.env.PHONE_VERIFICATION_SKIP === "1";
+
 export const smsConfigured = () =>
   Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER);
 

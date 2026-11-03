@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
 import { hashCode, hashIp, MissingVerificationSecretError, newCode, signToken } from "@/lib/phone-verification";
 import { phoneCodeSchema, phoneNumberSchema } from "@/lib/phone-schema";
-import { sendSms, smsConfigured, smsDestinationAllowed, smsSkippedInDev, toE164 } from "@/lib/sms/twilio";
+import { sendSms, smsConfigured, phoneSkipEnabled, smsDestinationAllowed, smsSkippedInDev, toE164 } from "@/lib/sms/twilio";
 import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin";
 
 /**
@@ -139,16 +139,29 @@ export async function confirmPhoneCode(input: z.infer<typeof phoneCodeSchema>): 
   }
 }
 
+/** Whether the "skip phone check" button should show (dev, or PHONE_VERIFICATION_SKIP=1 on the server). */
+export async function phoneSkipAvailable(): Promise<boolean> {
+  return phoneSkipEnabled();
+}
+
 /**
- * `next dev` only: verify without any code, using the typed number (or a
- * placeholder when it is empty or invalid). Refuses everywhere else, so the
- * button that calls it is also compiled out of production builds.
+ * Test-only: verify without any code, using the typed number (or a placeholder in `next dev`
+ * when it is empty or invalid). Refuses unless `phoneSkipEnabled()`. Outside `next dev` it also
+ * records the verification in the database (service role), so the booking triggers accept it.
  */
 export async function skipPhoneVerification(typed?: string): Promise<ActionResult<PhoneVerified>> {
-  if (!smsSkippedInDev()) return fail("Praleisti patvirtinimo negalima.", "forbidden");
+  if (!phoneSkipEnabled()) return fail("Praleisti patvirtinimo negalima.", "forbidden");
   try {
-    const phone = toE164(typed) ?? "+37060000000";
-    console.info(`[dev] Phone ${phone} verified without a code (skip button).`);
+    if (smsSkippedInDev()) {
+      const phone = toE164(typed) ?? "+37060000000";
+      console.info(`[dev] Phone ${phone} verified without a code (skip button).`);
+      return { data: { phone, ...signToken(phone) } };
+    }
+    const phone = toE164(typed);
+    if (!phone) return fail("Neteisingas telefono numeris.", "phone_invalid");
+    const { error } = await createAdminClient().rpc("record_skipped_phone", { p_phone: phone });
+    if (error) return fail("Nepavyko praleisti patvirtinimo.", "db");
+    console.warn(`Phone ${phone} verified WITHOUT SMS (PHONE_VERIFICATION_SKIP=1).`);
     return { data: { phone, ...signToken(phone) } };
   } catch (e) {
     return setupError(e);

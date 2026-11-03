@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
-import { confirmPhoneCode, requestPhoneCode, skipPhoneVerification } from "@/app/actions/phone";
+import { confirmPhoneCode, phoneSkipAvailable, requestPhoneCode, skipPhoneVerification } from "@/app/actions/phone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,10 @@ export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: 
   const form = useForm<PhoneNumberValues>({ resolver: zodResolver(phoneNumberSchema), defaultValues: { phone: "" } });
   const { errors, isSubmitting } = form.formState;
   const id = useId();
+  const [canSkip, setCanSkip] = useState(false);
+  useEffect(() => {
+    void phoneSkipAvailable().then(setCanSkip);
+  }, []);
 
   const submit = form.handleSubmit(async (values) => {
     const result = await requestPhoneCode(values);
@@ -44,7 +48,7 @@ export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: 
     onSent(result.data.phone, secondsFromNow(result.data.resendIn));
   });
 
-  /** Dev only: take the typed number (or a placeholder) as verified, no SMS and no code. */
+  /** Test only (dev, or PHONE_VERIFICATION_SKIP=1): take the typed number as verified, no SMS and no code. */
   async function skip() {
     const result = await skipPhoneVerification(form.getValues("phone"));
     if ("error" in result) return form.setError("phone", { message: result.error.message });
@@ -69,10 +73,10 @@ export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: 
             <Input id={id} type="tel" autoComplete="tel" placeholder="+370 612 34567" aria-invalid={!!errors.phone} {...form.register("phone")} />
             <FieldError message={errors.phone?.message} />
           </div>
-          {/* Compiled out of production builds (NODE_ENV is inlined), and the action refuses outside `next dev`. */}
-          {process.env.NODE_ENV === "development" ? (
+          {/* Shown only while the server allows it; the action re-checks, so the button alone grants nothing. */}
+          {canSkip ? (
             <Button type="button" variant="outline" size="lg" className="w-full border-dashed border-ink bg-transparent" onClick={skip}>
-              Praleisti telefono patvirtinimą (tik dev)
+              Praleisti telefono patvirtinimą (tik testavimui)
             </Button>
           ) : null}
         </div>

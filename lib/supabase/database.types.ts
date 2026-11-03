@@ -1385,6 +1385,10 @@ export type Database = {
           id: string
         }[]
       }
+      record_skipped_phone: {
+        Args: { p_phone: string }
+        Returns: undefined
+      }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
         Returns: {

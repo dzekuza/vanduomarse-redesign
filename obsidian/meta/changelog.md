@@ -1,3 +1,4 @@
+- 2026-11-04 Phone gate: env-flagged skip for live testing (`PHONE_VERIFICATION_SKIP=1`, migration `20261104100000_phone_verification_skip.sql`, ADR-0023). Off by default.
 - 2026-11-04 Consistency sweep of all public pages + embeds + admin login: shadcn buttons/titles/tabs/table heads now bold; day-picker cells grow to fit "Uždaryta" (`min-w-14`).
 - 2026-11-04 UI consistency pass: Termina body, role text steps, weights, border tokens.
 

@@ -42,3 +42,5 @@ error when either variable is missing. Every client (`lib/supabase/server.ts`,
 ## SMS in local development
 
 `SMS_IN_DEV` (optional, `1`): by default `next dev` sends no SMS and the phone gate auto-confirms the typed number; set it to send real SMS locally. Ignored in production builds.
+
+`PHONE_VERIFICATION_SKIP` (optional, `1`, **test only**): shows the "Praleisti telefono patvirtinimą" button on the phone gate in production and lets the server accept a number without an SMS code (records the verification through `record_skipped_phone`). Off by default; remove it to close the gate. Needs migration `20261104100000`. ADR-0023.

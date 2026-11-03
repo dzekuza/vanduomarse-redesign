@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0023 — Phone skip on the live site is an env-flagged test switch
+
+**Context.** The "skip phone check" button was dev-only (compiled out of production, action refused outside `next dev`). The owner wants to test real bookings on the live site without a phone.
+
+**Decision.** `PHONE_VERIFICATION_SKIP=1` (server env, off by default) enables the button (`phoneSkipAvailable()` action) and `skipPhoneVerification`, which records a verified row via the service-role-only `record_skipped_phone` RPC and returns the usual signed token. The action re-checks the flag; the button alone grants nothing.
+
+**Consequences.** While the flag is set anyone can book with an unverified number (spam risk, unverified callback numbers), so set it only for testing and remove it afterwards. Needs migration `20261104100000` applied to the live project (ref `mwngljhcvqkvncwbmgeo`, not the MCP slot).
+
+---
+
 ## ADR-0022 — Sauna programs are data: scheduled sessions and flat-price private programs
 
 - **Status:** Accepted; migration applied and admin + public UI built 2026-11-03 (not yet exercised with real bookings)
