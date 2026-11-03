@@ -12,7 +12,7 @@ export function LandingPlace() {
       <Reveal>
       <div className="relative h-82 overflow-hidden md:h-138">
         <Image src="/landing/aerial.webp" alt="Marso parkas iš oro, Kauno rajone" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[60%_center]" />
-        <span aria-hidden className="absolute top-5 left-5 -rotate-8 bg-rust px-4.5 py-3 text-xs font-bold text-ink md:top-7.5 md:left-7.5">
+        <span aria-hidden className="absolute top-5 left-5 -rotate-8 bg-rust px-4 py-3 text-xs font-bold text-ink md:top-7.5 md:left-7.5">
           ↘ ČIA MARSE.
         </span>
       </div>
@@ -33,12 +33,14 @@ export function LandingPlace() {
           <br />
           {PARK_ADDRESS.area}
         </address>
-        <Cta tone="cream" href={MAPS_URL}>
-          Rodyti maršrutą
-        </Cta>
-        <a href={telHref(MAIN_CONTACT.phone)} className="mt-4 inline-flex min-h-11 items-center text-xs md:text-sm">
-          {MAIN_CONTACT.phone}
-        </a>
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+          <Cta tone="cream" href={MAPS_URL}>
+            Rodyti maršrutą
+          </Cta>
+          <a href={telHref(MAIN_CONTACT.phone)} className="inline-flex min-h-11 items-center text-xs transition-colors duration-150 ease-out-strong hover:text-lake md:text-sm">
+            {MAIN_CONTACT.phone}
+          </a>
+        </div>
       </Reveal>
     </section>
   );

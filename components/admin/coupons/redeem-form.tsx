@@ -40,7 +40,7 @@ export function RedeemForm({ coupon }: { coupon: Coupon }) {
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <p className="text-sm font-medium">Nuskaityti panaudojimą</p>
+      <p className="text-sm font-normal">Nuskaityti panaudojimą</p>
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="redeem-amount">Suma, €</Label>

@@ -33,7 +33,7 @@ export function RolesTab() {
         {roles.map((r) => (
           <Card key={r.id}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle className="flex items-center gap-2 text-item">
                 {r.name}
                 {r.isOwner ? <Badge variant="outline">Pilna prieiga</Badge> : null}
               </CardTitle>

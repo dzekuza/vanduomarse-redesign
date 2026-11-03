@@ -38,7 +38,7 @@ export function UpsellsCard() {
         {upsells.map((u) => (
           <div key={u.id} className="flex items-center gap-3 py-3 first:pt-0">
             <div className="min-w-0 flex-1">
-              <p className={`truncate text-sm font-medium ${u.active ? "" : "text-muted-foreground line-through"}`}>{u.name}</p>
+              <p className={`truncate text-sm font-normal ${u.active ? "" : "text-muted-foreground line-through"}`}>{u.name}</p>
               <p className="truncate text-xs text-muted-foreground">{u.description}</p>
               <p className="truncate text-xs text-muted-foreground">{offeredBy(u.id).join(", ") || "Nesiūloma jokioje pirtyje"}</p>
             </div>

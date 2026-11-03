@@ -16,7 +16,7 @@ export function StaysStrip({ days }: { days: string[] }) {
         const pct = Math.min(100, Math.round((cabins / CABIN_COUNT) * 100));
         return (
           <div key={day} className="border bg-card p-3">
-            <p className="text-xs font-medium">{formatDay(day)}</p>
+            <p className="text-xs font-normal">{formatDay(day)}</p>
             <p className="mt-2 text-sm">
               Nameliai <span className="font-display font-bold">{cabins}</span>
               <span className="text-muted-foreground"> / {CABIN_COUNT}</span>

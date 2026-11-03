@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { MainHeader } from "@/components/main-header";
+import { SiteFooter } from "@/components/site-footer";
 import { LandingActivities } from "@/components/landing/landing-activities";
 import { LandingAllIn } from "@/components/landing/landing-all-in";
 import { LandingFaq } from "@/components/landing/landing-faq";
-import { LandingFooter } from "@/components/landing/landing-footer";
-import { LandingHeader } from "@/components/landing/landing-header";
+
 import { LandingHero } from "@/components/landing/landing-hero";
 import { LandingMoments } from "@/components/landing/landing-moments";
 import { LandingNight } from "@/components/landing/landing-night";
@@ -23,7 +24,7 @@ export default function Home() {
       <a href="#kryptys" className="sr-only focus:not-sr-only focus:fixed focus:top-2.5 focus:left-5 focus:z-50 focus:bg-dust focus:p-3">
         Pereiti prie veiklų
       </a>
-      <LandingHeader />
+      <MainHeader placement="overlay" />
       <main>
         <LandingHero />
         <LandingTicker />
@@ -34,7 +35,7 @@ export default function Home() {
         <LandingFaq />
         <LandingPlace />
       </main>
-      <LandingFooter />
+      <SiteFooter />
     </LandingProvider>
   );
 }

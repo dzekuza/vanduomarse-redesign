@@ -17,8 +17,8 @@ export function LandingHero() {
       className="relative h-212 overflow-hidden bg-ink px-gutter text-dust md:h-svh md:max-h-235 md:min-h-215 min-[1700px]:max-h-250 min-[1700px]:h-250"
     >
       <div aria-hidden className="absolute inset-0 bg-grid-hero opacity-10" />
-      <div aria-hidden className="pointer-events-none absolute z-2 rounded-full border border-dust/20 orbit-wide" />
-      <div aria-hidden className="pointer-events-none absolute z-2 rounded-full border border-dust/20 orbit-round" />
+      <div aria-hidden className="pointer-events-none absolute z-2 rounded-full border border-line-on-ink orbit-wide" />
+      <div aria-hidden className="pointer-events-none absolute z-2 rounded-full border border-line-on-ink orbit-round" />
 
       <div className="absolute top-82 right-0 bottom-32 w-full overflow-hidden bg-lake-soft clip-hero-narrow md:top-35 md:bottom-24 md:w-3/4 md:clip-hero-wide lg:w-2/3">
         <Image src="/landing/wake.webp" alt="Vandenlentininkas šuolyje virš Marso vandens" fill priority sizes="(min-width: 1024px) 67vw, 100vw" className="object-cover object-center saturate-80 motion-safe:animate-in motion-safe:zoom-in-105 motion-safe:duration-1000 motion-safe:ease-out-strong" />
@@ -62,7 +62,7 @@ export function LandingHero() {
         <ArrowUpRightIcon aria-hidden weight="light" className="size-8 md:size-12" />
       </Link>
 
-      <div className={`absolute inset-x-gutter bottom-6 z-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-dust/30 pt-4 text-micro tracking-widest md:text-xs md:gap-x-10 md:pt-5 ${ENTER} motion-safe:delay-700`}>
+      <div className={`absolute inset-x-gutter bottom-6 z-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line-on-ink pt-4 text-micro tracking-widest md:text-xs md:gap-x-10 md:pt-5 ${ENTER} motion-safe:delay-700`}>
         <span>KAUNO RAJONAS</span>
         <span>{PARK_ADDRESS.street.toUpperCase()}</span>
         <span className="ml-auto max-sm:hidden">LEISKIS ŽEMYN ↓</span>

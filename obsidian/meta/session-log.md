@@ -1,3 +1,13 @@
+## 2026-11-04 — Page-by-page consistency sweep
+- **Changed:** ui Button/titles/tabs/table heads to font-bold; day-picker min-w so "Uždaryta" fits.
+- **Status:** `/`, `/renginiai`, `/kuponai`, `/skaiciuokle`, all 5 `/embed/*`, `/admin/prisijungti` measured in the browser (Termina only, 400/700, no overflow); logged-in admin screens not seen (needs staff login).
+- **Next:** log in and check admin pages; desktop width pass.
+
+## 2026-11-04 — UI consistency audit and fixes
+- **Changed:** Termina for body (Work Sans dropped); new type roles `text-item/figure/heading/total` mapped across ~50 files; weights 400/700 only; hairlines on `border-line` tokens; ui Title bases use `text-item`.
+- **Status:** `tsc` + eslint clean; browser-checked /rezervacija (Pirtis flow through review, Nakvynė and Keturračiai tabs, extras popup) at phone width, no console errors; submit not exercised.
+- **Next:** eyeball reservation, calculator, booking at 375 / 1024 px.
+
 ---
 tags: [meta, session-log]
 updated: 2026-11-03
@@ -13,6 +23,11 @@ snapshot lives in [[status]].
 Entry format:
 
 ```
+## 2026-11-04 — Unslop audit and polish
+- **Changed:** removed negative tracking on small bold labels, put half-step paddings on the 4 px grid, fixed `text-micro` size in design-system.md.
+- **Status:** `tsc` clean; not checked in the browser.
+- **Next:** eyeball the reservation option cards, calculator pickers and the landing ticker at 375 / 1024 px.
+
 ## YYYY-MM-DD HH:MM — one-line summary
 - **Changed:** files / areas touched and why
 - **Status:** what works now, what is half-done

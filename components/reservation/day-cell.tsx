@@ -39,7 +39,7 @@ export function DayCell({ date, active, isToday, disabled, icons, onSelect, flui
     >
       {isToday && !disabled ? <span aria-hidden className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-rust" /> : null}
       <span className="text-micro">{weekdayLabel(date)}</span>
-      <span className={disabled ? "text-sm leading-none" : "font-display text-xl font-bold leading-none"}>{date.getDate()}</span>
+      <span className={disabled ? "text-sm leading-none" : "font-display text-figure font-bold leading-none"}>{date.getDate()}</span>
       {disabled ? null : (
         <span className="flex items-center gap-1">
           {icons.map(({ Icon, label, on }) => (

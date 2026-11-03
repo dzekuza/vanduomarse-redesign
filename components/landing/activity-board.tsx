@@ -13,7 +13,7 @@ export function ActivityBoard() {
 
   return (
     <>
-      <div role="group" aria-label="Veiklų filtras" className="mb-6 flex flex-wrap gap-1.5 border-y border-line py-3 md:mb-8 md:gap-2.5 md:py-4">
+      <div role="group" aria-label="Veiklų filtras" className="mb-6 flex flex-wrap gap-1.5 py-3 md:mb-8 md:gap-2.5 md:py-4">
         {FILTERS.map((f) => {
           const active = f.id === filter;
           return (

@@ -63,7 +63,7 @@ export function StaySection({ calc: { input, set } }: { calc: EventCalculatorSta
           <AccordionItem key={r.id} value={r.id} className="border-b-0 border-t border-line">
             <AccordionTrigger className="items-center gap-4 py-4">
               <span className="min-w-0">
-                <span className="block text-base font-bold tracking-tight">{r.title}</span>
+                <span className="block text-item font-bold">{r.title}</span>
                 <span className="block text-xs font-normal text-ink/65">{r.blurb}</span>
               </span>
               {r.chosen ? <span className="ml-auto shrink-0 border border-ink bg-ink px-2.5 py-1 text-micro text-dust">{r.chosen}</span> : <span className="ml-auto" />}

@@ -14,7 +14,7 @@ export function PricingView() {
   const { prices } = useAdmin();
   return (
     <AdminPage title="Kainodara" description="Kainos su 21% PVM, galioja iki 2027-12-31. Intervalai rodomi kaip „nuo – iki“.">
-      <div className="flex gap-3 border border-ink/20 bg-muted p-4 text-sm">
+      <div className="flex gap-3 border border-line bg-muted p-4 text-sm">
         <InfoIcon size={20} className="mt-0.5 shrink-0 text-rust" />
         <p>
           Kainos išsaugomos duomenų bazėje, bet svetainės ir skaičiuoklės kainų kol kas nekeičia. Pirties kainos ir papildomos paslaugos –{" "}

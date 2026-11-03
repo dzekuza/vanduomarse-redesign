@@ -16,11 +16,11 @@ app/                    ← routes; pages compose components directly
 ├── embed/              ← bare booking widgets for the WordPress plugin (ADR-0014)
 └── admin/              ← dashboard: layout (shell, store) + one page per screen
 components/
-├── *.tsx               ← shared shell + primitives (site-header, page-header, page-intro, site-footer, cta, reveal, menu-panel…)
+├── *.tsx               ← shared shell + primitives (site-header, main-header, page-intro, site-footer, cta, reveal, menu-panel…)
 ├── landing/            ← the home page: sections, activity/calculator drawers, copy in content.ts
 ├── nav-links.ts        ← public nav items
 ├── ui/                 ← shadcn/ui primitives (locally modified, see [[components/ui]])
-├── booking/            ← /pirtis and /miegas flows, receipts, calendar export
+├── booking/            ← embed booking flows (sauna, cabins, quads), receipts, calendar export
 ├── events/             ← /renginiai feed
 ├── calculator/         ← /skaiciuokle
 └── admin/              ← store, shell, and a folder per admin screen

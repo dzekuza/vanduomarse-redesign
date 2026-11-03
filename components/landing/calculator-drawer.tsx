@@ -40,7 +40,7 @@ function CalculatorPanel() {
         <p className="text-micro uppercase">Šventės skaičiuoklė</p>
         <DrawerTitle className="sr-only">Šventės skaičiuoklė: preliminari kaina</DrawerTitle>
         <DrawerDescription className="sr-only">Pasirink renginio tipą, svečius, erdvę ir paslaugas: kaina skaičiuojama iškart.</DrawerDescription>
-        <p aria-live="polite" className="font-display mt-2 text-2xl font-bold sm:mt-3 sm:text-3xl md:text-4xl">
+        <p aria-live="polite" className="font-display mt-2 text-total font-bold sm:mt-3">
           {formatMoney(result.total)}
         </p>
         <p className="mt-1 text-xs text-dust/70">

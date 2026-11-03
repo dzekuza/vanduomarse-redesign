@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { SectionKicker } from "@/components/section-kicker";
 import { StarMark } from "@/components/star-mark";
-import { CONTACTS, MAIN_CONTACT, telHref } from "@/lib/contacts";
+import { CONTACTS, MAIN_CONTACT, telHref, type Contact } from "@/lib/contacts";
 
 const INSTAGRAM_URL = "https://www.instagram.com/vanduo_marse/";
 const LINK = "inline-flex min-h-11 items-center";
@@ -44,32 +44,42 @@ export function FooterBar({ topHref }: { topHref: string }) {
   );
 }
 
+const CONTACT_LINK = `${LINK} text-xs transition-colors duration-150 ease-out-strong hover:text-rust`;
+
+/** One contact: a hairline on top, the name (a link when it has a site), then its email and phone stacked. */
+function ContactItem({ contact: c }: { contact: Contact }) {
+  return (
+    <li className="border-t border-line pt-4">
+      <p className="text-sm font-bold">
+        {c.href ? (
+          <a href={c.href} target="_blank" rel="noopener" className="transition-colors duration-150 ease-out-strong hover:text-rust">
+            {c.name}
+          </a>
+        ) : (
+          c.name
+        )}
+      </p>
+      <div className="mt-1 flex flex-col items-start">
+        <a href={`mailto:${c.email}`} className={CONTACT_LINK}>
+          {c.email}
+        </a>
+        <a href={telHref(c.phone)} className={CONTACT_LINK}>
+          {c.phone}
+        </a>
+      </div>
+    </li>
+  );
+}
+
 /** Footer of the inner pages: every contact, the closing line and the link row. */
 export function SiteFooter() {
   return (
     <footer className="bg-dust px-gutter pt-14 pb-6.5 md:pt-19">
       <Reveal>
         <SectionKicker left="KONTAKTAI" right="VISI MARSO SEKTORIAI" />
-        <ul className="mt-6 grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {CONTACTS.map((c) => (
-            <li key={c.name}>
-              <p className="text-sm font-bold">
-                {c.href ? (
-                  <a href={c.href} target="_blank" rel="noopener" className="hover:text-rust">
-                    {c.name}
-                  </a>
-                ) : (
-                  c.name
-                )}
-              </p>
-              <a href={`mailto:${c.email}`} className={`${LINK} text-xs`}>
-                {c.email}
-              </a>
-              <br />
-              <a href={telHref(c.phone)} className={`${LINK} text-xs`}>
-                {c.phone}
-              </a>
-            </li>
+            <ContactItem key={c.name} contact={c} />
           ))}
         </ul>
       </Reveal>

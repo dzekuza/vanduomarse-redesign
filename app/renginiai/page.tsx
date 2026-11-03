@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
-import { Cta } from "@/components/cta";
-import { PageIntro } from "@/components/page-intro";
+import { EventsAside } from "@/components/events/events-aside";
 import { EventsBoard } from "@/components/events/events-board";
 import { getParkEvents } from "@/lib/data/public";
 
@@ -15,18 +15,19 @@ export default async function RenginiaiPage() {
 
   return (
     <BookingPage>
-      <PageIntro
-        eyebrow="Renginiai Marse"
-        title={["Kas vyksta", "Marse."]}
-        intro="Pirties ritualai, vakarai prie ežero, Akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje."
-      >
-        <Cta tone="coral" href="/skaiciuokle">
-          Apskaičiuok renginio kainą
-        </Cta>
-      </PageIntro>
-      <section className="px-gutter py-12 md:py-16">
-        <EventsBoard data={events} />
-      </section>
+      <div className="theme-reservation px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
+        <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
+          <div className="min-w-0 space-y-10 lg:col-span-2">
+            <BookingHeader
+              crumb="Renginiai"
+              title={["Kas vyksta", "Marse"]}
+              intro="Pirties ritualai, vakarai prie ežero, Akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje."
+            />
+            <EventsBoard data={events} />
+          </div>
+          <EventsAside />
+        </div>
+      </div>
     </BookingPage>
   );
 }

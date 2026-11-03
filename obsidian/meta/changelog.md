@@ -1,3 +1,6 @@
+- 2026-11-04 Consistency sweep of all public pages + embeds + admin login: shadcn buttons/titles/tabs/table heads now bold; day-picker cells grow to fit "Uždaryta" (`min-w-14`).
+- 2026-11-04 UI consistency pass: Termina body, role text steps, weights, border tokens.
+
 ---
 tags: [meta, changelog]
 updated: 2026-11-03
@@ -8,6 +11,36 @@ updated: 2026-11-03
 Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
+
+## 2026-11-04 — Unslop polish pass
+
+- `/rezervacija` plan panel: removed the filler "Trumpai ir aiškiai" row with its decorative arrow and the period on the "Tavo pasirinkimas" headline.
+- New `text-rust-ink` (`--raw-coral-ink` #a8282d, 5:1 on blush) for small coral text: notices and errors in the reservation flow and phone gate used `text-rust` / `text-destructive` at ~2.7:1. Extras popup copy switched to the informal "nori".
+- Landing "Ką šiandien veikiam?": the Pirtis, Ciongo (quads) and Rytas Marse (cabins) tiles now link to `/rezervacija?veikla=pirtis|keturraciai|nakvyne` instead of opening the service drawer; the page opens that activity tab. Party, wake and food tiles still open their drawer (no reservation tab for them).
+- Extras popup ("Tą dieną turime ir daugiau"): bold display title so it outranks the option names, option names one step smaller, padding 20 px, and the offer copy in `lib/reservation.ts` switched to the informal imperative (Pasilik, Pavažinėk, Pasikaitink) to match the rest of the flow.
+- `/renginiai` restyled to the reservation / calculator look: `.theme-reservation`, `BookingHeader`, two columns with a sticky `EventsAside` (link to the calculator + phone), hairline `border-line` filter chips and event cards on `bg-card`, quiet outlined category tags, `ArrowButton` for registering. `PageIntro` is no longer used there.
+- Quad start times that fall in the visitor's own sauna booking now say "Šiuo metu būsite užimti" instead of "Jūsų plane"; disabled `ChoiceTile`s strike through only the time, so the reason stays readable.
+- Removed the `/pirtis`, `/miegas` and `/keturraciai` pages (now 404). `/rezervacija` replaces them: header and menu show one "Rezervacija" link, event tickets and tour CTAs point to `/rezervacija?veikla=…`, admin saves revalidate `/rezervacija`. The `/embed/pirtis|miegas|keturraciai` widgets are kept for the WordPress plugin.
+- `/renginiai` cleanup: repeated utility strings extracted into `Panel`, `Eyebrow`, `PhoneHelp` and `FilterChip`; ad-hoc `text-ink/60|70` became the `text-muted-foreground` token and the `[4rem]` / `[4.5rem]` grid columns became `w-16 md:w-18`. `PlanPanel` uses `PhoneHelp` too (its decorative arrow dropped).
+- One header for the whole public site: new `MainHeader` replaces `PageHeader` and `LandingHeader`. Same logo (links to `/`), links (Rezervacija, Renginiai, Skaičiuoklė, Dovanų kuponai), coral "Rezervuok" CTA to `/rezervacija` and menu on the home page and every inner page; the home anchors moved into the menu (`SECTION_LINKS`). `LANDING_NAV`, `BOOKING_LINKS` and `PAGE_NAV` are gone.
+- `/kuponai` restyled like the reservation / calculator pages: `.theme-reservation`, `BookingHeader`, two columns (steps + coupon cards left, sticky order form right). `CouponIntro` replaced by `CouponSteps`; coupon cards use `OptionCard`; order form and confirmation use `Panel` / `Eyebrow`, errors `text-rust-ink`, prices Termina instead of the wordmark face. The `/embed/kuponai` widget renders the shop without header or steps.
+- `/rezervacija` header: removed the "Tavo laikas Marse" kicker row and its tagline (the `kicker` / `tagline` props of `BookingHeader` are simply not passed there).
+- `/renginiai` header: removed the "Renginiai Marse" kicker row.
+- `/renginiai` filter row: removed the top / bottom hairlines and vertical padding around the category chips.
+- `/kuponai` header: removed the "Dovanų kuponai" kicker row, so the booking-style pages (rezervacija, renginiai, kuponai, skaiciuokle) share the same breadcrumb + title + intro header.
+- `/rezervacija` date + guests block (`WhenStep`): removed the top / bottom hairlines and the 24 px vertical padding.
+- `/rezervacija`: under the activity tabs a short description of the chosen activity and a "Sužinoti daugiau" button that opens a dialog with the details (saunas and programs / cabin and camper prices / quad types and rental conditions). All figures come from the live data, nothing hard-coded.
+- Extras popup ("Tą dieną turime ir daugiau") redesigned: square dialog with the park photo behind the title under an ink scrim, one row per free activity (icon, name, offer line, "Peržiūrėti" link, hairline dividers), and the dark "Ne, tęsti" button in the footer. `ExtrasOfferDialog` takes a `photo` prop (the same cover as the plan panel).
+- "Sužinoti daugiau" dialog on `/rezervacija` now opens with a photo carousel (the landing `ServiceGallery`): the saunas' uploaded photos for Pirtis, the landing galleries for Nakvynė and Keturračiai; the details scroll under it. New `DialogPhotoClose` shared with the extras popup.
+- Footer contacts: each contact is now a `ContactItem` with a hairline on top, the name, and email and phone stacked in a flex column (no `<br>`), with a coral hover on every link; row gap 32 px.
+- Home "Ką šiandien veikiam?" section: removed the "01 / PASIRINK KRYPTĮ · VIENA VIETA. DAUG SCENARIJŲ." kicker row and the top margin it left on the heading.
+- Home activity filter row: removed the top / bottom hairlines.
+- Home party drawer: "Apskaičiuok šventės kainą" is now a link to `/skaiciuokle` (the `service.cta.href`) instead of opening the calculator drawer. `openCalculator` / `CalculatorDrawer` are no longer used by anything.
+- Home night section: "Planuojam šventę" now links to `/skaiciuokle` instead of opening the party drawer.
+- Home location block: the "Rodyti maršrutą" button and the phone number sit in a flex row with a 32 px gap (they touched before) and wrap on phones; phone gets a hover colour.
+- `/skaiciuokle` chapters (`CalculatorGroups`): now independent accordions (`type="multiple"`, first open by default) and the "scroll the opened chapter into view" effect is gone. The old single-open accordion collapsed the chapter above while the new one grew, shifting the page under the cursor, then scrolled again. `AccordionContent` (shared, also the home FAQ) now uses 250 ms with the `ease-out-strong` curve.
+- One footer for the whole public site: the home page now uses `SiteFooter` (contacts grid, "Susitinkam Marse" line, link row) like every inner page; `LandingFooter` and its "Rezervuok savo Marsą" tagline block are gone.
+- Dropped negative tracking from small bold labels (option cards, session rows, space / stay pickers, preset chips, month title); moved the half-step paddings (`px-4.5`, `py-3.5`) to the 4 px grid; `design-system.md` now says `text-micro` is 11 px. Brand look (bold uppercase Termina) deliberately kept.
 
 ## 2026-11-04 — Program sessions can only be booked through the program function
 

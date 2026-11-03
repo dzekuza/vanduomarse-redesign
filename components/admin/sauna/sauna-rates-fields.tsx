@@ -37,7 +37,7 @@ export function SaunaRatesFields({ register, errors }: SaunaRatesFieldsProps) {
         return (
           <div key={f.name} className="grid grid-cols-[1fr_auto] items-center gap-3 py-3 first:pt-0">
             <div className="min-w-0">
-              <label htmlFor={`rate-${f.name}`} className="text-sm font-medium">
+              <label htmlFor={`rate-${f.name}`} className="text-sm font-normal">
                 {f.label}
               </label>
               <p className="text-xs text-muted-foreground">{f.unit}</p>
@@ -60,11 +60,11 @@ export function SaunaRatesFields({ register, errors }: SaunaRatesFieldsProps) {
   return (
     <div className="space-y-6">
       <section>
-        <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Kainos</h3>
+        <h3 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Kainos</h3>
         {renderFields(PRICE_FIELDS)}
       </section>
       <section>
-        <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Rezervacijos taisyklės</h3>
+        <h3 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Rezervacijos taisyklės</h3>
         {renderFields(RULE_FIELDS)}
       </section>
     </div>

@@ -37,7 +37,7 @@ export function MonthCalendar({ days, selected, onSelect, icons }: MonthCalendar
         <button type="button" aria-label="Ankstesnis mėnuo" disabled={month <= first} onClick={() => shift(-1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
           <CaretLeftIcon size={18} />
         </button>
-        <p aria-live="polite" className="text-sm font-bold tracking-tight">
+        <p aria-live="polite" className="text-sm font-bold">
           {monthLabel(month)}
         </p>
         <button type="button" aria-label="Kitas mėnuo" disabled={month >= last} onClick={() => shift(1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">

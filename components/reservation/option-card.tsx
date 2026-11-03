@@ -34,7 +34,7 @@ export function OptionCard({ eyebrow, title, text, meta, selected, disabled, ind
           {selected ? <span className={`size-3 bg-rust ${indicator === "radio" ? "rounded-full" : ""}`} /> : null}
         </span>
       </span>
-      <span className="text-base font-bold tracking-tight">{title}</span>
+      <span className="text-item font-bold">{title}</span>
       {text ? <span className={`text-xs leading-relaxed ${selected ? "text-dust/75" : disabled ? "" : "text-ink/65"}`}>{text}</span> : null}
       {meta ? <span className="mt-auto pt-2 text-xs font-bold">{meta}</span> : null}
     </button>

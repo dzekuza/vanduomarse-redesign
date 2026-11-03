@@ -20,7 +20,7 @@ const Heading = ({ children }: { children: string }) => <p className="mb-3 text-
 /** Day and group size, always visible above the form. Start times are chosen per activity. */
 export function WhenStep({ days, date, onDate, icons, people, onPeople }: WhenStepProps) {
   return (
-    <section aria-label="Data ir svečiai" className="space-y-6 border-y border-line py-6">
+    <section aria-label="Data ir svečiai" className="space-y-6">
       <div className="min-w-0">
         <Heading>Diena</Heading>
         <DatePicker days={days} selected={date} onSelect={onDate} icons={icons} />

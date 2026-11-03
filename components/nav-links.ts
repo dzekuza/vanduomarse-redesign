@@ -1,12 +1,16 @@
-/** Primary navigation of the inner pages: the menu panel lists all of it, the desktop header the booking pages. */
+/** Primary navigation of the public site: the desktop header and the big links of the menu panel. */
 export const NAV_LINKS = [
-  { href: "/pirtis", label: "Pirtis Marse" },
-  { href: "/miegas", label: "Miegas Marse" },
-  { href: "/keturraciai", label: "Keturračiai" },
+  { href: "/rezervacija", label: "Rezervacija" },
   { href: "/renginiai", label: "Renginiai" },
   { href: "/skaiciuokle", label: "Skaičiuoklė" },
   { href: "/kuponai", label: "Dovanų kuponai" },
 ] as const;
 
-/** Desktop header links (the coupons page has its own button there). */
-export const PAGE_NAV = NAV_LINKS.filter((l) => l.href !== "/kuponai");
+/** Sections of the home page, listed under the big links of the menu panel. */
+export const SECTION_LINKS = [
+  { href: "/", label: "Pradžia" },
+  { href: "/#kryptys", label: "Ką veikiam?" },
+  { href: "/#sventes", label: "Šventės ir verslas" },
+  { href: "/#vieta", label: "Kur nusileisti?" },
+  { href: "/#klausimai", label: "Klausimai" },
+] as const;

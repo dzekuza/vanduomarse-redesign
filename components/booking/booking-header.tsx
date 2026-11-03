@@ -32,7 +32,7 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingH
           {tagline ? <p className="max-sm:hidden">{tagline}</p> : null}
         </div>
       ) : null}
-      <h1 className="text-3xl font-bold uppercase max-sm:tracking-tighter sm:text-display">
+      <h1 className="text-total font-bold uppercase max-sm:tracking-tighter sm:text-display">
         {title[0]}
         {title[1] ? (
           <>

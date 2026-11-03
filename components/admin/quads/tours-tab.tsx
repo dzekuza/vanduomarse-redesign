@@ -27,7 +27,7 @@ export function ToursTab() {
         {rows.map((t) => (
           <Card key={t.id} className="h-full">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
-              <CardTitle className="text-base">{t.eventTitle}</CardTitle>
+              <CardTitle className="text-item">{t.eventTitle}</CardTitle>
               <BookingStatusBadge status={t.status} />
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
@@ -35,7 +35,7 @@ export function ToursTab() {
                 {formatDay(t.eventDate)} · {t.eventTime}
               </p>
               <p>
-                <span className="font-display text-lg font-bold">{t.people}</span> asm. · {t.total} €
+                <span className="font-display text-figure font-bold">{t.people}</span> asm. · {t.total} €
               </p>
               <p className="text-xs text-muted-foreground">
                 {t.customer.name} · {t.customer.phone || t.customer.email} · {t.reference}

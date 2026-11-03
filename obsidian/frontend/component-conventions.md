@@ -10,7 +10,7 @@ updated: 2026-10-19
 | Kind | Location |
 |------|----------|
 | Design-system primitive (shadcn) | `components/ui/` |
-| Site-wide section or shared piece | `components/*.tsx` (`SiteHeader`, `PageHeader`, `PageIntro`, footer, `Cta`, `Reveal`) |
+| Site-wide section or shared piece | `components/*.tsx` (`SiteHeader`, `MainHeader`, `PageIntro`, footer, `Cta`, `Reveal`) |
 | Feature-specific | `components/<feature>/` (`booking/`, `events/`, `calculator/`, `admin/<screen>/`) |
 | Page composition | the route's `page.tsx` (no `views/` layer) |
 

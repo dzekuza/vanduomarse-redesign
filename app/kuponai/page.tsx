@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
-import { CouponIntro } from "@/components/coupons/coupon-intro";
 import { CouponShop } from "@/components/coupons/coupon-shop";
+import { COUPON_VALID_MONTHS } from "@/lib/coupons";
 import { getCouponProducts } from "@/lib/data/public";
 
 export const metadata: Metadata = {
@@ -13,8 +14,18 @@ export default async function CouponsPage() {
   const products = await getCouponProducts();
   return (
     <BookingPage>
-      <CouponIntro />
-      <CouponShop products={products} />
+      <div className="theme-reservation px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
+        <CouponShop
+          products={products}
+          header={
+            <BookingHeader
+              crumb="Dovanų kuponai"
+              title={["Padovanok dieną", "ant vandens"]}
+              intro={`Kuponą galima išleisti plaukimui, pirčiai ar nakvynei. Galioja ${COUPON_VALID_MONTHS} mėn. nuo apmokėjimo, likutį galima panaudoti dalimis.`}
+            />
+          }
+        />
+      </div>
     </BookingPage>
   );
 }

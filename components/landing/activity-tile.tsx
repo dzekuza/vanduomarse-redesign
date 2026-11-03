@@ -2,6 +2,7 @@
 
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { SERVICES, type ActivityCard } from "./content";
 import { useLanding } from "./landing-provider";
@@ -11,13 +12,23 @@ const CORNER = {
   party: "rounded-br-cut md:rounded-br-cut-lg",
 } as const;
 
-/** One activity card; opens its details dialog. */
+/** Cards that book on `/rezervacija` (opening that activity's tab); the rest open their details dialog. */
+const RESERVE_HREF: Partial<Record<ActivityCard["id"], string>> = {
+  sauna: "/rezervacija?veikla=pirtis",
+  ciongo: "/rezervacija?veikla=keturraciai",
+  cabins: "/rezervacija?veikla=nakvyne",
+};
+
+const TILE_CLASS = "group block w-full min-w-0 text-left transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-99";
+
+/** One activity card; bookable ones go to the reservation page, the others open their details dialog. */
 export function ActivityTile({ card }: { card: ActivityCard }) {
   const { openService } = useLanding();
   const service = SERVICES[card.id];
 
-  return (
-    <button type="button" onClick={() => openService(card.id)} className="group block w-full min-w-0 text-left transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-99">
+  const href = RESERVE_HREF[card.id];
+  const content = (
+    <>
       <span className={cn("relative block h-88 overflow-hidden bg-lake-soft md:h-80 lg:h-96", card.corner && CORNER[card.corner])}>
         <Image
           src={service.photo}
@@ -37,7 +48,7 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
       <span className="flex items-end justify-between gap-5 border-b border-line py-4 md:py-5">
         <span>
           <span className="block text-micro">{card.num}</span>
-          <span className="mt-2 block text-2xl font-bold tracking-tighter md:text-tile">{card.title}</span>
+          <span className="mt-2 block text-heading font-bold tracking-tighter md:text-tile">{card.title}</span>
         </span>
         <span className="shrink-0 text-right text-xs leading-snug">
           {card.note[0]}
@@ -45,6 +56,16 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
           {card.note[1]}
         </span>
       </span>
+    </>
+  );
+
+  return href ? (
+    <Link href={href} className={TILE_CLASS}>
+      {content}
+    </Link>
+  ) : (
+    <button type="button" onClick={() => openService(card.id)} className={TILE_CLASS}>
+      {content}
     </button>
   );
 }

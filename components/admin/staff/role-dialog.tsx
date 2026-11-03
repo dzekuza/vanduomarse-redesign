@@ -65,12 +65,12 @@ export function RoleDialog({ role, onOpenChange }: RoleDialogProps) {
               const toggle = (id: PermissionId, on: boolean) => field.onChange(on ? [...field.value, id] : field.value.filter((p) => p !== id));
               return (
                 <fieldset className="space-y-1">
-                  <legend className="mb-2 text-sm font-medium">Skyriai</legend>
+                  <legend className="mb-2 text-sm font-normal">Skyriai</legend>
                   {PERMISSIONS.map((p) => (
                     <label key={p.id} className="flex min-h-11 cursor-pointer items-start gap-3 border-b py-2.5 last:border-b-0">
                       <Switch className="mt-0.5" checked={field.value.includes(p.id)} onCheckedChange={(on) => toggle(p.id, on)} aria-label={p.label} />
                       <span>
-                        <span className="block text-sm font-medium">{p.label}</span>
+                        <span className="block text-sm font-normal">{p.label}</span>
                         <span className="block text-xs text-muted-foreground">{p.hint}</span>
                       </span>
                     </label>

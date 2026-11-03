@@ -39,7 +39,7 @@ export function StartGrid({ type, units, settings, taken, day, busy, pastHour, s
           <ChoiceTile
             key={h}
             primary={hourLabel(h)}
-            secondary={longest === 0 ? (busy?.includes(h) ? "Jūsų plane" : "Užimta") : `iki ${hoursLabel(longest)}`}
+            secondary={longest === 0 ? (busy?.includes(h) ? "Šiuo metu būsite užimti" : "Užimta") : `iki ${hoursLabel(longest)}`}
             active={selected === h}
             disabled={longest === 0}
             onClick={() => onSelect(h)}

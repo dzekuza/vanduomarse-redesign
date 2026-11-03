@@ -33,7 +33,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
 
               {coupon.code ? (
                 <div className="flex items-center justify-between gap-3 border bg-muted px-4 py-3">
-                  <p className="font-mono text-lg tracking-wide">{formatCode(coupon.code)}</p>
+                  <p className="font-mono text-figure tracking-wide">{formatCode(coupon.code)}</p>
                   <Button
                     variant="outline"
                     size="icon-sm"
@@ -58,7 +58,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
                 ].map(([k, v]) => (
                   <div key={k}>
                     <dt className="text-muted-foreground">{k}</dt>
-                    <dd className="mt-0.5 font-medium">{v}</dd>
+                    <dd className="mt-0.5 font-normal">{v}</dd>
                   </div>
                 ))}
               </dl>
@@ -66,7 +66,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
               {coupon.message ? <blockquote className="border-l-2 border-rust pl-3 text-sm">{coupon.message}</blockquote> : null}
 
               <div className="space-y-1 border-t pt-4 text-sm">
-                <p className="font-medium">{coupon.buyer.name}</p>
+                <p className="font-normal">{coupon.buyer.name}</p>
                 <a
                   href={`mailto:${coupon.buyer.email}?subject=${encodeURIComponent(`Dėl kupono ${coupon.reference}`)}`}
                   className="flex min-h-11 items-center gap-2 hover:text-rust"
@@ -79,7 +79,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
 
               {coupon.redemptions.length ? (
                 <div className="space-y-2 border-t pt-4">
-                  <p className="text-sm font-medium">Panaudojimai</p>
+                  <p className="text-sm font-normal">Panaudojimai</p>
                   <ul className="space-y-2">
                     {coupon.redemptions.map((r) => (
                       <li key={r.id} className="flex items-baseline justify-between gap-3 bg-muted p-3 text-sm">

@@ -7,7 +7,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CONTACTS, telHref } from "@/lib/contacts";
 import { SERVICES, SERVICE_GALLERY, isBookable, type ServiceId } from "./content";
 import { DRAWER_PANEL, MODAL_CLOSE, MODAL_OVERLAY } from "./dialog-motion";
-import { useLanding } from "./landing-provider";
 import { ServiceBooking } from "./service-booking";
 import { ServiceGallery } from "./service-gallery";
 
@@ -20,7 +19,6 @@ interface ServiceDrawerProps {
 
 /** Contacts (and the price calculator for parties) for activities without an online form. */
 function ServiceContact({ id }: { id: ServiceId }) {
-  const { openCalculator } = useLanding();
   const service = SERVICES[id];
   const contact = CONTACTS.find((c) => c.name === service.contact) ?? CONTACTS[0];
   return (
@@ -35,7 +33,7 @@ function ServiceContact({ id }: { id: ServiceId }) {
           {contact.email}
         </Cta>
         {service.cta ? (
-          <Cta tone="coral" small onClick={openCalculator} className="hover:bg-ink hover:text-dust">
+          <Cta tone="coral" small href={service.cta.href} className="hover:bg-ink hover:text-dust">
             {service.cta.label}
           </Cta>
         ) : null}
@@ -70,7 +68,7 @@ export function ServiceDrawer({ open, serviceId, onClose }: ServiceDrawerProps) 
               {/* No-drag: the form has its own scrolling day strips, and a swipe there must not close the drawer. */}
               <div data-vaul-no-drag className="min-w-0 p-4 sm:p-6 md:p-10">
                 <p className="text-micro uppercase">{service.label}</p>
-                <DrawerTitle className="mt-4 mb-3 font-sans text-2xl leading-tight sm:mt-5 sm:mb-4 sm:text-3xl font-bold tracking-tighter whitespace-pre-line text-ink md:text-4xl">{service.title}</DrawerTitle>
+                <DrawerTitle className="mt-4 mb-3 font-sans text-heading! leading-tight sm:mt-5 sm:mb-4 sm:text-total! font-bold tracking-tighter whitespace-pre-line text-ink">{service.title}</DrawerTitle>
                 <DrawerDescription className="text-xs leading-loose text-ink">{service.description}</DrawerDescription>
                 <ul className="mt-6">
                   {service.facts.map((fact) => (

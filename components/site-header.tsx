@@ -47,7 +47,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
       className={cn(
         "fixed inset-x-0 top-0 z-20 flex h-21.5 items-center justify-between gap-3.5 border-b border-transparent px-gutter py-4 text-dust transition-[background-color,border-color] duration-200 md:h-26.5 md:gap-8 md:py-5",
         placement === "overlay" && "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500 motion-safe:ease-out-strong",
-        scrolled && !menuOpen && "border-dust/15 bg-ink/95 backdrop-blur-md",
+        scrolled && !menuOpen && "border-line-on-ink bg-ink/95 backdrop-blur-md",
       )}
     >
       <Link href={logoHref} aria-label="Vanduo Marse — pradžia" className="w-29 shrink-0 md:w-35">
@@ -72,7 +72,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
           aria-expanded={menuOpen}
           aria-controls="menu-panel"
           onClick={() => setMenuOpen((o) => !o)}
-          className="grid size-11 place-content-center gap-1.75 border border-dust/40 transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-95 md:w-12"
+          className="grid size-11 place-content-center gap-1.75 border border-line-on-ink transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-95 md:w-12"
         >
           <span className={cn("h-px w-5 bg-dust motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong", menuOpen && "translate-y-1 rotate-45")} />
           <span className={cn("h-px w-5 bg-dust motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong", menuOpen && "-translate-y-1 -rotate-45")} />

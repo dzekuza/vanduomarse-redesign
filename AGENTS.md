@@ -46,8 +46,8 @@ architectural choices).
 
 | Area | Where |
 |------|-------|
-| Routes | `app/` — `/`, `/pirtis`, `/miegas`, `/keturraciai`, `/renginiai`, `/kuponai`, `/skaiciuokle`, `/embed/*`, `/admin/*` |
-| Shared shell | `components/*.tsx` (`site-header`, `page-header`, `page-intro`, `site-footer`, `cta`, `reveal`, `menu-panel`) |
+| Routes | `app/` — `/`, `/rezervacija`, `/renginiai`, `/kuponai`, `/skaiciuokle`, `/embed/*`, `/admin/*` |
+| Shared shell | `components/*.tsx` (`site-header`, `main-header`, `page-intro`, `site-footer`, `cta`, `reveal`, `menu-panel`) |
 | Home page | `components/landing/` (sections, `ServiceDrawer`, `CalculatorDrawer`, `content.ts` copy) |
 | Booking flows | `components/booking/` |
 | Events feed | `components/events/` |

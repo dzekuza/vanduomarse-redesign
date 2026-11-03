@@ -51,7 +51,7 @@ export function PriceGroupForm({ group, items }: { group: PriceGroup; items: Pri
           {items.map((item, i) => (
             <div key={item.id} className="grid grid-cols-[1fr_auto] items-center gap-3 py-3 first:pt-0 sm:gap-4">
               <div className="min-w-0">
-                <label htmlFor={`${item.id}-value`} className="text-sm font-medium">
+                <label htmlFor={`${item.id}-value`} className="text-sm font-normal">
                   {item.label}
                 </label>
                 <p className="text-xs text-muted-foreground">{item.unit}</p>

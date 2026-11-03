@@ -30,11 +30,8 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 | Route | View | Status |
 |-------|------|--------|
 | `/` | `app/page.tsx`: `LandingProvider` + `components/landing/` sections (hero, ticker, activities, night, all-in, gallery, FAQ, place, footer). Activity cards open the `ServiceDrawer` (real booking forms, availability via `loadBookingData`), which can open the `CalculatorDrawer`; static page | stable |
-| `/keturraciai` | `BookingPage` + `BookingHero` + `QuadReservation` (tabs: hourly rental / guided tours; `?skirtukas=zygiai` opens tours); data from `getQuadPageData()`; rules block only when set in admin | stable |
-| `/kuponai` | `BookingPage` + `CouponIntro` + `CouponShop` (picker, order form, confirmation); products from `getCouponProducts()`; orders wait for staff to confirm payment | stable |
+| `/kuponai` | `BookingPage` + `.theme-reservation` + `BookingHeader` + `CouponShop` (steps, picker, sticky order form, confirmation); products from `getCouponProducts()`; orders wait for staff to confirm payment | stable |
 | `/rezervacija` | `BookingPage` + `BookingHero` + `PhoneGate` + `ReservationFlow`: day/time/group → sauna, quads, stay (any mix) → contact; data from `getSaunaPageData()` + `getCabinPageData()` + `getQuadPageData()` (ADR-0021) | stable |
-| `/pirtis` | `BookingPage` + `BookingHero` + `SaunaReservation`; `?skirtukas=renginiai` opens the events tab; data from `getSaunaPageData()` | stable |
-| `/miegas` | `BookingPage` + `BookingHero` + `CabinBooking`; data from `getCabinPageData()` | stable |
 | `/renginiai` | `BookingPage` + `EventsBoard`; data from `getParkEvents()` | stable |
 | `/skaiciuokle` | `BookingPage` + `.theme-reservation` wrapper + `BookingHeader` + `EventCalculator` (header and questions left, sticky `EstimateSummary` right) | stable |
 | `/embed/pirtis`, `/embed/keturraciai`, `/embed/miegas`, `/embed/renginiai`, `/embed/kuponai` | `app/embed/layout.tsx` (`EmbedFrame`, noindex) + the bare booking component of the matching page (same data reads, same `?skirtukas=`); no header, footer, hero or sticker dock. Framed by the WordPress plugin; only `EMBED_ALLOWED_ORIGINS` may frame them (ADR-0014) | stable |

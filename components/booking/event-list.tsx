@@ -26,7 +26,7 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
             onClick={() => onSelect(ev.key)}
             className={`grid grid-cols-[4rem_1fr_auto] items-center gap-4 border px-4 py-4 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-99 ${
               full
-                ? "cursor-not-allowed border-ink/30 text-ink/40"
+                ? "cursor-not-allowed border-line text-ink/40"
                 : active
                   ? "border-ink bg-ink text-foam"
                   : "border-ink text-ink hover:border-rust"
@@ -34,10 +34,10 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
           >
             <span className="flex flex-col items-center">
               <span className="text-xs">{weekdayLabel(ev.date)}</span>
-              <span className="font-display text-xl font-bold leading-none">{ev.date.getDate()}</span>
+              <span className="font-display text-figure font-bold leading-none">{ev.date.getDate()}</span>
             </span>
             <span className="min-w-0">
-              <span className="block font-medium">
+              <span className="block font-normal">
                 {ev.title} <span className={active ? "text-foam/60" : "text-ink/50"}>· {ev.host}</span>
               </span>
               <span className={`block text-sm ${active ? "text-foam/70" : "text-ink/60"}`}>
@@ -49,7 +49,7 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
               </span>
             </span>
             <span className="text-right">
-              <span className="font-display block text-xl font-bold">{ev.pricePerPerson} €</span>
+              <span className="font-display block text-figure font-bold">{ev.pricePerPerson} €</span>
               <span className={`block text-xs ${active ? "text-foam/60" : "text-ink/50"}`}>asm.</span>
             </span>
           </button>

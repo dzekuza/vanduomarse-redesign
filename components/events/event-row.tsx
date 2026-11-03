@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ArrowLink } from "@/components/arrow-link";
+import { ArrowButton } from "@/components/booking/arrow-button";
+import { Panel } from "@/components/panel";
 import { PhoneGate } from "@/components/booking/phone-gate";
 import { CategoryTag } from "./category-tag";
 import { EventRegister } from "./event-register";
@@ -13,39 +15,32 @@ export function EventRow({ event }: { event: ParkEvent }) {
   const full = event.spotsLeft === 0;
   const [registering, setRegistering] = useState(false);
   return (
-    <article className="grid grid-cols-[4rem_1fr] gap-x-5 gap-y-4 border border-ink bg-foam px-5 py-5 md:grid-cols-[4.5rem_1fr_auto] md:items-center">
-      <div className="flex flex-col items-center border-r border-ink/25 pr-5">
+    <Panel as="article" className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-4 md:grid-cols-[auto_1fr_auto] md:items-center">
+      <div className="flex w-16 flex-col items-center border-r border-line pr-5 md:w-18">
         <span className="text-xs">{weekdayLabel(event.date)}</span>
-        <span className="font-display text-3xl font-bold leading-none">{event.date.getDate()}</span>
+        <span className="font-display text-total font-bold leading-none">{event.date.getDate()}</span>
       </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <CategoryTag category={event.category} />
-          <span className="text-sm text-ink/60">
+          <span className="text-xs text-muted-foreground">
             {longDateLabel(event.date)}, {event.time} · {event.place}
           </span>
         </div>
-        <h3 className="font-display mt-2 text-lg font-bold leading-tight">{event.title}</h3>
-        <p className="mt-1 max-w-xl text-sm text-ink/70">{event.blurb}</p>
+        <h3 className="mt-2 text-item font-bold">{event.title}</h3>
+        <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">{event.blurb}</p>
         {event.spotsLeft !== undefined ? (
-          <p className={`mt-2 text-xs ${full ? "text-ink/50" : "text-rust"}`}>
+          <p className={`mt-2 text-xs ${full ? "text-muted-foreground" : "text-rust-ink"}`}>
             {full ? "Vietų nebeliko" : `Liko vietų: ${event.spotsLeft}`}
           </p>
         ) : null}
       </div>
-      <div className="col-span-2 flex flex-wrap items-center justify-between gap-3 border-t border-ink/25 pt-4 md:col-span-1 md:flex-col md:items-end md:border-0 md:pt-0">
-        <p className="font-display text-lg font-bold md:text-xl">{event.price === null ? "Nemokamai" : `${event.price} €`}</p>
+      <div className="col-span-2 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 md:col-span-1 md:flex-col md:items-end md:border-0 md:pt-0">
+        <p className="font-display text-figure font-bold md:text-figure">{event.price === null ? "Nemokamai" : `${event.price} €`}</p>
         {full ? (
-          <span className="px-4 py-2 text-xs uppercase text-ink/40">Išparduota</span>
+          <span className="text-xs text-muted-foreground">Išparduota</span>
         ) : event.cta.href === undefined ? (
-          <button
-            type="button"
-            aria-expanded={registering}
-            onClick={() => setRegistering((o) => !o)}
-            className="min-h-11 border border-ink bg-ink px-4 text-xs uppercase text-foam transition-[background-color,border-color,scale] duration-150 ease-out-strong hover:border-rust hover:bg-rust motion-safe:active:scale-97"
-          >
-            {registering ? "Uždaryti" : event.cta.label}
-          </button>
+          <ArrowButton onClick={() => setRegistering((o) => !o)}>{registering ? "Uždaryti" : event.cta.label}</ArrowButton>
         ) : (
           <ArrowLink href={event.cta.href} size="sm">
             {event.cta.label}
@@ -53,12 +48,12 @@ export function EventRow({ event }: { event: ParkEvent }) {
         )}
       </div>
       {registering ? (
-        <div className="col-span-2 border-t border-ink/25 pt-4 md:col-span-3">
+        <div className="col-span-2 border-t border-line pt-4 md:col-span-3">
           <PhoneGate>
             <EventRegister eventId={event.key} title={event.title} />
           </PhoneGate>
         </div>
       ) : null}
-    </article>
+    </Panel>
   );
 }

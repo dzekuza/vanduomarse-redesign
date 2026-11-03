@@ -20,7 +20,7 @@ const secondsFromNow = (s: number) => Date.now() + s * 1000;
 
 function FieldError({ message }: { message?: string }) {
   return message ? (
-    <p role="alert" className="text-xs text-destructive">
+    <p role="alert" className="text-xs text-rust-ink">
       {message}
     </p>
   ) : null;

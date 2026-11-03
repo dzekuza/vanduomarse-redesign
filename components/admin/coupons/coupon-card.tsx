@@ -10,7 +10,7 @@ export function CouponCard({ coupon: c, onOpen }: { coupon: Coupon; onOpen: () =
   return (
     <Card className="relative h-full transition-colors focus-within:border-ink hover:border-ink">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
-        <CardTitle className="text-base">
+        <CardTitle className="text-item">
           <button type="button" onClick={onOpen} className="text-left after:absolute after:inset-0 focus-visible:outline-none">
             {c.productName}
           </button>
@@ -18,7 +18,7 @@ export function CouponCard({ coupon: c, onOpen }: { coupon: Coupon; onOpen: () =
         <CouponStatusBadge status={c.status} />
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
-        <p className="font-display text-lg font-bold">
+        <p className="font-display text-figure font-bold">
           {partlyUsed ? `${formatEuro(c.balance)} iš ${formatEuro(c.faceValue)}` : formatEuro(c.faceValue)}
         </p>
         {c.code ? <p className="font-mono text-sm tracking-wide">{formatCode(c.code)}</p> : null}

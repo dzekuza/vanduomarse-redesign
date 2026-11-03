@@ -46,7 +46,7 @@ export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick
 
   return (
     <div className="space-y-8">
-      {notice ? <p role="status" className="text-sm text-rust">{notice}</p> : null}
+      {notice ? <p role="status" className="text-sm text-rust-ink">{notice}</p> : null}
       {tab === "pirtis" && pirtis ? (
         <SaunaOptions plan={pirtis} data={data.sauna} when={when} included={included} busy={planHours(plans.keturraciai)} onChange={(p) => onPick({ ...picks, pirtis: p })} />
       ) : null}

@@ -38,7 +38,7 @@ export function ProgramsCard() {
         {programs.map((p) => (
           <div key={p.id} className="flex items-center gap-3 py-3 first:pt-0">
             <div className="min-w-0 flex-1">
-              <p className={`truncate text-sm font-medium ${p.active ? "" : "text-muted-foreground line-through"}`}>{p.name}</p>
+              <p className={`truncate text-sm font-normal ${p.active ? "" : "text-muted-foreground line-through"}`}>{p.name}</p>
               <p className="truncate text-xs text-muted-foreground">{programPriceLine(p)}</p>
               <p className="truncate text-xs text-muted-foreground">
                 {PROGRAM_KIND_LABEL[p.kind]}

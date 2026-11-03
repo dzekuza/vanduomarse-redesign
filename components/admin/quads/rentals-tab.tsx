@@ -48,7 +48,7 @@ export function RentalsTab() {
         {rows.map((r) => (
           <Card key={r.id} className="relative h-full transition-colors focus-within:border-ink hover:border-ink">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
-              <CardTitle className="text-base">
+              <CardTitle className="text-item">
                 <button type="button" onClick={() => setOpenId(r.id)} className="text-left after:absolute after:inset-0 focus-visible:outline-none">
                   {r.units} × {quadTypes.find((t) => t.id === r.quadTypeId)?.name ?? r.quadTypeId}
                 </button>
@@ -59,7 +59,7 @@ export function RentalsTab() {
               <p>
                 {formatDay(r.date)} · {hourLabel(r.startHour)}–{hourLabel(r.startHour + r.hours)}
               </p>
-              <p className="font-display text-lg font-bold">{r.total} €</p>
+              <p className="font-display text-figure font-bold">{r.total} €</p>
               <p className="truncate text-xs text-muted-foreground">
                 {r.customer.name} · {r.reference}
               </p>

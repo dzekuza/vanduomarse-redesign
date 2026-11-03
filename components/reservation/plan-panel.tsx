@@ -1,6 +1,6 @@
-import { ArrowDownIcon, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowDownIcon } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
-import { MAIN_CONTACT, telHref } from "@/lib/contacts";
+import { PhoneHelp } from "@/components/phone-help";
 import type { PlanLine } from "@/lib/reservation";
 import { ACTIVITY_ICON } from "./activity-icons";
 
@@ -12,7 +12,7 @@ interface PlanPanelProps {
   total: number;
 }
 
-/** Side panel that follows the visitor: photo, "Tavo pasirinkimas." and the running total. */
+/** Side panel that follows the visitor: photo, "Tavo pasirinkimas" and the running total. */
 export function PlanPanel({ photo, facts, lines, total }: PlanPanelProps) {
   return (
     <aside aria-label="Tavo pasirinkimas" className="border border-line bg-foam/15 lg:sticky lg:top-32 lg:self-start">
@@ -21,11 +21,7 @@ export function PlanPanel({ photo, facts, lines, total }: PlanPanelProps) {
         <span className="absolute bottom-0 left-4 bg-dust px-3 py-2 text-micro uppercase">Tavo planas Marse</span>
       </div>
       <div className="space-y-6 p-5 sm:p-8">
-        <div className="flex items-start justify-between">
-          <p className="text-micro uppercase text-ink/70">Trumpai ir aiškiai</p>
-          <ArrowUpRightIcon aria-hidden size={24} weight="light" className="text-rust" />
-        </div>
-        <h2 className="text-tile font-bold">Tavo pasirinkimas.</h2>
+        <h2 className="text-tile font-bold">Tavo pasirinkimas</h2>
         <dl className="divide-y divide-line text-xs">
           {facts.map((f) => (
             <div key={f.label} className="flex items-baseline justify-between gap-4 py-3">
@@ -54,7 +50,7 @@ export function PlanPanel({ photo, facts, lines, total }: PlanPanelProps) {
                     </span>
                     <div className="flex items-baseline justify-between gap-4 text-sm">
                       <div className="min-w-0">
-                        <p className="font-medium">{l.title}</p>
+                        <p className="font-normal">{l.title}</p>
                         <p className="text-ink/60">{l.detail}</p>
                       </div>
                       <p className="shrink-0 font-bold">{l.price} €</p>
@@ -67,16 +63,10 @@ export function PlanPanel({ photo, facts, lines, total }: PlanPanelProps) {
         ) : null}
         <div className="border-t border-line pt-4">
           <p className="text-micro uppercase text-ink/70">Iš viso, su PVM</p>
-          <p className="font-display text-3xl font-bold">{total} €</p>
+          <p className="font-display text-total font-bold">{total} €</p>
           <p className="mt-1 text-xs text-ink/60">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>
         </div>
-        <a href={telHref(MAIN_CONTACT.phone)} className="flex min-h-11 items-center justify-between gap-4 border-t border-line pt-4 text-xs hover:text-rust">
-          <span>
-            <span className="block text-micro uppercase text-ink/70">Lengviau pasikalbėti?</span>
-            <span className="block text-sm font-bold">{MAIN_CONTACT.phone}</span>
-          </span>
-          <ArrowUpRightIcon aria-hidden size={20} weight="light" className="text-rust" />
-        </a>
+        <PhoneHelp />
       </div>
     </aside>
   );

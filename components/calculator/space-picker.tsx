@@ -44,7 +44,7 @@ export function SpacePicker({ selected, day, guests, onSelect }: SpacePickerProp
             }`}
           >
             <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <span className="text-base font-bold tracking-tight">{s.label}</span>
+              <span className="text-item font-bold">{s.label}</span>
               <span className="shrink-0 text-xs font-bold">{price}</span>
             </span>
             <span className={`text-xs leading-relaxed ${active ? "text-dust/75" : "text-ink/65"}`}>{s.blurb}</span>

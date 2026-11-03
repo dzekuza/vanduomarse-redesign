@@ -130,7 +130,7 @@ export function NewRentalDialog({ onOpenChange }: { onOpenChange: (open: boolean
             <Label htmlFor="nr-riders">Važiuotojų</Label>
             <Input id="nr-riders" inputMode="numeric" aria-invalid={!!err.riders} className="min-h-11" {...register("riders")} />
           </div>
-          <p className="self-end pb-2 text-right font-display text-lg font-bold">{price === null ? "" : `${price} €`}</p>
+          <p className="self-end pb-2 text-right font-display text-figure font-bold">{price === null ? "" : `${price} €`}</p>
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="nr-name">Klientas</Label>
             <Input id="nr-name" aria-invalid={!!err.name} className="min-h-11" {...register("name")} />

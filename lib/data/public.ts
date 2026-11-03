@@ -138,9 +138,9 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
     spotsLeft: spotsLeft(e),
     cta:
       e.category === "pirtis" && e.capacity !== null
-        ? { label: "Pirkti bilietą", href: "/pirtis?skirtukas=renginiai" }
+        ? { label: "Pirkti bilietą", href: "/rezervacija?veikla=pirtis" }
         : e.category === "keturratis" && e.capacity !== null
-          ? { label: "Registruotis į žygį", href: "/keturraciai?skirtukas=zygiai" }
+          ? { label: "Registruotis į žygį", href: "/rezervacija?veikla=keturraciai" }
           : { label: "Registruotis" },
   }));
 }

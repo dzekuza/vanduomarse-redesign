@@ -170,7 +170,7 @@ export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogPr
           </FormField>
         </form>
         <DialogFooter className="items-center justify-between *:flex-none">
-          <p className="font-display text-2xl font-bold">{formatEur(total)}</p>
+          <p className="font-display text-total font-bold">{formatEur(total)}</p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Atšaukti

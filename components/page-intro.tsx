@@ -28,7 +28,7 @@ export function PageIntro({ eyebrow, title, intro, facts, children, className }:
   return (
     <section aria-labelledby="page-title" className={cn("relative overflow-hidden bg-ink px-gutter pt-4 pb-12 text-dust md:pt-8 md:pb-16", className)}>
       <div aria-hidden className="absolute inset-0 bg-grid-hero opacity-10" />
-      <div aria-hidden className="pointer-events-none absolute rounded-full border border-dust/20 orbit-round" />
+      <div aria-hidden className="pointer-events-none absolute rounded-full border border-line-on-ink orbit-round" />
       <div className="relative">
         <p className={cn("flex items-center gap-2.5 text-micro uppercase", ENTER, "motion-safe:delay-100")}>
           <span aria-hidden className="size-1.5 rounded-full bg-water ring-5 ring-water/15" />
@@ -41,9 +41,9 @@ export function PageIntro({ eyebrow, title, intro, facts, children, className }:
         </h1>
         <p className={cn("mt-6 max-w-md text-xs leading-loose md:text-sm", ENTER, "motion-safe:slide-in-from-bottom-4 motion-safe:delay-300")}>{intro}</p>
         {facts?.length ? (
-          <dl className={cn("mt-10 grid grid-cols-2 border-t border-dust/30 md:grid-cols-4", ENTER, "motion-safe:delay-500")}>
+          <dl className={cn("mt-10 grid grid-cols-2 border-t border-line-on-ink md:grid-cols-4", ENTER, "motion-safe:delay-500")}>
             {facts.map((f) => (
-              <div key={f.label} className="border-b border-dust/20 py-4 pr-4 md:border-b-0">
+              <div key={f.label} className="border-b border-line-on-ink py-4 pr-4 md:border-b-0">
                 <dt className="text-micro uppercase text-dust/70">{f.label}</dt>
                 <dd className="mt-1 text-sm">{f.value}</dd>
               </div>

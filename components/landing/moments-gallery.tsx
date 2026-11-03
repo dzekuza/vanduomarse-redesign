@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { GALLERY_SLIDES } from "./content";
 
 const CONTROL =
-  "grid size-12 place-items-center rounded-full border border-dust/50 text-dust transition-[color,background-color,border-color,scale] duration-150 ease-out-strong hover:border-rust hover:bg-rust hover:text-ink motion-safe:active:scale-95 max-md:size-11";
+  "grid size-12 place-items-center rounded-full border border-line-on-ink text-dust transition-[color,background-color,border-color,scale] duration-150 ease-out-strong hover:border-rust hover:bg-rust hover:text-ink motion-safe:active:scale-95 max-md:size-11";
 
 /** Snap-scrolling photo strip with prev/next buttons and a 0X / 04 counter. */
 export function MomentsGallery() {
@@ -37,7 +37,7 @@ export function MomentsGallery() {
   return (
     <>
       <div className="mt-12 mb-9 flex items-end justify-between gap-6 md:mt-12">
-        <h2 id="moments-title" className="text-4xl font-bold tracking-tighter md:text-display">
+        <h2 id="moments-title" className="text-title font-bold tracking-tighter md:text-display">
           ČIA GERIAU
           <br />
           <span className="text-outline">GYVAI.</span>

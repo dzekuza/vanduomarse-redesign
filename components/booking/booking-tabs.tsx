@@ -49,7 +49,7 @@ export function BookingTabs<T extends string>({ tabs, value, onChange, children 
                 active ? "bg-tab-active text-tab-active-foreground" : "bg-tab text-ink hover:bg-tab-hover"
               }`}
             >
-              <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold uppercase sm:text-sm">
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold uppercase sm:text-sm">
                 {tab.label}
                 {tab.badge ? <CountBadge count={tab.badge} /> : null}
               </span>

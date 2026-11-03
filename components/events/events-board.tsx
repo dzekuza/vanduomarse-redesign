@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { EventRow } from "./event-row";
+import { FilterChip } from "./filter-chip";
 import { EVENT_CATEGORIES, monthHeading, toParkEvent, type EventCategory, type ParkEvent, type ParkEventData } from "@/lib/park-events";
 
 type Filter = EventCategory | "visi";
@@ -31,37 +32,25 @@ export function EventsBoard({ data }: { data: ParkEventData[] }) {
   return (
     <div>
       <div role="group" aria-label="Renginių kategorijos" className="flex flex-wrap gap-2">
-        {filters.map((f) => {
-          const active = f.id === filter;
-          return (
-            <button
-              key={f.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => setFilter(f.id)}
-              className={`flex min-h-11 items-center gap-2 border border-ink px-4 text-sm uppercase transition-[color,background-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
-                active ? "bg-ink text-foam" : "text-ink hover:bg-dust-soft"
-              }`}
-            >
-              {f.label}
-              <span className={`tabular-nums ${active ? "text-foam/60" : "text-ink/50"}`}>{f.count}</span>
-            </button>
-          );
-        })}
+        {filters.map((f) => (
+          <FilterChip key={f.id} active={f.id === filter} count={f.count} onClick={() => setFilter(f.id)}>
+            {f.label}
+          </FilterChip>
+        ))}
       </div>
 
-      <div className="mt-8 space-y-12">
+      <div className="mt-8 space-y-10">
         {groupByMonth(visible).map((group) => (
           <section key={group.heading} aria-label={group.heading}>
-            <h2 className="font-display pb-4 text-2xl font-bold">{group.heading}</h2>
-            <div className="grid gap-3">
+            <h2 className="pb-4 text-tile font-bold">{group.heading}</h2>
+            <div className="grid gap-4">
               {group.events.map((ev) => (
                 <EventRow key={ev.key} event={ev} />
               ))}
             </div>
           </section>
         ))}
-        {visible.length === 0 ? <p className="text-ink/60">Šiuo metu renginių šioje kategorijoje nėra.</p> : null}
+        {visible.length === 0 ? <p className="text-sm text-muted-foreground">Šiuo metu renginių šioje kategorijoje nėra.</p> : null}
       </div>
     </div>
   );

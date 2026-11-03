@@ -30,7 +30,7 @@ export function SaunaDetailsFields({ control, register, errors }: SaunaDetailsFi
       </FormField>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Savybės</legend>
+        <legend className="text-sm font-normal">Savybės</legend>
         <p className="text-xs text-muted-foreground">Trumpi faktai kortelėje, pvz. „Iki 8 žmonių“, „Kūrenama malkomis“.</p>
         {features.fields.map((field, i) => {
           const err = errors.features?.[i]?.value?.message;

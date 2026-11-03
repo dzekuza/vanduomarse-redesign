@@ -37,7 +37,7 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 | `setInquiryStatus` / `addInquiryNote` | `app/admin/actions.ts` | Inquiry pipeline; notes carry `author_id` | Zod |
 | `saveEvent` / `deleteEvent` / `setEventPublished` | `app/admin/actions.ts` | Upsert by UUID; delete refuses events with tickets (`23503`) | Zod |
 | `updatePrices` | `app/admin/actions.ts` | Value/max per price item | Zod (max ≥ value) |
-| `updateSaunaRates` / `saveUpsell` / `deleteUpsell` | `app/admin/actions.ts` | Sauna settings and extras; also revalidate `/pirtis` | `ratesSchema` / Zod |
+| `updateSaunaRates` / `saveUpsell` / `deleteUpsell` | `app/admin/actions.ts` | Sauna settings and extras; also revalidate `/rezervacija` and `/embed/pirtis` | `ratesSchema` / Zod |
 
 | `createCouponOrder` | `app/actions/coupons.ts` | Public checkout: stores an order awaiting payment via the anon-callable RPC `create_coupon_order` (amount comes from the product row); honeypot field | `couponOrderSchema` (`lib/coupon-schema.ts`, shared with the form) |
 | `checkCoupon` | `app/actions/coupons.ts` | Public booking flows: RPC `check_coupon` returns balance/scope only; wrong service gets its own message | code normalised to 12 chars |
@@ -46,7 +46,7 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 | `resendCouponEmail` / `redeemCoupon` / `cancelCoupon` | `app/admin/actions.ts` | Re-send code; insert a `coupon_redemptions` row (trigger spends the balance, hints `coupon_balance` / `coupon_inactive` / `coupon_expired`); cancel an order or coupon | Zod |
 
 | `createQuadRental` / `createTourTicket` | `app/actions/quads.ts` | Public: file a rental request / tour seats via anon RPCs; DB hints map to Lithuanian messages; honeypot field | `quadRentalSchema` / `tourTicketSchema` (`lib/quad-schema.ts`) |
-| `saveQuadType` / `deleteQuadType` / `updateQuadSettings` | `app/admin/actions.ts` | Fleet and rules; also revalidate `/keturraciai`; delete refused once rented (`23503`) | Zod (close > open) |
+| `saveQuadType` / `deleteQuadType` / `updateQuadSettings` | `app/admin/actions.ts` | Fleet and rules; also revalidate `/rezervacija` and `/embed/keturraciai`; delete refused once rented (`23503`) | Zod (close > open) |
 | `createRental` / `setRentalStatus` / `setTourTicketStatus` | `app/admin/actions.ts` | Staff-entered rental (price from the fleet row, DB guards capacity); status changes (reopening a cancelled row re-checks capacity) | Zod |
 
 | `createStaff` / `resetStaffPassword` / `removeStaff` | `app/admin/staff-actions.ts` | Owner-only. Creates the login (service-role key, server only) with a generated temporary password shown once; reset; remove (staff row first, so the last-owner guard runs) | Zod |

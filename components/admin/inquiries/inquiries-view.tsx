@@ -46,7 +46,7 @@ export function InquiriesView() {
         {rows.map((q) => (
           <Card key={q.id} className="relative h-full transition-colors focus-within:border-ink hover:border-ink">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
-              <CardTitle className="text-base">
+              <CardTitle className="text-item">
                 <button type="button" onClick={() => setOpenId(q.id)} className="text-left after:absolute after:inset-0 focus-visible:outline-none">
                   {q.eventType}
                 </button>
@@ -58,7 +58,7 @@ export function InquiriesView() {
                 {formatDay(q.date)} · {q.guests} asm.
               </p>
               <p className="text-muted-foreground">{q.space}</p>
-              {q.estimate ? <p className="font-display text-lg font-bold">{formatEurRange(q.estimate)}</p> : null}
+              {q.estimate ? <p className="font-display text-figure font-bold">{formatEurRange(q.estimate)}</p> : null}
               <p className="truncate text-xs text-muted-foreground">
                 {q.customer.name} · {INQUIRY_SOURCE[q.source]} · {formatDateTime(q.createdAt)}
               </p>

@@ -3,6 +3,7 @@ import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
 import { ReservationGate } from "@/components/reservation/reservation-gate";
+import { ACTIVITY_ORDER } from "@/lib/reservation";
 import { getCabinPageData, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 
 export const metadata: Metadata = {
@@ -17,15 +18,15 @@ const FALLBACK_PHOTO = {
 };
 
 /** One request for the whole visit: day and group first, then any mix of sauna, stay and quads. */
-export default async function ReservationPage() {
+export default async function ReservationPage({ searchParams }: { searchParams: Promise<{ veikla?: string }> }) {
+  const { veikla } = await searchParams;
+  const initialTab = ACTIVITY_ORDER.find((id) => id === veikla);
   const [sauna, cabin, quads] = await Promise.all([getSaunaPageData(), getCabinPageData(), getQuadPageData()]);
   const cover = sauna.saunas.flatMap((s) => s.photos.map((p) => ({ src: p.url, alt: s.name })))[0];
 
   const header = (
     <BookingHeader
       crumb="Rezervacija"
-      kicker="Tavo laikas Marse"
-      tagline="Mažiau derinimo. Daugiau patirties."
       title={["Rezervacija"]}
       intro="Pasirink dieną ir kiek jūsų, tada pirtį, nakvynę ar keturračius vienoje užklausoje. Mokėti dabar nereikia."
     />
@@ -35,7 +36,7 @@ export default async function ReservationPage() {
     <BookingPage>
       <div className="theme-reservation">
         <ReservationGate header={header}>
-          <ReservationFlow header={header} data={{ sauna, cabin, quads }} photo={cover ?? FALLBACK_PHOTO} />
+          <ReservationFlow header={header} data={{ sauna, cabin, quads }} photo={cover ?? FALLBACK_PHOTO} initialTab={initialTab} />
         </ReservationGate>
       </div>
     </BookingPage>

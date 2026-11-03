@@ -87,7 +87,7 @@ export function BookingsView() {
             {rows.map((b) => (
               <TableRow key={b.id} onClick={() => setOpenId(b.id)} className="cursor-pointer">
                 <TableCell>
-                  <p className="font-medium">{formatDay(b.date)}</p>
+                  <p className="font-normal">{formatDay(b.date)}</p>
                   <p className="text-xs text-muted-foreground">{bookingWhen(b)}</p>
                 </TableCell>
                 <TableCell className="max-w-32 sm:max-w-none">

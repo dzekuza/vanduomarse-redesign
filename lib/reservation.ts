@@ -482,11 +482,11 @@ export function describePlans(plans: Plans): PlanLine[] {
 export function extraOfferText(id: ActivityId, data: ReservationData, inPlan: ActivityId[]): string {
   if (id === "keturraciai") {
     const from = Math.min(...data.quads.types.filter((t) => t.units > 0).map((t) => t.pricePerHour));
-    return `Keturračiai nuo ${from} € / val. ${inPlan.includes("pirtis") ? "Pavažinėkite prieš pirtį ar po jos." : "Pavažinėkite ežero apylinkėmis."}`;
+    return `Keturračiai nuo ${from} € / val. ${inPlan.includes("pirtis") ? "Pavažinėk prieš pirtį ar po jos." : "Pavažinėk ežero apylinkėmis."}`;
   }
-  if (id === "nakvyne") return `Nameliai nuo ${CABIN_SIZES[0].pricePerNight} € / naktį. Pasilikite per naktį ir pailsėkite.`;
+  if (id === "nakvyne") return `Nameliai nuo ${CABIN_SIZES[0].pricePerNight} € / naktį. Pasilik per naktį ir pailsėk.`;
   const from = Math.min(...data.sauna.saunas.map((s) => fromRate(s.rates)));
-  return `Pirtis nuo ${from} € / val. ${inPlan.includes("keturraciai") ? "Pasikaitinkite prieš keturračius ar po jų." : "Po dienos nuotykių pasikaitinkite."}`;
+  return `Pirtis nuo ${from} € / val. ${inPlan.includes("keturraciai") ? "Pasikaitink prieš keturračius ar po jų." : "Po dienos nuotykių pasikaitink."}`;
 }
 
 export const totalOf = (lines: PlanLine[]) => lines.reduce((sum, l) => sum + l.price, 0);

@@ -65,11 +65,11 @@ export function EventsView() {
             {upcoming.map((e) => (
               <TableRow key={e.id}>
                 <TableCell>
-                  <p className="font-medium">{formatDay(e.date)}</p>
+                  <p className="font-normal">{formatDay(e.date)}</p>
                   <p className="text-xs text-muted-foreground">{e.time}</p>
                 </TableCell>
                 <TableCell className="max-w-40 sm:max-w-none">
-                  <p className="truncate font-medium">{e.title}</p>
+                  <p className="truncate font-normal">{e.title}</p>
                   <p className="truncate text-xs text-muted-foreground">{e.place}</p>
                   {!e.published ? <Badge variant="outline" className="mt-1 sm:hidden">Paslėptas</Badge> : null}
                 </TableCell>
@@ -122,7 +122,7 @@ export function EventsView() {
       </Card>
 
       <section className="space-y-4">
-        <h2 className="font-display text-lg font-bold">Bilietai ir registracijos</h2>
+        <h2 className="font-display text-figure font-bold">Bilietai ir registracijos</h2>
         <p className="text-sm text-muted-foreground">
           Vietos į viešas pirties sesijas ir kitus renginius su limitu. Registracijos į renginius be limito atsiranda skyriuje Užklausos.
         </p>
@@ -130,14 +130,14 @@ export function EventsView() {
           {tickets.map((t) => (
             <Card key={t.id} className="h-full gap-3 p-5">
               <div className="flex items-start justify-between gap-3">
-                <p className="font-medium">{t.eventTitle}</p>
+                <p className="font-normal">{t.eventTitle}</p>
                 <BookingStatusBadge status={t.status} />
               </div>
               <p className="text-sm">
                 {formatDay(t.eventDate)} · {t.eventTime}
               </p>
               <p className="text-sm">
-                <span className="font-display text-lg font-bold">{t.people}</span> asm. · {formatEur(t.total)}
+                <span className="font-display text-figure font-bold">{t.people}</span> asm. · {formatEur(t.total)}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t.customer.name} · {t.customer.phone || t.customer.email} · {t.reference}

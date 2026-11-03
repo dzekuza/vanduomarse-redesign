@@ -24,7 +24,7 @@ export function SaunaGrid({ sauna, days, onOpenBooking }: SaunaGridProps) {
     <div className={`grid ${cols} border-l border-t text-xs`}>
       <div className="border-r border-b bg-muted" />
       {days.map((d) => (
-        <div key={d} className="border-r border-b bg-muted px-2 py-2 font-medium">{formatDay(d)}</div>
+        <div key={d} className="border-r border-b bg-muted px-2 py-2 font-normal">{formatDay(d)}</div>
       ))}
       {hours.map((hour) => (
         <div key={hour} className="contents">
@@ -43,7 +43,7 @@ export function SaunaGrid({ sauna, days, onOpenBooking }: SaunaGridProps) {
                 >
                   {first ? (
                     <>
-                      <span className="block truncate font-medium">{booking.customer.name}</span>
+                      <span className="block truncate font-normal">{booking.customer.name}</span>
                       <span className="block truncate opacity-75">{booking.guests} asm.</span>
                     </>
                   ) : (

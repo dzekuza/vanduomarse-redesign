@@ -43,13 +43,13 @@ export function RentalSheet({ rental, onOpenChange }: RentalSheetProps) {
                 ].map(([k, v]) => (
                   <div key={k}>
                     <dt className="text-muted-foreground">{k}</dt>
-                    <dd className="mt-0.5 font-medium">{v}</dd>
+                    <dd className="mt-0.5 font-normal">{v}</dd>
                   </div>
                 ))}
               </dl>
               {rental.note ? <blockquote className="border-l-2 border-rust pl-3 text-sm">{rental.note}</blockquote> : null}
               <div className="space-y-1 border-t pt-4 text-sm">
-                <p className="font-medium">{rental.customer.name}</p>
+                <p className="font-normal">{rental.customer.name}</p>
                 {rental.customer.phone ? (
                   <a href={`tel:${rental.customer.phone.replace(/\s/g, "")}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
                     <PhoneIcon size={18} /> {rental.customer.phone}

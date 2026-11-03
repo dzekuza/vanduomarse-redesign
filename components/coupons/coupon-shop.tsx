@@ -1,33 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { CouponOrderResult } from "@/app/actions/coupons";
 import { PhoneGate } from "@/components/booking/phone-gate";
+import { Panel } from "@/components/panel";
 import type { CouponProduct } from "@/lib/coupons";
+import { CouponSteps } from "./coupon-steps";
 import { OrderConfirmation } from "./order-confirmation";
 import { OrderForm } from "./order-form";
 import { ProductPicker } from "./product-picker";
 
-/** Pick a coupon, fill in the order, see the confirmation. */
-export function CouponShop({ products }: { products: CouponProduct[] }) {
+/** Coupon page body: header, steps and the coupon picker on the left, the order form (sticky) or its confirmation on the right. */
+export function CouponShop({ products, header }: { products: CouponProduct[]; header?: ReactNode }) {
   const [selectedId, setSelectedId] = useState(products[0]?.id ?? "");
   const [ordered, setOrdered] = useState<{ order: CouponOrderResult; email: string } | null>(null);
   const selected = products.find((p) => p.id === selectedId);
 
   if (!selected) {
     return (
-      <section className="px-gutter py-12 md:py-16">
-        <p className="border border-ink bg-card p-6 text-ink/80 md:p-8">Šiuo metu kuponų neparduodame. Parašykite info@vanduomarse.lt ir padėsime.</p>
-      </section>
+      <div className="space-y-10">
+        {header}
+        <Panel className="p-6 text-sm text-muted-foreground md:p-8">Šiuo metu kuponų neparduodame. Parašyk info@vanduomarse.lt ir padėsime.</Panel>
+      </div>
     );
   }
 
   return (
-    <section className="grid gap-8 px-gutter py-12 md:py-16 lg:grid-cols-5 lg:items-start lg:gap-12">
-      <div className="min-w-0 lg:col-span-3">
+    <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
+      <div className="min-w-0 space-y-10 lg:col-span-2">
+        {header}
+        {header ? <CouponSteps /> : null}
         <ProductPicker products={products} value={selectedId} onChange={setSelectedId} />
       </div>
-      <div className="min-w-0 lg:sticky lg:top-8 lg:col-span-2">
+      <div className="min-w-0 lg:sticky lg:top-32 lg:self-start">
         {ordered ? (
           <OrderConfirmation order={ordered.order} email={ordered.email} onReset={() => setOrdered(null)} />
         ) : (
@@ -36,6 +41,6 @@ export function CouponShop({ products }: { products: CouponProduct[] }) {
           </PhoneGate>
         )}
       </div>
-    </section>
+    </div>
   );
 }

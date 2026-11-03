@@ -76,6 +76,7 @@
   --color-ink-soft: var(--ink-soft);
   --color-rust: var(--rust);
   --color-rust-soft: var(--rust-soft);
+  --color-rust-ink: var(--raw-coral-ink);
   --color-lake: var(--lake);
   --color-lake-soft: var(--lake-soft);
   --color-dust: var(--dust);
@@ -89,7 +90,7 @@
   --color-tab-active: var(--tab-active);
   --color-tab-active-foreground: var(--tab-active-foreground);
   --color-tab-hover: var(--tab-hover);
-  --font-body: var(--font-work-sans);
+  --font-body: var(--font-termina);
   --font-heading: var(--font-termina);
   --font-sans: var(--font-termina);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -150,6 +151,17 @@
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1.7;
   --text-micro--letter-spacing: 0.07em;
+  /* UI text roles (one step per role, never ad-hoc text-lg/xl/2xl/3xl):
+     item = card / option / row title, figure = prices, dates, counts,
+     heading = step / dialog / page heading, total = grand totals. */
+  --text-item: 1rem;
+  --text-item--line-height: 1.35;
+  --text-figure: 1.25rem;
+  --text-figure--line-height: 1.2;
+  --text-heading: 1.5rem;
+  --text-heading--line-height: 1.15;
+  --text-total: 1.875rem;
+  --text-total--line-height: 1.1;
   --text-hero-sm: 16.9vw;
   --text-hero-sm--line-height: 1.04;
   --text-hero-sm--letter-spacing: -0.075em;
@@ -275,6 +287,8 @@ html {
   --raw-blush-paper: #fbf3ef;
   --raw-coral: #ed5257;
   --raw-coral-deep: #e94b4f;
+  /* Coral darkened until small text on blush reaches 4.5:1 (the bright coral is ~2.7:1). */
+  --raw-coral-ink: #a8282d;
   --raw-tan: #e2b38c;
   /* Deep teal from the brand badge; readable on blush, unlike its bright #00b2b5. */
   --raw-teal-deep: #015059;

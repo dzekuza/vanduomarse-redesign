@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ServiceCta } from "./service-triggers";
+import { Cta } from "@/components/cta";
 import { Reveal } from "@/components/reveal";
 import { SectionKicker } from "@/components/section-kicker";
 
@@ -31,9 +31,9 @@ export function LandingNight() {
             <br />
             Švęskit iki ryto — savų žmonių rate.
           </p>
-          <ServiceCta service="party" tone="cream" className="mt-6 md:mt-0">
+          <Cta tone="cream" href="/skaiciuokle" className="mt-6 md:mt-0">
             Planuojam šventę
-          </ServiceCta>
+          </Cta>
         </Reveal>
       </div>
     </section>

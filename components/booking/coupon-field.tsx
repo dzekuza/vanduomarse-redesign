@@ -35,9 +35,9 @@ export function CouponField({ flow, coupon, discount, onChange }: CouponFieldPro
 
   if (coupon) {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-ink/40 px-4 py-2 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-line px-4 py-2 text-sm">
         <p>
-          Kuponas <span className="font-medium">{formatCode(coupon.code)}</span>: −{formatEuro(discount)}
+          Kuponas <span className="font-normal">{formatCode(coupon.code)}</span>: −{formatEuro(discount)}
           <span className="text-ink/60"> (kupone liks {formatEuro(coupon.balance - discount)})</span>
         </p>
         <button type="button" onClick={() => onChange(null)} className="min-h-11 text-ink/70 underline underline-offset-4 hover:text-rust">

@@ -8,7 +8,7 @@
 export const EMBED_HEIGHT_MESSAGE = "vm-embed:height";
 
 /** Public booking routes that have an embed twin, so links inside a widget stay in the widget. */
-const EMBEDDABLE = ["/pirtis", "/keturraciai", "/miegas", "/renginiai", "/kuponai"] as const;
+const EMBEDDABLE = ["/renginiai", "/kuponai"] as const;
 
 export type EmbedWidget = "pirtis" | "keturraciai" | "miegas" | "renginiai" | "kuponai";
 

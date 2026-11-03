@@ -29,7 +29,7 @@ export function SaunaEditor({ id }: { id?: string }) {
   }
 
   return (
-    <AdminPage title={sauna?.name ?? "Nauja pirtis"} description={sauna ? `Nuoroda svetainėje: /pirtis?pirtis=${sauna.id}` : "Nuotraukas galėsite įkelti išsaugoję."} actions={back}>
+    <AdminPage title={sauna?.name ?? "Nauja pirtis"} description={sauna ? `Nuoroda svetainėje: /rezervacija?veikla=pirtis` : "Nuotraukas galėsite įkelti išsaugoję."} actions={back}>
       {sauna ? <SaunaPhotosCard sauna={sauna} /> : null}
       <SaunaForm key={sauna?.id ?? "new"} sauna={sauna} />
     </AdminPage>

@@ -22,7 +22,7 @@ export function EstimateSummary({ estimate, input, guests, spaceLabel, typical, 
       {showTotal ? (
       <div className="border-b border-line px-6 py-5">
         <p className="text-micro uppercase text-ink/70">Preliminari kaina</p>
-        <p className="font-display mt-1 text-3xl font-bold">{formatMoney(estimate.total)}</p>
+        <p className="font-display mt-1 text-total font-bold">{formatMoney(estimate.total)}</p>
         {estimate.perGuest ? (
           <p className="mt-1 text-sm text-ink/70">
             ≈ {formatMoney(estimate.perGuest)} vienam svečiui · {guests} asm.

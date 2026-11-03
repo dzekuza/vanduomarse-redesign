@@ -29,6 +29,7 @@ import type { DayIcon } from "@/components/booking/day-picker";
 import { ActivitiesStep } from "./activities-step";
 import { ACTIVITY_ICON } from "./activity-icons";
 import { ExtrasOfferDialog } from "./extras-offer-dialog";
+import { ActivityAbout } from "./activity-about";
 import { ActivityTabs } from "./activity-tabs";
 import { PlanPanel } from "./plan-panel";
 import { ReservationDone } from "./reservation-done";
@@ -47,13 +48,13 @@ const HEADINGS = [
 ];
 
 /** Activity tabs and date + group on top, then three steps: the chosen activity, contact, review. */
-export function ReservationFlow({ header, data, photo }: { header: ReactNode; data: ReservationData; photo: { src: string; alt: string } }) {
+export function ReservationFlow({ header, data, photo, initialTab }: { header: ReactNode; data: ReservationData; photo: { src: string; alt: string }; initialTab?: ActivityId }) {
   const { today } = data.sauna;
   const days = useMemo(() => nextDays(today, RESERVATION_DAYS), [today]);
   const [step, setStep] = useState(0);
   const offer = offered(data);
   const tabs = ACTIVITY_TAB_ORDER.filter((id) => offer[id]);
-  const [tab, setTab] = useState<ActivityId>(tabs[0]);
+  const [tab, setTab] = useState<ActivityId>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
   const [date, setDate] = useState(days[0]);
   const [people, setPeople] = useState(2);
   const [picks, setPicks] = useState<Picks>({});
@@ -152,6 +153,7 @@ export function ReservationFlow({ header, data, photo }: { header: ReactNode; da
                 setStep(0);
               }}
             />
+            <ActivityAbout id={tab} data={data} />
             <WhenStep days={days} date={date} onDate={setDate} icons={dayIcons} people={people} onPeople={setPeople} />
             {heading ? <StepHeading step={step + 1} {...heading} /> : null}
             {step === 0 ? (
@@ -168,7 +170,7 @@ export function ReservationFlow({ header, data, photo }: { header: ReactNode; da
                 <span />
               )}
               <div className="flex items-center gap-4">
-                <span className="font-display text-xl font-bold lg:hidden">{total} €</span>
+                <span className="font-display text-figure font-bold lg:hidden">{total} €</span>
                 {step < LAST ? (
                   <Cta tone="dark" small disabled={!ready} onClick={() => void next()}>
                     Toliau
@@ -186,6 +188,7 @@ export function ReservationFlow({ header, data, photo }: { header: ReactNode; da
         <ExtrasOfferDialog
           open={offerOpen}
           offers={offers}
+          photo={photo}
           onPick={(id) => {
             setAlreadyOffered((o) => [...o, ...offers.map((x) => `${day}:${x.id}`)]);
             setOfferOpen(false);

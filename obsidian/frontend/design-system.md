@@ -1,6 +1,6 @@
 ---
 tags: [frontend, wip]
-updated: 2026-11-01
+updated: 2026-11-04
 ---
 
 # Design System
@@ -37,9 +37,11 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
 
 | `--raw-coral-muted` `#dd5d58`, `--raw-teal-slate` `#2f545b` | primitive | sampled from the client's booking design (vanduo-marse-bold-2026 reference, 2026-11) | `.theme-reservation` (wrapper of `/rezervacija` and `/skaiciuokle` only) remaps `--rust` / `--rust-soft` to the softer coral and `--lake-soft` to the slate teal, sets `--line` / `--input` to 19% ink and `--card` to a 16% white wash; `Stepper`, `ChoiceTile` and the reservation / calculator components use `border-line` / `divide-line` (no ad-hoc `border-ink/20` opacities) and only the 400 / 700 weights Termina ships. The rest of the site keeps the live-brand tokens (`--line` is 14% ink there) |
+| `--raw-coral-ink` `#a8282d` | primitive | coral darkened to 5:1 on blush | `text-rust-ink`: small coral text (notices, errors); never use `text-rust` below ~24 px |
 | `--water` | semantic | `--raw-teal` `#00b2b5` | `bg-water` / `ring-water`: live status dot, focus outline on the home page |
 | `--spacing-gutter` | primitive | `clamp(1.375rem, 4.2vw, 5rem)` | `px-gutter`: side padding of every home section |
 | `text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`, `-micro` (+ `-sm` phone steps) | primitive | fluid sizes with line height + tracking | home page display type (`@theme` in `globals.css`); use `text-x-sm md:text-x` |
+| `text-item` 1rem, `-figure` 1.25rem, `-heading` 1.5rem, `-total` 1.875rem | primitive | UI text roles (2026-11-04): item = card / option / row title, figure = prices, dates, counts, heading = step / dialog / page heading, total = grand totals | replace ad-hoc `text-base/lg/xl/2xl/3xl/4xl` outside `components/ui/` inputs; `text-base` stays on inputs (16 px stops iOS zoom) |
 | `--radius-cut` / `--radius-cut-lg` | primitive | 6.25rem / 10rem | `rounded-tl-cut`, `rounded-br-cut`: the two cut photo corners |
 
 | `--ease-out-strong` | primitive | `cubic-bezier(0.23, 1, 0.32, 1)` | `ease-out-strong`: every UI transition and enter animation on the home page (built-in curves are too weak) |
@@ -49,7 +51,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 One recipe across the home page and every inner page.
 
 - **Palette:** ink (aubergine) bands and text, dust (blush) page, rust (coral) for the second headline line, CTAs, stars and highlights, `lake-soft` (deep teal) as the third surface (location block, hover on dark CTAs), `lake` (tan) for accents on teal, `water` (bright teal) only as status dot / focus.
-- **Type:** Termina only. Titles are **bold uppercase** with tight negative tracking and set from the fluid steps (`text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`) with `-sm` phone twins. Body copy is `text-xs`/`text-sm` with `leading-loose`; labels are `text-micro` (10 px, +0.07em).
+- **Type:** Termina only (body included; Work Sans was removed 2026-11-04, Big Shoulders stays only for the non-themed `font-display` fallback). Titles are **bold uppercase** with tight negative tracking and set from the fluid steps (`text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`) with `-sm` phone twins. Body copy is `text-xs`/`text-sm` with `leading-loose`; labels are `text-micro` (11 px, +0.07em).
 - **Shapes:** square everywhere; the only curves are the circular sticker and the **cut corners** (`rounded-tl-cut`, `rounded-br-cut`) on a few photos. Hairlines are `border-line` (or `border-dust/30` on ink).
 - **Page anatomy:** `SiteHeader` on ink → ink band (home: `LandingHero`; inner pages: `PageIntro` with the hero's grid + orbit lines) → dust content → `FooterWord` + `FooterBar` footer. Inner pages never invent their own heading style: use `PageIntro`.
 - **Forms and cards:** outlined `border-ink` cards on `bg-foam` / `bg-card`, a bottom bar with the total and the primary button. Primary action = dark `Cta` (`ArrowButton`); the home page and header use the coral tone. Choice chips and tiles press to `scale-97`.
@@ -70,6 +72,8 @@ One recipe across the home page and every inner page.
 > `text-card` (and `text-foreground`, `text-primary`, …) is a *colour*: a font-size token with the same name loses to it. The card title step is `text-tile` for that reason.
 
 > [!warning] Custom `text-*` sizes and `cn()`
+> Same applies to the role steps (`text-item/figure/heading/total`). When a size must sit with a colour in a `cn` merge (`DialogTitle`, `DrawerTitle`), mark the size important (`text-heading!`).
+>
 > `cn()` (tailwind-merge) cannot tell the custom type steps (`text-micro`, `text-hero`, …) from colours, so `cn("text-micro", "text-ink")` silently drops one of them. When merging with `cn`, keep a custom size and a text colour out of the same call (append one as a plain string), and never pass `text-micro` as an override to a component that sets its own colour (`Cta`).
 
 ## Utilities
@@ -139,3 +143,9 @@ straight to a semantic token with a literal value.
 ## Related
 
 [[component-conventions]] · [[components/ui]]
+
+## Weights and borders
+
+- Termina ships 400 and 700: use `font-normal` / `font-bold` only (never `font-medium` / `font-semibold`).
+- Hairlines: `border-line` on light surfaces, `border-line-on-ink` on ink bands; no `border-ink/NN` or `border-dust/NN` (the coral menu panel and accordion dividers are the exceptions).
+- shadcn `Button`, `CardTitle`, `DialogTitle`, `SheetTitle`, `DrawerTitle`, tabs triggers and table heads are `font-bold` (headings and actions bold, text regular), so admin matches the public site.

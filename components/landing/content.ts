@@ -260,24 +260,6 @@ export const SERVICE_GALLERY: Record<ServiceId, ServicePhoto[]> = {
 export const BOOKABLE_IDS = ["sauna", "cabins", "ciongo"] as const;
 export const isBookable = (id: ServiceId): id is (typeof BOOKABLE_IDS)[number] => (BOOKABLE_IDS as readonly string[]).includes(id);
 
-/** On-page anchors in the header and the menu panel. */
-export const LANDING_NAV = [
-  { href: "#kryptys", label: "Ką veikiam?", panel: "KĄ VEIKIAM?" },
-  { href: "#sventes", label: "Šventės ir verslas", panel: "ŠVENČIAM." },
-  { href: "#vieta", label: "Kur nusileisti?", panel: "NUSILEIDŽIAM." },
-  { href: "#klausimai", label: "Klausimai", panel: "KLAUSIAM." },
-] as const;
-
-/** Booking pages the redesign must keep reachable from the menu panel. */
-export const BOOKING_LINKS = [
-  { href: "/pirtis", label: "Pirtis Marse" },
-  { href: "/miegas", label: "Miegas Marse" },
-  { href: "/keturraciai", label: "Keturračiai" },
-  { href: "/renginiai", label: "Renginiai" },
-  { href: "/skaiciuokle", label: "Skaičiuoklė" },
-  { href: "/kuponai", label: "Dovanų kuponai" },
-] as const;
-
 export const MAIN_CONTACT_EMAIL = MAIN_CONTACT.email;
 
 export const INSTAGRAM_URL = "https://www.instagram.com/vanduo_marse/";

@@ -59,7 +59,7 @@ export function StayOptions({ plan, when, included, onChange }: StayOptionsProps
           </div>
         ) : null}
         {!plan.ok ? (
-          <p role="status" className="text-sm text-rust">
+          <p role="status" className="text-sm text-rust-ink">
             {plan.roomId === "namelis" ? "Šioms naktims tinkamo namelio nebeliko. Pakeisk naktų skaičių ar tipą." : `Kemperio aikštelėje telpa iki ${CAMPER_MAX_GUESTS} žmonių.`}
           </p>
         ) : null}

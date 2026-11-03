@@ -53,7 +53,7 @@ export function Overview() {
             {todays.map((b) => (
               <div key={b.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-sm font-normal">
                     {BOOKING_KIND[b.kind]} · {bookingWhen(b)}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
@@ -77,7 +77,7 @@ export function Overview() {
             {inquiries.slice(0, 5).map((q) => (
               <div key={q.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-sm font-normal">
                     {q.eventType} · {q.guests} asm.
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
@@ -104,7 +104,7 @@ export function Overview() {
               <p className="text-xs text-muted-foreground">
                 {formatDay(e.date)}, {e.time}
               </p>
-              <p className="mt-1 text-sm font-medium">{e.title}</p>
+              <p className="mt-1 text-sm font-normal">{e.title}</p>
               <p className="mt-2 text-xs text-muted-foreground">
                 {e.capacity ? `Parduota ${e.sold} / ${e.capacity}` : "Be vietų limito"}
               </p>

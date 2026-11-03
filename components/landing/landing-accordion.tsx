@@ -29,7 +29,7 @@ export function LandingAccordion({ rows, variant, mode }: LandingAccordionProps)
   const items = rows.map((row) => (
     <AccordionItem key={row.id} value={row.id} className={cn("border-b-0", shared.className)}>
       <AccordionTrigger
-        className={cn(events ? "gap-4 py-5 text-xl font-bold tracking-tight md:py-6 md:text-2xl" : "items-start gap-5 py-4 text-xs leading-relaxed")}
+        className={cn(events ? "gap-4 py-5 text-figure font-bold tracking-tight md:py-6 md:text-heading" : "items-start gap-5 py-4 text-xs leading-relaxed")}
       >
         {row.index ? <span className="text-micro font-normal tracking-normal">{row.index}</span> : null}
         <span>{row.title}</span>

@@ -1,0 +1,115 @@
+import { CABIN_SIZES, CAMPER_MAX_GUESTS, ROOM_TYPES } from "@/lib/cabin";
+import { formatHour, fromRate } from "@/lib/sauna";
+import type { ActivityId, ReservationData } from "@/lib/reservation";
+
+/** Short line under the tabs: what the activity is, with its starting price. Built from the live data, so prices never drift. */
+export function activityBlurb(id: ActivityId, data: ReservationData): string {
+  if (id === "pirtis") {
+    const from = Math.min(...data.sauna.saunas.map((s) => fromRate(s.rates)));
+    return `Rezervuok pirtį savo grupei valandoms arba prisijunk prie seanso su programa. Nuo ${from} € / val.`;
+  }
+  if (id === "nakvyne") return `Nameliai 2 ar 4 asmenims ir kemperių aikštelė su elektra. Nuo ${CABIN_SIZES[0].pricePerNight} € / naktį.`;
+  const types = data.quads.types.filter((t) => t.units > 0);
+  const from = Math.min(...types.map((t) => t.pricePerHour));
+  return `Keturračiai vienam ar dviem važiuotojams. Nuo ${from} € / val.`;
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-micro uppercase text-muted-foreground">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function Item({ title, text, meta }: { title: string; text?: string; meta?: string }) {
+  return (
+    <li className="flex items-start justify-between gap-4 border-t border-line pt-3 text-sm first:border-t-0 first:pt-0">
+      <span className="min-w-0">
+        <span className="block font-bold">{title}</span>
+        {text ? <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{text}</span> : null}
+      </span>
+      {meta ? <span className="shrink-0 text-xs font-bold">{meta}</span> : null}
+    </li>
+  );
+}
+
+/** Body of the "Sužinoti daugiau" dialog: everything the park has published about one activity. */
+export function ActivityDetails({ id, data }: { id: ActivityId; data: ReservationData }) {
+  if (id === "pirtis") {
+    return (
+      <div className="space-y-6">
+        <Section title="Pirtys">
+          <ul className="space-y-3">
+            {data.sauna.saunas.map((s) => (
+              <Item key={s.id} title={s.name} text={[s.description, s.features.join(" · ")].filter(Boolean).join(" ")} meta={`nuo ${fromRate(s.rates)} € / val.`} />
+            ))}
+          </ul>
+        </Section>
+        {data.sauna.programs.length > 0 ? (
+          <Section title="Programos">
+            <ul className="space-y-3">
+              {data.sauna.programs.map((p) => (
+                <Item key={p.id} title={p.name} text={p.description} meta={`${p.durationMinutes} min.`} />
+              ))}
+            </ul>
+          </Section>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (id === "nakvyne") {
+    return (
+      <div className="space-y-6">
+        <Section title="Nameliai">
+          <ul className="space-y-3">
+            {CABIN_SIZES.map((s) => (
+              <Item key={s.id} title={`Namelis ${s.label}`} meta={`${s.pricePerNight} € / naktį`} />
+            ))}
+          </ul>
+        </Section>
+        <Section title="Kemperiams">
+          <ul className="space-y-3">
+            {ROOM_TYPES.filter((r) => r.id === "kemperis").map((r) => (
+              <Item key={r.id} title={`${r.label}, ${r.note}`} text={`Telpa iki ${CAMPER_MAX_GUESTS} žmonių.`} meta={`${r.pricePerNight} € / naktį`} />
+            ))}
+          </ul>
+        </Section>
+      </div>
+    );
+  }
+
+  const { settings, types } = data.quads;
+  const rules: { label: string; value: string }[] = [
+    { label: "Darbo laikas", value: `${formatHour(settings.openHour)}–${formatHour(settings.closeHour)}` },
+    { label: "Ilgiausia nuoma", value: `${settings.maxHours} val.` },
+    { label: "Minimalus amžius", value: `${settings.minAge} m.` },
+    ...(settings.deposit > 0 ? [{ label: "Užstatas", value: `${settings.deposit} €` }] : []),
+  ];
+  return (
+    <div className="space-y-6">
+      <Section title="Keturračiai">
+        <ul className="space-y-3">
+          {types
+            .filter((t) => t.units > 0)
+            .map((t) => (
+              <Item key={t.id} title={`${t.name}, ${t.seats === 1 ? "vienvietis" : "dvivietis"}`} text={t.description} meta={`${t.pricePerHour} € / val.`} />
+            ))}
+        </ul>
+      </Section>
+      <Section title="Nuomos sąlygos">
+        <dl className="divide-y divide-line text-sm">
+          {rules.map((r) => (
+            <div key={r.label} className="flex items-baseline justify-between gap-4 py-2 first:pt-0">
+              <dt className="text-muted-foreground">{r.label}</dt>
+              <dd className="font-bold">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {settings.rules ? <p className="whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{settings.rules}</p> : null}
+      </Section>
+    </div>
+  );
+}

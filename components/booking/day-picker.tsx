@@ -44,16 +44,16 @@ export function DayPicker({
             onClick={() => onSelect(d)}
             disabled={info?.disabled}
             aria-pressed={active}
-            className={`relative flex w-14 shrink-0 flex-col items-center gap-1 border py-2.5 text-sm sm:w-16 sm:py-3 transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
+            className={`relative flex min-w-14 shrink-0 flex-col items-center gap-1 border px-2 py-2.5 text-sm sm:min-w-16 sm:py-3 transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${
               info?.disabled
-                ? "cursor-not-allowed border-ink/30 text-ink/30"
+                ? "cursor-not-allowed border-line text-ink/30"
                 : active
                   ? "border-ink bg-ink text-foam"
                   : "border-ink text-ink/70 hover:border-rust"
             }`}
           >
             <span className="text-xs">{weekdayLabel(d)}</span>
-            <span className="font-display text-xl font-bold leading-none">{d.getDate()}</span>
+            <span className="font-display text-figure font-bold leading-none">{d.getDate()}</span>
             {info && <span className={`text-micro sm:text-xs ${active ? "text-foam/70" : ""}`}>{info.text}</span>}
             {marks ? (
               <span className="flex items-center gap-1">

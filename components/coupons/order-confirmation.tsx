@@ -1,4 +1,6 @@
 import type { CouponOrderResult } from "@/app/actions/coupons";
+import { Eyebrow } from "@/components/eyebrow";
+import { Panel } from "@/components/panel";
 import { formatEuro } from "@/lib/coupons";
 
 interface OrderConfirmationProps {
@@ -10,26 +12,26 @@ interface OrderConfirmationProps {
 /** Shown after an order is stored. Payment is arranged by the team, so it says exactly that. */
 export function OrderConfirmation({ order, email, onReset }: OrderConfirmationProps) {
   return (
-    <div role="status" className="space-y-5 border border-ink bg-card p-6 md:p-8">
-      <p className="text-xs uppercase text-ink/70">Užsakymas gautas</p>
-      <p className="font-wordmark text-6xl text-rust">{order.reference}</p>
+    <Panel role="status" className="space-y-5 sm:p-8">
+      <Eyebrow>Užsakymas gautas</Eyebrow>
+      <p className="font-display text-total font-bold text-rust">{order.reference}</p>
       <dl className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <dt className="text-ink/60">Kuponas</dt>
-          <dd className="mt-1 font-medium">{order.productName}</dd>
+          <dt className="text-muted-foreground">Kuponas</dt>
+          <dd className="mt-1 font-normal">{order.productName}</dd>
         </div>
         <div>
-          <dt className="text-ink/60">Suma</dt>
-          <dd className="mt-1 font-medium">{formatEuro(order.amount)}</dd>
+          <dt className="text-muted-foreground">Suma</dt>
+          <dd className="mt-1 font-normal">{formatEuro(order.amount)}</dd>
         </div>
       </dl>
-      <p className="text-sm text-ink/80">
-        Susisieksime el. paštu <span className="font-medium">{email}</span> ir pasakysime, kaip apmokėti. Patvirtinę apmokėjimą atsiųsime
+      <p className="text-sm text-muted-foreground">
+        Susisieksime el. paštu <span className="font-normal">{email}</span> ir pasakysime, kaip apmokėti. Patvirtinę apmokėjimą atsiųsime
         kupono kodą. Užsakymo numerį išsaugokite.
       </p>
-      <button type="button" onClick={onReset} className="min-h-11 text-sm font-medium text-ink/70 underline underline-offset-4 hover:text-rust">
+      <button type="button" onClick={onReset} className="min-h-11 text-sm font-normal text-muted-foreground underline underline-offset-4 hover:text-rust">
         Užsakyti dar vieną kuponą
       </button>
-    </div>
+    </Panel>
   );
 }

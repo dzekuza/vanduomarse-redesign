@@ -23,7 +23,7 @@ export function ReviewStep({ lines, when, total }: { lines: PlanLine[]; when: st
       <p className="text-sm text-ink/70">
         Statusas: laukia patvirtinimo. Mokėti dabar nereikia, užklausą patvirtinsime telefonu ar el. paštu. Kiekviena veikla gauna savo užklausos numerį.
       </p>
-      {formState.errors.root ? <p role="alert" className="text-sm text-destructive">{formState.errors.root.message}</p> : null}
+      {formState.errors.root ? <p role="alert" className="text-sm text-rust-ink">{formState.errors.root.message}</p> : null}
     </div>
   );
 }

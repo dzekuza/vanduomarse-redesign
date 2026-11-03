@@ -27,7 +27,7 @@ export function SaunaUpsellsField({ control }: { control: Control<SaunaValues> }
                     onCheckedChange={(v) => field.onChange(v ? [...field.value, u.id] : field.value.filter((id) => id !== u.id))}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className={`block truncate text-sm font-medium ${u.active ? "" : "text-muted-foreground"}`}>
+                    <span className={`block truncate text-sm font-normal ${u.active ? "" : "text-muted-foreground"}`}>
                       {u.name}
                       {u.active ? null : " (paslėpta)"}
                     </span>

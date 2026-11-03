@@ -10,7 +10,7 @@ updated: 2026-11-03
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-03
+**Last updated:** 2026-11-04
 
 ## Current focus
 
@@ -48,3 +48,5 @@ Sauna programs for `/rezervacija` (Bendra, Moterų, Vyrų, Visa šeima, Pirtis t
 - **Run:** `pnpm dev` (http://localhost:3000)
 - **Deploy:** Vercel
 - **Known issues:** `pnpm lint` over the whole repo is flooded by `.claude/worktrees/`; lint specific paths.
+
+> UI consistency pass (2026-11-04): Termina body + role text steps applied; /rezervacija browser-checked at phone width; booking, coupons, events and admin still unchecked.

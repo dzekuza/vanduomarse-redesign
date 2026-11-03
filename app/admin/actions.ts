@@ -301,7 +301,6 @@ export async function updatePrices(items: PriceItem[]): Promise<ActionResult> {
 /* ---------------- saunas & upsells ---------------- */
 
 const saunaRevalidate = () => {
-  revalidatePath("/pirtis");
   revalidatePath("/embed/pirtis");
   revalidatePath("/rezervacija");
 };
@@ -662,7 +661,8 @@ export async function saveQuadType(type: QuadType): Promise<ActionResult> {
   const { error } = await ctx.supabase
     .from("quad_types")
     .upsert({ id: t.id, name: t.name, description: t.description, seats: t.seats, units: t.units, price_per_hour: t.pricePerHour, active: t.active });
-  revalidatePath("/keturraciai");
+  revalidatePath("/embed/keturraciai");
+  revalidatePath("/rezervacija");
   return error ? dbError(error) : done(null);
 }
 
@@ -672,7 +672,8 @@ export async function deleteQuadType(id: string): Promise<ActionResult> {
   if (!z.string().regex(/^[a-z0-9-]+$/).safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("quad_types").delete().eq("id", id);
   if (error?.code === "23503") return fail("Šio tipo jau buvo nuomų – jį galima tik išjungti.", "in_use");
-  revalidatePath("/keturraciai");
+  revalidatePath("/embed/keturraciai");
+  revalidatePath("/rezervacija");
   return error ? dbError(error) : done(null);
 }
 
@@ -697,7 +698,8 @@ export async function updateQuadSettings(settings: QuadSettings): Promise<Action
     .from("quad_settings")
     .update({ open_hour: s.openHour, close_hour: s.closeHour, max_hours: s.maxHours, deposit: s.deposit, min_age: s.minAge, rules: s.rules })
     .eq("id", true);
-  revalidatePath("/keturraciai");
+  revalidatePath("/embed/keturraciai");
+  revalidatePath("/rezervacija");
   return error ? dbError(error) : done(null);
 }
 

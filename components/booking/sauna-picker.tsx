@@ -43,16 +43,16 @@ function SaunaCard({ sauna, active, onSelect }: { sauna: Sauna; active: boolean;
       </span>
       <span className="flex flex-1 flex-col gap-2 p-4">
         <span className="flex items-baseline justify-between gap-3">
-          <span className="font-display text-lg font-bold uppercase">{sauna.name}</span>
+          <span className="font-display text-figure font-bold uppercase">{sauna.name}</span>
           <span className="shrink-0 text-sm">
-            nuo <span className="font-display text-lg font-bold">{fromRate(sauna.rates)} €</span>/val.
+            nuo <span className="font-display text-figure font-bold">{fromRate(sauna.rates)} €</span>/val.
           </span>
         </span>
         {sauna.description ? <span className={`text-sm ${active ? "text-foam/70" : "text-ink/60"}`}>{sauna.description}</span> : null}
         {sauna.features.length ? (
           <span className="flex flex-wrap gap-1.5">
             {sauna.features.map((f) => (
-              <span key={f} className={`border px-2 py-0.5 text-xs ${active ? "border-foam/40" : "border-ink/30"}`}>
+              <span key={f} className={`border px-2 py-0.5 text-xs ${active ? "border-line-on-ink" : "border-line"}`}>
                 {f}
               </span>
             ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon } from "@phosphor-icons/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { StepFrame } from "@/components/booking/stepped";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CALCULATOR_SECTIONS } from "./calculator-sections";
@@ -21,32 +21,18 @@ const GROUPS: Group[] = [
   { id: "pasiliekam", title: "Pasiliekam Marse.", sections: ["stay"] },
 ];
 
-/** Three numbered accordion chapters holding the calculator sections; one open at a time, the first by default. */
+/**
+ * Three numbered accordion chapters holding the calculator sections, the first open by default.
+ * They open and close independently (`multiple`): a single-open accordion collapses the chapter
+ * above while the new one expands, which shifts the page under the cursor and made it jump.
+ */
 export function CalculatorGroups({ calc }: { calc: EventCalculatorState }) {
-  const [open, setOpen] = useState(GROUPS[0].id);
-  const asked = useRef(false);
-
-  // Opening a chapter collapses the one above it, which pulls the page up: bring the opened chapter's title back under the header once that has settled.
-  useEffect(() => {
-    if (!open || !asked.current) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timer = setTimeout(() => document.getElementById(`calc-group-${open}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }), 250);
-    return () => clearTimeout(timer);
-  }, [open]);
+  const [open, setOpen] = useState<string[]>([GROUPS[0].id]);
 
   return (
-    <Accordion
-      type="single"
-      collapsible
-      value={open}
-      onValueChange={(next) => {
-        asked.current = true;
-        setOpen(next);
-      }}
-      className="border-b border-line"
-    >
+    <Accordion type="multiple" value={open} onValueChange={setOpen} className="border-b border-line">
       {GROUPS.map((group, i) => (
-        <AccordionItem key={group.id} id={`calc-group-${group.id}`} value={group.id} className="scroll-mt-4 border-b-0 border-t border-line">
+        <AccordionItem key={group.id} id={`calc-group-${group.id}`} value={group.id} className="border-b-0 border-t border-line">
           <AccordionTrigger className="items-center gap-4 py-6">
             <span className="font-display text-tile font-bold text-rust">{String(i + 1).padStart(2, "0")}</span>
             <span className="font-display text-tile font-bold">{group.title}</span>
@@ -61,7 +47,7 @@ export function CalculatorGroups({ calc }: { calc: EventCalculatorState }) {
                 return (
                   <div key={sectionId} className="space-y-3">
                     {/* The single section of a chapter has the chapter's title already. */}
-                    {group.sections.length > 1 ? <p className="text-lg font-bold uppercase tracking-tight">{label}</p> : null}
+                    {group.sections.length > 1 ? <p className="text-figure font-bold uppercase tracking-tight">{label}</p> : null}
                     <Section calc={calc} />
                   </div>
                 );

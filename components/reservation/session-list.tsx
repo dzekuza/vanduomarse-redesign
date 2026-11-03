@@ -17,7 +17,7 @@ const COLUMNS = ["Seansas", "Laikas", "Vietos", "Kaina"];
 export function SessionList({ rows, selected, onSelect, limit = 8 }: SessionListProps) {
   const [all, setAll] = useState(false);
   if (rows.length === 0) {
-    return <p role="status" className="text-sm text-rust">Šią dieną šiai grupei laisvų seansų nėra. Pakeisk dieną ar žmonių skaičių.</p>;
+    return <p role="status" className="text-sm text-rust-ink">Šią dieną šiai grupei laisvų seansų nėra. Pakeisk dieną ar žmonių skaičių.</p>;
   }
   const shown = all ? rows : rows.slice(0, limit);
   return (
@@ -43,8 +43,8 @@ export function SessionList({ rows, selected, onSelect, limit = 8 }: SessionList
                 }`}
               >
                 <span className="min-w-0 md:col-span-5">
-                  <span className={`inline-block border px-2 py-0.5 text-micro uppercase ${on ? "border-dust/40" : "border-line"}`}>{row.label}</span>
-                  <span className="mt-2 block text-base font-bold tracking-tight">{row.title}</span>
+                  <span className={`inline-block border px-2 py-0.5 text-micro uppercase ${on ? "border-line-on-ink" : "border-line"}`}>{row.label}</span>
+                  <span className="mt-2 block text-item font-bold">{row.title}</span>
                   <span className={`block text-xs line-clamp-1 ${on ? "text-dust/75" : "text-ink/65"}`}>{row.description}</span>
                 </span>
                 <span className="text-sm font-bold md:col-span-2">{row.time}</span>

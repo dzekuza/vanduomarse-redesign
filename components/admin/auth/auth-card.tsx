@@ -14,7 +14,7 @@ export function AuthCard({ title, description, children }: AuthCardProps) {
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center">
           <Image src="/brand/vanduo-marse-badge.svg" alt="Vanduo Marse" width={85} height={110} className="mx-auto h-14 w-auto" />
-          <CardTitle className="font-display text-2xl">{title}</CardTitle>
+          <CardTitle className="font-display text-heading">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>{children}</CardContent>

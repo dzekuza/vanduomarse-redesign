@@ -32,7 +32,7 @@ function MobileTotalBar({ total }: { total: string }) {
   return (
     <a href="#samata" className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between border-t border-ink bg-ink px-6 py-3 text-dust lg:hidden">
       <span className="text-xs uppercase text-dust/70">Preliminari kaina</span>
-      <span className="font-display text-lg font-bold">{total}</span>
+      <span className="font-display text-figure font-bold">{total}</span>
     </a>
   );
 }
