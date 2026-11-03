@@ -8,7 +8,7 @@ import { StarMark } from "@/components/star-mark";
 /** Load sequence: each block fades up in turn (see delays); skipped under reduced motion. */
 const ENTER = "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700 motion-safe:ease-out-strong motion-safe:fill-mode-both";
 
-/** Dark hero: cut photo, orbit lines, the "Išsuk į Marsą" headline and the planner sticker. */
+/** Dark hero: cut photo, orbit lines, the "Užsuk į Marsą" headline and the planner sticker. */
 export function LandingHero() {
   return (
     <section
@@ -31,7 +31,7 @@ export function LandingHero() {
       </p>
 
       <h1 id="hero-title" className={`absolute top-42 left-gutter z-3 -ml-1.5 text-hero-sm md:top-53 md:text-hero ${ENTER} motion-safe:slide-in-from-bottom-8 motion-safe:delay-150 motion-safe:duration-800`}>
-        IŠSUK
+        UŽSUK
         <br />
         <span className="text-rust">Į MARSĄ.</span>
         <StarMark className="absolute motion-safe:animate-spin-slow -top-2 right-2.5 size-8 text-rust md:top-1.5 md:-right-24 md:size-19" />
