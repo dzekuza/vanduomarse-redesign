@@ -23,7 +23,7 @@ function TypeSection({ calc: { input, set, applyPreset } }: SectionProps) {
     <section className="@container">
       <StepLabel step={1}>Renginio tipas</StepLabel>
       <PresetPicker selected={input.preset} onSelect={(id) => (input.preset === id ? set("preset", null) : applyPreset(id))} />
-      <p className="mt-3 text-xs text-ink/65">Pasirinkus tipą užpildome tipinį variantą – viską galima keisti.</p>
+      <p className="mt-3 text-xs text-ink/65">Pasirinkus tipą nustatome tipinį svečių skaičių – erdvę, dieną ir visa kita renkiesi pats.</p>
     </section>
   );
 }

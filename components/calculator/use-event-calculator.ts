@@ -15,8 +15,8 @@ export function useEventCalculator() {
 
   function applyPreset(id: PresetId) {
     const p = PRESETS.find((x) => x.id === id)!;
-    // A date already chosen decides the kind of day; the preset's own guess only applies without one.
-    setInput((s) => ({ ...DEFAULT_INPUT, ...p.apply, preset: id, date: s.date, day: s.date ? dayTypeOf(s.date) : (p.apply.day ?? null) }));
+    // The type only suggests a group size (and drives the typical price per guest); nothing else is chosen for the visitor.
+    setInput((s) => ({ ...s, preset: id, adults: p.apply.adults ?? DEFAULT_INPUT.adults, kids: p.apply.kids ?? DEFAULT_INPUT.kids }));
   }
 
   /** The event date also sets the kind of day (workday or evening / weekend); the day tiles can still change it. */

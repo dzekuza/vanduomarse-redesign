@@ -210,18 +210,19 @@ export interface EventPreset {
   id: PresetId;
   label: string;
   perGuest: Money;
-  apply: Partial<EstimateInput>;
+  /** Only the typical group size: venue, day, catering and services are always the visitor's own choice. */
+  apply: Pick<Partial<EstimateInput>, "adults" | "kids">;
 }
 
 export const PRESETS: EventPreset[] = [
-  { id: "vestuves", label: "Vestuvės", perGuest: range(55, 95), apply: { space: "kupolas-corona", adults: 120, catering: "bufetas-30", day: "weekend", decor: true } },
-  { id: "vestuves-kamerines", label: "Kamerinės vestuvės", perGuest: range(45, 70), apply: { space: "terasa", adults: 30, catering: "bufetas-30", day: "weekend", serving: true, decor: true } },
-  { id: "krikstynos", label: "Krikštynos", perGuest: range(25, 45), apply: { space: "terasa", adults: 20, kids: 5, catering: "bufetas-20", day: "weekday" } },
-  { id: "gimtadienis", label: "Gimtadienis", perGuest: range(35, 65), apply: { space: "terasa", adults: 25, catering: "bufetas-25", day: "weekend", bartenders: 1 } },
-  { id: "teambuilding", label: "Komandos diena", perGuest: range(45, 85), apply: { space: "kupolas-seminaras", adults: 40, catering: "marmitai", day: "weekday", coffeeBreak: true, wakePrivate: true, saunaHours: 2 } },
-  { id: "imones-svente", label: "Įmonės šventė", perGuest: range(60, 120), apply: { space: "parkas-wake", adults: 300, catering: "bufetas-35", day: "weekend" } },
-  { id: "konferencija", label: "Konferencija", perGuest: range(15, 35), apply: { space: "kupolas-seminaras", adults: 60, catering: "marmitai", day: "weekday", coffeeBreak: true } },
-  { id: "bernvakaris", label: "Bernvakaris / mergvakaris", perGuest: range(153, 238), apply: { space: "terasa", adults: 15, catering: "none", day: "weekend", saunaHours: 3, atvRiders: 15, cabinGuests: 15, cabinNights: 1 } },
+  { id: "vestuves", label: "Vestuvės", perGuest: range(55, 95), apply: { adults: 120 } },
+  { id: "vestuves-kamerines", label: "Kamerinės vestuvės", perGuest: range(45, 70), apply: { adults: 30 } },
+  { id: "krikstynos", label: "Krikštynos", perGuest: range(25, 45), apply: { adults: 20, kids: 5 } },
+  { id: "gimtadienis", label: "Gimtadienis", perGuest: range(35, 65), apply: { adults: 25 } },
+  { id: "teambuilding", label: "Komandos diena", perGuest: range(45, 85), apply: { adults: 40 } },
+  { id: "imones-svente", label: "Įmonės šventė", perGuest: range(60, 120), apply: { adults: 300 } },
+  { id: "konferencija", label: "Konferencija", perGuest: range(15, 35), apply: { adults: 60 } },
+  { id: "bernvakaris", label: "Bernvakaris / mergvakaris", perGuest: range(153, 238), apply: { adults: 15 } },
 ];
 
 /* ---------- Estimate ---------- */
