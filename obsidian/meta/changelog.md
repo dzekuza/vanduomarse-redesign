@@ -9,6 +9,14 @@ Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
 
+## 2026-11-04 — Program sessions can only be booked through the program function
+
+- **What:** security review finding: `create_event_ticket` priced any published event at `events.price` per person, including program sessions, bypassing the child price and using a stale price after a program change. New migration `20261103213000_program_sessions_only_via_program_ticket.sql` adds `program_id is null` to its event lookup. **Written, committed, not yet applied to the live project** (apply with the Supabase MCP or `supabase db push`); no program sessions exist yet, so nothing is exposed meanwhile.
+
+## 2026-11-04 — Calculator: event types no longer preselect anything
+
+- **What:** choosing an event type used to select the venue, the day type, catering and services as well. `PRESETS` now carry only a typical group size (`apply: { adults, kids }`); `applyPreset` sets the type marker and those guest numbers and leaves every other choice as it was (a venue picked first stays picked). The typical price per guest still shows once a type is chosen. The hint under the types was reworded.
+
 ## 2026-11-04 — Calculator: opened chapter scrolls into place
 
 - **What:** opening a calculator chapter collapses the one above it and used to leave the page scrolled past the new chapter. `CalculatorGroups` now scrolls the opened chapter's title to just under the header (the page's own 112 px `scroll-padding-top` plus a 16 px `scroll-mt-4`) after the collapse animation, smoothly unless reduced motion is on; nothing scrolls on first load.

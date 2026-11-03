@@ -15,7 +15,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Status:** Accepted; migration applied and admin + public UI built 2026-11-03 (not yet exercised with real bookings)
 - **Context:** `/rezervacija` should offer named experiences (Bendra, Moterų, Vyrų, Visa šeima, Pirtis tik jūsų kompanijai, Privati su programa) with different pricing models; today only hourly private hire and generic events exist, and prices must not live in code.
 - **Decision:** one table `sauna_programs` (`kind` session | private, `pricing` person | family | group). Sessions are `events` rows with `program_id` (seats from the event capacity, price from the program via `create_program_ticket`, with adults and children). Private programs book their sauna for a fixed length at a flat price via `create_program_booking`, as a normal `bookings` row, so they share the sauna calendar and the overlap constraint. Phone verification comes from the existing insert triggers.
-- **Consequences:** admin needs a programs editor and a program picker on sessions; the seeded prices are the design's figures to be reviewed by the client. Event `price` is ignored for program sessions (the program wins).
+- **Consequences:** `create_event_ticket` refuses events that have a `program_id` (migration `20261103213000`), so a program session can only be booked through `create_program_ticket` at the program's current price; admin needs a programs editor and a program picker on sessions; the seeded prices are the design's figures to be reviewed by the client. Event `price` is ignored for program sessions (the program wins).
 
 ---
 
