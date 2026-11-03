@@ -1,6 +1,6 @@
 ---
 tags: [meta, changelog]
-updated: 2026-10-30
+updated: 2026-11-03
 ---
 
 # Changelog
@@ -8,6 +8,11 @@ updated: 2026-10-30
 Chronological log of notable changes to the project. Newest first.
 This is a human-curated log — not a mirror of `git log`. Record *why*, not just
 *what*; the diff already covers *what*.
+
+## 2026-11-03 — Homepage invitation copy
+
+- **What:** changed the hero headline to "UŽSUK Į MARSĄ." and aligned the
+  homepage title with it, using the requested invitation to visit the park.
 
 ## 2026-11-01 — Docs sweep after the redesign
 
