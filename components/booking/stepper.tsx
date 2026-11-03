@@ -14,7 +14,7 @@ export function Stepper({
   label: string;
 }) {
   return (
-    <div className="flex min-h-15 items-center justify-between gap-3 border border-ink py-2 pl-4 pr-2">
+    <div className="flex min-h-15 items-center justify-between gap-3 border border-line py-2 pl-4 pr-2">
       <span className="min-w-0 text-sm leading-snug text-ink">{label}</span>
       <div className="flex shrink-0 items-center gap-1">
         <button
@@ -22,17 +22,17 @@ export function Stepper({
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
           aria-label="Sumažinti"
-          className="flex size-11 items-center justify-center border border-ink text-ink transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30"
+          className="flex size-11 items-center justify-center border border-line text-ink transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30"
         >
           −
         </button>
-        <span className="min-w-8 text-center font-medium tabular-nums">{value}</span>
+        <span className="min-w-8 text-center font-bold tabular-nums">{value}</span>
         <button
           type="button"
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
           aria-label="Padidinti"
-          className="flex size-11 items-center justify-center border border-ink text-ink transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30"
+          className="flex size-11 items-center justify-center border border-line text-ink transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30"
         >
           +
         </button>
