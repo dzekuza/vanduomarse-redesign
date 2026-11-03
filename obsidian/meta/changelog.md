@@ -1,3 +1,5 @@
+- 2026-11-04 Home FAQ accordion: questions bold 14 px (16 px from `md`), answers 14 px, so question and answer no longer read as the same text.
+- 2026-11-04 Home hero: removed the top kicker ("ŽEMĖ TA PATI. JAUSMAS — KITAS.") and the bottom info bar (Kauno rajonas / address / "Leiskis žemyn").
 - 2026-11-04 Phone gate: env-flagged skip for live testing (`PHONE_VERIFICATION_SKIP=1`, migration `20261104100000_phone_verification_skip.sql`, ADR-0023). Off by default.
 - 2026-11-04 Consistency sweep of all public pages + embeds + admin login: shadcn buttons/titles/tabs/table heads now bold; day-picker cells grow to fit "Uždaryta" (`min-w-14`).
 - 2026-11-04 UI consistency pass: Termina body, role text steps, weights, border tokens.

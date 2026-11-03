@@ -1,7 +1,6 @@
 import { ArrowDownIcon } from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
 import Link from "next/link";
-import { PARK_ADDRESS } from "./content";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import { StarMark } from "@/components/star-mark";
 
@@ -25,10 +24,6 @@ export function LandingHero() {
         <div aria-hidden className="absolute inset-0 bg-linear-to-t from-ink/85 to-transparent to-70% md:bg-linear-to-r md:from-ink/80 md:via-ink/10 md:to-transparent" />
       </div>
 
-      <p className={`absolute top-30 left-gutter z-3 flex items-center gap-2.5 text-micro md:top-37.5 md:text-xs ${ENTER} motion-safe:delay-100`}>
-        <span aria-hidden className="size-1.5 rounded-full bg-water ring-5 ring-water/15" />
-        ŽEMĖ TA PATI. JAUSMAS — KITAS.
-      </p>
 
       <h1 id="hero-title" className={`absolute top-42 left-gutter z-3 -ml-1.5 text-hero-sm md:top-53 md:text-hero ${ENTER} motion-safe:slide-in-from-bottom-8 motion-safe:delay-150 motion-safe:duration-800`}>
         UŽSUK
@@ -62,11 +57,6 @@ export function LandingHero() {
         <ArrowUpRightIcon aria-hidden weight="light" className="size-8 md:size-12" />
       </Link>
 
-      <div className={`absolute inset-x-gutter bottom-6 z-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-line-on-ink pt-4 text-micro tracking-widest md:text-xs md:gap-x-10 md:pt-5 ${ENTER} motion-safe:delay-700`}>
-        <span>KAUNO RAJONAS</span>
-        <span>{PARK_ADDRESS.street.toUpperCase()}</span>
-        <span className="ml-auto max-sm:hidden">LEISKIS ŽEMYN ↓</span>
-      </div>
     </section>
   );
 }
