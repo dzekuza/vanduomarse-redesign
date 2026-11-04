@@ -53,6 +53,10 @@ const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amo
 export const notifyPaid = (phone: string | null | undefined, references: string[], amount: number) =>
   sendSms(phone, `Vanduo Marse: apmoketa ${eur(amount)} EUR (${references.join(", ")}). Uzklausas patvirtinsime netrukus.`);
 
+/** A reservation was paid twice (two Checkout Sessions): staff refund the extra payment in Stripe. */
+export const notifyStaffDuplicate = (references: string[], amount: number) =>
+  sendSms(process.env.STAFF_NOTIFY_PHONE, `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
+
 /** Heads-up for staff when a reservation is paid; `review` flags a payment that needs a manual look (late or odd amount). */
 export const notifyStaffPaid = (references: string[], amount: number, review: boolean) =>
   sendSms(

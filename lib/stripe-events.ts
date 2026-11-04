@@ -1,6 +1,7 @@
 import "server-only";
 import type Stripe from "stripe";
-import { notifyPaid, notifyStaffPaid } from "@/lib/sms/notify";
+import { z } from "zod";
+import { notifyPaid, notifyStaffDuplicate, notifyStaffPaid } from "@/lib/sms/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -11,6 +12,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const paymentIntentId = (value: string | Stripe.PaymentIntent | null) => (typeof value === "string" ? value : (value?.id ?? ""));
 
+/** The payment id the session was created for: lets a paid session be matched even if it is no longer the payment's current one. */
+const paymentIdOf = (session: Stripe.Checkout.Session) => {
+  const parsed = z.uuid().safeParse(session.metadata?.payment_id ?? session.client_reference_id);
+  return parsed.success ? parsed.data : undefined;
+};
+
 async function onPaid(session: Stripe.Checkout.Session) {
   // A delayed payment method completes the session while it is still unpaid; wait for `async_payment_succeeded`.
   if (session.payment_status === "unpaid") return;
@@ -18,11 +25,22 @@ async function onPaid(session: Stripe.Checkout.Session) {
     p_session_id: session.id,
     p_payment_intent: paymentIntentId(session.payment_intent),
     p_amount: (session.amount_total ?? 0) / 100,
+    p_payment_id: paymentIdOf(session),
   });
   if (error) throw error;
 
   const paid = data?.[0];
-  if (!paid?.newly_paid) return;
+  if (!paid) {
+    // A paid session we cannot match to any payment: never drop it silently.
+    console.error("Stripe webhook: paid session without a matching payment", session.id);
+    return;
+  }
+  // A second, different payment on an already-paid reservation is a double charge: staff must refund it.
+  if (paid.duplicate) {
+    await Promise.allSettled([notifyStaffDuplicate(paid.refs, (session.amount_total ?? 0) / 100)]);
+    return;
+  }
+  if (!paid.newly_paid) return;
   // Texts must never fail the webhook: a retry would only re-send nothing, the payment is already recorded.
   await Promise.allSettled([notifyPaid(paid.phone, paid.refs, paid.amount), notifyStaffPaid(paid.refs, paid.amount, paid.needs_review)]);
 }

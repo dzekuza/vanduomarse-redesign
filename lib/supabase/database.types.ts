@@ -1293,6 +1293,7 @@ export type Database = {
       }
       attach_payment_session: {
         Args: {
+          p_expected_session_id?: string
           p_expires_at: string
           p_payment_id: string
           p_session_id: string
@@ -1319,11 +1320,13 @@ export type Database = {
       complete_payment: {
         Args: {
           p_amount: number
+          p_payment_id?: string
           p_payment_intent: string
           p_session_id: string
         }
         Returns: {
           amount: number
+          duplicate: boolean
           needs_review: boolean
           newly_paid: boolean
           payment_id: string

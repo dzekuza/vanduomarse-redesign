@@ -21,6 +21,7 @@ import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin"
 const fail = (message: string, code?: string): { error: { message: string; code?: string } } => ({ error: { message, code } });
 
 const SIGN_IN = "Prisijunkite, kad galėtumėte rezervuoti.";
+const SETTLED = "Šis mokėjimas jau apmokėtas arba apdorojamas. Atnaujinkite puslapį po minutės.";
 const SETUP = "Mokėjimas šiuo metu neveikia. Skambinkite mums ir užregistruosime.";
 const FAILED = "Nepavyko pradėti mokėjimo. Užklausos neišsaugotos, bandykite dar kartą arba skambinkite.";
 
@@ -37,6 +38,9 @@ const SESSION_MINUTES = 31;
 /** Tags our Checkout Sessions in the Stripe Dashboard. */
 const INTEGRATION_ID = "vanduomarse-reservation-qvtmxkdh";
 
+/** The payment's Checkout Session was already paid: never open another one for it. */
+class PaymentSettledError extends Error {}
+
 interface Payable {
   id: string;
   items: PayItem[];
@@ -48,8 +52,11 @@ interface Payable {
 async function checkoutUrl(payable: Payable): Promise<string> {
   const stripe = getStripe();
   if (payable.sessionId) {
-    const existing = await stripe.checkout.sessions.retrieve(payable.sessionId).catch(() => null);
-    if (existing?.status === "open" && existing.url) return existing.url;
+    // Only one session may be payable per payment, so an old one is replaced only once Stripe says it
+    // expired. A failed lookup throws (the visitor retries) instead of risking a second open session.
+    const existing = await stripe.checkout.sessions.retrieve(payable.sessionId);
+    if (existing.status === "open" && existing.url) return existing.url;
+    if (existing.status === "complete") throw new PaymentSettledError();
   }
 
   const origin = await siteOrigin();
@@ -74,16 +81,22 @@ async function checkoutUrl(payable: Payable): Promise<string> {
   });
   if (!session.url) throw new Error("Stripe returned no Checkout URL");
 
+  // Attach only if the payment still has the session we saw: a concurrent "pay again" may have won.
   const { error } = await createAdminClient().rpc("attach_payment_session", {
     p_payment_id: payable.id,
     p_session_id: session.id,
     p_expires_at: new Date(session.expires_at * 1000).toISOString(),
+    p_expected_session_id: payable.sessionId ?? undefined,
   });
-  if (error) throw error;
+  if (error) {
+    await stripe.checkout.sessions.expire(session.id).catch(() => null);
+    throw error;
+  }
   return session.url;
 }
 
 function setupFailure(e: unknown) {
+  if (e instanceof PaymentSettledError) return fail(SETTLED, "settled");
   if (e instanceof MissingStripeKeyError || e instanceof MissingServiceKeyError) {
     console.error(`Payments: ${e.message}`);
     return fail(SETUP, "setup");
@@ -143,8 +156,9 @@ export async function startReservationCheckout(input: unknown): Promise<ActionRe
       const url = await checkoutUrl({ id: payment.payment_id, items, email: payment.customer_email || null, sessionId: payment.stripe_session_id });
       return { data: { url } };
     } catch (e) {
-      // Stripe refused: free what the payment held so the slots are not blocked for 48 hours.
-      await admin.rpc("abandon_payment", { p_payment_id: payment.payment_id });
+      // Stripe refused a brand-new payment: free what it held so the slots are not blocked for 48 hours.
+      // A payment that already had a session is left alone: it may be paid or payable.
+      if (!payment.stripe_session_id) await admin.rpc("abandon_payment", { p_payment_id: payment.payment_id });
       return setupFailure(e);
     }
   } catch (e) {
