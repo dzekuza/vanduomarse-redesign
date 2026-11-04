@@ -5,9 +5,7 @@ import { ChoiceTile } from "@/components/booking/choice-tile";
 import { StepLabel } from "@/components/booking/step-label";
 import { Stepper } from "@/components/booking/stepper";
 import { CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney } from "@/lib/event-pricing";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Label } from "@/components/ui/label";
-import { todayKey } from "@/lib/sauna";
+import { EventDatePicker } from "./event-date-picker";
 import { OptionToggle } from "./option-toggle";
 import { PresetPicker } from "./preset-picker";
 import { SpacePicker } from "./space-picker";
@@ -28,14 +26,11 @@ function TypeSection({ calc: { input, set, applyPreset } }: SectionProps) {
   );
 }
 
-function GuestsSection({ calc: { input, set, chooseDate } }: SectionProps) {
+function GuestsSection({ calc: { input, set, chooseDate, today } }: SectionProps) {
   return (
     <section className="@container">
       <StepLabel step={2}>Svečiai ir data</StepLabel>
-      <div className="mb-3 space-y-1.5">
-        <Label htmlFor="calc-date">Renginio data</Label>
-        <DatePicker id="calc-date" value={input.date ?? ""} onChange={chooseDate} min={todayKey()} placeholder="Pasirink datą" />
-      </div>
+      <EventDatePicker today={today} value={input.date} onChange={chooseDate} />
       <div className="grid gap-3 @xl:grid-cols-2">
         <Stepper label="Suaugę" value={input.adults} onChange={(v) => set("adults", v)} min={1} max={500} />
         <Stepper label="Vaikai 3–10 m." value={input.kids} onChange={(v) => set("kids", v)} min={0} max={200} />

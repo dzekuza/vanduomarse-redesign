@@ -7,8 +7,8 @@ import { dateKey } from "@/lib/sauna";
  * the database enforces the unit counts; there is no admin editor for them yet.
  */
 export const CABIN_SIZES = [
-  { id: 2, label: "2 asmenims", pricePerNight: 50, count: 8 },
-  { id: 4, label: "4 asmenims", pricePerNight: 60, count: 6 },
+  { id: 2, name: "Dvivietis namelis", label: "2 asmenims", pricePerNight: 50, count: 8 },
+  { id: 4, name: "Keturvietis namelis", label: "4 asmenims", pricePerNight: 60, count: 6 },
 ] as const;
 
 export type CabinSize = (typeof CABIN_SIZES)[number]["id"];
@@ -37,7 +37,7 @@ export function roomPrice(id: RoomTypeId, size: CabinSize): number {
 }
 
 export function roomLabel(id: RoomTypeId, size: CabinSize): string {
-  return id === "namelis" ? `Namelis ${cabinSize(size).label}` : ROOM_TYPES.find((r) => r.id === id)!.label;
+  return id === "namelis" ? cabinSize(size).name : ROOM_TYPES.find((r) => r.id === id)!.label;
 }
 
 /** Stay type id in `public.stay_types` for a cabin size. */

@@ -9,9 +9,11 @@ import { MonthCalendar, monthStart } from "./month-calendar";
 
 interface DatePickerProps {
   days: Date[];
-  selected: Date;
+  selected: Date | null;
   onSelect: (date: Date) => void;
-  icons: (date: Date) => DayIcon[];
+  icons?: (date: Date) => DayIcon[];
+  /** Inquiries can select future dates beyond the dates in the strip. */
+  allowFutureDates?: boolean;
 }
 
 type View = "strip" | "calendar";
@@ -33,7 +35,7 @@ function DateStrip({ days, selected, onSelect, icons }: DatePickerProps) {
     else months.set(key, [date]);
   }
 
-  const selectedKey = dateKey(selected);
+  const selectedKey = selected && dateKey(selected);
   const today = days[0];
 
   // Restore a date picked in the calendar when it falls inside the shorter strip.
@@ -66,7 +68,7 @@ function DateStrip({ days, selected, onSelect, icons }: DatePickerProps) {
                     date={date}
                     active={day === selectedKey}
                     isToday={date === today}
-                    icons={icons(date)}
+                    icons={icons?.(date)}
                     onSelect={onSelect}
                   />
                 );
@@ -79,21 +81,23 @@ function DateStrip({ days, selected, onSelect, icons }: DatePickerProps) {
   );
 }
 
-/** The reservation date picker: a scrolling strip or a month calendar, switched with the toggle above it. */
-export function DatePicker({ days, selected, onSelect, icons }: DatePickerProps) {
+/** A scrolling strip or a month calendar, switched with the toggle above it. */
+export function DatePicker({ days, selected, onSelect, icons, allowFutureDates }: DatePickerProps) {
   const [view, setView] = useState<View>("strip");
-  const [calendarMonth, setCalendarMonth] = useState(() => monthStart(selected));
+  const calendarStart = selected ?? days[0];
+  const [browsedMonth, setBrowsedMonth] = useState<Date>();
+  const calendarMonth = browsedMonth ?? (calendarStart && monthStart(calendarStart));
 
   function changeView(next: View) {
     if (next === view) return;
-    if (next === "calendar") setCalendarMonth(monthStart(selected));
+    if (next === "calendar") setBrowsedMonth(undefined);
     setView(next);
   }
 
   return (
     <div className="relative">
       <div className={view === "strip" ? "absolute top-0 right-0 z-10 flex h-12 items-center bg-dust pl-3" : "mb-4 flex items-center justify-between gap-2"}>
-        {view === "calendar" && (
+        {view === "calendar" && calendarMonth && (
           <p aria-live="polite" className="text-micro font-bold uppercase text-copy">
             {MONTH_LABEL.format(calendarMonth)} <span className="whitespace-nowrap">{calendarMonth.getFullYear()}</span>
           </p>
@@ -115,14 +119,15 @@ export function DatePicker({ days, selected, onSelect, icons }: DatePickerProps)
       </div>
       {view === "strip" ? (
         <DateStrip days={days} selected={selected} onSelect={onSelect} icons={icons} />
-      ) : (
+      ) : calendarMonth && (
         <MonthCalendar
           days={days}
           selected={selected}
           onSelect={onSelect}
           icons={icons}
+          allowFutureDates={allowFutureDates}
           month={calendarMonth}
-          onMonthChange={setCalendarMonth}
+          onMonthChange={setBrowsedMonth}
         />
       )}
     </div>

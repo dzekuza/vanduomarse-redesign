@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { DEFAULT_INPUT, PRESETS, SPACES, dayTypeOf, estimate, type EstimateInput, type PresetId } from "@/lib/event-pricing";
+import { todayKey } from "@/lib/sauna";
 
 /** State of the event price calculator: the input, a setter and the live estimate. Shared by the page and the drawer. */
-export function useEventCalculator() {
+export function useEventCalculator(today = todayKey()) {
   const [input, setInput] = useState<EstimateInput>(DEFAULT_INPUT);
   const set = <K extends keyof EstimateInput>(key: K, value: EstimateInput[K]) => setInput((s) => ({ ...s, [key]: value }));
 
@@ -24,7 +25,7 @@ export function useEventCalculator() {
     setInput((s) => ({ ...s, date: date || null, day: date ? dayTypeOf(date) : s.day }));
   }
 
-  return { input, set, result, guests, space, preset, applyPreset, chooseDate };
+  return { input, set, result, guests, space, preset, applyPreset, chooseDate, today };
 }
 
 export type EventCalculatorState = ReturnType<typeof useEventCalculator>;

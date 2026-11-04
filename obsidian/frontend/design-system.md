@@ -31,14 +31,14 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-public-background` | primitive | `#eed9ce` | `.theme-marse` maps `--dust` to this value for light public page backgrounds |
 | `--raw-blush` `#f1d8ce`, `--raw-blush-soft`, `--raw-blush-paper` | primitive | sampled from vanduomarse.lt | existing admin palette and softer brand surfaces |
 | `text-copy` | semantic | solid mix of 72% ink and 28% dust | supporting text on light public surfaces, including breadcrumbs, introductions, hints and FAQ answers |
-| `--raw-coral` `#ed5257`, `--raw-coral-deep` | primitive | sampled from vanduomarse.lt | `theme-marse` accent (maps to `--rust`) |
+| `--raw-coral` `#ed5257` | primitive | sampled from vanduomarse.lt | Shared public accent for `--rust` and `--rust-soft`, including booking pages |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
 | `--tile-radius` `1.25rem` | primitive | first landing redesign (ADR-0009) | `rounded-tile`: used only by the home page activity drawer (floating panel); the rest of the 2026-11 look is square with cut corners (`--radius: 0`) |
 | `--tab` / `--tab-active` / `--tab-active-foreground` / `--tab-hover` | semantic | `--dust` / `--ink` / `--foam` / `--dust-soft` (widget: 85% of the custom tab colour), declared in `:root` and `.theme-marse` | `bg-tab`, `bg-tab-active`, `text-tab-active-foreground`, `hover:bg-tab-hover` in `BookingTabs`; separate so WordPress widgets can recolour tabs apart from the page (ADR-0015) |
 | `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
 
-| `--raw-coral-muted` `#dd5d58`, `--raw-teal-slate` `#2f545b` | primitive | sampled from the client's booking design (vanduo-marse-bold-2026 reference, 2026-11) | `.theme-reservation` (wrapper of `/rezervacija` and `/skaiciuokle` only) remaps `--rust` / `--rust-soft` to the softer coral and `--lake-soft` to the slate teal, sets `--line` / `--input` to 19% ink and `--card` to a 16% white wash; `Stepper`, `ChoiceTile` and the reservation / calculator components use `border-line` / `divide-line` (no ad-hoc `border-ink/20` opacities) and only the 400 / 700 weights Termina ships. The rest of the site keeps the live-brand tokens (`--line` is 14% ink there) |
+| `--raw-teal-slate` `#2f545b` | primitive | sampled from the booking design | `.theme-reservation` maps `--lake-soft` to slate teal, uses 19% ink for `--line` and `--input`, and uses a 16% white wash for `--card` |
 | `--raw-coral-ink` `#a8282d` | primitive | coral darkened to 5:1 on blush | `text-rust-ink`: small coral text (notices, errors); never use `text-rust` below ~24 px |
 | `--water` | semantic | `--raw-teal` `#00b2b5` | `bg-water` / `ring-water`: live status dot, focus outline on the home page |
 | `--spacing-gutter` | primitive | `clamp(1.375rem, 4.2vw, 5rem)` | `px-gutter`: side padding of every home section |

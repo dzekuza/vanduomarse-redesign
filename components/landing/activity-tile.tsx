@@ -3,7 +3,6 @@
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { SERVICES, type ActivityCard } from "./content";
 import { useLanding } from "./landing-provider";
 
@@ -32,8 +31,7 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out-strong motion-safe:group-hover:scale-105"
         />
-        {/* text-micro (custom size) and text-ink are kept out of cn(): its merger mistakes the size for a colour and drops one. */}
-        <span className={`${cn("absolute top-3.5 right-3.5 px-2.5 py-2 md:top-5 md:right-5", card.id === "ciongo" ? "bg-rust" : "bg-dust")} text-micro text-ink`}>
+        <span className="absolute top-3.5 right-3.5 bg-dust px-2.5 py-2 text-micro text-ink md:top-5 md:right-5">
           {card.tag}
         </span>
         <span aria-hidden className="absolute right-4 bottom-4 grid size-12 place-items-center bg-dust text-ink transition-[background-color,rotate] duration-200 ease-out-strong group-hover:bg-rust motion-safe:group-hover:rotate-45">

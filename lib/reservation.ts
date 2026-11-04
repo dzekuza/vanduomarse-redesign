@@ -15,7 +15,7 @@ import {
   type StayUnitType,
 } from "@/lib/cabin";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "@/lib/data/public-types";
-import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, freeAt, hourLabel, longestForFleet, maxRiders, type QuadRentalItem } from "@/lib/quads";
+import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, freeAt, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
 import {
   formatHour,
   fromRate,
@@ -129,7 +129,7 @@ export type PirtisPlan = SaunaPlan | ProgramPlan;
 export interface QuadPlan extends QuadPick {
   kind: "keturraciai";
   items: QuadRentalItem[];
-  seats: number;
+  units: number;
   maxHours: number;
   ok: boolean;
   price: number;
@@ -374,21 +374,19 @@ function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: read
   return { kind: "pirtis", mode: "hourly", sauna, upsells, startHour: start, hours, extras, maxHours, ok, price: ok ? sessionPrice(hours, when.people, rates) + extrasPrice : 0 };
 }
 
-export function planQuads(pick: QuadPick, data: QuadPageData, when: When, busy: readonly number[] = []): QuadPlan {
+export function planQuads(pick: QuadPick, data: QuadPageData, day: string, busy: readonly number[] = []): QuadPlan {
   const items = data.types.flatMap((type) => {
     const units = pick.quantities[type.id] ?? 0;
     return units > 0 ? [{ type, units }] : [];
   });
-  const seats = items.reduce((total, { type, units }) => total + maxRiders(type, units), 0);
-  const totalUnits = items.reduce((total, { units }) => total + units, 0);
+  const units = items.reduce((total, item) => total + item.units, 0);
   const { settings, taken, today, nowHour } = data;
-  const { day } = when;
   const { startHour } = pick;
   const validStart = startHour !== null && startHour >= settings.openHour && startHour > pastHourOn(day, today, nowHour);
   const maxHours = validStart ? longestForFleet(items, taken, day, startHour, settings, busy) : 0;
   const hours = Math.max(1, Math.min(pick.hours, maxHours));
-  const ok = maxHours > 0 && seats >= when.people && totalUnits <= MAX_QUAD_RENTAL_UNITS;
-  return { ...pick, kind: "keturraciai", items, seats, maxHours, hours, ok, price: ok ? fleetRentalPrice(items, hours) : 0 };
+  const ok = maxHours > 0 && units <= MAX_QUAD_RENTAL_UNITS;
+  return { ...pick, kind: "keturraciai", items, units, maxHours, hours, ok, price: ok ? fleetRentalPrice(items, hours) : 0 };
 }
 
 export function planStay(pick: StayPick, data: CabinPageData, day: string): StayPlan {
@@ -400,8 +398,7 @@ export function planStay(pick: StayPick, data: CabinPageData, day: string): Stay
 }
 
 /**
- * Whether anything of each activity can still be booked on `day` for a group of `people`
- * (any start for the sauna and quads, any available cabin or camper pitch for one night).
+ * Whether the sauna can host `people`, a quad is free, or a stay is available for one night on `day`.
  */
 export function dayAvailability(data: ReservationData, day: string, people: number): Record<ActivityId, boolean> {
   const past = pastHourOn(day, data.sauna.today, data.sauna.nowHour);
@@ -419,8 +416,7 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
   const { settings, types, taken } = data.quads;
   let keturraciai = false;
   for (let h = Math.max(settings.openHour, past + 1); h < settings.closeHour; h++) {
-    const seats = types.reduce((total, type) => total + maxRiders(type, freeAt(type, taken, day, h)), 0);
-    if (seats >= people) {
+    if (types.some((type) => freeAt(type, taken, day, h) > 0)) {
       keturraciai = true;
       break;
     }
@@ -434,10 +430,10 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
 export function planAll(picks: Picks, data: ReservationData, when: When): Plans {
   // First plan each without the other, then keep the sauna and the quads from overlapping in time.
   const sauna = picks.pirtis ? planSauna(picks.pirtis, data.sauna, when) : undefined;
-  const quads = picks.keturraciai ? planQuads(picks.keturraciai, data.quads, when) : undefined;
+  const quads = picks.keturraciai ? planQuads(picks.keturraciai, data.quads, when.day) : undefined;
   return {
     pirtis: picks.pirtis ? planSauna(picks.pirtis, data.sauna, when, planHours(quads)) : undefined,
-    keturraciai: picks.keturraciai ? planQuads(picks.keturraciai, data.quads, when, planHours(sauna)) : undefined,
+    keturraciai: picks.keturraciai ? planQuads(picks.keturraciai, data.quads, when.day, planHours(sauna)) : undefined,
     nakvyne: picks.nakvyne ? planStay(picks.nakvyne, data.cabin, when.day) : undefined,
   };
 }

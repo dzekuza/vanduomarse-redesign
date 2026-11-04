@@ -31,7 +31,8 @@ function send(id: ActivityId, plans: Plans, when: When, contact: ContactInput): 
   }
   if (id === "keturraciai" && keturraciai?.startHour != null) {
     const allocations = keturraciai.items.map(({ type, units }) => ({ quadTypeId: type.id, units }));
-    const rental = { date: when.day, startHour: keturraciai.startHour, hours: keturraciai.hours, riders: when.people, note: "", ...contact };
+    // The combined booking takes vehicle quantities, with one driver per vehicle.
+    const rental = { date: when.day, startHour: keturraciai.startHour, hours: keturraciai.hours, riders: keturraciai.units, note: "", ...contact };
     return allocations.length === 1
       ? createQuadRental({ ...rental, ...allocations[0] })
       : createMixedQuadRental({ ...rental, allocations });

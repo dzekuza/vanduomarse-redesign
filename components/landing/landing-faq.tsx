@@ -15,7 +15,7 @@ export function LandingFaq() {
         <h2 id="faq-title" className="mt-8 text-title font-bold md:mt-11">
           GERAS
           <br />
-          <span className="text-lake-soft">KLAUSIMAS.</span>
+          <span className="text-rust">KLAUSIMAS.</span>
         </h2>
         <p className="mt-7 text-xs leading-loose">
           Neradai atsakymo?

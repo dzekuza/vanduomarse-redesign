@@ -7,8 +7,8 @@ import { useEventCalculator } from "./use-event-calculator";
 import { formatMoney } from "@/lib/event-pricing";
 
 /** Event price calculator page: question groups on the left, sticky live estimate on the right. */
-export function EventCalculator({ header }: { header: ReactNode }) {
-  const calc = useEventCalculator();
+export function EventCalculator({ header, today }: { header: ReactNode; today: string }) {
+  const calc = useEventCalculator(today);
   const { result, input, guests, space, preset } = calc;
 
   return (

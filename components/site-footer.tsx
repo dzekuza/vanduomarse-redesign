@@ -28,13 +28,13 @@ export function FooterBar({ topHref }: { topHref: string }) {
     <div className="grid grid-cols-2 items-center gap-x-9 border-t border-line pt-6.5 text-xs md:flex">
       <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 md:w-30" />
       <a href={`mailto:${MAIN_CONTACT.email}`} className={LINK}>
-        {MAIN_CONTACT.email} ↗
+        {MAIN_CONTACT.email}
       </a>
       <Link href="/kuponai" className={LINK}>
-        Dovanoti Marsą ↗
+        Dovanoti Marsą
       </Link>
       <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className={LINK}>
-        Instagram ↗
+        Instagram
       </a>
       <a href={topHref} className={LINK}>
         Į viršų ↑

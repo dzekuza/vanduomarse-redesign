@@ -1,3 +1,13 @@
+- 2026-11-04 Removed the shared guest field from the reservation flow. Sauna cards own their
+  group size. Quad rentals use vehicle quantities and send one driver per quad.
+- 2026-11-04 The event calculator uses the reservation date strip and calendar, with optional
+  dates and future months available for inquiries. Coupon steps use small ink numbers. Public
+  accents share the brand coral #ED5257.
+- 2026-11-04 Reservation quantities start at one and the minus button is disabled at the
+  minimum. Each quad type has its own add and remove action.
+- 2026-11-04 Unified home photo label backgrounds, used a coral accent in the FAQ heading,
+  and kept the arrow only on the footer’s back-to-top link. Named the two cabin options
+  “Dvivietis namelis” and “Keturvietis namelis” in the reservation flow.
 - 2026-11-04 Moved hero orbit centering and sizing into the shared artwork utility so
   production builds place the guide at the center of the first viewport.
 - 2026-11-04 The reservation summary shows quads first, followed by sauna and overnight stay.
