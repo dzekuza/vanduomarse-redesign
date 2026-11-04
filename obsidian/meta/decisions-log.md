@@ -548,6 +548,11 @@ sends the breakdown by email.
 CMS exists, the same shapes can be fed from it. Ranges make totals honest
 but wider; the client can narrow them by fixing values in the sheet.
 
+**2026-11-04 update.** The calculator now offers double and four-person cabins
+using the per-unit nightly rates in `lib/cabin.ts`. Each cabin type has its own
+quantity and both share the night count. Saved inquiries retain their stored
+breakdown and totals.
+
 ---
 
 ## ADR-0003 — The live-brand theme is site-wide

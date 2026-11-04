@@ -1,10 +1,11 @@
 "use client";
 
 import { CalendarBlankIcon, RowsIcon } from "@phosphor-icons/react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useState, type PointerEvent } from "react";
 import type { DayIcon } from "@/components/booking/day-picker";
 import { dateKey } from "@/lib/sauna";
-import { DayCell } from "./day-cell";
+import { DateStrip } from "./date-strip";
+import { canSelectDeparture, type DateRangeSelection } from "./day-cell";
 import { MonthCalendar, monthStart } from "./month-calendar";
 
 interface DatePickerProps {
@@ -14,6 +15,8 @@ interface DatePickerProps {
   icons?: (date: Date) => DayIcon[];
   /** Inquiries can select future dates beyond the dates in the strip. */
   allowFutureDates?: boolean;
+  /** `selected` is the arrival. The end is unset until departure is chosen. */
+  range?: { end: Date | null; selectingEnd: boolean; lastEnd: Date };
 }
 
 type View = "strip" | "calendar";
@@ -25,77 +28,47 @@ const VIEWS: { id: View; label: string; Icon: typeof RowsIcon }[] = [
 
 const MONTH_LABEL = new Intl.DateTimeFormat("lt-LT", { month: "long" });
 
-function DateStrip({ days, selected, onSelect, icons }: DatePickerProps) {
-  const stripRef = useRef<HTMLDivElement>(null);
-  const months = new Map<string, Date[]>();
-  for (const date of days) {
-    const key = dateKey(date).slice(0, 7);
-    const month = months.get(key);
-    if (month) month.push(date);
-    else months.set(key, [date]);
+/** A scrolling strip or a month calendar, switched with the toggle above it. */
+export function DatePicker({ days, selected, onSelect, icons, allowFutureDates, range }: DatePickerProps) {
+  const [view, setView] = useState<View>("strip");
+  const [browsedMonth, setBrowsedMonth] = useState<Date>();
+  const [preview, setPreview] = useState<{ start: string; end: string }>();
+  const selectedKey = selected && dateKey(selected);
+  const selection: DateRangeSelection | undefined = range && selected ? {
+    start: dateKey(selected),
+    end: range.end && dateKey(range.end),
+    lastEnd: dateKey(range.lastEnd),
+    selectingEnd: range.selectingEnd,
+    previewEnd: range.selectingEnd && !range.end && preview?.start === selectedKey ? preview.end : undefined,
+  } : undefined;
+  const calendarStart = range?.end ?? selected ?? days[0];
+  const calendarMonth = browsedMonth ?? (calendarStart && monthStart(calendarStart));
+
+  function selectDay(date: Date) {
+    if (range && view === "calendar" && calendarMonth) setBrowsedMonth(calendarMonth);
+    setPreview(undefined);
+    onSelect(date);
   }
 
-  const selectedKey = selected && dateKey(selected);
-  const today = days[0];
-
-  // Restore a date picked in the calendar when it falls inside the shorter strip.
-  useLayoutEffect(() => {
-    const strip = stripRef.current;
-    const active = strip?.querySelector('button[aria-pressed="true"]');
-    if (!strip || !active) return;
-    const viewport = strip.getBoundingClientRect();
-    const cell = active.getBoundingClientRect();
-    if (cell.left < viewport.left || cell.right > viewport.right) {
-      strip.scrollLeft += cell.left - viewport.left;
+  function previewDeparture(event: PointerEvent<HTMLDivElement>) {
+    if (!selection?.selectingEnd || event.pointerType !== "mouse") return;
+    const end = event.target instanceof Element ? event.target.closest<HTMLButtonElement>("button[data-date]")?.dataset.date : undefined;
+    if (!end || !canSelectDeparture(end, selection)) {
+      setPreview(undefined);
+    } else if (end !== preview?.end || selection.start !== preview.start) {
+      setPreview({ start: selection.start, end });
     }
-  }, [selectedKey]);
-
-  return (
-    <div ref={stripRef} className="scrollbar-ink flex gap-4 overflow-x-auto pb-3 sm:gap-5">
-      {[...months].map(([key, dates]) => {
-        const label = MONTH_LABEL.format(dates[0]);
-        return (
-          <div key={key} role="group" aria-label={label} className="shrink-0">
-            <p aria-hidden className="sticky left-0 mb-3 flex h-12 w-fit items-center whitespace-nowrap text-micro font-bold uppercase text-copy">
-              {label}
-            </p>
-            <div className="flex gap-1.5 sm:gap-2">
-              {dates.map((date) => {
-                const day = dateKey(date);
-                return (
-                  <DayCell
-                    key={day}
-                    date={date}
-                    active={day === selectedKey}
-                    isToday={date === today}
-                    icons={icons?.(date)}
-                    onSelect={onSelect}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** A scrolling strip or a month calendar, switched with the toggle above it. */
-export function DatePicker({ days, selected, onSelect, icons, allowFutureDates }: DatePickerProps) {
-  const [view, setView] = useState<View>("strip");
-  const calendarStart = selected ?? days[0];
-  const [browsedMonth, setBrowsedMonth] = useState<Date>();
-  const calendarMonth = browsedMonth ?? (calendarStart && monthStart(calendarStart));
+  }
 
   function changeView(next: View) {
     if (next === view) return;
     if (next === "calendar") setBrowsedMonth(undefined);
+    setPreview(undefined);
     setView(next);
   }
 
   return (
-    <div className="relative">
+    <div onPointerOver={selection?.selectingEnd ? previewDeparture : undefined} onPointerLeave={selection?.selectingEnd ? () => setPreview(undefined) : undefined} className="relative">
       <div className={view === "strip" ? "absolute top-0 right-0 z-10 flex h-12 items-center bg-dust pl-3" : "mb-4 flex items-center justify-between gap-2"}>
         {view === "calendar" && calendarMonth && (
           <p aria-live="polite" className="text-micro font-bold uppercase text-copy">
@@ -118,16 +91,21 @@ export function DatePicker({ days, selected, onSelect, icons, allowFutureDates }
         </div>
       </div>
       {view === "strip" ? (
-        <DateStrip days={days} selected={selected} onSelect={onSelect} icons={icons} />
+        <DateStrip days={days} selected={selected} onSelect={selectDay} icons={icons} range={selection} reserveIconSpace={Boolean(range && icons)} />
       ) : calendarMonth && (
         <MonthCalendar
           days={days}
           selected={selected}
-          onSelect={onSelect}
+          onSelect={selectDay}
           icons={icons}
           allowFutureDates={allowFutureDates}
+          range={selection}
+          reserveIconSpace={Boolean(range && icons)}
           month={calendarMonth}
-          onMonthChange={setBrowsedMonth}
+          onMonthChange={(month) => {
+            setPreview(undefined);
+            setBrowsedMonth(month);
+          }}
         />
       )}
     </div>

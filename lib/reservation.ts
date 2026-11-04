@@ -6,6 +6,7 @@
  */
 import {
   CABIN_SIZES,
+  MAX_STAY_NIGHTS,
   MAX_STAY_UNITS,
   freeStayUnits,
   roomLabel,
@@ -168,13 +169,6 @@ export function defaultPick(id: ActivityId, data: ReservationData): SaunaPick | 
   }
   if (id === "keturraciai") return { quantities: {}, startHour: null, hours: 1 };
   return { roomId: "namelis", size: CABIN_SIZES[0].id, nights: 1, units: 1 };
-}
-
-export function togglePick(picks: Picks, id: ActivityId, data: ReservationData): Picks {
-  if (!picks[id]) return { ...picks, [id]: defaultPick(id, data) };
-  const next = { ...picks };
-  delete next[id];
-  return next;
 }
 
 /** Whole hours `[start, start + hours)` of a private program are free, open and not past. */
@@ -393,14 +387,15 @@ export function planStay(pick: StayPick, data: CabinPageData, day: string): Stay
   const { roomId, size, nights, units } = pick;
   const checkIn = nextDays(day, 1)[0];
   const free = (type: StayUnitType) => freeStayUnits(data.availability, checkIn, nights, type);
-  const ok = Number.isInteger(units) && units >= 1 && units <= Math.min(MAX_STAY_UNITS, free(roomId === "namelis" ? size : roomId));
+  const validNights = Number.isInteger(nights) && nights >= 1 && nights <= MAX_STAY_NIGHTS;
+  const ok = validNights && Number.isInteger(units) && units >= 1 && units <= Math.min(MAX_STAY_UNITS, free(roomId === "namelis" ? size : roomId));
   return { ...pick, kind: "nakvyne", free, ok, price: ok ? roomPrice(roomId, size) * nights * units : 0 };
 }
 
 /**
- * Whether the sauna can host `people`, a quad is free, or a stay is available for one night on `day`.
+ * Whether the sauna can host `people`, a quad is free, or a stay is available for `nights` from `day`.
  */
-export function dayAvailability(data: ReservationData, day: string, people: number): Record<ActivityId, boolean> {
+export function dayAvailability(data: ReservationData, day: string, people: number, nights = 1): Record<ActivityId, boolean> {
   const past = pastHourOn(day, data.sauna.today, data.sauna.nowHour);
   const programOpen = data.sauna.programs.some((p) => {
     if (p.kind === "session") return data.sauna.events.some((e) => e.programId === p.id && e.date === day && e.spotsLeft >= people);
@@ -422,7 +417,7 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
     }
   }
   const checkIn = nextDays(day, 1)[0];
-  const hasStay = (type: StayUnitType) => freeStayUnits(data.cabin.availability, checkIn, 1, type) > 0;
+  const hasStay = (type: StayUnitType) => freeStayUnits(data.cabin.availability, checkIn, nights, type) > 0;
   const nakvyne = hasStay("kemperis") || CABIN_SIZES.some(({ id }) => hasStay(id));
   return { pirtis: hourlyOpen || programOpen, keturraciai, nakvyne };
 }

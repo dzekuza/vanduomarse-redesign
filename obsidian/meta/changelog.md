@@ -1,4 +1,22 @@
 - 2026-11-04 Staff get the new-request SMS for every web reservation, including those from email-only accounts (only the customer text needs a phone).
+- 2026-11-04 Added sauna filters that count matching unblocked time slots for the selected day.
+  Session categories use stable published program IDs. Seansai includes family and custom
+  programs, and Privati offers a Su pirtininku filter alongside the existing hourly add-on.
+- 2026-11-04 Added direct two-click stay dates to the Nakvynė strip and calendar. Pick arrival
+  first, then a later departure within 14 nights. An earlier click restarts a pending range,
+  and the next click after confirmation starts a new one. Room availability and prices appear
+  after both dates are selected. Departure can extend past the arrival cutoff and leaves the
+  other activities on the shared arrival date.
+- 2026-11-04 Grouped the calculator's food controls into Maitinimas, Gėrimai and Aptarnavimas
+  tabs and made the pirtininkas option visible before adding the sauna. The stay starts on the
+  event date, with the night count and departure above the cabin cards. Double and four-person
+  cabins can be priced together using the same nightly unit rates as the reservation.
+- 2026-11-04 Added quantity editing and activity removal to the desktop and mobile reservation
+  plans. Each selected quad type has its own control. Sauna headcount and stay units are editable,
+  and the total updates as the plan changes.
+- 2026-11-04 Enabled direct number entry in the event calculator. Moved day type next to the
+  calendar and grouped guest counts under Svečiai. WAKE, sauna, quad tours and cabins now use
+  matching option cards, with the cabin card visible as soon as Nakvynė opens.
 - 2026-11-04 Removed the shared guest field from the reservation flow. Sauna cards own their
   group size. Quad rentals use vehicle quantities and send one driver per quad.
 - 2026-11-04 The event calculator uses the reservation date strip and calendar, with optional

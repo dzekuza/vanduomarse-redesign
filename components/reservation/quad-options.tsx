@@ -6,7 +6,7 @@ import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { Panel } from "@/components/panel";
 import { DurationGrid, StartGrid } from "@/components/quads/quad-time-pickers";
 import type { QuadPageData } from "@/lib/data/public-types";
-import { MAX_QUAD_RENTAL_UNITS, type QuadType } from "@/lib/quads";
+import { quadRentalUnitLimit, type QuadType } from "@/lib/quads";
 import type { QuadPick, QuadPlan, When } from "@/lib/reservation";
 import { pastHourOn } from "@/lib/sauna";
 import { OptionGroupLabel } from "./option-card";
@@ -41,7 +41,7 @@ export function QuadOptions({ plan, data, when, included, busy, onChange }: Quad
         <div role="group" aria-label="Keturračių tipai ir kiekiai" className="grid gap-3 lg:grid-cols-2">
           {data.types.map((type) => {
             const count = quantities[type.id] ?? 0;
-            const max = Math.max(0, Math.min(type.units, MAX_QUAD_RENTAL_UNITS - (totalUnits - count)));
+            const max = quadRentalUnitLimit(type, totalUnits - count);
             return (
               <QuadQuantityCard
                 key={type.id}

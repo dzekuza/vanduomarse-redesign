@@ -7,6 +7,7 @@ import { MAX_PEOPLE, type SessionRow } from "@/lib/reservation";
 
 interface SessionListProps {
   rows: SessionRow[];
+  emptyMessage: string;
   people: number;
   selected: (row: SessionRow) => boolean;
   onPeople: (people: number) => void;
@@ -16,10 +17,10 @@ interface SessionListProps {
 }
 
 /** The chosen day's sessions as event cards, with a selection action on each available row. */
-export function SessionList({ rows, people, selected, onPeople, onSelect, limit = 8 }: SessionListProps) {
+export function SessionList({ rows, emptyMessage, people, selected, onPeople, onSelect, limit = 8 }: SessionListProps) {
   const [all, setAll] = useState(false);
   if (rows.length === 0) {
-    return <p role="status" className="text-sm text-rust-ink">Šią dieną laisvų seansų nėra. Pasirink kitą dieną.</p>;
+    return <p role="status" className="text-sm text-rust-ink">{emptyMessage}</p>;
   }
   const shown = all ? rows : rows.filter((row, index) => index < limit || selected(row));
   return (

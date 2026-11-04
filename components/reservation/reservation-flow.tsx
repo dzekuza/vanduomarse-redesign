@@ -8,6 +8,7 @@ import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
 import { ArrowButton } from "@/components/booking/arrow-button";
 import { Cta } from "@/components/cta";
+import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
 import {
@@ -20,7 +21,6 @@ import {
   describePlans,
   offered,
   planAll,
-  togglePick,
   totalOf,
   type ActivityId,
   type Picks,
@@ -37,11 +37,12 @@ import { ActivityAbout } from "./activity-about";
 import { ActivityTabs } from "./activity-tabs";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
+import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
 import { ReviewStep } from "./review-step";
 import { StepHeading } from "./step-heading";
 import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
-import { WhenStep } from "./when-step";
+import { WhenStep, type StayDatePhase } from "./when-step";
 
 /** Selection, account, review. */
 const accountSchema = z.object({ customerName: customerNameSchema });
@@ -87,6 +88,8 @@ export function ReservationFlow({
   const tabs = ACTIVITY_TAB_ORDER.filter((id) => offer[id]);
   const [tab, setTab] = useState<ActivityId>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
   const [date, setDate] = useState(days[0]);
+  const [draftNights, setDraftNights] = useState(1);
+  const [stayDatePhase, setStayDatePhase] = useState<StayDatePhase>("idle");
   const [people, setPeople] = useState(1);
   const [picks, setPicks] = useState<Picks>({});
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -102,36 +105,88 @@ export function ReservationFlow({
   });
 
   const day = dateKey(date);
+  const stayNights = picks.nakvyne?.nights ?? draftNights;
+  const stayDates = nextDays(day, MAX_STAY_NIGHTS + 1);
+  const stayEnd = stayDatePhase === "complete" ? stayDates[stayNights] : null;
+  const incompleteStay = picks.nakvyne !== undefined && !stayEnd;
+  const showStayDates = stayDatePhase !== "idle" && (picks.nakvyne !== undefined || (step === 0 && tab === "nakvyne"));
   const when: When = { day, people };
-  const plans = planAll(picks, data, when);
+  const plans = planAll(incompleteStay ? { ...picks, nakvyne: undefined } : picks, data, when);
   const lines = describePlans(plans);
+  if (incompleteStay) {
+    lines.push({ id: "nakvyne", title: ACTIVITY_TITLE.nakvyne, detail: "Pasirink išvykimo datą.", price: 0 });
+  }
   const total = totalOf(lines);
   const tracksPeople = picks.pirtis !== undefined;
   const dateLabel = longDateLabel(date);
-  const whenLabel = tracksPeople ? `${dateLabel}, ${people} žm.` : dateLabel;
+  const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
+  const datesLabel = checkoutLabel ? `${dateLabel} iki ${checkoutLabel}` : dateLabel;
+  const whenLabel = tracksPeople ? `${datesLabel}, ${people} žm.` : datesLabel;
   const facts = [
-    { label: "Data", value: dateLabel },
+    { label: showStayDates ? "Atvykimas" : "Data", value: dateLabel },
+    ...(checkoutLabel ? [{ label: "Išvykimas", value: checkoutLabel }] : []),
     ...(tracksPeople ? [{ label: "Žmonės", value: String(people) }] : []),
   ];
   /** Sauna, quad and stay icons under each day, lit when something is still free. */
   const dayIcons = (d: Date): DayIcon[] => {
-    const free = dayAvailability(data, dateKey(d), people);
+    const free = dayAvailability(data, dateKey(d), people, stayEnd ? stayNights : 1);
     return tabs.map((id) => ({
       Icon: ACTIVITY_ICON[id],
       label: `${ACTIVITY_TITLE[id]} ${free[id] ? "laisva" : "užimta"}`,
       on: free[id],
     }));
   };
-  const free = dayAvailability(data, day, people);
+  const free = dayAvailability(data, day, people, stayEnd ? stayNights : 1);
   const inPlan = tabs.filter((id) => picks[id] !== undefined);
   const offers = tabs
     .filter((id) => free[id] && picks[id] === undefined && !alreadyOffered.includes(`${day}:${id}`))
     .map((id) => ({ id, text: extraOfferText(id, data, inPlan) }));
-  const ready = [bookable(plans), customer !== null, true][step];
+  const ready = !incompleteStay && bookable(plans) && (step === 0 || customer !== null);
+  const busy = form.formState.isSubmitting || redirecting;
+
+  function selectStayDate(next: Date) {
+    if (busy) return;
+    const key = dateKey(next);
+    if (stayDatePhase !== "selectingEnd" || key <= day) {
+      setDate(next);
+      setStayDatePhase("selectingEnd");
+      return;
+    }
+
+    const nights = stayDates.findIndex((candidate) => dateKey(candidate) === key);
+    if (nights < 1) return;
+    if (picks.nakvyne) {
+      setPicks((current) => current.nakvyne ? { ...current, nakvyne: { ...current.nakvyne, nights } } : current);
+    } else {
+      setDraftNights(nights);
+    }
+    setStayDatePhase("complete");
+  }
+
+  function removeActivity(id: ActivityId) {
+    if (busy || !picks[id]) return;
+    setPicks((current) => {
+      const remaining = { ...current };
+      delete remaining[id];
+      return remaining;
+    });
+    if (id === "pirtis") setPeople(1);
+    if (id === "nakvyne") setDraftNights(stayNights);
+    if (inPlan.length === 1) setStep(0);
+  }
+
+  const planDetails = {
+    facts,
+    lines,
+    total,
+    quantities: planQuantities(plans, data, when, setPicks, setPeople),
+    busy,
+    onRemove: removeActivity,
+  };
 
   async function next() {
-    if (!ready) return;
-    // Other activities are free that day and not in the plan yet: offer each of them once before the contact step.
+    if (!ready || busy) return;
+    // Other activities are free that day and not in the plan yet: offer each once before the account step.
     if (step === 0 && offers.length) {
       setOfferOpen(true);
       return;
@@ -175,7 +230,7 @@ export function ReservationFlow({
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < LAST) void next();
-    else void submit();
+    else if (ready && !busy) void submit();
   }
 
   if (outcome) {
@@ -192,6 +247,8 @@ export function ReservationFlow({
             setOutcome(null);
             setPicks({});
             setPeople(1);
+            setDraftNights(1);
+            setStayDatePhase("idle");
             setStep(0);
             form.reset({ customerName: customer?.name ?? "" });
           }}
@@ -213,37 +270,44 @@ export function ReservationFlow({
               included={tabs.filter((id) => picks[id] !== undefined)}
               renderDetails={(id, active) => <ActivityAbout id={id} data={data} active={active} />}
               onChange={(id) => {
+                if (busy) return;
                 setTab(id);
                 setStep(0);
               }}
             />
-            <WhenStep days={days} date={date} onDate={setDate} icons={dayIcons} />
+            <WhenStep
+              days={days}
+              date={date}
+              onDate={(next) => { if (!busy) setDate(next); }}
+              icons={dayIcons}
+              stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
+            />
             {heading ? <StepHeading step={step + 1} {...heading} /> : null}
             {step === 0 ? (
-              <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} onToggle={(id) => setPicks((p) => togglePick(p, id, data))} onPick={setPicks} onPeople={setPeople} />
+              <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} stayNights={stayEnd ? stayNights : null} onRemove={removeActivity} onPick={setPicks} onPeople={setPeople} />
             ) : null}
             {step === 1 ? <AccountStep customer={customer} onCustomer={setCustomer} /> : null}
             {step === 2 ? <ReviewStep lines={lines} when={whenLabel} total={total} payments={payments} customer={customer} /> : null}
             <div className="flex items-center justify-between gap-4 border-t border-line pt-6">
               {step > 0 ? (
-                <button type="button" onClick={() => setStep(step - 1)} className="inline-flex min-h-11 items-center border-b border-current text-xs font-bold">
+                <button type="button" disabled={busy} onClick={() => setStep(step - 1)} className="inline-flex min-h-11 items-center border-b border-current text-xs font-bold">
                   Atgal
                 </button>
               ) : (
                 <span />
               )}
               {step < LAST ? (
-                <Cta tone="dark" small disabled={!ready} onClick={() => void next()}>
+                <Cta tone="dark" small disabled={!ready || busy} onClick={() => void next()}>
                   Toliau
                 </Cta>
               ) : (
-                <ArrowButton type="submit" disabled={!bookable(plans) || form.formState.isSubmitting || redirecting}>
+                <ArrowButton type="submit" disabled={!ready || busy}>
                   {redirecting ? "Nukreipiame į mokėjimą..." : form.formState.isSubmitting ? "Siunčiama..." : payments ? `Mokėti ${total} €` : "Rezervuoti"}
                 </ArrowButton>
               )}
             </div>
           </div>
-          <PlanPanel activity={tab} facts={facts} lines={lines} total={total} />
+          <PlanPanel activity={tab} {...planDetails} />
         </div>
         <ExtrasOfferDialog
           open={offerOpen}
@@ -261,7 +325,7 @@ export function ReservationFlow({
           }}
         />
       </form>
-      <MobilePlanDock activity={tab} whenLabel={whenLabel} facts={facts} lines={lines} total={total} />
+      <MobilePlanDock activity={tab} whenLabel={whenLabel} {...planDetails} />
     </FormProvider>
   );
 }

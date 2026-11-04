@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CabinSize } from "@/lib/cabin";
 import { DEFAULT_INPUT, PRESETS, SPACES, dayTypeOf, estimate, type EstimateInput, type PresetId } from "@/lib/event-pricing";
 import { todayKey } from "@/lib/sauna";
 
@@ -8,6 +9,10 @@ import { todayKey } from "@/lib/sauna";
 export function useEventCalculator(today = todayKey()) {
   const [input, setInput] = useState<EstimateInput>(DEFAULT_INPUT);
   const set = <K extends keyof EstimateInput>(key: K, value: EstimateInput[K]) => setInput((s) => ({ ...s, [key]: value }));
+
+  function setCabinUnits(size: CabinSize, count: number) {
+    setInput((s) => ({ ...s, cabinUnits: { ...s.cabinUnits, [size]: count } }));
+  }
 
   const result = estimate(input);
   const guests = input.adults + input.kids;
@@ -25,7 +30,7 @@ export function useEventCalculator(today = todayKey()) {
     setInput((s) => ({ ...s, date: date || null, day: date ? dayTypeOf(date) : s.day }));
   }
 
-  return { input, set, result, guests, space, preset, applyPreset, chooseDate, today };
+  return { input, set, setCabinUnits, result, guests, space, preset, applyPreset, chooseDate, today };
 }
 
 export type EventCalculatorState = ReturnType<typeof useEventCalculator>;

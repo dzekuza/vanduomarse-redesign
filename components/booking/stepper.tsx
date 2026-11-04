@@ -21,13 +21,12 @@ export function Stepper({
   compact?: boolean;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const current = draft ? Math.max(min, Math.min(max, Number(draft))) : value;
   const controlBorder = compact ? "border-current/25" : "border-line";
 
-  function commitDraft() {
+  function commit(next: number) {
     setDraft(null);
-    if (draft) {
-      onChange(Math.max(min, Math.min(max, Number(draft))));
-    }
+    if (next !== value) onChange(next);
   }
 
   return (
@@ -36,8 +35,8 @@ export function Stepper({
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
-          onClick={() => onChange(Math.max(min, value - 1))}
-          disabled={value <= min}
+          onClick={() => commit(Math.max(min, current - 1))}
+          disabled={current <= min}
           aria-label="Sumažinti"
           className={`flex size-11 items-center justify-center border transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30 ${controlBorder} ${compact ? "" : "text-ink"}`}
         >
@@ -53,7 +52,7 @@ export function Stepper({
               const next = event.target.value;
               if (/^\d*$/.test(next)) setDraft(next);
             }}
-            onBlur={commitDraft}
+            onBlur={() => commit(current)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
@@ -67,8 +66,8 @@ export function Stepper({
         )}
         <button
           type="button"
-          onClick={() => onChange(Math.min(max, value + 1))}
-          disabled={value >= max}
+          onClick={() => commit(Math.min(max, current + 1))}
+          disabled={current >= max}
           aria-label="Padidinti"
           className={`flex size-11 items-center justify-center border transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30 ${controlBorder} ${compact ? "" : "text-ink"}`}
         >

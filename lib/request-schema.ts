@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_STAY_UNITS } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, MAX_STAY_UNITS } from "@/lib/cabin";
 import { contactError, contactFields, needsContact, tourContactSchema } from "@/lib/quad-schema";
 
 /** What the visitor types in the contact step of the sauna, cabin, event and inquiry forms. */
@@ -30,7 +30,7 @@ export const stayBookingSchema = refined(
   contactFields.extend({
     stayTypeId: z.string().regex(/^[a-z0-9-]+$/).max(60),
     date: z.iso.date(),
-    nights: z.number().int().min(1).max(14),
+    nights: z.number().int().min(1).max(MAX_STAY_NIGHTS),
     guests: z.number().int().min(1).max(20).optional(),
     units: z.number().int().min(1).max(MAX_STAY_UNITS).optional(),
     coupon: couponCode,

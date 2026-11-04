@@ -46,15 +46,10 @@ export function StayOptions({ plan, included, onChange, onRemove }: StayOptionsP
           })}
         </div>
       </div>
-      {included && (
-        <>
-          {!plan.ok && (
-            <p role="status" className="text-sm text-rust-ink">
-              Šioms naktims pasirinkto kiekio nebeliko. Pakeisk kiekį, naktų skaičių arba tipą.
-            </p>
-          )}
-          <Stepper label="Naktys" value={nights} onChange={(next) => onChange({ roomId, size, nights: next, units })} min={1} max={14} />
-        </>
+      {included && !plan.ok && (
+        <p role="status" className="text-sm text-rust-ink">
+          Šioms naktims pasirinkto kiekio nebeliko. Pakeisk datas, kiekį arba tipą.
+        </p>
       )}
     </>
   );

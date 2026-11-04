@@ -13,17 +13,16 @@ export function EventDatePicker({ today, value, onChange }: { today: string; val
   const selected = value ? nextDays(value, 1)[0] : null;
 
   return (
-    <div role="group" aria-label="Renginio data" className="mb-3 min-w-0">
-      <div className="flex flex-wrap items-center justify-between gap-x-4">
-        <p className="text-sm">
-          Renginio data
-          {selected && <span className="ml-2 text-xs text-copy">{DATE_LABEL.format(selected)}</span>}
-        </p>
-        <button type="button" disabled={!selected} onClick={() => onChange("")} className="min-h-11 text-xs text-copy enabled:hover:underline disabled:opacity-30">
-          Išvalyti datą
-        </button>
-      </div>
+    <div role="group" aria-label="Renginio data" className="min-w-0">
       <DatePicker days={days} selected={selected} onSelect={(date) => onChange(dateKey(date))} allowFutureDates />
+      {selected && (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 text-xs text-copy">
+          <p>{DATE_LABEL.format(selected)}</p>
+          <button type="button" onClick={() => onChange("")} className="min-h-11 hover:underline">
+            Išvalyti datą
+          </button>
+        </div>
+      )}
     </div>
   );
 }

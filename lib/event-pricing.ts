@@ -1,3 +1,4 @@
+import { CABIN_SIZES, type CabinSize } from "./cabin";
 import { MASTER_PRICE, sessionPrice } from "./sauna";
 
 /**
@@ -190,8 +191,6 @@ export const PRICES = {
   wakeRider: 20,
   atvTour: 72,
   atvMinRiders: 10,
-  cabinNight: range(50, 60),
-  cabinBeds: 40,
 } as const;
 
 /* ---------- Event presets (sheet section 3) ---------- */
@@ -250,7 +249,7 @@ export interface EstimateInput {
   wakePrivate: boolean;
   wakeRiders: number;
   atvRiders: number;
-  cabinGuests: number;
+  cabinUnits: Record<CabinSize, number>;
   cabinNights: number;
 }
 
@@ -273,7 +272,7 @@ export const DEFAULT_INPUT: EstimateInput = {
   wakePrivate: false,
   wakeRiders: 0,
   atvRiders: 0,
-  cabinGuests: 0,
+  cabinUnits: { 2: 0, 4: 0 },
   cabinNights: 1,
 };
 
@@ -372,9 +371,11 @@ export function estimate(input: EstimateInput): Estimate {
   }
 
   // Stay
-  if (input.cabinGuests > 0) {
-    push("Nakvynė", `Nameliai: ${input.cabinGuests} asm. × ${input.cabinNights} n.`, times(PRICES.cabinNight, input.cabinGuests * input.cabinNights));
-    if (input.cabinGuests > PRICES.cabinBeds) warnings.push(`Nameliuose telpa ${PRICES.cabinBeds} svečiai.`);
+  for (const cabin of CABIN_SIZES) {
+    const units = input.cabinUnits[cabin.id];
+    if (units > 0) {
+      push("Nakvynė", `${cabin.name} · ${units} vnt. × ${input.cabinNights} n.`, fixed(cabin.pricePerNight * units * input.cabinNights));
+    }
   }
 
   const total = lines.reduce((sum, l) => add(sum, l.amount), ZERO);

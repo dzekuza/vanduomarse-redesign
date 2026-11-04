@@ -3,7 +3,7 @@
 import { QuadOptions } from "./quad-options";
 import { SaunaOptions } from "./sauna-options";
 import { StayOptions } from "./stay-options";
-import { defaultPick, planAll, planHours, type ActivityId, type PirtisPlan, type Picks, type Plans, type QuadPlan, type ReservationData, type When } from "@/lib/reservation";
+import { defaultPick, planAll, planHours, planStay, type ActivityId, type PirtisPlan, type Picks, type Plans, type QuadPlan, type ReservationData, type When } from "@/lib/reservation";
 
 interface ActivitiesStepProps {
   data: ReservationData;
@@ -12,8 +12,9 @@ interface ActivitiesStepProps {
   tab: ActivityId;
   picks: Picks;
   plans: Plans;
+  stayNights: number | null;
   /** Removes the activity from the plan (adding happens by choosing something). */
-  onToggle: (id: ActivityId) => void;
+  onRemove: (id: ActivityId) => void;
   onPick: (picks: Picks) => void;
   onPeople: (people: number) => void;
 }
@@ -31,14 +32,17 @@ function quadNotice(plan: QuadPlan): string {
 }
 
 /**
- * The chosen tab's activity. Its choices (programs, quad types, stay types with
- * prices) are always visible; picking one puts the activity in the plan and opens
- * the rest of its options.
+ * The chosen tab's activity. Stay types are shown once both dates are selected.
  */
-export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick, onPeople }: ActivitiesStepProps) {
+export function ActivitiesStep({ data, when, tab, picks, plans, stayNights, onRemove, onPick, onPeople }: ActivitiesStepProps) {
   const included = picks[tab] !== undefined;
   // Not in the plan yet: preview the activity with its defaults so the choices can be shown.
-  const shown = included ? plans : planAll({ [tab]: defaultPick(tab, data) }, data, when);
+  let shown = plans;
+  if (!included && tab === "nakvyne" && stayNights !== null) {
+    shown = { nakvyne: planStay({ ...defaultPick(tab, data), nights: stayNights }, data.cabin, when.day) };
+  } else if (!included && tab !== "nakvyne") {
+    shown = planAll({ [tab]: defaultPick(tab, data) }, data, when);
+  }
   const { pirtis, keturraciai, nakvyne } = shown;
   const notice = !included
     ? undefined
@@ -63,15 +67,15 @@ export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick
           busy={planHours(plans.pirtis)}
           onChange={(pick) => {
             if (Object.keys(pick.quantities).length) onPick({ ...picks, keturraciai: pick });
-            else if (included) onToggle("keturraciai");
+            else if (included) onRemove("keturraciai");
           }}
         />
       ) : null}
       {tab === "nakvyne" && nakvyne ? (
-        <StayOptions plan={nakvyne} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onToggle("nakvyne")} />
+        <StayOptions plan={nakvyne} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onRemove("nakvyne")} />
       ) : null}
       {included && tab !== "nakvyne" ? (
-        <button type="button" onClick={() => onToggle(tab)} className="inline-flex min-h-11 items-center text-sm text-ink/70 underline underline-offset-4 hover:text-rust">
+        <button type="button" onClick={() => onRemove(tab)} className="inline-flex min-h-11 items-center text-sm text-ink/70 underline underline-offset-4 hover:text-rust">
           Pašalinti iš plano
         </button>
       ) : null}

@@ -27,6 +27,7 @@ export const CAMPER_MAX_GUESTS = 6;
 
 /** Public request limit for stay units, separate from the park's stock. */
 export const MAX_STAY_UNITS = 20;
+export const MAX_STAY_NIGHTS = 14;
 
 export function cabinSize(size: CabinSize) {
   return CABIN_SIZES.find((s) => s.id === size)!;

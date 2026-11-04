@@ -1,7 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
-import { CABIN_SIZES, cabinStayType, type CabinAvailability } from "@/lib/cabin";
+import { CABIN_SIZES, MAX_STAY_NIGHTS, cabinStayType, type CabinAvailability } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
@@ -21,7 +21,6 @@ import { createPublicClient } from "@/lib/supabase/public";
 /** Days the sauna and cabin pickers show. */
 export const SAUNA_DAYS = 14;
 export const CABIN_DAYS = 21;
-const MAX_NIGHTS = 14;
 const ROW_PAGE_SIZE = 1000;
 
 interface AvailabilityWindow {
@@ -130,7 +129,7 @@ export async function getCabinPageData(availabilityWindow?: AvailabilityWindow):
   const supabase = createPublicClient();
   const today = todayKey(availabilityWindow?.now);
   // Last check-in day plus the longest stay.
-  const last = addDays(today, (availabilityWindow?.days ?? CABIN_DAYS) + MAX_NIGHTS);
+  const last = addDays(today, (availabilityWindow?.days ?? CABIN_DAYS) + MAX_STAY_NIGHTS);
   const rows = await readAvailabilityRows(
     (from, to) => supabase
       .rpc("stay_occupancy", { p_from: today, p_to: last }, { count: "exact" })
