@@ -1,7 +1,7 @@
 ## 2026-11-04 — PR #10 and payment hardening
 - **Changed:** branch `feat/accounts-and-payments`, two commits and PR #10. After a security review: `checkoutUrl` only replaces a session Stripe reports expired (lookup errors fail instead of opening a second session), conditional `attach_payment_session` (loser's session is expired), webhook passes `p_payment_id` from metadata, `duplicate` payments are texted to staff; migration `20261104180000_payment_session_guards`.
-- **Status:** migration tested in a rolled-back transaction (stale attach refused, old session paid is found by id, repeat event not a duplicate, double charge flagged); `tsc`/eslint clean; migration NOT applied (production apply refused by the classifier).
-- **Next:** apply `20261104180000`, regenerate types, then the Stripe end-to-end test.
+- **Status:** migration tested in a rolled-back transaction (stale attach refused, old session paid is found by id, repeat event not a duplicate, double charge flagged); `tsc`/eslint clean. Applied afterwards through the Supabase MCP on your instruction: ledger repaired, signatures and privileges verified live, regenerated types identical.
+- **Next:** restart dev with the Stripe keys, register the webhook, Stripe sandbox end-to-end test.
 
 ## 2026-11-04 — Mano rezervacijos rename and code-step buttons
 - **Changed:** `/paskyra` is titled and linked "Mano rezervacijos" (nav label, metadata, H1, reservations left and account right); code-step buttons restructured (confirm on its own row, secondary buttons wrap, `h-auto whitespace-normal`).

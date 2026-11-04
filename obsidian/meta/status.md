@@ -14,7 +14,7 @@ updated: 2026-11-03
 
 ## Current focus
 
-**PR #10 (accounts, payments, Mano rezervacijos) is open; a payment-hardening follow-up needs one more migration.** `20261104180000_payment_session_guards` (one payable Checkout Session per payment, webhook matching by payment id, double-charge flag) is written, tested in a rolled-back transaction and pushed in the branch, but **not applied**: run `supabase db push --linked` before restarting the dev server with the Stripe keys or deploying, because `app/actions/payments.ts` and the webhook now call the new function signatures (`lib/supabase/database.types.ts` is hand-edited for them until you regenerate after applying).
+**PR #10 (accounts, payments, Mano rezervacijos) is open and all four migrations are applied to the live project.** The payment-hardening migration `20261104180000_payment_session_guards` was applied through the Supabase MCP (ledger aligned, functions and privileges verified, generated types unchanged). Restart the dev server so the Stripe keys take effect, register the Stripe webhook, then run the Stripe sandbox test (paid, abandoned, refunded, double-session).
 
 **Account page renamed "Mano rezervacijos"; the full account path works.** Sign-in, name and a real reservation (PM-1068, 6 Nov 10:00–13:00, 200 €, pending, linked to the account, no payment because the running dev server started before the Stripe keys were added) were done in the browser and the reservation shows on the page through RLS. Restart `pnpm dev` (and redeploy Vercel) so `STRIPE_*` takes effect and the button becomes "Mokėti". PM-1068 is a test booking: cancel it in `/admin` or let the 48 h expiry take it. The code-step button fix is reasoned and linted but not yet seen in the browser (needs a sent code).
 
