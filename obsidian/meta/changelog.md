@@ -1,3 +1,17 @@
+- 2026-11-04 The account page is now titled and linked "Mano rezervacijos" (reservations first, account details beside them); the code step's buttons wrap so the resend countdown label fits.
+- 2026-11-04 Added the account page `/paskyra` (code sign-in, name, own reservations with status and payment, sign out; nav link "Paskyra") and migration `20261104170000_customer_own_requests` (customers read only their own rows). Extracted `LoginForm`; fixed an uncontrolled-to-controlled input warning when signing out at checkout.
+- 2026-11-04 Applied migrations `20261104150000_customer_accounts` and `20261104160000_stripe_payments` to the live project; a signed-in customer's request must now carry only their own confirmed phone and email.
+- 2026-11-04 Removed `components/reservation/reservation-gate.tsx` (the phone gate on `/rezervacija`); `proxy.ts` now also refreshes customer sessions on `/rezervacija`.
+- 2026-11-04 `/rezervacija` no longer asks for a phone code before booking (ADR-0027). After the plan, a
+  "Prisijungimas" step signs the visitor in or creates an account with a phone or email one-time code
+  (Supabase Auth), then payment follows; requests and payments are tied to the account. Needs migration
+  `20261104150000` and Supabase Auth settings (phone provider, email code template, custom SMTP).
+- 2026-11-04 Added Stripe payment to `/rezervacija` (ADR-0026): the review step becomes "Mokėti N €",
+  all requests of the reservation are filed and paid in one hosted Checkout, the webhook confirms,
+  expires or refunds, and `/rezervacija/mokejimas` shows the result with "pay again". Admin lists and
+  sheets show a payment badge and a refund reminder. Checkout relies on the Stripe SDK's own retry idempotency. Off until Stripe keys are set; needs migration `20261104160000`.
+- 2026-11-04 Applied the stay-units, mixed-quad-rentals and program-ticket migrations to the live
+  database and repaired the migration history, so the reservation page's stay and quad bookings work in production.
 - 2026-11-04 Moved hero orbit centering and sizing into the shared artwork utility so
   production builds place the guide at the center of the first viewport.
 - 2026-11-04 The reservation summary shows quads first, followed by sauna and overnight stay.

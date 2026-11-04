@@ -26,7 +26,11 @@ updated: 2026-11-01
 | `SUPABASE_SERVICE_ROLE_KEY` | server | **yes** (staff management + phone gate) | Read by `lib/supabase/admin.ts`. Used by the owner-only actions in `app/admin/staff-actions.ts` (create, reset, delete logins) and by `app/actions/phone.ts` to call `request_phone_code` / `verify_phone_code`, the only functions it touches (ADR-0018). Without it the phone gate says SMS checks are down, so nobody can book online |
 | `PHONE_VERIFICATION_SECRET` | server | **yes** | 32+ random chars. `lib/phone-verification.ts` derives three keys from it: SMS code HMAC, client IP HMAC, verification token signature. Rotating it invalidates every verified phone (visitors re-verify) |
 
-Values: Supabase dashboard → Project Settings → API.
+| `STRIPE_SECRET_KEY` | server | for online payment | Restricted key (`rk_…`, Checkout Sessions write, Payment Intents read) or secret key. Read by `lib/stripe.ts`. Online payment on `/rezervacija` is on only when this **and** `STRIPE_WEBHOOK_SECRET` are set |
+| `STRIPE_WEBHOOK_SECRET` | server | for online payment | Signing secret (`whsec_…`) of the endpoint `https://<site>/api/stripe/webhook`; verified in `app/api/stripe/webhook/route.ts` |
+| `SITE_URL` | server | no | Public origin for the Stripe return URLs (e.g. `https://vanduomarse.lt`); defaults to the request's own origin |
+
+Values: Supabase dashboard → Project Settings → API. Stripe: Developers → API keys and Webhooks (use a sandbox for development).
 
 ## Access
 
