@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
-import { BookingStatusBadge } from "../status-badge";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { BookingActions } from "./booking-actions";
 import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
@@ -104,7 +104,12 @@ export function BookingsView() {
                 <TableCell className="hidden md:table-cell">{bookingTypeLabel(b)}</TableCell>
                 <TableCell className="hidden lg:table-cell">{b.guests ?? "—"}</TableCell>
                 <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(b.total)}</TableCell>
-                <TableCell><BookingStatusBadge status={b.status} /></TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    <BookingStatusBadge status={b.status} />
+                    <PaymentBadge payment={b.payment} />
+                  </div>
+                </TableCell>
                 <TableCell className="hidden sm:table-cell"><BookingActions booking={b} /></TableCell>
               </TableRow>
             ))}

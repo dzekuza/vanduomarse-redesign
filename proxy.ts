@@ -16,8 +16,8 @@ function embedResponse() {
 }
 
 /**
- * Refreshes the Supabase session cookie on /admin requests and sends signed-out
- * visitors to the login page. The staff check itself happens in the admin
+ * Refreshes the Supabase session cookie on /admin and /rezervacija requests (customers sign in
+ * there with a one-time code) and sends signed-out visitors on /admin to the login page. The staff check itself happens in the admin
  * layout (and in RLS) — this only gates on "signed in at all".
  */
 export async function proxy(request: NextRequest) {
@@ -39,6 +39,8 @@ export async function proxy(request: NextRequest) {
 
   // getClaims() validates the JWT and refreshes it when needed.
   const { data } = await supabase.auth.getClaims();
+  // The reservation pages only need the customer's session kept fresh: nobody is sent to a login page.
+  if (request.nextUrl.pathname.startsWith("/rezervacija") || request.nextUrl.pathname.startsWith("/paskyra")) return response;
   const signedIn = Boolean(data?.claims);
   const onLogin = request.nextUrl.pathname === LOGIN_PATH;
 
@@ -52,5 +54,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/embed/:path*"],
+  matcher: ["/admin/:path*", "/embed/:path*", "/rezervacija/:path*", "/paskyra/:path*"],
 };

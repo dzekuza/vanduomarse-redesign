@@ -1,6 +1,6 @@
-import { BOOKING_STATUS, INQUIRY_STATUS } from "@/lib/admin/labels";
+import { BOOKING_STATUS, INQUIRY_STATUS, PAYMENT_STATUS } from "@/lib/admin/labels";
 import { COUPON_STATUS_LABEL, type CouponStatus } from "@/lib/coupons";
-import type { BookingStatus, InquiryStatus } from "@/lib/admin/types";
+import type { BookingStatus, InquiryStatus, PaymentInfo, PaymentStatus } from "@/lib/admin/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,14 @@ const COUPON_TONE: Record<CouponStatus, Tone> = {
   atsauktas: "closed",
 };
 
+const PAYMENT_TONE: Record<PaymentStatus, Tone> = {
+  laukia: "pending",
+  apmoketa: "confirmed",
+  pasibaige: "closed",
+  nepavyko: "closed",
+  grazinta: "done",
+};
+
 interface StatusPillProps {
   tone: Tone;
   label: string;
@@ -63,4 +71,15 @@ export function InquiryStatusBadge({ status }: { status: InquiryStatus }) {
 
 export function CouponStatusBadge({ status }: { status: CouponStatus }) {
   return <StatusPill tone={COUPON_TONE[status]} label={COUPON_STATUS_LABEL[status]} pulse={status === "laukia_apmokejimo"} />;
+}
+
+/** The Stripe payment of a web reservation; nothing for requests that were never paid online. */
+export function PaymentBadge({ payment }: { payment?: PaymentInfo }) {
+  if (!payment) return null;
+  return (
+    <>
+      <StatusPill tone={PAYMENT_TONE[payment.status]} label={PAYMENT_STATUS[payment.status]} />
+      {payment.needsReview ? <StatusPill tone="pending" label="Peržiūrėti mokėjimą" pulse /> : null}
+    </>
+  );
 }

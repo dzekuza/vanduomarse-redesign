@@ -3,7 +3,8 @@
 import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { ACTION_LABEL, NEXT_STATUSES, useBookingStatus } from "./booking-actions";
 import { useAdmin } from "../admin-store";
-import { BookingStatusBadge } from "../status-badge";
+import { PaymentNote } from "../payment-note";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { BOOKING_SOURCE } from "@/lib/admin/labels";
 import { bookingTypeLabel, bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
 import type { Booking } from "@/lib/admin/types";
@@ -27,10 +28,13 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
           <>
             <SheetHeader>
               <SheetTitle className="flex items-center gap-3">
-                {booking.reference} <BookingStatusBadge status={booking.status} />
+                {booking.reference} <BookingStatusBadge status={booking.status} /> <PaymentBadge payment={booking.payment} />
               </SheetTitle>
               <SheetDescription>Gauta {formatDateTime(booking.createdAt)}</SheetDescription>
             </SheetHeader>
+            <div className="px-4">
+              <PaymentNote payment={booking.payment} />
+            </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 text-sm">
               {[
                 ["Tipas", saunaName ?? bookingTypeLabel(booking)],

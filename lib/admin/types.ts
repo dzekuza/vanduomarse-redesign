@@ -22,6 +22,19 @@ export type BookingKind = "pirtis" | "namelis" | "kemperis";
 export type BookingSource = "svetaine" | "telefonu" | "vietoje";
 export type BookingStatus = "laukia" | "patvirtinta" | "ivykdyta" | "atsaukta";
 
+export type PaymentStatus = "laukia" | "apmoketa" | "pasibaige" | "nepavyko" | "grazinta";
+
+/** The Stripe payment a web reservation was paid with (one payment covers all requests of that reservation). */
+export interface PaymentInfo {
+  id: string;
+  status: PaymentStatus;
+  amount: number;
+  refunded: number;
+  paidAt?: string;
+  /** Paid late or for an unexpected amount: staff should check it in Stripe. */
+  needsReview: boolean;
+}
+
 export interface Booking {
   id: string;
   reference: string;
@@ -49,6 +62,7 @@ export interface Booking {
   source?: BookingSource;
   /** Internal note from staff (manual bookings). */
   note?: string;
+  payment?: PaymentInfo;
 }
 
 /** Sauna hours closed by staff (maintenance, private use). */
@@ -148,6 +162,7 @@ export interface QuadRental {
   source: BookingSource;
   note?: string;
   createdAt: string;
+  payment?: PaymentInfo;
 }
 
 /** A ticket for an event (a row of event_tickets); quad tours and other events share the shape. */
@@ -165,6 +180,7 @@ export interface TourTicket {
   total: number;
   status: BookingStatus;
   createdAt: string;
+  payment?: PaymentInfo;
 }
 
 /** A coupon order or issued coupon. `code` stays unset until payment is confirmed. */

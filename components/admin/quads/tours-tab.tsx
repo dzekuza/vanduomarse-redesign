@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAdmin } from "../admin-store";
-import { BookingStatusBadge } from "../status-badge";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { StatusActions } from "./status-actions";
 import { formatDay } from "@/lib/admin/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,10 @@ export function ToursTab() {
           <Card key={t.id} className="h-full">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
               <CardTitle className="text-item">{t.eventTitle}</CardTitle>
-              <BookingStatusBadge status={t.status} />
+              <div className="flex flex-wrap justify-end gap-1">
+                <BookingStatusBadge status={t.status} />
+                <PaymentBadge payment={t.payment} />
+              </div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <p>

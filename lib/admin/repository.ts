@@ -1,7 +1,7 @@
 import "server-only";
 import { isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toInquiry, toManagedEvent, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -46,7 +46,7 @@ async function readQuadRentals(supabase: ServerSupabase) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -72,14 +72,22 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
       .order("created_at", { ascending: false }),
     supabase.from("staff_roles").select("*").order("is_owner", { ascending: false }).order("name"),
     supabase.from("staff").select("*").order("created_at"),
+    supabase.from("payments").select("*"),
   ]);
 
   for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
+  // Payments are optional context: before the payments migration is applied the table is missing, and the lists just show no payment.
+  const paymentById = new Map((payments.data ?? []).flatMap((row) => {
+    const info = toPaymentInfo(row);
+    return info ? [[row.id, info] as const] : [];
+  }));
+  const paymentOf = (id: string | null | undefined) => (id ? paymentById.get(id) : undefined);
+
   return {
-    bookings: bookings.data!.map(toBooking),
+    bookings: bookings.data!.map((r) => ({ ...toBooking(r), payment: paymentOf(r.payment_id) })),
     blocks: blocks.data!.map(toBlock),
     inquiries: inquiries.data!.map(toInquiry),
     events: events.data!.map(toManagedEvent),
@@ -91,9 +99,9 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     couponProducts: couponProducts.data!.map(toCouponProduct),
     quadTypes: quadTypes.data!.map(toQuadType),
     quadSettings: toQuadSettings(quadSettings.data!),
-    quadRentals: quadRentals.data!.map(toQuadRental),
-    tourTickets: tourTickets.data!.map(toTourTicket),
-    eventTickets: eventTickets.data!.map(toTourTicket),
+    quadRentals: quadRentals.data!.map((r) => ({ ...toQuadRental(r), payment: paymentOf(r.payment_id) })),
+    tourTickets: tourTickets.data!.map((r) => ({ ...toTourTicket(r), payment: paymentOf(r.payment_id) })),
+    eventTickets: eventTickets.data!.map((r) => ({ ...toTourTicket(r), payment: paymentOf(r.payment_id) })),
     me,
     roles: roles.data!.map(toStaffRole),
     // RLS already hides other people's rows from non-owners; this keeps the payload explicit.

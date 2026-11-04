@@ -2,7 +2,8 @@
 
 import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { useAdmin } from "../admin-store";
-import { BookingStatusBadge } from "../status-badge";
+import { PaymentNote } from "../payment-note";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { StatusActions } from "./status-actions";
 import { formatDateTime, formatDay, quadRentalLabel } from "@/lib/admin/format";
 import { BOOKING_SOURCE } from "@/lib/admin/labels";
@@ -32,7 +33,11 @@ export function RentalSheet({ rental, onOpenChange }: RentalSheetProps) {
               </SheetDescription>
             </SheetHeader>
             <div className="space-y-6 px-4 pb-6">
-              <BookingStatusBadge status={rental.status} />
+              <div className="flex flex-wrap gap-1">
+                <BookingStatusBadge status={rental.status} />
+                <PaymentBadge payment={rental.payment} />
+              </div>
+              <PaymentNote payment={rental.payment} />
               <dl className="grid grid-cols-2 gap-4 text-sm">
                 {[
                   ["Data", formatDay(rental.date)],
