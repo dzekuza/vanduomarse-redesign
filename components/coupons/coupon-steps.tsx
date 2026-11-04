@@ -13,7 +13,7 @@ export function CouponSteps() {
           <span className="font-display text-tile font-bold text-rust">{String(i + 1).padStart(2, "0")}</span>
           <div>
             <h2 className="text-sm font-bold">{s.title}</h2>
-            <p className="mt-1 text-xs leading-loose text-muted-foreground">{s.text}</p>
+            <p className="mt-1 text-xs leading-loose text-copy">{s.text}</p>
           </div>
         </li>
       ))}

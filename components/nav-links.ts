@@ -4,6 +4,7 @@ export const NAV_LINKS = [
   { href: "/renginiai", label: "Renginiai" },
   { href: "/skaiciuokle", label: "Skaičiuoklė" },
   { href: "/kuponai", label: "Dovanų kuponai" },
+  { href: "/apie-marsa", label: "Apie Marsą" },
 ] as const;
 
 /** Sections of the home page, listed under the big links of the menu panel. */

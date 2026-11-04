@@ -1,7 +1,7 @@
 "use client";
 
 import { useAdmin } from "../admin-store";
-import { staysOn } from "@/lib/admin/occupancy";
+import { stayUnitsOn } from "@/lib/admin/occupancy";
 import { CABIN_COUNT } from "@/lib/admin/labels";
 import { formatDay } from "@/lib/admin/format";
 
@@ -11,8 +11,8 @@ export function StaysStrip({ days }: { days: string[] }) {
   return (
     <div className={`grid gap-2 ${days.length === 1 ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-4 lg:grid-cols-7"}`}>
       {days.map((day) => {
-        const cabins = staysOn(bookings, day, "namelis").length;
-        const campers = staysOn(bookings, day, "kemperis").length;
+        const cabins = stayUnitsOn(bookings, day, "namelis");
+        const campers = stayUnitsOn(bookings, day, "kemperis");
         const pct = Math.min(100, Math.round((cabins / CABIN_COUNT) * 100));
         return (
           <div key={day} className="border bg-card p-3">

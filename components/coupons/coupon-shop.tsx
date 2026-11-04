@@ -20,7 +20,7 @@ export function CouponShop({ products, header }: { products: CouponProduct[]; he
     return (
       <div className="space-y-10">
         {header}
-        <Panel className="p-6 text-sm text-muted-foreground md:p-8">Šiuo metu kuponų neparduodame. Parašyk info@vanduomarse.lt ir padėsime.</Panel>
+        <Panel className="p-6 text-sm text-copy md:p-8">Šiuo metu kuponų neparduodame. Parašyk info@vanduomarse.lt ir padėsime.</Panel>
       </div>
     );
   }

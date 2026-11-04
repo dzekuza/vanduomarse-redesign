@@ -9,14 +9,14 @@ interface BookingHeaderProps {
   tagline?: string;
   /** One or two lines; the second is coral. */
   title: [string] | [string, string];
-  intro: string;
+  intro?: string;
 }
 
 /** Light page header of the booking-style pages (reservation, calculator): breadcrumb, kicker, big title, intro. */
 export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingHeaderProps) {
   return (
     <header className="space-y-6">
-      <nav aria-label="Naršymo kelias" className="flex items-center gap-3 text-micro text-lake-soft">
+      <nav aria-label="Naršymo kelias" className="flex items-center gap-3 text-micro text-copy">
         <Link href="/" className="hover:text-rust">
           Marsas
         </Link>
@@ -41,7 +41,7 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingH
           </>
         ) : null}
       </h1>
-      <p className="max-w-xl text-xs leading-loose text-lake-soft md:text-sm">{intro}</p>
+      {intro ? <p className="max-w-xl text-xs leading-loose text-copy md:text-sm">{intro}</p> : null}
     </header>
   );
 }

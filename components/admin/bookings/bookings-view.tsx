@@ -10,9 +10,9 @@ import { BookingActions } from "./booking-actions";
 import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
 import { NewBookingDialog } from "./new-booking-dialog";
-import { BOOKING_KIND, BOOKING_SOURCE } from "@/lib/admin/labels";
+import { BOOKING_SOURCE } from "@/lib/admin/labels";
 import { bookingsToCsv, exportFileName } from "@/lib/admin/export";
-import { bookingWhen, formatDay, formatEur } from "@/lib/admin/format";
+import { bookingTypeLabel, bookingWhen, formatDay, formatEur } from "@/lib/admin/format";
 import { downloadText } from "@/lib/download";
 import { dateKey } from "@/lib/sauna";
 import { Badge } from "@/components/ui/badge";
@@ -101,8 +101,8 @@ export function BookingsView() {
                     ) : null}
                   </p>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{BOOKING_KIND[b.kind]}</TableCell>
-                <TableCell className="hidden lg:table-cell">{b.guests}</TableCell>
+                <TableCell className="hidden md:table-cell">{bookingTypeLabel(b)}</TableCell>
+                <TableCell className="hidden lg:table-cell">{b.guests ?? "—"}</TableCell>
                 <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(b.total)}</TableCell>
                 <TableCell><BookingStatusBadge status={b.status} /></TableCell>
                 <TableCell className="hidden sm:table-cell"><BookingActions booking={b} /></TableCell>

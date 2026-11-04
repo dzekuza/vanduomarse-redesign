@@ -1,4 +1,4 @@
-import { createQuadRental } from "@/app/actions/quads";
+import { createMixedQuadRental, createQuadRental } from "@/app/actions/quads";
 import { createProgramBooking, createProgramTicket, createSaunaBooking, createStayBooking } from "@/app/actions/requests";
 import type { ActionResult } from "@/app/admin/actions";
 import { cabinStayType } from "@/lib/cabin";
@@ -30,10 +30,14 @@ function send(id: ActivityId, plans: Plans, when: When, contact: ContactInput): 
     return createSaunaBooking({ saunaId: pirtis.sauna.id, date: when.day, startHour: pirtis.startHour, hours: pirtis.hours, party: when.people, extras: pirtis.extras, ...contact });
   }
   if (id === "keturraciai" && keturraciai?.startHour != null) {
-    return createQuadRental({ quadTypeId: keturraciai.type.id, date: when.day, startHour: keturraciai.startHour, hours: keturraciai.hours, units: keturraciai.units, riders: when.people, note: "", ...contact });
+    const allocations = keturraciai.items.map(({ type, units }) => ({ quadTypeId: type.id, units }));
+    const rental = { date: when.day, startHour: keturraciai.startHour, hours: keturraciai.hours, riders: when.people, note: "", ...contact };
+    return allocations.length === 1
+      ? createQuadRental({ ...rental, ...allocations[0] })
+      : createMixedQuadRental({ ...rental, allocations });
   }
   if (id === "nakvyne" && nakvyne) {
-    return createStayBooking({ stayTypeId: nakvyne.roomId === "namelis" ? cabinStayType(nakvyne.size) : nakvyne.roomId, date: when.day, nights: nakvyne.nights, guests: when.people, ...contact });
+    return createStayBooking({ stayTypeId: nakvyne.roomId === "namelis" ? cabinStayType(nakvyne.size) : nakvyne.roomId, date: when.day, nights: nakvyne.nights, units: nakvyne.units, ...contact });
   }
   return null;
 }

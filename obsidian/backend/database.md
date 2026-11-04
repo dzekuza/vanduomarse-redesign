@@ -1,12 +1,12 @@
 ---
 tags: [backend, wip]
-updated: 2026-10-30
+updated: 2026-11-04
 ---
 
 # Database
 
 Supabase Postgres, project **Vanduo** (`mwngljhcvqkvncwbmgeo`, eu-west-1).
-All migrations are **applied**, and the **app reads and writes it** (ADR-0007):
+The **app reads and writes it** (ADR-0007). Pending migrations are noted below:
 public pages through `lib/data/public.ts`, `/admin` through staff login and
 `app/admin/actions.ts`.
 
@@ -62,7 +62,7 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
-| `bookings` | `Booking` | Customer columns inline; `stay_type_id` for stays (new: cabin size); `reference` auto `PM-`/`MM-` | staff only |
+| `bookings` | `Booking` | Customer columns inline; `stay_type_id` and `stay_units` for stays (existing bookings default to one unit). Stays may leave `guests` unknown. Sauna bookings require it. `reference` auto `PM-`/`MM-` | staff only |
 | `booking_extras` | `Booking.extras` | Snapshot of name, unit, price, qty, line total | staff only |
 | `sauna_blocks` | `Block` | `sauna_id`; unique (`sauna_id`, `date`, `hour`) | staff only (public via RPC) |
 | `inquiries` + `inquiry_notes` | `Inquiry` | `estimate_min/max` both null or both set; `calculator_input jsonb` | staff only |
@@ -74,14 +74,16 @@ repo). After connecting, the database is the source of truth for prices.
 | `coupon_redemptions` | `Coupon.redemptions` | One row per spend; a `before insert` trigger locks the coupon, checks status/expiry/balance and updates `balance` + status | staff only |
 | `quad_types` | `QuadType` | Fleet: `seats` 1-2, `units` owned, `price_per_hour`, `active`. Placeholder seed: 4 singles (30 €/h), 2 doubles (45 €/h) | anon reads `active`; staff all |
 | `quad_settings` | `QuadSettings` | Singleton (`id = true`): `open_hour`, `close_hour`, `max_hours`, `deposit` (0 hides it), `min_age`, `rules` (empty hides the block) | public read; staff update |
-| `quad_rentals` | `QuadRental` | Hourly rental requests: type, date, `start_hour`, `hours`, `units`, `riders`, contact, `total`, status/source reuse `booking_status` / `booking_source`; `KT-` reference. Public requests start `laukia` | staff only |
+| `quad_rentals` | `QuadRental` | Hourly rental request with one slot, contact, total and `KT-` reference. `units` and `riders` cover the entire request. `quad_type_id` is set for single-type requests and empty for mixed requests. Public requests start `laukia` | staff only |
+| `quad_rental_items` | `QuadRental.items` | For a mixed request, one row per fleet type and its unit count. Deleting the rental deletes its items | Staff with `keturraciai` read. The mixed rental RPC writes |
 | `price_items` | `PriceItem` | Column `"group"` is quoted (reserved word) | public read; staff write |
 
 ### Rules the database enforces (SQLSTATE `23P01` on conflict)
 
 - No two live sessions in the **same sauna** overlap (`exclude using gist` on `sauna_id`, date, hours; needs `btree_gist`). A sauna booking needs a `sauna_id`; stays have none.
 - A live sauna session can't cover a staff-closed hour of its sauna, and staff can't close a booked hour.
-- Stays never exceed `stay_types.units` on any night (advisory-locked trigger).
+- Stays never exceed `stay_types.units` on any night. The advisory-locked trigger sums reserved units rather than booking rows.
+- Quad rentals never exceed stock for any selected fleet type in any hour. The capacity trigger locks mixed types in a consistent order and checks them together.
 - Event tickets never exceed `events.capacity`; `events.sold` = sum of live tickets.
 - Cancelled rows (`atsaukta`) never block anything.
 - A booking's `stay_type_id` must match its `kind` (composite FK).
@@ -107,7 +109,7 @@ deliberate, so a page never opens onto silently empty data.
 | `rezervacijos` | bookings, booking_extras | sauna_blocks, sauna_upsells |
 | `uzimtumas` | sauna_blocks | bookings + extras |
 | `uzklausos` | inquiries, inquiry_notes | — |
-| `keturraciai` | quad_types, quad_settings, quad_rentals; tickets of `keturratis` events | events |
+| `keturraciai` | quad_types, quad_settings, quad_rentals; quad_rental_items (read only); tickets of `keturratis` events | events |
 | `kuponai` | coupon_products, coupons, coupon_redemptions; `activate_coupon()` | — |
 | `renginiai` | events, event_tickets, sauna_event_templates; `materialize_sauna_events()` | — |
 | `pirtis` | saunas, sauna_upsell_links, sauna_upsells, `sauna-photos` objects | — (saunas are also read by `rezervacijos`, `uzimtumas`, `apzvalga`) |
@@ -128,16 +130,18 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 |----------|-----|---------|
 | `sauna_taken(from, to)` | anon, authenticated | Booked + closed hours per sauna (`sauna_id`, day, hour), no customer data |
 | `sauna_taken_hours(from, to)` | anon, authenticated | **Deprecated**: hours taken in any sauna; kept for the deploy window |
-| `stay_occupancy(from, to)` | anon, authenticated | Nights taken vs units per stay type per day |
+| `stay_occupancy(from, to)` | anon, authenticated | Units reserved vs stock per stay type per night, without contact data |
 | `private.is_staff()` | authenticated | Used by every staff policy. Lives in the non-exposed `private` schema, so it isn't an RPC |
 | `materialize_sauna_events(from, days)` | `renginiai` | Creates events from active templates; idempotent |
 | `create_coupon_order(product, name, email, recipient, message)` | anon, authenticated | `security definer`. Creates an order awaiting payment; amount from the product row; refuses at 100 pending orders per hour |
 | `check_coupon(code)` | anon, authenticated | `security definer`. Balance, scope and expiry for an active code; nothing for unknown, unpaid, spent, cancelled or expired ones |
 | `quad_taken(from, to)` | anon, authenticated | `security definer`. Quads taken per type and hour (counts only); range capped at 60 days |
 | `create_quad_rental(type, date, start, hours, units, riders, name, email, phone, note)` | anon, authenticated | `security definer`. Files a `laukia` request; price, opening hours, max hours and rider limit come from the fleet/settings rows; refuses at 100 pending per hour |
+| `create_mixed_quad_rental(allocations, date, start, hours, riders, name, email, phone, note)` | anon, authenticated | `security definer`. Reserves up to 20 quads across distinct active types in one slot. The database checks total seats and live hourly stock, prices each type and inserts all rows in one transaction |
 | `create_tour_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Only for published `keturratis` events with capacity; `laukia`, `KZ-` reference; seats enforced by the existing ticket trigger |
 | `create_sauna_booking(sauna, date, start, hours, party, extras jsonb, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Active sauna only (`sauna_unavailable`); prices from its `saunas` row + linked, active `sauna_upsells`; the old signature without `sauna` books the first active sauna (deprecated); `laukia` booking + `booking_extras`; overlap and closed hours enforced by the existing triggers; a valid coupon is recorded in the note for staff to redeem |
-| `create_stay_booking(stay_type, date, nights, guests, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Prices from `stay_types`; `laukia`; cabin capacity trigger |
+| `create_stay_booking(stay_type, date, nights, guests, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Single-unit entry point with a required guest count, shared with older forms |
+| `create_stay_booking_with_units(stay_type, date, nights, units, name, guests, email, phone, note, coupon)` | anon, authenticated | `security definer`. One `laukia` booking for 1–20 units of one stay type. Prices from `stay_types` per unit per night. Known guests must fit the selected units. Phone, pending requests, and nightly stock are enforced by the existing triggers |
 | `create_event_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Published capacity events except `keturratis`; `laukia`, `PR-` reference |
 | `register_for_event(event, people, name, email, phone, message)` | anon, authenticated | `security definer`. Published events without capacity; stored as an `inquiries` row (source `renginys`) |
 | `create_inquiry(...)` | anon, authenticated | `security definer`. Calculator quote with its input; source `skaiciuokle`. |
@@ -175,6 +179,8 @@ function that isn't meant to be an RPC needs an explicit `revoke … from anon, 
 | `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |
 | `20261030120000_phone_verification.sql` | 2026-10-30 | `private.phone_verifications` (HMAC'd codes, hashed IPs; RLS on, no policies), `request_phone_code` (60 s cooldown, 3/h + 5/day per phone, 10/h + 20/day per IP, 200/h site-wide; one site-wide advisory lock), `verify_phone_code` (10 min, 5 tries) and `cancel_phone_code` (failed SMS: expire the code, lift the cooldown), all service-role only; purge cron; `require_verified_phone` insert trigger on bookings / event_tickets / quad_rentals (`svetaine`), inquiries (`renginys`) and coupons: an insert by **anon or a signed-in non-staff user** needs a phone verified in the last 65 min (hint `phone_unverified`); `coupons.buyer_phone`; `create_coupon_order` gains `p_buyer_phone` (5-arg version dropped). ADR-0018 |
 | `20261104100000_phone_verification_skip.sql` | 2026-11-04 | `record_skipped_phone(p_phone)`: security definer, service role only; inserts an already-verified `private.phone_verifications` row so the `require_verified_phone` triggers accept a skipped number. Only called while `PHONE_VERIFICATION_SKIP=1`. ADR-0023 |
+| `20261104130000_stay_booking_units.sql` | 2026-11-04 | Multi-unit stays and optional guest count for stays, with unit-based occupancy and a compatible single-unit RPC. Verified in an isolated PostgreSQL runtime with local Supabase service stubs. Apply to Supabase before deploying the quantity-first reservation flow. ADR-0024 |
+| `20261104140000_mixed_quad_rentals.sql` | 2026-11-04 | Mixed fleet requests with one reference, protected allocation rows, a shared per-type capacity check, and the same public occupancy response. Verified in an isolated PostgreSQL runtime. Apply before deploying mixed quad selection. ADR-0025 |
 
 > [!warning] Phone verification migration: apply together with the deploy
 > Verified on a local Supabase stack together with `20261030100000_saunas.sql` (direct RPCs by anon and by a signed-in non-staff user refused without a verified phone; active staff and the service role pass; code functions closed to anon; cooldown / caps / lockout). Note: since the saunas migration, `seed.sql` fails on a fresh stack (`bookings_sauna`: seeded sauna bookings lack `sauna_id`). **Not applied to the live project.** Apply it in the same window as the code: before it, the old site cannot book (trigger), and the old 5-arg `create_coupon_order` is gone. Set `PHONE_VERIFICATION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` and Twilio first.

@@ -6,15 +6,16 @@
  */
 import {
   CABIN_SIZES,
-  CAMPER_MAX_GUESTS,
-  freeCabins,
+  MAX_STAY_UNITS,
+  freeStayUnits,
   roomLabel,
   roomPrice,
   type CabinSize,
   type RoomTypeId,
+  type StayUnitType,
 } from "@/lib/cabin";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "@/lib/data/public-types";
-import { hourLabel, longestFrom, rentalPrice, type QuadType } from "@/lib/quads";
+import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, freeAt, hourLabel, longestForFleet, maxRiders, type QuadRentalItem } from "@/lib/quads";
 import {
   formatHour,
   fromRate,
@@ -44,8 +45,8 @@ export const ACTIVITY_TITLE: Record<ActivityId, string> = {
   nakvyne: "Nakvynė",
 };
 
-/** Days the date strip shows; the sauna and quad availability data cover at least this many. */
-export const RESERVATION_DAYS = 14;
+/** Check-in and activity dates shown on /rezervacija, including today. */
+export const RESERVATION_DAYS = 60;
 export const MAX_PEOPLE = 20;
 
 export interface ReservationData {
@@ -76,15 +77,15 @@ export interface SaunaPick {
   extras: Record<string, number>;
 }
 export interface QuadPick {
-  typeId: string;
+  quantities: Record<string, number>;
   startHour: number | null;
-  units: number;
   hours: number;
 }
 export interface StayPick {
   roomId: RoomTypeId;
   size: CabinSize;
   nights: number;
+  units: number;
 }
 export interface Picks {
   pirtis?: SaunaPick;
@@ -125,22 +126,18 @@ export interface ProgramPlan {
 }
 export type PirtisPlan = SaunaPlan | ProgramPlan;
 
-export interface QuadPlan {
+export interface QuadPlan extends QuadPick {
   kind: "keturraciai";
-  type: QuadType;
-  startHour: number | null;
-  units: number;
-  hours: number;
+  items: QuadRentalItem[];
+  seats: number;
+  maxHours: number;
   ok: boolean;
   price: number;
 }
-export interface StayPlan {
+export interface StayPlan extends StayPick {
   kind: "nakvyne";
-  roomId: RoomTypeId;
-  size: CabinSize;
-  nights: number;
-  /** Free cabins of a size for the whole stay. */
-  free: (size: CabinSize) => number;
+  /** Free units of a type for the whole stay. */
+  free: (type: StayUnitType) => number;
   ok: boolean;
   price: number;
 }
@@ -155,8 +152,6 @@ export interface PlanLine {
   title: string;
   detail: string;
   price: number;
-  /** Minutes since midnight the activity starts, for ordering the plan as a timeline; null when it has no time (a stay). */
-  startMin: number | null;
 }
 
 /** Which activities have anything to book right now. */
@@ -171,8 +166,8 @@ export function defaultPick(id: ActivityId, data: ReservationData): SaunaPick | 
     const first = data.sauna.programs[0];
     return { programId: first?.id ?? null, eventId: null, children: 0, saunaId: sauna?.id ?? "", startHour: null, hours: sauna?.rates.minHours ?? 2, extras: {} };
   }
-  if (id === "keturraciai") return { typeId: data.quads.types.find((t) => t.units > 0)?.id ?? "", startHour: null, units: 1, hours: 1 };
-  return { roomId: "namelis", size: CABIN_SIZES[0].id, nights: 1 };
+  if (id === "keturraciai") return { quantities: {}, startHour: null, hours: 1 };
+  return { roomId: "namelis", size: CABIN_SIZES[0].id, nights: 1, units: 1 };
 }
 
 export function togglePick(picks: Picks, id: ActivityId, data: ReservationData): Picks {
@@ -250,6 +245,7 @@ export interface SessionRow {
   rate: string;
   /** Free seats, or what the booking covers. */
   seats: string;
+  maxPeople: number;
   /** Overlaps something else in the plan (the quads); shown but not selectable. */
   blocked: boolean;
   programId: string | null;
@@ -260,45 +256,50 @@ export interface SessionRow {
 const clock = (min: number) => `${String(Math.floor(min / 60) % 24).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 const MODE_ORDER = { session: 0, private: 1, hourly: 2 } as const;
 
-/** Every seansas still bookable on `when.day` for this group, earliest first. */
-export function sessionRows(data: SaunaPageData, when: When, busy: readonly number[] = []): SessionRow[] {
+/** Every seansas with an open slot on the chosen day, earliest first. */
+export function sessionRows(data: SaunaPageData, day: string, busy: readonly number[] = []): SessionRow[] {
   const rows: SessionRow[] = [];
-  const past = pastHourOn(when.day, data.today, data.nowHour);
+  const past = pastHourOn(day, data.today, data.nowHour);
   for (const p of data.programs) {
     if (p.kind === "session") {
       for (const e of data.events) {
         const start = hourOf(e.time) * 60 + Number(e.time.slice(3, 5));
-        if (e.programId !== p.id || e.date !== when.day || e.spotsLeft < when.people || start / 60 < past + 1) continue;
+        if (e.programId !== p.id || e.date !== day || e.spotsLeft < 1 || start / 60 < past + 1) continue;
         rows.push({
           key: `s-${e.key}`, mode: "session", startMin: start, time: `${e.time}–${clock(start + p.durationMinutes)}`, title: p.name, label: p.label,
-          description: p.description, rate: programRateLine(p), seats: `Liko ${e.spotsLeft} vietų`, programId: p.id, eventId: e.key, saunaId: null,
+          description: p.description, rate: programRateLine(p),
+          seats: `Liko vietų: ${e.spotsLeft}${e.capacity ? `/${e.capacity}` : ""}`, maxPeople: e.spotsLeft,
+          programId: p.id, eventId: e.key, saunaId: null,
           blocked: spanHours(start, p.durationMinutes).some((h) => busy.includes(h)),
         });
       }
       continue;
     }
     const sauna = data.saunas.find((s) => s.id === p.saunaId);
-    if (!sauna || when.people > Math.min(p.capacity ?? 0, sauna.rates.maxParty)) continue;
+    if (!sauna) continue;
+    const maxPeople = Math.min(p.capacity ?? 0, sauna.rates.maxParty);
+    if (maxPeople < 1) continue;
     const hours = p.durationMinutes / 60;
-    const taken = data.takenBySauna[sauna.id]?.[when.day] ?? [];
+    const taken = data.takenBySauna[sauna.id]?.[day] ?? [];
     for (const h of programStartHours(sauna, hours)) {
       if (!programStartOpen(sauna, hours, taken, past, h)) continue;
       rows.push({
         key: `p-${p.id}-${h}`, mode: "private", startMin: h * 60, time: `${formatHour(h)}–${formatHour(h + hours)}`, title: p.name, label: p.label,
-        description: p.description, rate: programRateLine(p), seats: `Visa pirtis, iki ${p.capacity} žm.`, programId: p.id, eventId: null, saunaId: null,
+        description: p.description, rate: programRateLine(p), seats: `Visa pirtis, iki ${maxPeople} žm.`, maxPeople,
+        programId: p.id, eventId: null, saunaId: null,
         blocked: !programStartOpen(sauna, hours, [...taken, ...busy], past, h),
       });
     }
   }
   for (const s of data.saunas) {
-    if (when.people > s.rates.maxParty) continue;
-    const taken = data.takenBySauna[s.id]?.[when.day] ?? [];
+    if (s.rates.maxParty < 1) continue;
+    const taken = data.takenBySauna[s.id]?.[day] ?? [];
     for (const h of startHours(s.rates)) {
       if (!isOpenStart(taken, h, s.rates, past)) continue;
       rows.push({
         key: `h-${s.id}-${h}`, mode: "hourly", startMin: h * 60, time: `nuo ${formatHour(h)}`, title: data.saunas.length > 1 ? `Pirtis valandoms · ${s.name}` : "Pirtis valandoms",
         label: "Laisvas laikas", description: "Pasirink trukmę ir priedus patys. Kaina visai grupei.", rate: `nuo ${fromRate(s.rates)} € / val.`,
-        seats: "Visa pirtis grupei", programId: null, eventId: null, saunaId: s.id,
+        seats: "Visa pirtis grupei", maxPeople: s.rates.maxParty, programId: null, eventId: null, saunaId: s.id,
         blocked: !isOpenStart([...taken, ...busy], h, s.rates, past),
       });
     }
@@ -373,37 +374,34 @@ function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: read
   return { kind: "pirtis", mode: "hourly", sauna, upsells, startHour: start, hours, extras, maxHours, ok, price: ok ? sessionPrice(hours, when.people, rates) + extrasPrice : 0 };
 }
 
-/** Quads needed to seat the group. */
-export const quadsNeeded = (type: Pick<QuadType, "seats">, people: number) => Math.ceil(people / type.seats);
-
-export function planQuads(pick: QuadPick, data: QuadPageData, when: When, busy: readonly number[] = []): QuadPlan | null {
-  const type = data.types.find((t) => t.id === pick.typeId && t.units > 0) ?? data.types.find((t) => t.units > 0);
-  if (!type) return null;
-  const { settings } = data;
-  const units = Math.max(pick.units, quadsNeeded(type, when.people));
-  const start = pick.startHour;
-  const started = start !== null && start >= settings.openHour && start > pastHourOn(when.day, data.today, data.nowHour);
-  const free = started && units <= type.units ? longestFrom(type, data.taken, when.day, start, units, settings) : 0;
-  // The rental also has to end before the next hour the sauna holds.
-  let longest = 0;
-  while (start !== null && longest < free && !busy.includes(start + longest)) longest++;
-  const hours = Math.max(1, Math.min(pick.hours, longest));
-  return { kind: "keturraciai", type, startHour: start, units, hours, ok: longest > 0, price: longest > 0 ? rentalPrice(type, hours, units) : 0 };
+export function planQuads(pick: QuadPick, data: QuadPageData, when: When, busy: readonly number[] = []): QuadPlan {
+  const items = data.types.flatMap((type) => {
+    const units = pick.quantities[type.id] ?? 0;
+    return units > 0 ? [{ type, units }] : [];
+  });
+  const seats = items.reduce((total, { type, units }) => total + maxRiders(type, units), 0);
+  const totalUnits = items.reduce((total, { units }) => total + units, 0);
+  const { settings, taken, today, nowHour } = data;
+  const { day } = when;
+  const { startHour } = pick;
+  const validStart = startHour !== null && startHour >= settings.openHour && startHour > pastHourOn(day, today, nowHour);
+  const maxHours = validStart ? longestForFleet(items, taken, day, startHour, settings, busy) : 0;
+  const hours = Math.max(1, Math.min(pick.hours, maxHours));
+  const ok = maxHours > 0 && seats >= when.people && totalUnits <= MAX_QUAD_RENTAL_UNITS;
+  return { ...pick, kind: "keturraciai", items, seats, maxHours, hours, ok, price: ok ? fleetRentalPrice(items, hours) : 0 };
 }
 
-export function planStay(pick: StayPick, data: CabinPageData, when: When): StayPlan {
-  const checkIn = nextDays(when.day, 1)[0];
-  const free = (size: CabinSize) => freeCabins(data.availability, checkIn, pick.nights, size);
-  const fits = (size: CabinSize) => size >= when.people && free(size) > 0;
-  const size = fits(pick.size) ? pick.size : (CABIN_SIZES.find((s) => fits(s.id))?.id ?? pick.size);
-  const cabin = pick.roomId === "namelis";
-  const ok = cabin ? fits(size) : when.people <= CAMPER_MAX_GUESTS;
-  return { kind: "nakvyne", roomId: pick.roomId, size, nights: pick.nights, free, ok, price: ok ? roomPrice(pick.roomId, size) * pick.nights : 0 };
+export function planStay(pick: StayPick, data: CabinPageData, day: string): StayPlan {
+  const { roomId, size, nights, units } = pick;
+  const checkIn = nextDays(day, 1)[0];
+  const free = (type: StayUnitType) => freeStayUnits(data.availability, checkIn, nights, type);
+  const ok = Number.isInteger(units) && units >= 1 && units <= Math.min(MAX_STAY_UNITS, free(roomId === "namelis" ? size : roomId));
+  return { ...pick, kind: "nakvyne", free, ok, price: ok ? roomPrice(roomId, size) * nights * units : 0 };
 }
 
 /**
  * Whether anything of each activity can still be booked on `day` for a group of `people`
- * (any start for the sauna and quads, any cabin or the camper pitch for one night).
+ * (any start for the sauna and quads, any available cabin or camper pitch for one night).
  */
 export function dayAvailability(data: ReservationData, day: string, people: number): Record<ActivityId, boolean> {
   const past = pastHourOn(day, data.sauna.today, data.sauna.nowHour);
@@ -418,18 +416,18 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
     const taken = data.sauna.takenBySauna[s.id]?.[day] ?? [];
     return people <= s.rates.maxParty && startHours(s.rates).some((h) => isOpenStart(taken, h, s.rates, past));
   });
-  const { settings } = data.quads;
-  const keturraciai = data.quads.types.some((t) => {
-    const units = quadsNeeded(t, people);
-    if (t.units === 0 || units > t.units) return false;
-    for (let h = Math.max(settings.openHour, past + 1); h < settings.closeHour; h++) {
-      if (longestFrom(t, data.quads.taken, day, h, units, settings) > 0) return true;
+  const { settings, types, taken } = data.quads;
+  let keturraciai = false;
+  for (let h = Math.max(settings.openHour, past + 1); h < settings.closeHour; h++) {
+    const seats = types.reduce((total, type) => total + maxRiders(type, freeAt(type, taken, day, h)), 0);
+    if (seats >= people) {
+      keturraciai = true;
+      break;
     }
-    return false;
-  });
+  }
   const checkIn = nextDays(day, 1)[0];
-  const nakvyne =
-    people <= CAMPER_MAX_GUESTS || CABIN_SIZES.some((s) => s.id >= people && freeCabins(data.cabin.availability, checkIn, 1, s.id) > 0);
+  const hasStay = (type: StayUnitType) => freeStayUnits(data.cabin.availability, checkIn, 1, type) > 0;
+  const nakvyne = hasStay("kemperis") || CABIN_SIZES.some(({ id }) => hasStay(id));
   return { pirtis: hourlyOpen || programOpen, keturraciai, nakvyne };
 }
 
@@ -440,7 +438,7 @@ export function planAll(picks: Picks, data: ReservationData, when: When): Plans 
   return {
     pirtis: picks.pirtis ? planSauna(picks.pirtis, data.sauna, when, planHours(quads)) : undefined,
     keturraciai: picks.keturraciai ? planQuads(picks.keturraciai, data.quads, when, planHours(sauna)) : undefined,
-    nakvyne: picks.nakvyne ? planStay(picks.nakvyne, data.cabin, when) : undefined,
+    nakvyne: picks.nakvyne ? planStay(picks.nakvyne, data.cabin, when.day) : undefined,
   };
 }
 
@@ -458,24 +456,24 @@ export function bookable(plans: Plans): boolean {
 export function describePlans(plans: Plans): PlanLine[] {
   const lines: PlanLine[] = [];
   const { pirtis, keturraciai, nakvyne } = plans;
+  if (keturraciai) {
+    const time = keturraciai.startHour === null ? "Pasirink laiką" : `${hourLabel(keturraciai.startHour)}-${hourLabel(keturraciai.startHour + keturraciai.hours)}`;
+    const quantities = keturraciai.items.map(({ type, units }) => `${units} × ${type.name}`);
+    lines.push({ id: "keturraciai", title: "Keturračiai", detail: [...quantities, time].join(", "), price: keturraciai.price });
+  }
   if (pirtis?.mode === "hourly") {
     const extras = upsellSummary(pirtis.upsells, pirtis.extras);
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${formatHour(pirtis.startHour)}-${formatHour(pirtis.startHour + pirtis.hours)}, ${hoursLabel(pirtis.hours)}`;
-    lines.push({ id: "pirtis", title: pirtis.sauna.name.startsWith("Pirtis") ? pirtis.sauna.name : `Pirtis · ${pirtis.sauna.name}`, detail: [time, ...extras].join(", "), price: pirtis.price, startMin: pirtis.startHour === null ? null : pirtis.startHour * 60 });
+    lines.push({ id: "pirtis", title: pirtis.sauna.name.startsWith("Pirtis") ? pirtis.sauna.name : `Pirtis · ${pirtis.sauna.name}`, detail: [time, ...extras].join(", "), price: pirtis.price });
   } else if (pirtis) {
     const who = `${pirtis.adults} ${pirtis.children ? "suaug." : "žm."}${pirtis.children ? ` + ${pirtis.children} vaik.` : ""}`;
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${formatHour(pirtis.startHour)}-${formatHour(pirtis.startHour + Math.ceil(pirtis.hours))}`;
-    lines.push({ id: "pirtis", title: pirtis.program.name, detail: pirtis.mode === "session" ? `${time}, ${who}` : `${time}, ${hoursLabel(pirtis.hours)}`, price: pirtis.price, startMin: pirtis.session ? hourOf(pirtis.session.time) * 60 + Number(pirtis.session.time.slice(3, 5)) : pirtis.startHour === null ? null : pirtis.startHour * 60 });
-  }
-  if (keturraciai) {
-    const time = keturraciai.startHour === null ? "Pasirink laiką" : `${hourLabel(keturraciai.startHour)}-${hourLabel(keturraciai.startHour + keturraciai.hours)}`;
-    lines.push({ id: "keturraciai", title: "Keturračiai", detail: `${keturraciai.units} × ${keturraciai.type.name}, ${time}`, price: keturraciai.price, startMin: keturraciai.startHour === null ? null : keturraciai.startHour * 60 });
+    lines.push({ id: "pirtis", title: pirtis.program.name, detail: pirtis.mode === "session" ? `${time}, ${who}` : `${time}, ${hoursLabel(pirtis.hours)}`, price: pirtis.price });
   }
   if (nakvyne) {
-    lines.push({ id: "nakvyne", title: "Nakvynė", detail: `${roomLabel(nakvyne.roomId, nakvyne.size)}, ${nakvyne.nights} n.`, price: nakvyne.price, startMin: null });
+    lines.push({ id: "nakvyne", title: "Nakvynė", detail: `${nakvyne.units} × ${roomLabel(nakvyne.roomId, nakvyne.size)}, ${nakvyne.nights} n.`, price: nakvyne.price });
   }
-  // The plan reads as a day: earliest first, activities without a time (a stay) after the rest.
-  return lines.sort((a, b) => (a.startMin ?? Infinity) - (b.startMin ?? Infinity) || ACTIVITY_ORDER.indexOf(a.id) - ACTIVITY_ORDER.indexOf(b.id));
+  return lines;
 }
 
 /** One line selling an activity that is still free on the chosen day, for the "we also have..." popup. */

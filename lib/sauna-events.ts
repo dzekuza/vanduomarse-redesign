@@ -20,6 +20,7 @@ export interface SaunaEventData {
   /** null when the session has no set length. */
   minutes: number | null;
   pricePerPerson: number;
+  capacity?: number;
   spotsLeft: number;
   blurb: string;
   /** Set for sessions of a sauna program (priced from the program, booked through it). */

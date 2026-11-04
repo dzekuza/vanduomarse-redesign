@@ -21,6 +21,7 @@ export function SpacePicker({ selected, day, guests, onSelect }: SpacePickerProp
         const min = s.minSpend(day ?? "weekend", guests);
         const tooSmall = guests > s.maxGuests;
         const active = s.id === selected;
+        const detailColor = active ? "text-dust/75" : tooSmall ? "" : "text-copy";
         const price = tooSmall
           ? `Iki ${s.maxGuests} asm.`
           : rent === null
@@ -47,8 +48,8 @@ export function SpacePicker({ selected, day, guests, onSelect }: SpacePickerProp
               <span className="text-item font-bold">{s.label}</span>
               <span className="shrink-0 text-xs font-bold">{price}</span>
             </span>
-            <span className={`text-xs leading-relaxed ${active ? "text-dust/75" : "text-ink/65"}`}>{s.blurb}</span>
-            <span className={`text-xs ${active ? "text-dust/65" : "text-ink/55"}`}>
+            <span className={`text-xs leading-relaxed ${detailColor}`}>{s.blurb}</span>
+            <span className={`text-xs ${detailColor}`}>
               Iki {s.maxGuests} asm. · {s.includedTime}
               {rent !== null && rent > 0 && min > 0 ? ` · min. sąskaita ${min} €` : ""}
             </span>

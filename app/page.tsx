@@ -13,7 +13,7 @@ import { LandingProvider } from "@/components/landing/landing-provider";
 import { LandingTicker } from "@/components/landing/landing-ticker";
 
 export const metadata: Metadata = {
-  title: "Vanduo Marse — Užsuk į Marsą",
+  title: "Vanduo Marse | Užsuk į Marsą",
   description:
     "Pirtis, keturračiai, vandenlentės, šventės ir nakvynė prie vandens Kauno rajone. Susiplanuok dieną Vanduo Marse.",
 };
@@ -26,8 +26,10 @@ export default function Home() {
       </a>
       <MainHeader placement="overlay" />
       <main>
-        <LandingHero />
-        <LandingTicker />
+        <div className="lg:flex lg:h-svh lg:flex-col">
+          <LandingHero />
+          <LandingTicker />
+        </div>
         <LandingActivities />
         <LandingNight />
         <LandingAllIn />

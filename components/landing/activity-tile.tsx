@@ -7,11 +7,6 @@ import { cn } from "@/lib/utils";
 import { SERVICES, type ActivityCard } from "./content";
 import { useLanding } from "./landing-provider";
 
-const CORNER = {
-  cabins: "rounded-tl-cut md:rounded-tl-cut-lg",
-  party: "rounded-br-cut md:rounded-br-cut-lg",
-} as const;
-
 /** Cards that book on `/rezervacija` (opening that activity's tab); the rest open their details dialog. */
 const RESERVE_HREF: Partial<Record<ActivityCard["id"], string>> = {
   sauna: "/rezervacija?veikla=pirtis",
@@ -29,7 +24,7 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
   const href = RESERVE_HREF[card.id];
   const content = (
     <>
-      <span className={cn("relative block h-88 overflow-hidden bg-lake-soft md:h-80 lg:h-96", card.corner && CORNER[card.corner])}>
+      <span className="relative block h-88 overflow-hidden bg-lake-soft md:h-80 lg:h-96">
         <Image
           src={service.photo}
           alt={card.alt}
@@ -50,7 +45,7 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
           <span className="block text-micro">{card.num}</span>
           <span className="mt-2 block text-heading font-bold tracking-tighter md:text-tile">{card.title}</span>
         </span>
-        <span className="shrink-0 text-right text-xs leading-snug">
+        <span className="shrink-0 text-right text-xs leading-snug text-copy">
           {card.note[0]}
           <br />
           {card.note[1]}

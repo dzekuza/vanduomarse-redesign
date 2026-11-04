@@ -35,7 +35,7 @@ export function OptionCard({ eyebrow, title, text, meta, selected, disabled, ind
         </span>
       </span>
       <span className="text-item font-bold">{title}</span>
-      {text ? <span className={`text-xs leading-relaxed ${selected ? "text-dust/75" : disabled ? "" : "text-ink/65"}`}>{text}</span> : null}
+      {text ? <span className={`text-xs leading-relaxed ${selected ? "text-dust/75" : disabled ? "" : "text-copy"}`}>{text}</span> : null}
       {meta ? <span className="mt-auto pt-2 text-xs font-bold">{meta}</span> : null}
     </button>
   );
@@ -43,5 +43,5 @@ export function OptionCard({ eyebrow, title, text, meta, selected, disabled, ind
 
 /** Small uppercase label above a group of options. */
 export function OptionGroupLabel({ children }: { children: string }) {
-  return <p className="mb-3 text-micro uppercase text-ink/70">{children}</p>;
+  return <p className="mb-3 text-micro uppercase text-copy">{children}</p>;
 }

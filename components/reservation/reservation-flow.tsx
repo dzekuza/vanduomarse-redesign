@@ -31,6 +31,7 @@ import { ACTIVITY_ICON } from "./activity-icons";
 import { ExtrasOfferDialog } from "./extras-offer-dialog";
 import { ActivityAbout } from "./activity-about";
 import { ActivityTabs } from "./activity-tabs";
+import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
 import { ReservationDone } from "./reservation-done";
 import { ReviewStep } from "./review-step";
@@ -72,10 +73,12 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
   const plans = planAll(picks, data, when);
   const lines = describePlans(plans);
   const total = totalOf(lines);
-  const whenLabel = `${longDateLabel(date)}, ${people} žm.`;
+  const tracksPeople = tab !== "nakvyne" || picks.pirtis !== undefined || picks.keturraciai !== undefined;
+  const dateLabel = longDateLabel(date);
+  const whenLabel = tracksPeople ? `${dateLabel}, ${people} žm.` : dateLabel;
   const facts = [
-    { label: "Data", value: longDateLabel(date) },
-    { label: "Žmonės", value: String(people) },
+    { label: "Data", value: dateLabel },
+    ...(tracksPeople ? [{ label: "Žmonės", value: String(people) }] : []),
   ];
   /** Sauna, quad and stay icons under each day, lit when something is still free for this group. */
   const dayIcons = (d: Date): DayIcon[] => {
@@ -148,16 +151,16 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
               ids={tabs}
               active={tab}
               included={tabs.filter((id) => picks[id] !== undefined)}
+              renderDetails={(id, active) => <ActivityAbout id={id} data={data} active={active} />}
               onChange={(id) => {
                 setTab(id);
                 setStep(0);
               }}
             />
-            <ActivityAbout id={tab} data={data} />
-            <WhenStep days={days} date={date} onDate={setDate} icons={dayIcons} people={people} onPeople={setPeople} />
+            <WhenStep days={days} date={date} onDate={setDate} icons={dayIcons} people={people} onPeople={setPeople} showPeople={tab === "keturraciai" || (step !== 0 && tracksPeople)} />
             {heading ? <StepHeading step={step + 1} {...heading} /> : null}
             {step === 0 ? (
-              <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} onToggle={(id) => setPicks((p) => togglePick(p, id, data))} onPick={setPicks} />
+              <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} onToggle={(id) => setPicks((p) => togglePick(p, id, data))} onPick={setPicks} onPeople={setPeople} />
             ) : null}
             {step === 1 ? <ContactStep step={2} idPrefix="reservation" /> : null}
             {step === 2 ? <ReviewStep lines={lines} when={whenLabel} total={total} /> : null}
@@ -169,21 +172,18 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
               ) : (
                 <span />
               )}
-              <div className="flex items-center gap-4">
-                <span className="font-display text-figure font-bold lg:hidden">{total} €</span>
-                {step < LAST ? (
-                  <Cta tone="dark" small disabled={!ready} onClick={() => void next()}>
-                    Toliau
-                  </Cta>
-                ) : (
-                  <ArrowButton type="submit" disabled={!bookable(plans) || form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? "Siunčiama..." : "Rezervuoti"}
-                  </ArrowButton>
-                )}
-              </div>
+              {step < LAST ? (
+                <Cta tone="dark" small disabled={!ready} onClick={() => void next()}>
+                  Toliau
+                </Cta>
+              ) : (
+                <ArrowButton type="submit" disabled={!bookable(plans) || form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? "Siunčiama..." : "Rezervuoti"}
+                </ArrowButton>
+              )}
             </div>
           </div>
-          <PlanPanel photo={photo} facts={facts} lines={lines} total={total} />
+          <PlanPanel activity={tab} facts={facts} lines={lines} total={total} />
         </div>
         <ExtrasOfferDialog
           open={offerOpen}
@@ -201,6 +201,7 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
           }}
         />
       </form>
+      <MobilePlanDock activity={tab} whenLabel={whenLabel} facts={facts} lines={lines} total={total} />
     </FormProvider>
   );
 }

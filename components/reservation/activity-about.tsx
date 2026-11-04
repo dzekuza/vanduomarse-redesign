@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { InfoIcon } from "@phosphor-icons/react";
 import { SERVICE_GALLERY, type ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ACTIVITY_TITLE, type ActivityId, type ReservationData } from "@/lib/reservation";
 import { ActivityDetails, activityBlurb } from "./activity-details";
 import { DialogPhotoClose } from "./dialog-photo-close";
@@ -17,31 +17,36 @@ function photosFor(id: ActivityId, data: ReservationData): ServicePhoto[] {
   return id === "nakvyne" ? SERVICE_GALLERY.cabins : SERVICE_GALLERY.ciongo;
 }
 
-/** Under the tabs: one line about the chosen activity and a "Sužinoti daugiau" button that opens a dialog with a photo carousel and the full details. */
-export function ActivityAbout({ id, data }: { id: ActivityId; data: ReservationData }) {
-  const [open, setOpen] = useState(false);
+/** Each activity's info button opens a dialog with photos and the full activity details. */
+export function ActivityAbout({ id, data, active }: { id: ActivityId; data: ReservationData; active: boolean }) {
   const title = ACTIVITY_TITLE[id];
   return (
-    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-      <p className="max-w-xl text-sm text-muted-foreground">{activityBlurb(id, data)}</p>
-      <button type="button" onClick={() => setOpen(true)} className="inline-flex min-h-11 shrink-0 items-center self-start border-b border-current text-xs font-bold transition-colors duration-150 ease-out-strong hover:text-rust sm:self-auto">
-        Sužinoti daugiau
-      </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent showCloseButton={false} className="flex max-h-9/10 flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-lg">
-          <div className="relative shrink-0">
-            <ServiceGallery key={id} photos={photosFor(id, data)} />
-            <DialogPhotoClose />
-          </div>
-          <div className="min-h-0 space-y-6 overflow-y-auto p-6">
-            <header className="space-y-2">
-              <DialogTitle className="font-display text-heading leading-tight font-bold">{title}</DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground">{activityBlurb(id, data)}</DialogDescription>
-            </header>
-            <ActivityDetails id={id} data={data} />
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          aria-label={`Sužinoti daugiau: ${title}`}
+          title="Sužinoti daugiau"
+          className={`grid size-11 shrink-0 place-items-center self-center transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-current ${
+            active ? "text-dust/80 hover:text-dust" : "text-copy hover:text-ink"
+          }`}
+        >
+          <InfoIcon aria-hidden className="size-5" />
+        </button>
+      </DialogTrigger>
+      <DialogContent showCloseButton={false} className="flex max-h-9/10 flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-lg">
+        <div className="relative shrink-0">
+          <ServiceGallery key={id} photos={photosFor(id, data)} />
+          <DialogPhotoClose />
+        </div>
+        <div className="min-h-0 space-y-6 overflow-y-auto p-6">
+          <header className="space-y-2">
+            <DialogTitle className="font-display text-heading leading-tight font-bold">{title}</DialogTitle>
+            <DialogDescription className="text-copy">{activityBlurb(id, data)}</DialogDescription>
+          </header>
+          <ActivityDetails id={id} data={data} />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

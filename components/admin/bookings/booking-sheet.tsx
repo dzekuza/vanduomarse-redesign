@@ -4,8 +4,8 @@ import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { ACTION_LABEL, NEXT_STATUSES, useBookingStatus } from "./booking-actions";
 import { useAdmin } from "../admin-store";
 import { BookingStatusBadge } from "../status-badge";
-import { BOOKING_KIND, BOOKING_SOURCE } from "@/lib/admin/labels";
-import { bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
+import { BOOKING_SOURCE } from "@/lib/admin/labels";
+import { bookingTypeLabel, bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
 import type { Booking } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -33,10 +33,10 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
             </SheetHeader>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 text-sm">
               {[
-                ["Tipas", saunaName ?? BOOKING_KIND[booking.kind]],
+                ["Tipas", saunaName ?? bookingTypeLabel(booking)],
                 ["Data", formatDay(booking.date)],
                 ["Laikas", bookingWhen(booking)],
-                ["Svečiai", `${booking.guests} asm.`],
+                ["Svečiai", booking.guests === null ? "Nenurodyta" : `${booking.guests} asm.`],
                 ["Priedai", booking.extras.length ? booking.extras.join(", ") : "-"],
                 ["Suma", formatEur(booking.total)],
                 ["Šaltinis", BOOKING_SOURCE[booking.source ?? "svetaine"]],

@@ -50,7 +50,7 @@ export function EventsBoard({ data }: { data: ParkEventData[] }) {
             </div>
           </section>
         ))}
-        {visible.length === 0 ? <p className="text-sm text-muted-foreground">Šiuo metu renginių šioje kategorijoje nėra.</p> : null}
+        {visible.length === 0 ? <p className="text-sm text-copy">Šiuo metu renginių šioje kategorijoje nėra.</p> : null}
       </div>
     </div>
   );

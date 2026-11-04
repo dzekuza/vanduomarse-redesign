@@ -17,14 +17,14 @@ export function saunaBookingAt(bookings: Booking[], day: string, hour: number): 
   );
 }
 
-/** Stays (cabin or camper) occupying the night of `day`. */
-export function staysOn(bookings: Booking[], day: string, kind: "namelis" | "kemperis"): Booking[] {
-  return bookings.filter((b) => {
-    if (!active(b) || b.kind !== kind || !b.nights) return false;
+/** Cabin or camper units occupied during the night of `day`. */
+export function stayUnitsOn(bookings: Booking[], day: string, kind: "namelis" | "kemperis"): number {
+  return bookings.reduce((total, b) => {
+    if (!active(b) || b.kind !== kind || !b.nights) return total;
     const end = parseDay(b.date);
     end.setDate(end.getDate() + b.nights);
-    return b.date <= day && day < dateKey(end);
-  });
+    return b.date <= day && day < dateKey(end) ? total + (b.stayUnits ?? 1) : total;
+  }, 0);
 }
 
 export function daysFrom(start: Date, count: number): string[] {
@@ -55,5 +55,5 @@ export function freeStartHours(bookings: Booking[], blocks: Block[], rates: Saun
 /** Nights (from `day`, for `nights`) on which every cabin is already taken. */
 export function fullCabinNights(bookings: Booking[], day: string, nights: number): string[] {
   const start = parseDay(day);
-  return daysFrom(start, nights).filter((d) => staysOn(bookings, d, "namelis").length >= CABIN_COUNT);
+  return daysFrom(start, nights).filter((d) => stayUnitsOn(bookings, d, "namelis") >= CABIN_COUNT);
 }

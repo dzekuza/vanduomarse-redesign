@@ -32,6 +32,18 @@ export async function currentStaff(supabase: ServerSupabase) {
   return { user: auth.user, staff, access } as const;
 }
 
+async function readQuadRentals(supabase: ServerSupabase) {
+  const result = await supabase
+    .from("quad_rentals")
+    .select("*, quad_rental_items(quad_type_id, units)")
+    .order("date").order("start_hour");
+
+  // Keep single-type rentals readable until the mixed-rental relationship reaches the schema cache.
+  return result.error?.code === "PGRST200"
+    ? supabase.from("quad_rentals").select("*").order("date").order("start_hour")
+    : result;
+}
+
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
   const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff] = await Promise.all([
@@ -47,7 +59,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("coupon_products").select("*").order("sort_order"),
     supabase.from("quad_types").select("*").order("sort_order"),
     supabase.from("quad_settings").select("*").single(),
-    supabase.from("quad_rentals").select("*").order("date").order("start_hour"),
+    readQuadRentals(supabase),
     supabase
       .from("event_tickets")
       .select("*, events!inner(title, date, start_time, category)")

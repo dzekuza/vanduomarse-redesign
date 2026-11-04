@@ -94,7 +94,7 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           date: string
-          guests: number
+          guests: number | null
           hours: number | null
           id: string
           kind: Database["public"]["Enums"]["booking_kind"]
@@ -107,6 +107,7 @@ export type Database = {
           start_hour: number | null
           status: Database["public"]["Enums"]["booking_status"]
           stay_type_id: string | null
+          stay_units: number
           total: number
           updated_at: string
         }
@@ -116,7 +117,7 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           date: string
-          guests: number
+          guests?: number | null
           hours?: number | null
           id?: string
           kind: Database["public"]["Enums"]["booking_kind"]
@@ -129,6 +130,7 @@ export type Database = {
           start_hour?: number | null
           status?: Database["public"]["Enums"]["booking_status"]
           stay_type_id?: string | null
+          stay_units?: number
           total: number
           updated_at?: string
         }
@@ -138,7 +140,7 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           date?: string
-          guests?: number
+          guests?: number | null
           hours?: number | null
           id?: string
           kind?: Database["public"]["Enums"]["booking_kind"]
@@ -151,6 +153,7 @@ export type Database = {
           start_hour?: number | null
           status?: Database["public"]["Enums"]["booking_status"]
           stay_type_id?: string | null
+          stay_units?: number
           total?: number
           updated_at?: string
         }
@@ -586,6 +589,39 @@ export type Database = {
         }
         Relationships: []
       }
+      quad_rental_items: {
+        Row: {
+          quad_type_id: string
+          rental_id: string
+          units: number
+        }
+        Insert: {
+          quad_type_id: string
+          rental_id: string
+          units: number
+        }
+        Update: {
+          quad_type_id?: string
+          rental_id?: string
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quad_rental_items_quad_type_id_fkey"
+            columns: ["quad_type_id"]
+            isOneToOne: false
+            referencedRelation: "quad_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quad_rental_items_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "quad_rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quad_rentals: {
         Row: {
           created_at: string
@@ -596,7 +632,7 @@ export type Database = {
           hours: number
           id: string
           note: string | null
-          quad_type_id: string
+          quad_type_id: string | null
           reference: string
           riders: number
           source: Database["public"]["Enums"]["booking_source"]
@@ -615,7 +651,7 @@ export type Database = {
           hours: number
           id?: string
           note?: string | null
-          quad_type_id: string
+          quad_type_id?: string | null
           reference: string
           riders: number
           source?: Database["public"]["Enums"]["booking_source"]
@@ -634,7 +670,7 @@ export type Database = {
           hours?: number
           id?: string
           note?: string | null
-          quad_type_id?: string
+          quad_type_id?: string | null
           reference?: string
           riders?: number
           source?: Database["public"]["Enums"]["booking_source"]
@@ -1225,6 +1261,24 @@ export type Database = {
           id: string
         }[]
       }
+      create_mixed_quad_rental: {
+        Args: {
+          p_allocations: Json
+          p_date: string
+          p_email?: string
+          p_hours: number
+          p_name: string
+          p_note?: string
+          p_phone?: string
+          p_riders: number
+          p_start_hour: number
+        }
+        Returns: {
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
       create_program_booking: {
         Args: {
           p_date: string
@@ -1329,6 +1383,26 @@ export type Database = {
           p_note?: string
           p_phone?: string
           p_stay_type_id: string
+        }
+        Returns: {
+          discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_stay_booking_with_units: {
+        Args: {
+          p_coupon?: string
+          p_date: string
+          p_email?: string
+          p_guests?: number
+          p_name: string
+          p_nights: number
+          p_note?: string
+          p_phone?: string
+          p_stay_type_id: string
+          p_units: number
         }
         Returns: {
           discount: number

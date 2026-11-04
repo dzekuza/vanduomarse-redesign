@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAdmin } from "../admin-store";
 import { BookingStatusBadge } from "../status-badge";
 import { RentalSheet } from "./rental-sheet";
-import { formatDay } from "@/lib/admin/format";
+import { formatDay, quadRentalLabel } from "@/lib/admin/format";
 import { BOOKING_STATUS } from "@/lib/admin/labels";
 import type { BookingStatus } from "@/lib/admin/types";
 import { hourLabel } from "@/lib/quads";
@@ -48,9 +48,9 @@ export function RentalsTab() {
         {rows.map((r) => (
           <Card key={r.id} className="relative h-full transition-colors focus-within:border-ink hover:border-ink">
             <CardHeader className="flex flex-row items-start justify-between gap-3">
-              <CardTitle className="text-item">
-                <button type="button" onClick={() => setOpenId(r.id)} className="text-left after:absolute after:inset-0 focus-visible:outline-none">
-                  {r.units} × {quadTypes.find((t) => t.id === r.quadTypeId)?.name ?? r.quadTypeId}
+              <CardTitle className="min-w-0 text-item">
+                <button type="button" onClick={() => setOpenId(r.id)} className="wrap-anywhere text-left after:absolute after:inset-0 focus-visible:outline-none">
+                  {quadRentalLabel(r, quadTypes)}
                 </button>
               </CardTitle>
               <BookingStatusBadge status={r.status} />

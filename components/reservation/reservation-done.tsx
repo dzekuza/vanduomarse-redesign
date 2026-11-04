@@ -19,14 +19,14 @@ export function ReservationDone({ lines, when, outcome, busy, onRetry, onReset }
     <div className="border border-line bg-foam/15">
       <div className="border-b border-dashed border-ink px-6 py-4">
         <p className="font-display text-figure font-bold uppercase">{pending ? "Dar ne viskas išsiųsta" : "Gavom. Susisieksim."}</p>
-        <p className="mt-1 text-sm text-ink/60">{when}</p>
+        <p className="mt-1 text-sm text-copy">{when}</p>
       </div>
       <ul className="divide-y divide-line px-6">
         {lines.map((l) => (
           <li key={l.id} className="flex items-baseline justify-between gap-4 py-4">
             <span className="min-w-0">
               <span className="block font-normal">{l.title}</span>
-              <span className="block text-sm text-ink/60">{l.detail}</span>
+              <span className="block text-sm text-copy">{l.detail}</span>
               {error?.activity === l.id ? <span role="alert" className="mt-1 block text-sm text-rust-ink">{error.message}</span> : null}
             </span>
             <span className="shrink-0 text-right">
@@ -36,7 +36,7 @@ export function ReservationDone({ lines, when, outcome, busy, onRetry, onReset }
           </li>
         ))}
       </ul>
-      <p className="border-t border-dashed border-ink px-6 py-4 text-sm text-ink/70">
+      <p className="border-t border-dashed border-ink px-6 py-4 text-sm text-copy">
         {pending
           ? `Išsiųstos užklausos jau pas mus, pakartojus jos nesiunčiamos antrą kartą. Reikia pagalbos? Skambink ${MAIN_CONTACT.phone}.`
           : "Užklausas gavome. Patvirtinsime telefonu arba el. paštu; kol kas vietos dar nėra garantuotos ir mokėti nereikia."}

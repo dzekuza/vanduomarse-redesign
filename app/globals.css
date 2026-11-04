@@ -13,6 +13,7 @@
   --lake-soft: #3f9a8e;
   --dust: #e8d9c3;
   --dust-soft: #f0e5d3;
+  --copy: color-mix(in srgb, var(--ink) 72%, var(--dust));
   --foam: #f5f1e8;
   --signal: #f2b705;
   /* Bright brand teal: focus accents and the live status dot on the home page. */
@@ -81,6 +82,7 @@
   --color-lake-soft: var(--lake-soft);
   --color-dust: var(--dust);
   --color-dust-soft: var(--dust-soft);
+  --color-copy: var(--copy);
   --color-foam: var(--foam);
   --color-signal: var(--signal);
   --color-water: var(--water);
@@ -144,6 +146,11 @@
    uses; `-sm` steps are the phone sizes (use `text-x-sm md:text-x`). */
 @theme {
   --spacing-gutter: clamp(1.375rem, 4.2vw, 5rem);
+  --spacing-hero-kicker: clamp(5.5rem, 15.5svh, 9.375rem);
+  --spacing-hero-title: clamp(7rem, 22svh, 13.25rem);
+  --spacing-hero-actions: clamp(6rem, 15svh, 9.75rem);
+  --spacing-hero-sticker-gap: 3cqi;
+  --spacing-hero-sticker-arrow: 29cqi;
   --radius-cut: 6.25rem;
   --radius-cut-lg: 10rem;
 
@@ -165,9 +172,12 @@
   --text-hero-sm: 16.9vw;
   --text-hero-sm--line-height: 1.04;
   --text-hero-sm--letter-spacing: -0.075em;
-  --text-hero: clamp(5.25rem, 11.8vw, 12.1875rem);
+  --text-hero: min(clamp(5.25rem, 11.8vw, 12.1875rem), 18svh);
   --text-hero--line-height: 0.99;
   --text-hero--letter-spacing: -0.075em;
+  --text-hero-sticker: 6.7cqi;
+  --text-hero-sticker--line-height: 1.25;
+  --text-hero-sticker--letter-spacing: 0.07em;
   --text-display: clamp(2.5rem, 5.25vw, 5.25rem);
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.065em;
@@ -205,7 +215,7 @@
   /* iOS-like curve for drawers and sheets. */
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-  --animate-marquee: marquee 36s linear infinite;
+  --animate-marquee: marquee 54s linear infinite;
   --animate-spin-slow: spin 35s linear infinite;
 
   @keyframes marquee {
@@ -282,6 +292,7 @@ html {
 :root {
   --raw-aubergine: #382e38;
   --raw-aubergine-soft: #4a3e4a;
+  --raw-public-background: #eed9ce;
   --raw-blush: #f1d8ce;
   --raw-blush-soft: #f7e7e0;
   --raw-blush-paper: #fbf3ef;
@@ -308,8 +319,10 @@ html {
   --rust-soft: var(--raw-coral-deep);
   --lake: var(--raw-tan);
   --lake-soft: var(--raw-teal-deep);
-  --dust: var(--raw-blush);
+  --dust: var(--raw-public-background);
   --dust-soft: var(--raw-blush-soft);
+  /* A solid ink tint keeps supporting copy the same colour on light cards and the page. */
+  --copy: color-mix(in srgb, var(--ink) 72%, var(--dust));
   --foam: var(--raw-blush-paper);
   --line: rgba(56, 46, 56, 0.14);
   --line-on-ink: rgba(251, 243, 239, 0.16);
@@ -428,11 +441,18 @@ html {
   --ink-soft: var(--raw-aubergine-soft);
   --dust: var(--raw-aubergine-night);
   --dust-soft: var(--raw-aubergine-dusk);
+  --copy: var(--raw-mauve);
   --line: rgba(251, 243, 239, 0.14);
 }
 
-/* Home page pieces that are art, not layout: the hero's cut photo, 12-column
-   grid and orbit ellipses, outlined type and a hidden scrollbar. */
+/* Public page artwork: the cut photo, grid, orbits and ticker. */
+@utility ticker-track {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(max-content, 1fr));
+  width: max-content;
+  min-width: 200%;
+}
+
 @utility clip-hero-narrow {
   clip-path: polygon(17% 0, 100% 0, 100% 100%, 0 100%, 0 25%);
 }
@@ -450,18 +470,34 @@ html {
   }
 }
 
-@utility orbit-wide {
-  width: 190vw;
-  height: 90vw;
-  left: -40vw;
-  top: 7.5rem;
-  transform: rotate(-22deg);
+@utility hero-orbits {
+  --orbit-cycle: 54s;
 
-  @media (min-width: 48rem) {
-    width: 94vw;
-    height: 42vw;
-    left: -14vw;
-    top: 6.5rem;
+  & :is(.orbit-guide, .orbit-rings) {
+    transform-origin: 605.511px 763.374px;
+  }
+
+  & .orbit-satellite-upper {
+    transform-origin: 552.161px 407.827px;
+  }
+
+  & .orbit-satellite-lower {
+    transform-origin: 659.957px 1119.633px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    & .orbit-guide {
+      animation: spin var(--orbit-cycle) linear infinite reverse;
+    }
+
+    & .orbit-rings {
+      animation: spin var(--orbit-cycle) linear infinite;
+    }
+
+    /* Two reverse turns inside the moving group produce one reverse turn on the page. */
+    & :is(.orbit-satellite-upper, .orbit-satellite-lower) {
+      animation: spin calc(var(--orbit-cycle) / 2) linear infinite reverse;
+    }
   }
 }
 

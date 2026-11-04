@@ -23,7 +23,7 @@ export function OptionToggle({ label, hint, checked, onChange }: OptionTogglePro
     >
       <span>
         <span className="block text-sm leading-snug">{label}</span>
-        <span className={`block text-xs ${checked ? "text-dust/75" : "text-ink/65"}`}>{hint}</span>
+        <span className={`block text-xs ${checked ? "text-dust/75" : "text-copy"}`}>{hint}</span>
       </span>
       <span className={`flex size-5 shrink-0 items-center justify-center border ${checked ? "border-dust" : "border-line"}`}>
         {checked ? <CheckIcon size={14} weight="bold" /> : null}

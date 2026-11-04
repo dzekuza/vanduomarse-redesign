@@ -13,22 +13,22 @@ interface WhenStepProps {
   icons: (date: Date) => DayIcon[];
   people: number;
   onPeople: (people: number) => void;
+  showPeople: boolean;
 }
 
-const Heading = ({ children }: { children: string }) => <p className="mb-3 text-micro uppercase text-ink/70">{children}</p>;
+const Heading = ({ children }: { children: string }) => <p className="mb-3 text-micro uppercase text-copy">{children}</p>;
 
 /** Day and group size, always visible above the form. Start times are chosen per activity. */
-export function WhenStep({ days, date, onDate, icons, people, onPeople }: WhenStepProps) {
+export function WhenStep({ days, date, onDate, icons, people, onPeople, showPeople }: WhenStepProps) {
   return (
     <section aria-label="Data ir svečiai" className="space-y-6">
       <div className="min-w-0">
-        <Heading>Diena</Heading>
         <DatePicker days={days} selected={date} onSelect={onDate} icons={icons} />
       </div>
-      <div>
+      {showPeople ? <div>
         <Heading>Kiek jūsų</Heading>
-        <Stepper label="Žmonių (su vaikais)" value={people} onChange={onPeople} min={1} max={MAX_PEOPLE} />
-      </div>
+        <Stepper label="Žmonių (su vaikais)" value={people} onChange={onPeople} min={1} max={MAX_PEOPLE} editable />
+      </div> : null}
     </section>
   );
 }

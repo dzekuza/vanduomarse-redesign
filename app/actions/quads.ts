@@ -2,8 +2,9 @@
 
 import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
-import { quadRentalSchema, tourTicketSchema, type QuadRentalInput, type TourTicketInput } from "@/lib/quad-schema";
+import { mixedQuadRentalSchema, quadRentalSchema, tourTicketSchema, type MixedQuadRentalInput, type QuadRentalInput, type TourTicketInput } from "@/lib/quad-schema";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
+import { hourLabel } from "@/lib/quads";
 import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -24,6 +25,7 @@ const BY_HINT: Record<string, string> = {
   quad_unavailable: "Šio keturračio šiuo metu nenuomojame. Atnaujinkite puslapį.",
   quad_closed: "Pasirinktas laikas už darbo valandų.",
   quad_past: "Pasirinkta data jau praėjo arba yra per toli.",
+  quad_units: "Netinkamas keturračių tipų arba vienetų skaičius.",
   quad_riders: "Per daug važiuotojų pasirinktam keturračių skaičiui.",
   quad_full: "Šiuo laiku tiek keturračių nebėra. Pasirinkite kitą laiką.",
   tour_unavailable: "Šis žygis nebeprieinamas. Atnaujinkite puslapį.",
@@ -54,6 +56,19 @@ export interface RequestReceipt {
   total: number;
 }
 
+function rentalArgs(v: Omit<QuadRentalInput, "quadTypeId" | "units">, phone: string) {
+  return {
+    p_date: v.date,
+    p_start_hour: v.startHour,
+    p_hours: v.hours,
+    p_riders: v.riders,
+    p_name: v.customerName,
+    p_email: v.customerEmail || undefined,
+    p_phone: phone,
+    p_note: v.note || undefined,
+  };
+}
+
 export async function createQuadRental(input: QuadRentalInput): Promise<ActionResult<RequestReceipt>> {
   const parsed = quadRentalSchema.safeParse(input);
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
@@ -66,19 +81,31 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_quad_rental", {
+    ...rentalArgs(v, phone),
     p_type_id: v.quadTypeId,
-    p_date: v.date,
-    p_start_hour: v.startHour,
-    p_hours: v.hours,
     p_units: v.units,
-    p_riders: v.riders,
-    p_name: v.customerName,
-    p_email: v.customerEmail || undefined,
-    p_phone: phone,
-    p_note: v.note || undefined,
   });
   if (error) return dbFail(error);
-  notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
+  return { data: { reference: data[0].reference, total: data[0].total } };
+}
+
+export async function createMixedQuadRental(input: MixedQuadRentalInput): Promise<ActionResult<RequestReceipt>> {
+  const parsed = mixedQuadRentalSchema.safeParse(input);
+  if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
+  const v = parsed.data;
+  if (v.website) return { data: { reference: "KT-0000", total: 0 } };
+  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
+  if (!phone) return UNVERIFIED;
+
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc("create_mixed_quad_rental", {
+    ...rentalArgs(v, phone),
+    p_allocations: v.allocations.map((a) => ({ quad_type_id: a.quadTypeId, units: a.units })),
+  });
+  if (error) return dbFail(error);
+  const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
+  notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

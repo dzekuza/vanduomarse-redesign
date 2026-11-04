@@ -28,7 +28,9 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 |-------|------|-------|---------|
 | `--ink` / `--dust` / `--rust` / `--lake` / `--foam` / `--signal` | semantic | redesign palette, `:root` | homepage surfaces, text, accents |
 | `--raw-aubergine` `#382e38` | primitive | sampled from vanduomarse.lt | `theme-marse` ink |
-| `--raw-blush` `#f1d8ce`, `--raw-blush-soft`, `--raw-blush-paper` | primitive | sampled from vanduomarse.lt | `theme-marse` page / card surfaces |
+| `--raw-public-background` | primitive | `#eed9ce` | `.theme-marse` maps `--dust` to this value for light public page backgrounds |
+| `--raw-blush` `#f1d8ce`, `--raw-blush-soft`, `--raw-blush-paper` | primitive | sampled from vanduomarse.lt | existing admin palette and softer brand surfaces |
+| `text-copy` | semantic | solid mix of 72% ink and 28% dust | supporting text on light public surfaces, including breadcrumbs, introductions, hints and FAQ answers |
 | `--raw-coral` `#ed5257`, `--raw-coral-deep` | primitive | sampled from vanduomarse.lt | `theme-marse` accent (maps to `--rust`) |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
@@ -51,11 +53,14 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 One recipe across the home page and every inner page.
 
 - **Palette:** ink (aubergine) bands and text, dust (blush) page, rust (coral) for the second headline line, CTAs, stars and highlights, `lake-soft` (deep teal) as the third surface (location block, hover on dark CTAs), `lake` (tan) for accents on teal, `water` (bright teal) only as status dot / focus.
+- **Light public surfaces:** `bg-dust` uses `#eed9ce`. Use `text-copy` for supporting text such as booking breadcrumbs and intros, calculator and reservation hints, and FAQ answers. Use the existing accent and status tokens for their distinct roles, including accents on dark brand surfaces.
 - **Type:** Termina only (body included; Work Sans was removed 2026-11-04, Big Shoulders stays only for the non-themed `font-display` fallback). Titles are **bold uppercase** with tight negative tracking and set from the fluid steps (`text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`) with `-sm` phone twins. Body copy is `text-xs`/`text-sm` with `leading-loose`; labels are `text-micro` (11 px, +0.07em).
 - **Shapes:** square everywhere; the only curves are the circular sticker and the **cut corners** (`rounded-tl-cut`, `rounded-br-cut`) on a few photos. Hairlines are `border-line` (or `border-dust/30` on ink).
-- **Page anatomy:** `SiteHeader` on ink → ink band (home: `LandingHero`; inner pages: `PageIntro` with the hero's grid + orbit lines) → dust content → `FooterWord` + `FooterBar` footer. Inner pages never invent their own heading style: use `PageIntro`.
+- **Page anatomy:** `SiteHeader` on ink → ink band (`LandingHero` uses a background grid, `PageIntro` uses a grid and orbit lines) → dust content → `FooterWord` + `FooterBar` footer. Use `PageIntro` for dark page introductions.
 - **Forms and cards:** outlined `border-ink` cards on `bg-foam` / `bg-card`, a bottom bar with the total and the primary button. Primary action = dark `Cta` (`ArrowButton`); the home page and header use the coral tone. Choice chips and tiles press to `scale-97`.
 - **Recurring parts:** `SectionKicker` (numbered micro label row), `StarMark`, the coral ticker, accordions (`ui/accordion` via `LandingAccordion`), `Reveal` on scroll.
+- **Home hero:** from `lg`, the hero and ticker share the first viewport. The hero headline is capped by viewport height, and the circular CTA scales its copy, arrow and spacing with its diameter.
+- **Hero rings:** the whole SVG renders at 50% opacity above the background grid and behind the clipped photo, so the rings show around the photo cutout. The dashed guide is centered horizontally and vertically in the first viewport. Its diameter is 63.84% of the reference span. The span is viewport width in landscape and viewport height in portrait, multiplied by 1.5 at portrait widths of 768 px and above. In portrait, the whole SVG turns 90°.
 - **Motion:** see "Motion (home page)" below; it applies to the inner pages too (`PageIntro` runs the same load cascade, footer and cards use `Reveal`).
 
 ## Motion (home + inner pages)
@@ -64,6 +69,7 @@ One recipe across the home page and every inner page.
 - Press = `active:scale-97` (chips `98`, big tiles `99`), 150 ms. Transition the individual properties (`translate`, `scale`, `rotate`), not `transform`, because Tailwind v4 uses those.
 - Anchor jumps (header CTA, menu links, "Į viršų") scroll smoothly: `html { scroll-behavior: smooth }` inside `prefers-reduced-motion: no-preference`, plus `data-scroll-behavior="smooth"` on `<html>` so Next.js still jumps instantly on route changes. `scroll-padding-top: 7rem` clears the fixed header.
 - Hero loads as a staggered fade-up (100–700 ms delays); sections use `Reveal`; modals fade + rise 250 ms in, 150 ms out; the menu panel fades in and its links stagger 50 ms apart.
+- The hero rings use one shared 54-second linear CSS cycle. The large-ring centers orbit a common center clockwise. Each satellite keeps a fixed distance from its moving large ring. Two counterclockwise turns in the nested layer offset the parent’s clockwise turn, giving the satellite one counterclockwise orbit in page coordinates. The central dashed ring turns counterclockwise on the same cycle. Reduced motion keeps the artwork static.
 
 > [!info] Which size for which text
 > `text-micro` (11 px, +0.07em) is for **labels only**: uppercase kickers, step numbers, counters, small tags. Anything a visitor reads as a sentence (card notes, captions, hints, footer links) is `text-xs` (12 px) or larger; body copy is `text-xs`/`text-sm` with `leading-loose`.
@@ -78,7 +84,7 @@ One recipe across the home page and every inner page.
 
 ## Utilities
 
-- Home art utilities: `clip-hero-narrow/-wide`, `bg-grid-hero`, `orbit-wide`, `orbit-round`, `text-outline`, `scrollbar-none`; `animate-marquee`, `animate-spin-slow`.
+- Public page art utilities: `clip-hero-narrow/-wide`, `bg-grid-hero`, `orbit-round`, `text-outline`, `scrollbar-none`, `animate-marquee`, `animate-spin-slow`.
 
 - `font-wordmark` + `wordmark-size` + `wordmark-fit` — the giant "VANDUO MARSE"
   (Big Shoulders 900, uppercase, `line-height .82`). `wordmark-fit` makes the

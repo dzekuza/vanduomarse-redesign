@@ -145,12 +145,12 @@ export function QuadRental({ data }: { data: QuadPageData }) {
         <>
           <div>
             <StepLabel step={3}>Pradžios laikas</StepLabel>
-            <StartGrid type={type} units={units} settings={settings} taken={taken} day={day} pastHour={pastHour} selected={start} onSelect={setStartHour} />
+            <StartGrid items={[{ type, units }]} settings={settings} taken={taken} day={day} pastHour={pastHour} selected={start} onSelect={setStartHour} />
           </div>
           {start !== null ? (
             <div>
               <StepLabel step={4}>Trukmė</StepLabel>
-              <DurationGrid type={type} units={units} settings={settings} taken={taken} day={day} startHour={start} selected={length} onSelect={setHours} />
+              <DurationGrid items={[{ type, units }]} settings={settings} taken={taken} day={day} startHour={start} selected={length} onSelect={setHours} />
             </div>
           ) : null}
         </>

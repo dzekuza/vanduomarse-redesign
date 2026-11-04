@@ -48,7 +48,7 @@ export function ExtrasOfferDialog({ open, offers, photo, onPick, onContinue }: E
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-item font-bold">{ACTIVITY_TITLE[o.id]}</span>
-                  <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{o.text}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-copy">{o.text}</span>
                 </span>
                 <button type="button" onClick={() => onPick(o.id)} className="inline-flex min-h-11 shrink-0 items-center border-b border-current text-xs font-bold transition-colors duration-150 ease-out-strong hover:text-rust">
                   Peržiūrėti

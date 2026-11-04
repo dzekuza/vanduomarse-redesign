@@ -35,7 +35,7 @@ export function LandingAccordion({ rows, variant, mode }: LandingAccordionProps)
         <span>{row.title}</span>
         <PlusIcon aria-hidden className="ml-auto size-6 shrink-0 motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong group-data-[state=open]/trigger:rotate-45" />
       </AccordionTrigger>
-      <AccordionContent className={cn("text-xs leading-loose", events ? "px-0 pr-8 pb-6 md:pl-10" : "pr-9 pb-6 text-sm text-lake-soft")}>
+      <AccordionContent className={cn("text-xs leading-loose", events ? "px-0 pr-8 pb-6 md:pl-10" : "pr-9 pb-6 text-sm text-copy")}>
         {row.body}
       </AccordionContent>
     </AccordionItem>

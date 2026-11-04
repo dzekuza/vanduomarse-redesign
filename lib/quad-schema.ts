@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { verificationToken } from "@/lib/phone-schema";
+import { MAX_QUAD_RENTAL_UNITS } from "@/lib/quads";
 
 export const contactFields = z.object({
   customerName: z.string().trim().min(2, "Įveskite vardą").max(80, "Per ilgas vardas"),
@@ -22,19 +23,34 @@ export type QuadContactValues = z.infer<typeof quadContactSchema>;
 export const tourContactSchema = contactFields.refine(needsContact, contactError);
 export type TourContactValues = z.infer<typeof tourContactSchema>;
 
-/** Hourly rental request, validated again by the `createQuadRental` action. */
-export const quadRentalSchema = contactFields
-  .extend({
-    quadTypeId: z.string().regex(/^[a-z0-9-]+$/).max(60),
-    date: z.iso.date(),
-    startHour: z.number().int().min(0).max(23),
-    hours: z.number().int().min(1).max(8),
-    units: z.number().int().min(1).max(20),
-    riders: z.number().int().min(1).max(40),
-    note: z.string().trim().max(300),
-  })
-  .refine(needsContact, contactError);
+const quadRentalDetails = contactFields.extend({
+  date: z.iso.date(),
+  startHour: z.number().int().min(0).max(23),
+  hours: z.number().int().min(1).max(8),
+  riders: z.number().int().min(1).max(MAX_QUAD_RENTAL_UNITS * 2),
+  note: z.string().trim().max(300),
+});
+
+const quadAllocation = z.object({
+  quadTypeId: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  units: z.number().int().min(1).max(MAX_QUAD_RENTAL_UNITS),
+});
+
+/** Hourly single-type rental request, validated by `createQuadRental`. */
+export const quadRentalSchema = quadRentalDetails.extend(quadAllocation.shape).refine(needsContact, contactError);
 export type QuadRentalInput = z.infer<typeof quadRentalSchema>;
+
+/** Multiple types sharing one slot, validated by `createMixedQuadRental`. */
+export const mixedQuadRentalSchema = quadRentalDetails
+  .extend({ allocations: z.array(quadAllocation).min(2).max(MAX_QUAD_RENTAL_UNITS) })
+  .refine(needsContact, contactError)
+  .refine(({ allocations }) => new Set(allocations.map((a) => a.quadTypeId)).size === allocations.length, {
+    path: ["allocations"], message: "Kiekvieną keturračių tipą nurodykite vieną kartą.",
+  })
+  .refine(({ allocations }) => allocations.reduce((sum, a) => sum + a.units, 0) <= MAX_QUAD_RENTAL_UNITS, {
+    path: ["allocations"], message: `Vienu metu galima rezervuoti iki ${MAX_QUAD_RENTAL_UNITS} keturračių.`,
+  });
+export type MixedQuadRentalInput = z.infer<typeof mixedQuadRentalSchema>;
 
 /** Guided tour ticket request, validated again by the `createTourTicket` action. */
 export const tourTicketSchema = contactFields.extend({ eventId: z.uuid(), people: z.number().int().min(1).max(20) }).refine(needsContact, contactError);

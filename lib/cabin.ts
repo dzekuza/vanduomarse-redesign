@@ -25,6 +25,9 @@ export type RoomTypeId = (typeof ROOM_TYPES)[number]["id"];
 /** Most guests a stay can take: the cabin size, or a camper pitch's limit. */
 export const CAMPER_MAX_GUESTS = 6;
 
+/** Public request limit for stay units, separate from the park's stock. */
+export const MAX_STAY_UNITS = 20;
+
 export function cabinSize(size: CabinSize) {
   return CABIN_SIZES.find((s) => s.id === size)!;
 }
@@ -40,15 +43,22 @@ export function roomLabel(id: RoomTypeId, size: CabinSize): string {
 /** Stay type id in `public.stay_types` for a cabin size. */
 export const cabinStayType = (size: CabinSize) => `namelis-${size}`;
 
-/** Free cabins per night and size, from `stay_occupancy()`: `{ "2026-10-22": { 2: 5, 4: 0 } }`. */
-export type CabinAvailability = Record<string, Partial<Record<CabinSize, number>>>;
+export type StayUnitType = CabinSize | "kemperis";
 
-/** Cabins of `size` free for every night of a stay arriving on `checkIn` (nights outside the data count as free). */
-export function freeCabins(availability: CabinAvailability, checkIn: Date, nights: number, size: CabinSize): number {
-  let free: number = cabinSize(size).count;
+/** Free units per night and type from `stay_occupancy()`, with no entry for unlimited camper stock. */
+export type CabinAvailability = Record<string, Partial<Record<StayUnitType, number>>>;
+
+/** Lowest availability across all nights, with unlisted nights using the default inventory. */
+export function freeStayUnits(availability: CabinAvailability, checkIn: Date, nights: number, type: StayUnitType): number {
+  const inventory = type === "kemperis" ? Infinity : cabinSize(type).count;
+  let free = inventory;
   for (let i = 0; i < nights; i++) {
     const d = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + i);
-    free = Math.min(free, availability[dateKey(d)]?.[size] ?? cabinSize(size).count);
+    free = Math.min(free, availability[dateKey(d)]?.[type] ?? inventory);
   }
   return free;
+}
+
+export function freeCabins(availability: CabinAvailability, checkIn: Date, nights: number, size: CabinSize): number {
+  return freeStayUnits(availability, checkIn, nights, size);
 }

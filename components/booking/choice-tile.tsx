@@ -23,7 +23,7 @@ export function ChoiceTile({ primary, secondary, active, disabled, onClick }: Ch
       }`}
     >
       <span className={`font-bold ${disabled ? "line-through" : ""}`}>{primary}</span>
-      <span className={active ? "text-dust/70" : "text-ink/50"}>{secondary}</span>
+      <span className={active ? "text-dust/70" : disabled ? "" : "text-copy"}>{secondary}</span>
     </button>
   );
 }

@@ -36,9 +36,12 @@ export interface Booking {
   nights?: number;
   /** Stays only: `namelis-2`, `namelis-4` or `kemperis` (public.stay_types). */
   stayTypeId?: string;
+  /** Number of cabins or camper pitches in this stay. */
+  stayUnits?: number;
   /** Sauna only: `public.saunas` id. */
   saunaId?: string;
-  guests: number;
+  /** Null when the guest count was not requested for a stay. */
+  guests: number | null;
   extras: string[];
   total: number;
   status: BookingStatus;
@@ -131,11 +134,12 @@ export interface StaffMember {
 export interface QuadRental {
   id: string;
   reference: string;
-  quadTypeId: string;
+  items: { quadTypeId: string; units: number }[];
   /** yyyy-mm-dd */
   date: string;
   startHour: number;
   hours: number;
+  /** Total vehicles across the rental items. */
   units: number;
   riders: number;
   customer: Customer;

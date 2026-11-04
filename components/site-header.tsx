@@ -50,7 +50,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
         scrolled && !menuOpen && "border-line-on-ink bg-ink/95 backdrop-blur-md",
       )}
     >
-      <Link href={logoHref} aria-label="Vanduo Marse — pradžia" className="w-29 shrink-0 md:w-35">
+      <Link href={logoHref} aria-label="Vanduo Marse, pradžia" className="w-29 shrink-0 md:w-35">
         <Image src="/brand/logo-light.svg" alt="Vanduo Marse" width={121} height={46} priority className="h-auto w-full" />
       </Link>
       <nav aria-label="Pagrindinis meniu" className="hidden items-center gap-5 text-xs lg:flex xl:gap-8">

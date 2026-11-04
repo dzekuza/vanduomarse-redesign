@@ -26,6 +26,7 @@ export const BOOKING_CSV_HEADERS = [
   "Šaltinis",
   "Sukurta",
   "Pastaba",
+  "Nakvynės vienetai",
 ] as const;
 
 /**
@@ -61,7 +62,7 @@ export function bookingsToCsv(bookings: readonly Booking[]): string {
       BOOKING_KIND[b.kind],
       b.date,
       bookingWhen(b),
-      b.guests,
+      b.guests ?? "",
       b.customer.name,
       b.customer.email,
       b.customer.phone,
@@ -71,6 +72,7 @@ export function bookingsToCsv(bookings: readonly Booking[]): string {
       BOOKING_SOURCE[b.source ?? "svetaine"],
       csvDateTime(b.createdAt),
       b.note ?? "",
+      b.stayUnits ?? "",
     ]),
   ]);
 }

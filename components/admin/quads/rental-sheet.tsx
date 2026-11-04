@@ -4,7 +4,7 @@ import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { useAdmin } from "../admin-store";
 import { BookingStatusBadge } from "../status-badge";
 import { StatusActions } from "./status-actions";
-import { formatDateTime, formatDay } from "@/lib/admin/format";
+import { formatDateTime, formatDay, quadRentalLabel } from "@/lib/admin/format";
 import { BOOKING_SOURCE } from "@/lib/admin/labels";
 import type { QuadRental } from "@/lib/admin/types";
 import { hourLabel } from "@/lib/quads";
@@ -18,15 +18,14 @@ interface RentalSheetProps {
 /** Rental details with contact links and the status actions. */
 export function RentalSheet({ rental, onOpenChange }: RentalSheetProps) {
   const { quadTypes, setRentalStatus } = useAdmin();
-  const typeName = (id: string) => quadTypes.find((t) => t.id === id)?.name ?? id;
   return (
     <Sheet open={!!rental} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
         {rental ? (
           <>
             <SheetHeader>
-              <SheetTitle>
-                {rental.units} × {typeName(rental.quadTypeId)}
+              <SheetTitle className="wrap-anywhere">
+                {quadRentalLabel(rental, quadTypes)}
               </SheetTitle>
               <SheetDescription>
                 {rental.reference} · {BOOKING_SOURCE[rental.source]} · {formatDateTime(rental.createdAt)}

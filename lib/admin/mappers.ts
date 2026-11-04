@@ -16,6 +16,7 @@ type BookingRow = Tables<"bookings"> & { booking_extras: Pick<Tables<"booking_ex
 type CouponRow = Tables<"coupons"> & { coupon_redemptions: Pick<Tables<"coupon_redemptions">, "id" | "amount" | "note" | "created_at">[] };
 type TicketRow = Tables<"event_tickets"> & { events: Pick<Tables<"events">, "title" | "date" | "start_time"> };
 type InquiryRow = Tables<"inquiries"> & { inquiry_notes: Pick<Tables<"inquiry_notes">, "text" | "created_at">[] };
+type QuadRentalRow = Tables<"quad_rentals"> & { quad_rental_items?: Pick<Tables<"quad_rental_items">, "quad_type_id" | "units">[] };
 
 /** "19:00:00" -> "19:00" */
 export const toHHMM = (time: string) => time.slice(0, 5);
@@ -31,6 +32,7 @@ export function toBooking(r: BookingRow): Booking {
     hours: r.hours ?? undefined,
     nights: r.nights ?? undefined,
     stayTypeId: r.stay_type_id ?? undefined,
+    stayUnits: r.kind === "pirtis" ? undefined : (r.stay_units ?? 1),
     saunaId: r.sauna_id ?? undefined,
     guests: r.guests,
     extras: r.booking_extras.map((x) => (x.unit === "vienetui" ? `${x.name} × ${x.quantity}` : x.name)),
@@ -195,11 +197,17 @@ export function toQuadSettings(r: Tables<"quad_settings">): QuadSettings {
   return { openHour: r.open_hour, closeHour: r.close_hour, maxHours: r.max_hours, deposit: r.deposit, minAge: r.min_age, rules: r.rules };
 }
 
-export function toQuadRental(r: Tables<"quad_rentals">): QuadRental {
+export function toQuadRental(r: QuadRentalRow): QuadRental {
+  const items = r.quad_type_id
+    ? [{ quadTypeId: r.quad_type_id, units: r.units }]
+    : (r.quad_rental_items ?? [])
+        .toSorted((a, b) => a.quad_type_id.localeCompare(b.quad_type_id))
+        .map((item) => ({ quadTypeId: item.quad_type_id, units: item.units }));
+
   return {
     id: r.id,
     reference: r.reference,
-    quadTypeId: r.quad_type_id,
+    items,
     date: r.date,
     startHour: r.start_hour,
     hours: r.hours,

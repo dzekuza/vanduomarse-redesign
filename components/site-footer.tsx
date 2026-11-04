@@ -44,7 +44,7 @@ export function FooterBar({ topHref }: { topHref: string }) {
   );
 }
 
-const CONTACT_LINK = `${LINK} text-xs transition-colors duration-150 ease-out-strong hover:text-rust`;
+const CONTACT_LINK = "inline-flex min-h-11 text-xs transition-colors duration-150 ease-out-strong hover:text-rust";
 
 /** One contact: a hairline on top, the name (a link when it has a site), then its email and phone stacked. */
 function ContactItem({ contact: c }: { contact: Contact }) {
@@ -59,11 +59,11 @@ function ContactItem({ contact: c }: { contact: Contact }) {
           c.name
         )}
       </p>
-      <div className="mt-1 flex flex-col items-start">
-        <a href={`mailto:${c.email}`} className={CONTACT_LINK}>
+      <div className="flex flex-col items-start">
+        <a href={`mailto:${c.email}`} className={`${CONTACT_LINK} items-end pb-1`}>
           {c.email}
         </a>
-        <a href={telHref(c.phone)} className={CONTACT_LINK}>
+        <a href={telHref(c.phone)} className={`${CONTACT_LINK} items-start pt-1`}>
           {c.phone}
         </a>
       </div>

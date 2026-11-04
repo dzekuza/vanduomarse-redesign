@@ -3,7 +3,7 @@
 import { QuadOptions } from "./quad-options";
 import { SaunaOptions } from "./sauna-options";
 import { StayOptions } from "./stay-options";
-import { defaultPick, planAll, planHours, type ActivityId, type PirtisPlan, type Picks, type Plans, type ReservationData, type When } from "@/lib/reservation";
+import { defaultPick, planAll, planHours, type ActivityId, type PirtisPlan, type Picks, type Plans, type QuadPlan, type ReservationData, type When } from "@/lib/reservation";
 
 interface ActivitiesStepProps {
   data: ReservationData;
@@ -15,6 +15,7 @@ interface ActivitiesStepProps {
   /** Removes the activity from the plan (adding happens by choosing something). */
   onToggle: (id: ActivityId) => void;
   onPick: (picks: Picks) => void;
+  onPeople: (people: number) => void;
 }
 
 function pirtisNotice(plan: PirtisPlan): string {
@@ -24,12 +25,18 @@ function pirtisNotice(plan: PirtisPlan): string {
   return "Šiuo laiku ši pirtis neprieinama: užimta, uždaryta arba grupė per didelė.";
 }
 
+function quadNotice(plan: QuadPlan, people: number): string {
+  if (plan.seats < people) return "Pasirinktuose keturračiuose nepakanka vietų visai grupei.";
+  if (plan.startHour === null) return "Pasirink pradžios laiką.";
+  return "Šiuo laiku pasirinkto keturračių derinio nėra. Pakeisk kiekį arba laiką.";
+}
+
 /**
  * The chosen tab's activity. Its choices (programs, quad types, stay types with
  * prices) are always visible; picking one puts the activity in the plan and opens
  * the rest of its options.
  */
-export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick }: ActivitiesStepProps) {
+export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick, onPeople }: ActivitiesStepProps) {
   const included = picks[tab] !== undefined;
   // Not in the plan yet: preview the activity with its defaults so the choices can be shown.
   const shown = included ? plans : planAll({ [tab]: defaultPick(tab, data) }, data, when);
@@ -39,24 +46,32 @@ export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick
     : tab === "pirtis" && pirtis && !pirtis.ok
       ? pirtisNotice(pirtis)
       : tab === "keturraciai" && keturraciai && !keturraciai.ok
-        ? keturraciai.startHour === null
-          ? "Pasirink pradžios laiką."
-          : "Šiuo laiku tiek keturračių nėra. Pakeisk tipą, skaičių ar laiką."
+        ? quadNotice(keturraciai, when.people)
         : undefined;
 
   return (
     <div className="space-y-8">
       {notice ? <p role="status" className="text-sm text-rust-ink">{notice}</p> : null}
       {tab === "pirtis" && pirtis ? (
-        <SaunaOptions plan={pirtis} data={data.sauna} when={when} included={included} busy={planHours(plans.keturraciai)} onChange={(p) => onPick({ ...picks, pirtis: p })} />
+        <SaunaOptions plan={pirtis} data={data.sauna} when={when} included={included} busy={planHours(plans.keturraciai)} onChange={(p) => onPick({ ...picks, pirtis: p })} onPeople={onPeople} />
       ) : null}
       {tab === "keturraciai" && keturraciai ? (
-        <QuadOptions plan={keturraciai} data={data.quads} when={when} included={included} busy={planHours(plans.pirtis)} onChange={(p) => onPick({ ...picks, keturraciai: p })} />
+        <QuadOptions
+          plan={keturraciai}
+          data={data.quads}
+          when={when}
+          included={included}
+          busy={planHours(plans.pirtis)}
+          onChange={(pick) => {
+            if (Object.keys(pick.quantities).length) onPick({ ...picks, keturraciai: pick });
+            else if (included) onToggle("keturraciai");
+          }}
+        />
       ) : null}
       {tab === "nakvyne" && nakvyne ? (
-        <StayOptions plan={nakvyne} when={when} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} />
+        <StayOptions plan={nakvyne} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onToggle("nakvyne")} />
       ) : null}
-      {included ? (
+      {included && tab !== "nakvyne" ? (
         <button type="button" onClick={() => onToggle(tab)} className="inline-flex min-h-11 items-center text-sm text-ink/70 underline underline-offset-4 hover:text-rust">
           Pašalinti iš plano
         </button>

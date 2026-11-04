@@ -9,8 +9,11 @@ import { PRICES, formatMoney } from "@/lib/event-pricing";
 import { OptionToggle } from "./option-toggle";
 import type { EventCalculatorState } from "./use-event-calculator";
 
+type StayCategory = "entertainment" | "overnight";
+
 interface Row {
   id: string;
+  category: StayCategory;
   title: string;
   blurb: string;
   /** What is chosen so far, shown on the closed row; null when nothing is. */
@@ -18,11 +21,12 @@ interface Row {
   body: ReactNode;
 }
 
-/** "Pasiliekam Marse": sauna, quads and a night's stay, each expands into a few choices that feed the estimate. */
-export function StaySection({ calc: { input, set } }: { calc: EventCalculatorState }) {
+/** Sauna, quads and cabins feed the same estimate in the drawer and in their page groups. */
+export function StaySection({ calc: { input, set }, category }: { calc: EventCalculatorState; category?: StayCategory }) {
   const rows: Row[] = [
     {
       id: "pirtis",
+      category: "entertainment",
       title: "Pirtis",
       blurb: "Privati malkomis kūrenama pirtis prie ežero jūsų svečiams, nuo 2 val.",
       chosen: input.saunaHours > 0 ? `${Math.max(2, input.saunaHours)} val.` : null,
@@ -35,6 +39,7 @@ export function StaySection({ calc: { input, set } }: { calc: EventCalculatorSta
     },
     {
       id: "keturraciai",
+      category: "entertainment",
       title: "Keturračiai",
       blurb: "Žygis keturračiais po Marso apylinkes su instruktoriumi.",
       chosen: input.atvRiders > 0 ? `${input.atvRiders} asm.` : null,
@@ -42,7 +47,8 @@ export function StaySection({ calc: { input, set } }: { calc: EventCalculatorSta
     },
     {
       id: "nakvyne",
-      title: "Nakvynė",
+      category: "overnight",
+      title: category === "overnight" ? "Nameliai" : "Nakvynė",
       blurb: `Nameliai svečiams, ${formatMoney(PRICES.cabinNight)} asmeniui per naktį.`,
       chosen: input.cabinGuests > 0 ? `${input.cabinGuests} asm. × ${input.cabinNights} n.` : null,
       body: (
@@ -53,18 +59,19 @@ export function StaySection({ calc: { input, set } }: { calc: EventCalculatorSta
       ),
     },
   ];
+  const visibleRows = category ? rows.filter((r) => r.category === category) : rows;
 
   return (
     <section className="@container">
       <StepLabel step={7}>Pasiliekam Marse</StepLabel>
-      <p className="mb-4 text-xs text-ink/65">Norisi pasilikti ilgiau? Atidaryk ir pridėk pirtį, keturračius ar nakvynę prie sąmatos.</p>
+      {category ? null : <p className="mb-4 text-xs text-copy">Norisi pasilikti ilgiau? Atidaryk ir pridėk pirtį, keturračius ar nakvynę prie sąmatos.</p>}
       <Accordion type="multiple" className="border-b border-line">
-        {rows.map((r) => (
+        {visibleRows.map((r) => (
           <AccordionItem key={r.id} value={r.id} className="border-b-0 border-t border-line">
             <AccordionTrigger className="items-center gap-4 py-4">
               <span className="min-w-0">
                 <span className="block text-item font-bold">{r.title}</span>
-                <span className="block text-xs font-normal text-ink/65">{r.blurb}</span>
+                <span className="block text-xs font-normal text-copy">{r.blurb}</span>
               </span>
               {r.chosen ? <span className="ml-auto shrink-0 border border-ink bg-ink px-2.5 py-1 text-micro text-dust">{r.chosen}</span> : <span className="ml-auto" />}
               <PlusIcon aria-hidden className="size-6 shrink-0 motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong group-data-[state=open]/trigger:rotate-45" />

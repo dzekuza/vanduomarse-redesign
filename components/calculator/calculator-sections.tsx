@@ -23,7 +23,7 @@ function TypeSection({ calc: { input, set, applyPreset } }: SectionProps) {
     <section className="@container">
       <StepLabel step={1}>Renginio tipas</StepLabel>
       <PresetPicker selected={input.preset} onSelect={(id) => (input.preset === id ? set("preset", null) : applyPreset(id))} />
-      <p className="mt-3 text-xs text-ink/65">Pasirinkus tipą nustatome tipinį svečių skaičių – erdvę, dieną ir visa kita renkiesi pats.</p>
+      <p className="mt-3 text-xs text-copy">Pagal renginio tipą parenkame įprastą svečių skaičių. Erdvę, datą ir kitus pasirinkimus gali keisti.</p>
     </section>
   );
 }
@@ -77,7 +77,7 @@ function CateringSection({ calc: { input, set } }: SectionProps) {
           <ChoiceTile key={c.id} primary={c.label} secondary={c.hint} active={input.catering === c.id} onClick={() => set("catering", input.catering === c.id ? null : c.id)} />
         ))}
       </div>
-      <p className="mt-3 text-xs text-ink/65">Vaikams 3–10 m. švediškas stalas –50%, iki 3 m. nemokamai.</p>
+      <p className="mt-3 text-xs text-copy">Vaikams iki 3 m. švediškas stalas nemokamas. Vaikams 3–10 m. taikoma 50 % nuolaida.</p>
       <div className="mt-3">
         <OptionToggle label="Kavos pertrauka" hint={`${formatMoney(COFFEE_BREAK)} / asm.`} checked={input.coffeeBreak} onChange={(v) => set("coffeeBreak", v)} />
       </div>
@@ -101,29 +101,34 @@ function DrinksSection({ calc: { input, set } }: SectionProps) {
           />
         ))}
       </div>
-      <p className="mt-3 text-xs text-ink/65">Papildomi užsakymai renginio metu – pagal faktinį suvartojimą.</p>
+      <p className="mt-3 text-xs text-copy">Už papildomus užsakymus renginio metu mokama pagal faktinį suvartojimą.</p>
     </section>
   );
 }
 
-function ExtrasSection({ calc: { input, set } }: SectionProps) {
+export function ExtrasSection({ calc: { input, set }, category }: SectionProps & { category?: "hospitality" | "entertainment" }) {
+  const hospitality = category !== "entertainment";
+  const entertainment = category !== "hospitality";
+
   return (
     <section className="@container">
       <StepLabel step={6}>Paslaugos ir pramogos</StepLabel>
       <div className="grid gap-3 @xl:grid-cols-2">
-        <Stepper label={`Barmenai (${PRICES.bartender} €)`} value={input.bartenders} onChange={(v) => set("bartenders", v)} min={0} max={6} />
-        <Stepper label={`WAKE plaukimas (${PRICES.wakeRider} €/asm.)`} value={input.wakeRiders} onChange={(v) => set("wakeRiders", v)} min={0} max={500} />
-      </div>
-      <div className="mt-3 grid gap-3 @xl:grid-cols-2">
-        <OptionToggle label="Šventinis stalo dekoravimas" hint={formatMoney(PRICES.decor)} checked={input.decor} onChange={(v) => set("decor", v)} />
-        <OptionToggle label="Stalų serviravimas" hint={`${PRICES.serving} €/asm.`} checked={input.serving} onChange={(v) => set("serving", v)} />
-        <OptionToggle label="Privati WAKE trasa, 2 val." hint={`${PRICES.wakePrivate.toLocaleString("lt-LT")} €`} checked={input.wakePrivate} onChange={(v) => set("wakePrivate", v)} />
+        {hospitality ? <Stepper label={`Barmenai (${PRICES.bartender} €)`} value={input.bartenders} onChange={(v) => set("bartenders", v)} min={0} max={6} /> : null}
+        {entertainment ? <Stepper label={`WAKE plaukimas (${PRICES.wakeRider} €/asm.)`} value={input.wakeRiders} onChange={(v) => set("wakeRiders", v)} min={0} max={500} /> : null}
+        {hospitality ? (
+          <>
+            <OptionToggle label="Šventinis stalo dekoravimas" hint={formatMoney(PRICES.decor)} checked={input.decor} onChange={(v) => set("decor", v)} />
+            <OptionToggle label="Stalų serviravimas" hint={`${PRICES.serving} €/asm.`} checked={input.serving} onChange={(v) => set("serving", v)} />
+          </>
+        ) : null}
+        {entertainment ? <OptionToggle label="Privati WAKE trasa, 2 val." hint={`${PRICES.wakePrivate.toLocaleString("lt-LT")} €`} checked={input.wakePrivate} onChange={(v) => set("wakePrivate", v)} /> : null}
       </div>
     </section>
   );
 }
 
-/** The calculator's questions in order: the page shows them all, the drawer one per step. */
+/** Shared question sections in the drawer's step order. */
 export const CALCULATOR_SECTIONS: { id: string; label: string; Section: ComponentType<SectionProps> }[] = [
   { id: "type", label: "Renginio tipas", Section: TypeSection },
   { id: "guests", label: "Svečiai ir data", Section: GuestsSection },

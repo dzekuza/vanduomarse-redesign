@@ -23,12 +23,12 @@ export function EventRow({ event }: { event: ParkEvent }) {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <CategoryTag category={event.category} />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-copy">
             {longDateLabel(event.date)}, {event.time} · {event.place}
           </span>
         </div>
         <h3 className="mt-2 text-item font-bold">{event.title}</h3>
-        <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">{event.blurb}</p>
+        <p className="mt-1 max-w-xl text-xs leading-relaxed text-copy">{event.blurb}</p>
         {event.spotsLeft !== undefined ? (
           <p className={`mt-2 text-xs ${full ? "text-muted-foreground" : "text-rust-ink"}`}>
             {full ? "Vietų nebeliko" : `Liko vietų: ${event.spotsLeft}`}

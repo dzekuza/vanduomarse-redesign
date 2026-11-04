@@ -1,3 +1,69 @@
+- 2026-11-04 The reservation summary shows quads first, followed by sauna and overnight stay.
+- 2026-11-04 Quad rental on the reservation page accepts quantities of both quad types for one
+  shared time and duration. The plan and staff view show each type under one rental reference.
+- 2026-11-04 Every reservation activity tab has an independent information button. Stay cards
+  select quantities of two-person cabins, four-person cabins or camper pitches. The plan prices
+  each unit for each night, and staff availability counts all units in the single booking.
+- 2026-11-04 The reservation strip scrolls each month title with its dates. At the left edge,
+  the current title stays in view until the next month pushes it out. The view toggle stays at
+  the right of the same row.
+- 2026-11-04 Extended the reservation date strip and live availability to 60 days. The strip
+  heading follows the first visible dates. The calendar shows the year and can browse 12 months,
+  with dates beyond the booking cutoff disabled. Sauna session cards label the count “Kiekis”.
+- 2026-11-04 Clicking the selected cabin or camper type again removes the stay from the plan.
+  Clicking the other type switches the stay.
+- 2026-11-04 Made the desktop reservation plan photo fill the card width while keeping its
+  192 px height cap.
+- 2026-11-04 Moved the active month and view toggle into one reservation date toolbar and removed
+  the “Diena” heading. The active activity tab has an info button, and both plan photos follow
+  the active tab. The desktop photo is shorter and the extras dialog keeps the aerial photo.
+  Sauna cards have their own editable group count and a separate select button. The selected
+  card edits the shared count, and the other activities use the shared stepper. Published sauna
+  sessions show remaining seats against total capacity from Supabase. Private cards show the
+  maximum group size. Reduced the footer gap between contact titles and links by 4 px.
+- 2026-11-04 Added a thumbnail at the left of the mobile reservation plan bar. It follows the
+  active activity tab and reuses the corresponding landing service photo.
+- 2026-11-04 Brought email and phone text closer together across the public footer contact grid,
+  with a separate 44 px tap target for each link.
+- 2026-11-04 Set the decorative hero ring layer behind the photo to 50% opacity.
+- 2026-11-04 Placed the centered hero rings behind the clipped photo and above the grid so they
+  show around the photo cutout.
+- 2026-11-04 Matched the hero rings’ center and scale to the AD Night reference. The dashed guide
+  centers on the first viewport and scales with its width in landscape or height in portrait.
+  Portrait turns the SVG 90° and uses a 1.5× span from 768 px wide.
+- 2026-11-04 Reworked the hero ring motion based on the AD Night reference. The large rings
+  orbit clockwise, while each small ring travels counterclockwise around its moving large ring
+  and the dashed center turns counterclockwise. The loops share the same 54-second cycle.
+- 2026-11-04 Matched the calculator subsection labels to the small reservation labels.
+- 2026-11-04 Extended `/rezervacija` to 30 days of availability. The people field accepts digits
+  only, the intro is removed, and sauna sessions use event-style cards. Phones and tablets show a
+  live plan bar that opens the full summary.
+- 2026-11-04 Added month labels to the reservation date strip and direct entry to the group-size
+  stepper. The plan card and extras dialog now use a Vanduo Marse aerial photo.
+- 2026-11-04 Added thin vertical separators between the activity tabs on `/rezervacija`.
+- 2026-11-04 Added the supplied `animacijai.svg` as `public/landing/hero-orbits.svg` at the lower
+  edge of the home hero photo, beneath the hero content. Its two motifs rotate together counterclockwise in a 54-second loop inspired
+  by AD Night. The artwork stays static with reduced motion.
+- 2026-11-04 Removed the two orbit outlines and the hairline above the contact strip in the home
+  hero. The coral ticker has a border along its top edge only.
+- 2026-11-04 Organized the calculator into “Vieta ir laikas”, “Maistas”, “Pramogos” and
+  “Nakvynė”, each with a small neutral index. Food service and hospitality sit together in
+  “Maistas”, and activity choices sit in “Pramogos”. Light public backgrounds use `#eed9ce`,
+  and supporting copy uses the shared neutral `text-copy` color.
+- 2026-11-04 Kept the activity card arrows visible by giving their photos square corners.
+  The circular hero CTA now responds to hover immediately with a short motion separate from its
+  entrance. The hero info strip uses “Sausinės g. 20, Žemaitkiemio k.” and a number-only phone
+  link. On tablets and desktops, the address, centered phone and scroll link fit in one row.
+  On phones, the address and number stack on the left and the scroll link sits on the right.
+- 2026-11-04 Changed the second homepage ticker phrase to “VOS 20 MINUČIŲ NUO MIESTO CENTRO.”
+- 2026-11-04 Added the “Apie Marsą” page to the main navigation. Its “Komanda” section
+  uses portrait cards for sauna practitioners, the wakeboarding park lead and the marketing lead.
+  The sauna cards link to public sauna booking so visitors can continue to available sessions.
+- 2026-11-04 Restored the home hero info strip with “Sausinės g. 20, Žemaitkiemio k., Kauno r.”,
+  a centered “Skambinkite - +370 640 57504” phone link and a right-aligned “Leiskis žemyn” link.
+  The hero and ticker fit in the first desktop viewport, and the circular CTA keeps two proportional
+  lines at each size. Removed long dashes from the hero and ticker copy.
+- 2026-11-04 Restored “ŽEMĖ TA PATI. JAUSMAS — KITAS.” as a plain text line above the home hero headline.
 - 2026-11-04 Home FAQ accordion: questions bold 14 px (16 px from `md`), answers 14 px, so question and answer no longer read as the same text.
 - 2026-11-04 Home hero: removed the top kicker ("ŽEMĖ TA PATI. JAUSMAS — KITAS.") and the bottom info bar (Kauno rajonas / address / "Leiskis žemyn").
 - 2026-11-04 Phone gate: env-flagged skip for live testing (`PHONE_VERIFICATION_SKIP=1`, migration `20261104100000_phone_verification_skip.sql`, ADR-0023). Off by default.
@@ -6,7 +72,7 @@
 
 ---
 tags: [meta, changelog]
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 
 # Changelog

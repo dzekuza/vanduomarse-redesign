@@ -1,6 +1,6 @@
 ---
 tags: [backend, stable]
-updated: 2026-10-22
+updated: 2026-11-04
 ---
 
 # API Architecture
@@ -46,6 +46,8 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 | `resendCouponEmail` / `redeemCoupon` / `cancelCoupon` | `app/admin/actions.ts` | Re-send code; insert a `coupon_redemptions` row (trigger spends the balance, hints `coupon_balance` / `coupon_inactive` / `coupon_expired`); cancel an order or coupon | Zod |
 
 | `createQuadRental` / `createTourTicket` | `app/actions/quads.ts` | Public: file a rental request / tour seats via anon RPCs; DB hints map to Lithuanian messages; honeypot field | `quadRentalSchema` / `tourTicketSchema` (`lib/quad-schema.ts`) |
+| `createMixedQuadRental` | `app/actions/quads.ts` | Public: book a mix of fleet types for one slot with one reference through `create_mixed_quad_rental`. Requires a verified phone | `mixedQuadRentalSchema` (`lib/quad-schema.ts`): distinct types, up to 20 quads total. Database checks seats and hourly stock |
+| `createStayBooking` | `app/actions/requests.ts` | Public: file one request for the chosen cabin or camper pitch type and number of units. Requires a verified phone. The existing single-unit RPC remains available for the older forms | `stayBookingSchema` (`lib/request-schema.ts`): quantity 1–20, guest count required when quantity is omitted |
 | `saveQuadType` / `deleteQuadType` / `updateQuadSettings` | `app/admin/actions.ts` | Fleet and rules; also revalidate `/rezervacija` and `/embed/keturraciai`; delete refused once rented (`23503`) | Zod (close > open) |
 | `createRental` / `setRentalStatus` / `setTourTicketStatus` | `app/admin/actions.ts` | Staff-entered rental (price from the fleet row, DB guards capacity); status changes (reopening a cancelled row re-checks capacity) | Zod |
 

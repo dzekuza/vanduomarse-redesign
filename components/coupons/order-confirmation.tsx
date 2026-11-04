@@ -17,15 +17,15 @@ export function OrderConfirmation({ order, email, onReset }: OrderConfirmationPr
       <p className="font-display text-total font-bold text-rust">{order.reference}</p>
       <dl className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <dt className="text-muted-foreground">Kuponas</dt>
+          <dt className="text-copy">Kuponas</dt>
           <dd className="mt-1 font-normal">{order.productName}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Suma</dt>
+          <dt className="text-copy">Suma</dt>
           <dd className="mt-1 font-normal">{formatEuro(order.amount)}</dd>
         </div>
       </dl>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-copy">
         Susisieksime el. paštu <span className="font-normal">{email}</span> ir pasakysime, kaip apmokėti. Patvirtinę apmokėjimą atsiųsime
         kupono kodą. Užsakymo numerį išsaugokite.
       </p>

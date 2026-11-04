@@ -48,9 +48,10 @@ const BY_HINT: Record<string, string> = {
   coupon_invalid: "Kuponas negalioja šiai paslaugai.",
   stay_unavailable: "Šio nakvynės tipo šiuo metu nėra. Atnaujinkite puslapį.",
   stay_guests: "Per daug svečių pasirinktam nakvynės tipui.",
+  stay_units: "Netinkamas namelių arba kemperių vietų skaičius.",
   stay_nights: "Netinkamas naktų skaičius.",
   stay_past: "Pasirinkta data jau praėjo arba yra per toli.",
-  stay_full: "Šioms naktims laisvų vietų nebeliko. Pasirinkite kitą datą.",
+  stay_full: "Šioms naktims nepakanka laisvų vietų. Pakeiskite pasirinkimą arba datą.",
   event_unavailable: "Šis renginys nebeprieinamas. Atnaujinkite puslapį.",
   program_unavailable: "Ši programa šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   event_people: "Netinkamas žmonių skaičius.",
@@ -142,18 +143,22 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   if (!phone) return UNVERIFIED;
 
   const supabase = createPublicClient();
-  const { data, error } = await supabase.rpc("create_stay_booking", {
+  const units = v.units ?? 1;
+  const args = {
     p_stay_type_id: v.stayTypeId,
     p_date: v.date,
     p_nights: v.nights,
-    p_guests: v.guests,
     p_name: v.customerName,
     p_email: v.customerEmail || undefined,
     p_phone: phone,
     p_coupon: v.coupon || undefined,
-  });
+  };
+  const { data, error } = units === 1 && v.guests !== undefined
+    ? await supabase.rpc("create_stay_booking", { ...args, p_guests: v.guests })
+    : await supabase.rpc("create_stay_booking_with_units", { ...args, p_units: units, p_guests: v.guests });
   if (error) return dbFail(error, BY_HINT.stay_full);
-  notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`]));
+  const quantity = units > 1 ? `${v.stayTypeId === "kemperis" ? "Kemperiu vietos" : "Nameliai"}: ${units}` : undefined;
+  notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 

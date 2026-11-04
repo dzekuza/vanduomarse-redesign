@@ -15,15 +15,26 @@ interface SaunaOptionsProps {
   /** Hours the quads hold in the plan: seansai overlapping them are blocked. */
   busy: readonly number[];
   onChange: (pick: SaunaPick) => void;
+  onPeople: (people: number) => void;
 }
 
 /** Pirtis: the day's seansai in one list (sessions, private programs, hourly starts), then what the chosen one still needs. */
-export function SaunaOptions({ plan, data, when, included, busy, onChange }: SaunaOptionsProps) {
+export function SaunaOptions({ plan, data, when, included, busy, onChange, onPeople }: SaunaOptionsProps) {
   const pick = pickFromPlan(plan, data);
-  const rows = sessionRows(data, when, busy);
+  const rows = sessionRows(data, when.day, busy);
   return (
     <>
-      <SessionList rows={rows} selected={(row) => included && rowSelected(row, plan)} onSelect={(row) => onChange(pickForRow(row, plan, data))} />
+      <SessionList
+        key={when.day}
+        rows={rows}
+        people={when.people}
+        selected={(row) => included && rowSelected(row, plan)}
+        onPeople={onPeople}
+        onSelect={(row, people) => {
+          onChange(pickForRow(row, plan, data));
+          onPeople(people);
+        }}
+      />
       {included && plan.mode === "session" && plan.program.pricing === "family" ? (
         <Stepper label={`Vaikų grupėje (suaugusių: ${plan.adults})`} value={plan.children} onChange={(children) => onChange({ ...pick, children })} min={0} max={Math.max(0, when.people - 1)} />
       ) : null}

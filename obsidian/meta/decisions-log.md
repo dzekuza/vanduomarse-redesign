@@ -1,12 +1,32 @@
 ---
 tags: [meta, decision]
-updated: 2026-10-30
+updated: 2026-11-04
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0025 — One quad rental can reserve multiple fleet types
+
+**Context.** A group can choose both single-seat and two-seat quads for one time. A request per type would consume multiple pending slots and could reserve only part of the intended fleet.
+
+**Decision.** Store one `quad_rentals` header with the common slot and one `quad_rental_items` row per selected type. The mixed RPC prices all units, checks total seats and writes them in one transaction. The header capacity trigger locks each selected type in the same order and checks every hour. The public occupancy RPC counts the same allocation rows as the trigger.
+
+**Consequences.** Staff confirm and cancel the whole rental with one status. Existing single-type rows and booking forms continue to use their original RPC and share the same capacity check. Mixed bookings need the migration applied first. The live fleet determines the available mix.
+
+---
+
+## ADR-0024 — A stay request reserves units of one type
+
+**Context.** Visitors can reserve several cabins of a selected size or several camper pitches in one plan. Each camper pitch holds one vehicle. Separate booking rows per unit would consume the three-request limit for one contact and complicate retrying the rest of the plan.
+
+**Decision.** Store `stay_units` on one booking and validate that quantity across all nights under the existing per-type advisory lock. The database charges the nightly price multiplied by nights and units. A stay may omit `guests` when the visitor chooses by unit count. If supplied, guests must fit the total capacity of the units. Public requests allow up to 20 units, subject to available stock. A camper type with no stock limit still follows the per-request limit.
+
+**Consequences.** Existing bookings count as one unit. The older single-unit RPC still requires a guest count. Staff occupancy and the public availability RPC count units. The quantity-first flow needs the migration applied before deployment.
 
 ---
 

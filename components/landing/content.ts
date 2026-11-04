@@ -28,11 +28,14 @@ export interface Service {
   cta?: { href: string; label: string };
 }
 
-/** Where the park is; shown in the hero strip, the landing section and the map link. */
+const PARK_STREET = "Sausinės g. 20";
+
+/** Park address in the formats used by the hero and the location section. */
 export const PARK_ADDRESS = {
-  street: "Sausinės g. 20",
+  street: PARK_STREET,
   village: "Žemaitkiemio km.",
   area: "Kauno rajonas, Lietuva",
+  compact: `${PARK_STREET}, Žemaitkiemio k.`,
 } as const;
 
 const restaurant = CONTACTS.find((c) => c.name === "Skoniai Marse") ?? MAIN_CONTACT;
@@ -48,13 +51,13 @@ export const SERVICES: Record<ServiceId, Service> = {
     photo: "/landing/sauna.webp",
     alt: "Vanduo Marse pirties interjeras",
     description:
-      "Pirtis prie vandens. Vakaras, kuriam nereikia skubėjimo — tik laiko sau ir savų žmonių. Rinkis bendrą seansą arba pasiteirauk apie privačią pirtį.",
+      "Pirtis prie vandens. Ramus vakaras sau ir saviems. Rinkis bendrą seansą arba pasiteirauk apie privačią pirtį.",
     facts: [
       "Bendri seansai su pirtininko programa.",
-      "Privatus laikas jūsų kompanijai — pagal užsakymą.",
+      "Privati pirtis jūsų kompanijai pagal užsakymą.",
       "Konkrečią programą, laisvus laikus ir kainą matai rezervuodamas.",
     ],
-    priceNote: "Kaina — pagal pasirinktą formatą.",
+    priceNote: "Kaina priklauso nuo pasirinkto formato.",
     contact: "Pirtis Marse",
   },
   ciongo: {
@@ -69,11 +72,11 @@ export const SERVICES: Record<ServiceId, Service> = {
     description:
       "Žvyras, miškas ir visai kitas maršrutas. Važiuok su Ciongo, o po trasos pratęsk dieną Marse. Vienu keturračiu galima važiuoti dviese.",
     facts: [
-      "Trasa apie 1,5–2 val. — pagal tempą ir įgūdžius.",
+      "Važiavimas trunka apie 1,5–2 val., priklausomai nuo tempo ir įgūdžių.",
       "Vienu keturračiu važiuoja iki 2 žmonių.",
       "Pirtis, maistas ir nakvynė užsakomi bei apmokami atskirai.",
     ],
-    priceNote: "Kaina — rezervuojant keturračius.",
+    priceNote: "Kainą matysi rezervuodamas keturračius.",
     contact: "Vanduo Marse",
   },
   party: {
@@ -106,13 +109,13 @@ export const SERVICES: Record<ServiceId, Service> = {
     photo: "/landing/cabins.webp",
     alt: "Marso nameliai prie vandens",
     description:
-      "Po veiksmo, po šventės ar tiesiog vietoj dar vieno vakaro mieste. Pasilik namelyje prie vandens — ryte niekur nereikės lėkti.",
+      "Po veiksmo, po šventės ar tiesiog vietoj dar vieno vakaro mieste. Jei pasiliksi namelyje prie vandens, ryte niekur nereikės lėkti.",
     facts: [
       "Nameliai prie vandens.",
       "Tinka ir trumpai išvykai, ir šventės tęsiniui.",
       "Namelių užimtumą, apgyvendinimą ir kainą matai pagal datą.",
     ],
-    priceNote: "Kaina ir laisvi nameliai — pagal datą.",
+    priceNote: "Kainą ir laisvus namelius matysi pasirinkęs datą.",
     contact: "Miegas Marse",
   },
   wake: {
@@ -140,7 +143,7 @@ export const SERVICES: Record<ServiceId, Service> = {
     choice: "Maistas",
     glyph: "◌",
     label: "06 / SKONIAI MARSE",
-    title: "PO VEIKSMO —\nPRIE STALO.",
+    title: "PO VEIKSMO\nPRIE STALO.",
     photo: "/landing/food.webp",
     alt: "Marso virtuvės maistas ant stalo",
     description:
@@ -172,15 +175,13 @@ export interface ActivityCard {
   num: string;
   title: string;
   note: [string, string];
-  /** Rounded corner on the photo, from the design. */
-  corner?: "cabins" | "party";
 }
 
 export const ACTIVITY_CARDS: ActivityCard[] = [
   { id: "sauna", categories: ["rest"], alt: "Marso pirtis su dideliais langais į vandenį", tag: "SUSITINKAM GARUOSE", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Šiluma, kuriai", "verta rasti laiko."] },
   { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "DAUGIAU GAZO.", note: ["Vienu keturračiu", "galima dviese."] },
-  { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "TAVO PROGA. TAVO ŽMONĖS.", num: "03 / ŠVĘSK", title: "GARSO IKI RYTO.", note: ["Šventės", "be skubėjimo namo."], corner: "party" },
-  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "NIEKUR NESKUBAM", num: "04 / PASILIK", title: "RYTAS MARSE.", note: ["Nameliai.", "Vanduo už lango."], corner: "cabins" },
+  { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "TAVO PROGA. TAVO ŽMONĖS.", num: "03 / ŠVĘSK", title: "GARSO IKI RYTO.", note: ["Šventės", "be skubėjimo namo."] },
+  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "NIEKUR NESKUBAM", num: "04 / PASILIK", title: "RYTAS MARSE.", note: ["Nameliai.", "Vanduo už lango."] },
   { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "ŠILTASIS SEZONAS", num: "05 / PAGAUK BANGĄ", title: "VANDUO VEŽA.", note: ["Pirmas kartas", "ar dar vienas ratas?"] },
   { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "PRIE VIENO STALO", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Po veiksmo", "visada skaniau."] },
 ];
@@ -195,7 +196,7 @@ export const EVENT_OPTIONS = [
 export const FAQ_ITEMS = [
   {
     q: "Ar į Marsą galima atvykti ne vasarą?",
-    a: "Taip. Pirtį, šventes ir nakvynę planuojame ir ne vasaros sezonu. Keturračių važiavimas derinamas pagal trasos ir oro sąlygas, vandenlentės — sezono metu. Prieš atvykdami susisiekite dėl norimos veiklos.",
+    a: "Taip. Pirtį, šventes ir nakvynę planuojame ir ne vasaros sezonu. Keturračių važiavimą deriname pagal trasos ir oro sąlygas. Vandenlenčių parkas veikia šiltuoju sezonu. Prieš atvykdami susisiekite dėl norimos veiklos.",
   },
   {
     q: "Ar vienu keturračiu galime važiuoti dviese?",
@@ -203,7 +204,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "Ar pirtis įskaičiuota į keturračių kainą?",
-    a: "Ne. Pirtį, maistą, šventės erdvę ir nakvynę deriname bei skaičiuojame atskirai. Užklausoje pažymėkite norimas veiklas — paruošime bendrą pasiūlymą.",
+    a: "Ne. Pirtį, maistą, šventės erdvę ir nakvynę deriname bei skaičiuojame atskirai. Užklausoje pažymėkite norimas veiklas, kad galėtume paruošti bendrą pasiūlymą.",
   },
   {
     q: "Ar galime švęsti iki ryto?",

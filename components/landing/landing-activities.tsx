@@ -12,7 +12,7 @@ export function LandingActivities() {
           <br />
           <span className="text-rust">VEIKIAM?</span>
         </h2>
-        <p className="mt-6 text-xs leading-loose md:mt-0 md:mb-2">
+        <p className="mt-6 text-xs leading-loose text-copy md:mt-0 md:mb-2">
           Nuo pirmo šuolio iki paskutinio garo.
           <br />
           Susirask savo priežastį išsukti.

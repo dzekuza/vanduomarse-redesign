@@ -18,6 +18,11 @@ export interface QuadType {
   active: boolean;
 }
 
+export interface QuadRentalItem {
+  type: QuadType;
+  units: number;
+}
+
 export interface QuadSettings {
   /** First start hour and closing hour (a rental must end by it). */
   openHour: number;
@@ -35,6 +40,7 @@ export type QuadTaken = Record<string, Record<string, Record<number, number>>>;
 
 /** Days ahead the rental day strip shows. */
 export const QUAD_DAYS = 21;
+export const MAX_QUAD_RENTAL_UNITS = 20;
 
 /** Upcoming guided tours shown on the public page (rows of `events`). */
 export interface QuadTourData {
@@ -53,6 +59,9 @@ export interface QuadTourData {
 
 export const rentalPrice = (type: Pick<QuadType, "pricePerHour">, hours: number, units: number) => type.pricePerHour * hours * units;
 
+export const fleetRentalPrice = (items: readonly QuadRentalItem[], hours: number) =>
+  items.reduce((total, { type, units }) => total + rentalPrice(type, hours, units), 0);
+
 /** Most riders `units` quads of this type can carry. */
 export const maxRiders = (type: Pick<QuadType, "seats">, units: number) => type.seats * units;
 
@@ -69,6 +78,15 @@ export function freeAt(type: QuadType, taken: QuadTaken, day: string, hour: numb
 export function longestFrom(type: QuadType, taken: QuadTaken, day: string, startHour: number, units: number, s: QuadSettings): number {
   let hours = 0;
   while (hours < s.maxHours && startHour + hours < s.closeHour && freeAt(type, taken, day, startHour + hours) >= units) hours++;
+  return hours;
+}
+
+/** How long every selected type is free together, stopping before any time held by another activity. */
+export function longestForFleet(items: readonly QuadRentalItem[], taken: QuadTaken, day: string, startHour: number, settings: QuadSettings, busy: readonly number[] = []): number {
+  if (!items.length) return 0;
+  const longest = Math.min(...items.map(({ type, units }) => longestFrom(type, taken, day, startHour, units, settings)));
+  let hours = 0;
+  while (hours < longest && !busy.includes(startHour + hours)) hours++;
   return hours;
 }
 

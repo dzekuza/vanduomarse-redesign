@@ -292,7 +292,11 @@ function useAdminReducer(initial: AdminData) {
         return result;
       },
       /** Not optimistic: the database re-checks capacity when a cancelled rental is reopened. */
-      setRentalStatus: (id: string, status: BookingStatus) => report(actions.setRentalStatus(id, status)),
+      setRentalStatus: async (id: string, status: BookingStatus) => {
+        const result = await report(actions.setRentalStatus(id, status));
+        if ("data" in result) dispatch({ type: "rental/status", id, status });
+        return result;
+      },
       setTourTicketStatus: (id: string, status: BookingStatus) => report(actions.setTourTicketStatus(id, status)),
       saveQuadType: (quadType: QuadType) => {
         dispatch({ type: "quadType/upsert", quadType });

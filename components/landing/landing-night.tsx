@@ -29,7 +29,7 @@ export function LandingNight() {
             <br />
             Marse muzikos laikrodis nestabdo.
             <br />
-            Švęskit iki ryto — savų žmonių rate.
+            Švęskit iki ryto savų žmonių rate.
           </p>
           <Cta tone="cream" href="/skaiciuokle" className="mt-6 md:mt-0">
             Planuojam šventę

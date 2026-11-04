@@ -17,7 +17,7 @@ export default function SkaiciuoklePage() {
             <BookingHeader
               crumb="Skaičiuoklė"
               title={["Suskaičiuok", "savo šventę."]}
-              intro="Pasirink renginio tipą, svečių skaičių ir erdvę – iškart matysi preliminarią kainą pagal mūsų kainodarą."
+              intro="Pasirink renginio tipą, svečių skaičių ir erdvę. Preliminarią kainą matysi iškart."
             />
           }
         />

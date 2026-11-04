@@ -17,7 +17,7 @@ export function activityBlurb(id: ActivityId, data: ReservationData): string {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-micro uppercase text-muted-foreground">{title}</h3>
+      <h3 className="text-micro uppercase text-copy">{title}</h3>
       {children}
     </section>
   );
@@ -28,7 +28,7 @@ function Item({ title, text, meta }: { title: string; text?: string; meta?: stri
     <li className="flex items-start justify-between gap-4 border-t border-line pt-3 text-sm first:border-t-0 first:pt-0">
       <span className="min-w-0">
         <span className="block font-bold">{title}</span>
-        {text ? <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{text}</span> : null}
+        {text ? <span className="mt-1 block text-xs leading-relaxed text-copy">{text}</span> : null}
       </span>
       {meta ? <span className="shrink-0 text-xs font-bold">{meta}</span> : null}
     </li>
@@ -103,12 +103,12 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
         <dl className="divide-y divide-line text-sm">
           {rules.map((r) => (
             <div key={r.label} className="flex items-baseline justify-between gap-4 py-2 first:pt-0">
-              <dt className="text-muted-foreground">{r.label}</dt>
+              <dt className="text-copy">{r.label}</dt>
               <dd className="font-bold">{r.value}</dd>
             </div>
           ))}
         </dl>
-        {settings.rules ? <p className="whitespace-pre-line text-xs leading-relaxed text-muted-foreground">{settings.rules}</p> : null}
+        {settings.rules ? <p className="whitespace-pre-line text-xs leading-relaxed text-copy">{settings.rules}</p> : null}
       </Section>
     </div>
   );

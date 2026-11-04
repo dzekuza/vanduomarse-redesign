@@ -82,14 +82,14 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       </Field>
       <Field id="message" label="Palinkėjimas (nebūtina)" error={errors.message?.message}>
         <Textarea id="message" rows={3} maxLength={MESSAGE_MAX} {...register("message")} />
-        <p className="text-xs text-muted-foreground">{messageLength} / {MESSAGE_MAX}</p>
+        <p className="text-xs text-copy">{messageLength} / {MESSAGE_MAX}</p>
       </Field>
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" {...register("website")} />
       {errors.root ? <p role="alert" className="text-sm text-rust-ink">{errors.root.message}</p> : null}
       <ArrowButton type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Siunčiama..." : "Užsakyti kuponą"}
       </ArrowButton>
-      <p className="text-xs text-muted-foreground">Kainos nurodytos su 21% PVM. Apmokėjimo detales atsiųsime el. paštu.</p>
+      <p className="text-xs text-copy">Kainos nurodytos su 21% PVM. Apmokėjimo detales atsiųsime el. paštu.</p>
     </form>
     </Panel>
     </FormProvider>

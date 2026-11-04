@@ -14,7 +14,7 @@ export function FilterChip({ active, count, onClick, children }: { active: boole
       )}
     >
       {children}
-      {count === undefined ? null : <span className={cn("tabular-nums", active ? "text-dust/70" : "text-muted-foreground")}>{count}</span>}
+      {count === undefined ? null : <span className={cn("tabular-nums", active ? "text-dust/70" : "text-copy")}>{count}</span>}
     </button>
   );
 }

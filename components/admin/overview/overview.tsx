@@ -6,8 +6,7 @@ import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { BookingStatusBadge, InquiryStatusBadge } from "../status-badge";
 import { StatCard } from "./stat-card";
-import { BOOKING_KIND } from "@/lib/admin/labels";
-import { bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
+import { bookingTypeLabel, bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
 import { dateKey } from "@/lib/sauna";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -54,10 +53,10 @@ export function Overview() {
               <div key={b.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-normal">
-                    {BOOKING_KIND[b.kind]} · {bookingWhen(b)}
+                    {bookingTypeLabel(b)} · {bookingWhen(b)}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {b.customer.name} · {b.guests} asm.
+                    {b.customer.name}{b.guests === null ? "" : ` · ${b.guests} asm.`}
                   </p>
                 </div>
                 <BookingStatusBadge status={b.status} />

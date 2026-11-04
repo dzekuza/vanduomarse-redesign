@@ -1,0 +1,15 @@
+.stage {
+  --orbit-reference-span: 100%;
+  top: 50svh;
+  /* Match the reference guide's diameter across the two SVG viewBoxes. */
+  width: calc(var(--orbit-reference-span) * 0.727316);
+
+  @media (orientation: portrait) {
+    --orbit-reference-span: 100svh;
+    rotate: 90deg;
+
+    @media (width >= 48rem) {
+      --orbit-reference-span: 150svh;
+    }
+  }
+}
