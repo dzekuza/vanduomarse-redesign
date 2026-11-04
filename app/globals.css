@@ -297,7 +297,6 @@ html {
   --raw-blush-soft: #f7e7e0;
   --raw-blush-paper: #fbf3ef;
   --raw-coral: #ed5257;
-  --raw-coral-deep: #e94b4f;
   /* Coral darkened until small text on blush reaches 4.5:1 (the bright coral is ~2.7:1). */
   --raw-coral-ink: #a8282d;
   --raw-tan: #e2b38c;
@@ -316,7 +315,7 @@ html {
   --ink: var(--raw-aubergine);
   --ink-soft: var(--raw-aubergine-soft);
   --rust: var(--raw-coral);
-  --rust-soft: var(--raw-coral-deep);
+  --rust-soft: var(--raw-coral);
   --lake: var(--raw-tan);
   --lake-soft: var(--raw-teal-deep);
   --dust: var(--raw-public-background);
@@ -341,19 +340,13 @@ html {
   --display-tracking: 0;
 }
 
-/* /rezervacija: the palette and surfaces of the client's booking design (sampled
-   from the reference page, 2026-11): a softer coral and slate-teal than the site, 19% hairline borders and a
-   white wash on panels and fields. Scoped, so the rest of the site keeps the live
-   brand tokens; `@theme inline` makes every `rust` / `lake-soft` / `border-input`
-   utility inside it follow. */
+/* Booking-style pages use slate teal, 19% ink borders and a white panel wash.
+   Coral comes from the shared brand theme. */
 :root {
-  --raw-coral-muted: #dd5d58;
   --raw-teal-slate: #2f545b;
 }
 
 .theme-reservation {
-  --rust: var(--raw-coral-muted);
-  --rust-soft: var(--raw-coral-muted);
   --lake-soft: var(--raw-teal-slate);
   --line: color-mix(in srgb, var(--ink) 19%, transparent);
   --input: color-mix(in srgb, var(--ink) 19%, transparent);

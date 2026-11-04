@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
+import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { Panel } from "@/components/panel";
 import { DurationGrid, StartGrid } from "@/components/quads/quad-time-pickers";
 import type { QuadPageData } from "@/lib/data/public-types";
@@ -22,8 +24,7 @@ interface QuadOptionsProps {
 
 /** Separate quantities for each quad type, with one time and duration for the rental. */
 export function QuadOptions({ plan, data, when, included, busy, onChange }: QuadOptionsProps) {
-  const { quantities, items, startHour, hours } = plan;
-  const totalUnits = items.reduce((total, item) => total + item.units, 0);
+  const { quantities, items, units: totalUnits, startHour, hours } = plan;
   const pick: QuadPick = { quantities, startHour, hours };
 
   function changeQuantity(id: string, units: number) {
@@ -97,7 +98,9 @@ interface QuadQuantityCardProps {
 }
 
 function QuadQuantityCard({ type, count, max, onChange }: QuadQuantityCardProps) {
+  const [draft, setDraft] = useState(1);
   const selected = count > 0;
+  const quantity = selected ? count : Math.min(draft, max);
   const copy = selected ? "text-dust/80" : "text-copy";
   const line = selected ? "border-line-on-ink" : "border-line";
 
@@ -116,12 +119,24 @@ function QuadQuantityCard({ type, count, max, onChange }: QuadQuantityCardProps)
         {type.description ? <p className={`text-xs leading-relaxed ${copy}`}>{type.description}</p> : null}
         <p className="text-xs font-bold">{type.pricePerHour} € / val.</p>
       </div>
-      <div className={`mt-auto border-t pt-3 ${line}`}>
-        {type.units > 0 ? (
-          <Stepper label="Kiekis" value={count} onChange={onChange} min={0} max={max} editable compact />
-        ) : (
+      <div className={`mt-auto space-y-4 border-t pt-3 ${line}`}>
+        {max > 0 && (
+          <Stepper label="Kiekis" value={quantity} onChange={selected ? onChange : setDraft} min={1} max={max} editable compact />
+        )}
+        {type.units === 0 && (
           <p className="text-xs text-copy">Šio tipo keturračių šiuo metu nėra.</p>
         )}
+        <button
+          type="button"
+          aria-pressed={selected}
+          aria-label={`${selected ? "Pašalinti" : "Pasirinkti"}: ${type.name}`}
+          disabled={!selected && max === 0}
+          onClick={() => onChange(selected ? 0 : quantity)}
+          className={ctaClass({ tone: selected ? "cream" : "dark", small: true, className: "inline-flex items-center disabled:pointer-events-none disabled:opacity-50" })}
+        >
+          {selected ? "Pašalinti" : "Pasirinkti"}
+          <TextCtaArrow />
+        </button>
       </div>
     </Panel>
   );

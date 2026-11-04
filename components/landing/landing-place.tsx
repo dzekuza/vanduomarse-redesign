@@ -12,7 +12,7 @@ export function LandingPlace() {
       <Reveal>
       <div className="relative h-82 overflow-hidden md:h-138">
         <Image src="/landing/aerial.webp" alt="Marso parkas iš oro, Kauno rajone" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[60%_center]" />
-        <span aria-hidden className="absolute top-5 left-5 -rotate-8 bg-rust px-4 py-3 text-xs font-bold text-ink md:top-7.5 md:left-7.5">
+        <span aria-hidden className="absolute top-5 left-5 -rotate-8 bg-dust px-4 py-3 text-xs font-bold text-ink md:top-7.5 md:left-7.5">
           ↘ ČIA MARSE.
         </span>
       </div>

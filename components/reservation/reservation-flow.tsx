@@ -62,7 +62,7 @@ const headings = (payments: boolean) => [
   },
 ];
 
-/** Activity tabs and date + group on top, then three steps: the chosen activity, contact, review. */
+/** Activity tabs and date on top, then the chosen activity, account and review. */
 export function ReservationFlow({
   header,
   data,
@@ -87,7 +87,7 @@ export function ReservationFlow({
   const tabs = ACTIVITY_TAB_ORDER.filter((id) => offer[id]);
   const [tab, setTab] = useState<ActivityId>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
   const [date, setDate] = useState(days[0]);
-  const [people, setPeople] = useState(2);
+  const [people, setPeople] = useState(1);
   const [picks, setPicks] = useState<Picks>({});
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   /** Stripe accepted the payment: the browser is on its way to Checkout. */
@@ -106,14 +106,14 @@ export function ReservationFlow({
   const plans = planAll(picks, data, when);
   const lines = describePlans(plans);
   const total = totalOf(lines);
-  const tracksPeople = tab !== "nakvyne" || picks.pirtis !== undefined || picks.keturraciai !== undefined;
+  const tracksPeople = picks.pirtis !== undefined;
   const dateLabel = longDateLabel(date);
   const whenLabel = tracksPeople ? `${dateLabel}, ${people} žm.` : dateLabel;
   const facts = [
     { label: "Data", value: dateLabel },
     ...(tracksPeople ? [{ label: "Žmonės", value: String(people) }] : []),
   ];
-  /** Sauna, quad and stay icons under each day, lit when something is still free for this group. */
+  /** Sauna, quad and stay icons under each day, lit when something is still free. */
   const dayIcons = (d: Date): DayIcon[] => {
     const free = dayAvailability(data, dateKey(d), people);
     return tabs.map((id) => ({
@@ -191,6 +191,7 @@ export function ReservationFlow({
           onReset={() => {
             setOutcome(null);
             setPicks({});
+            setPeople(1);
             setStep(0);
             form.reset({ customerName: customer?.name ?? "" });
           }}
@@ -216,7 +217,7 @@ export function ReservationFlow({
                 setStep(0);
               }}
             />
-            <WhenStep days={days} date={date} onDate={setDate} icons={dayIcons} people={people} onPeople={setPeople} showPeople={tab === "keturraciai" || (step !== 0 && tracksPeople)} />
+            <WhenStep days={days} date={date} onDate={setDate} icons={dayIcons} />
             {heading ? <StepHeading step={step + 1} {...heading} /> : null}
             {step === 0 ? (
               <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} onToggle={(id) => setPicks((p) => togglePick(p, id, data))} onPick={setPicks} onPeople={setPeople} />

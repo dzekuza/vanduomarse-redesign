@@ -25,8 +25,7 @@ function pirtisNotice(plan: PirtisPlan): string {
   return "Šiuo laiku ši pirtis neprieinama: užimta, uždaryta arba grupė per didelė.";
 }
 
-function quadNotice(plan: QuadPlan, people: number): string {
-  if (plan.seats < people) return "Pasirinktuose keturračiuose nepakanka vietų visai grupei.";
+function quadNotice(plan: QuadPlan): string {
   if (plan.startHour === null) return "Pasirink pradžios laiką.";
   return "Šiuo laiku pasirinkto keturračių derinio nėra. Pakeisk kiekį arba laiką.";
 }
@@ -46,7 +45,7 @@ export function ActivitiesStep({ data, when, tab, picks, plans, onToggle, onPick
     : tab === "pirtis" && pirtis && !pirtis.ok
       ? pirtisNotice(pirtis)
       : tab === "keturraciai" && keturraciai && !keturraciai.ok
-        ? quadNotice(keturraciai, when.people)
+        ? quadNotice(keturraciai)
         : undefined;
 
   return (

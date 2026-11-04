@@ -1,3 +1,13 @@
+- 2026-11-04 Removed the shared guest field from the reservation flow. Sauna cards own their
+  group size. Quad rentals use vehicle quantities and send one driver per quad.
+- 2026-11-04 The event calculator uses the reservation date strip and calendar, with optional
+  dates and future months available for inquiries. Coupon steps use small ink numbers. Public
+  accents share the brand coral #ED5257.
+- 2026-11-04 Reservation quantities start at one and the minus button is disabled at the
+  minimum. Each quad type has its own add and remove action.
+- 2026-11-04 Unified home photo label backgrounds, used a coral accent in the FAQ heading,
+  and kept the arrow only on the footer’s back-to-top link. Named the two cabin options
+  “Dvivietis namelis” and “Keturvietis namelis” in the reservation flow.
 - 2026-11-04 Payment hardening (security review): one payable Checkout Session per payment, conditional session attach, webhook matches by payment id and flags double charges for refund. Migration `20261104180000` applied to the live project.
 - 2026-11-04 The account page is now titled and linked "Mano rezervacijos" (reservations first, account details beside them); the code step's buttons wrap so the resend countdown label fits.
 - 2026-11-04 Added the account page `/paskyra` (code sign-in, name, own reservations with status and payment, sign out; nav link "Paskyra") and migration `20261104170000_customer_own_requests` (customers read only their own rows). Extracted `LoginForm`; fixed an uncontrolled-to-controlled input warning when signing out at checkout.
