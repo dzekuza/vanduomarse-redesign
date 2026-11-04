@@ -100,6 +100,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["booking_kind"]
           nights: number | null
           note: string | null
+          payment_id: string | null
           program_id: string | null
           reference: string
           sauna_id: string | null
@@ -110,6 +111,7 @@ export type Database = {
           stay_units: number
           total: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -123,6 +125,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
+          payment_id?: string | null
           program_id?: string | null
           reference: string
           sauna_id?: string | null
@@ -133,6 +136,7 @@ export type Database = {
           stay_units?: number
           total: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -146,6 +150,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
+          payment_id?: string | null
           program_id?: string | null
           reference?: string
           sauna_id?: string | null
@@ -156,8 +161,16 @@ export type Database = {
           stay_units?: number
           total?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_program_id_fkey"
             columns: ["program_id"]
@@ -348,12 +361,14 @@ export type Database = {
           customer_phone: string | null
           event_id: string
           id: string
+          payment_id: string | null
           people: number
           reference: string
           source: Database["public"]["Enums"]["booking_source"]
           status: Database["public"]["Enums"]["booking_status"]
           total: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           children?: number
@@ -363,12 +378,14 @@ export type Database = {
           customer_phone?: string | null
           event_id: string
           id?: string
+          payment_id?: string | null
           people: number
           reference: string
           source?: Database["public"]["Enums"]["booking_source"]
           status?: Database["public"]["Enums"]["booking_status"]
           total: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           children?: number
@@ -378,12 +395,14 @@ export type Database = {
           customer_phone?: string | null
           event_id?: string
           id?: string
+          payment_id?: string | null
           people?: number
           reference?: string
           source?: Database["public"]["Enums"]["booking_source"]
           status?: Database["public"]["Enums"]["booking_status"]
           total?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -391,6 +410,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tickets_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -556,6 +582,57 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_email: string | null
+          customer_phone: string | null
+          expires_at: string | null
+          id: string
+          needs_review: boolean
+          paid_at: string | null
+          refunded: number
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_email?: string | null
+          customer_phone?: string | null
+          expires_at?: string | null
+          id?: string
+          needs_review?: boolean
+          paid_at?: string | null
+          refunded?: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_email?: string | null
+          customer_phone?: string | null
+          expires_at?: string | null
+          id?: string
+          needs_review?: boolean
+          paid_at?: string | null
+          refunded?: number
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       price_items: {
         Row: {
           group: Database["public"]["Enums"]["price_group"]
@@ -632,6 +709,7 @@ export type Database = {
           hours: number
           id: string
           note: string | null
+          payment_id: string | null
           quad_type_id: string | null
           reference: string
           riders: number
@@ -641,6 +719,7 @@ export type Database = {
           total: number
           units: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -651,6 +730,7 @@ export type Database = {
           hours: number
           id?: string
           note?: string | null
+          payment_id?: string | null
           quad_type_id?: string | null
           reference: string
           riders: number
@@ -660,6 +740,7 @@ export type Database = {
           total: number
           units: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -670,6 +751,7 @@ export type Database = {
           hours?: number
           id?: string
           note?: string | null
+          payment_id?: string | null
           quad_type_id?: string | null
           reference?: string
           riders?: number
@@ -679,8 +761,16 @@ export type Database = {
           total?: number
           units?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "quad_rentals_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quad_rentals_quad_type_id_fkey"
             columns: ["quad_type_id"]
@@ -1193,6 +1283,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      abandon_payment: { Args: { p_payment_id: string }; Returns: number }
       activate_coupon: {
         Args: { p_id: string }
         Returns: {
@@ -1200,9 +1291,22 @@ export type Database = {
           expires_at: string
         }[]
       }
+      attach_payment_session: {
+        Args: {
+          p_expected_session_id?: string
+          p_expires_at: string
+          p_payment_id: string
+          p_session_id: string
+        }
+        Returns: undefined
+      }
       cancel_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: undefined
+      }
+      cancel_unpaid_requests: {
+        Args: { p_refs: string[]; p_user: string }
+        Returns: number
       }
       check_coupon: {
         Args: { p_code: string }
@@ -1211,6 +1315,23 @@ export type Database = {
           expires_at: string
           product_name: string
           service: Database["public"]["Enums"]["coupon_service"]
+        }[]
+      }
+      complete_payment: {
+        Args: {
+          p_amount: number
+          p_payment_id?: string
+          p_payment_intent: string
+          p_session_id: string
+        }
+        Returns: {
+          amount: number
+          duplicate: boolean
+          needs_review: boolean
+          newly_paid: boolean
+          payment_id: string
+          phone: string
+          refs: string[]
         }[]
       }
       create_coupon_order: {
@@ -1425,6 +1546,10 @@ export type Database = {
           total: number
         }[]
       }
+      expire_payment: {
+        Args: { p_failed?: boolean; p_session_id: string }
+        Returns: number
+      }
       expire_pending_requests: {
         Args: never
         Returns: {
@@ -1437,6 +1562,19 @@ export type Database = {
         Args: { p_days?: number; p_from: string }
         Returns: number
       }
+      payment_state: {
+        Args: { p_payment_id: string }
+        Returns: {
+          amount: number
+          customer_email: string
+          items: Json
+          needs_review: boolean
+          paid_at: string
+          refs: string[]
+          status: string
+          stripe_session_id: string
+        }[]
+      }
       quad_taken: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -1446,6 +1584,11 @@ export type Database = {
           taken: number
         }[]
       }
+      record_refund: {
+        Args: { p_payment_intent: string; p_refunded: number }
+        Returns: undefined
+      }
+      record_skipped_phone: { Args: { p_phone: string }; Returns: undefined }
       register_for_event: {
         Args: {
           p_email?: string
@@ -1458,10 +1601,6 @@ export type Database = {
         Returns: {
           id: string
         }[]
-      }
-      record_skipped_phone: {
-        Args: { p_phone: string }
-        Returns: undefined
       }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
@@ -1483,6 +1622,17 @@ export type Database = {
         Returns: {
           day: string
           hour: number
+        }[]
+      }
+      start_payment: {
+        Args: { p_refs: string[]; p_user: string }
+        Returns: {
+          amount: number
+          customer_email: string
+          expires_at: string
+          items: Json
+          payment_id: string
+          stripe_session_id: string
         }[]
       }
       stay_occupancy: {

@@ -35,6 +35,7 @@ added, removed, or majorly upgraded — and add a [[changelog]] entry.
 | zod | ^4.6.7 | Form and (later) API validation |
 | @hookform/resolvers | ^5.9.2 | Zod ↔ RHF bridge |
 | @supabase/supabase-js | ^2.118.0 | Database client; typed with `lib/supabase/database.types.ts` |
+| stripe | ^23.1.0 | Server-side Stripe client (`lib/stripe.ts`): hosted Checkout Sessions and webhook signature check for `/rezervacija` payments (ADR-0026) |
 | @supabase/ssr | ^0.7.0 | Cookie-based auth session for Server Components, Server Actions and `proxy.ts` |
 | server-only | ^0.0.1 | Build error if a server data module (`lib/data/public.ts`, `lib/admin/repository.ts`, `lib/supabase/server.ts`) is imported by client code |
 

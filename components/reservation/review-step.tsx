@@ -1,13 +1,13 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import type { ContactInput } from "@/lib/request-schema";
+import type { Customer } from "@/lib/customer-types";
 import type { PlanLine } from "@/lib/reservation";
 
-/** Step 4: everything in one place before it is sent; shows what the server said if it refuses. */
-export function ReviewStep({ lines, when, total }: { lines: PlanLine[]; when: string; total: number }) {
-  const { getValues, formState } = useFormContext<ContactInput>();
-  const c = getValues();
+/** Step 4: everything in one place before it is sent or paid; shows what the server said if it refuses. */
+export function ReviewStep({ lines, when, total, payments, customer }: { lines: PlanLine[]; when: string; total: number; payments: boolean; customer: Customer | null }) {
+  const { getValues, formState } = useFormContext<{ customerName: string }>();
+  const name = getValues("customerName");
   return (
     <div className="space-y-6">
       <dl className="divide-y divide-line border-y border-line text-sm">
@@ -16,12 +16,14 @@ export function ReviewStep({ lines, when, total }: { lines: PlanLine[]; when: st
           <Row key={l.id} label={l.title} hint={l.detail} value={`${l.price} €`} />
         ))}
         <Row label="Iš viso" value={`${total} €`} strong />
-        <Row label="Vardas" value={c.customerName} />
-        <Row label="Telefonas" value={c.customerPhone || "-"} />
-        <Row label="El. paštas" value={c.customerEmail || "-"} />
+        <Row label="Vardas" value={name} />
+        <Row label="Telefonas" value={customer?.phone ?? "-"} />
+        <Row label="El. paštas" value={customer?.email ?? "-"} />
       </dl>
       <p className="text-sm text-copy">
-        Statusas: laukia patvirtinimo. Mokėti dabar nereikia, užklausą patvirtinsime telefonu ar el. paštu. Kiekviena veikla gauna savo užklausos numerį.
+        {payments
+          ? "Apmokėjimas saugus, per Stripe; kortelės duomenų mes nematome. Vietas laikome 30 min., kol mokate. Apmokėjus užklausas patvirtinsime telefonu ar el. paštu; kiekviena veikla gauna savo užklausos numerį."
+          : "Statusas: laukia patvirtinimo. Mokėti dabar nereikia, užklausą patvirtinsime telefonu ar el. paštu. Kiekviena veikla gauna savo užklausos numerį."}
       </p>
       {formState.errors.root ? <p role="alert" className="text-sm text-rust-ink">{formState.errors.root.message}</p> : null}
     </div>

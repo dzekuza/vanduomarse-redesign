@@ -1,7 +1,6 @@
-import { createMixedQuadRental, createQuadRental } from "@/app/actions/quads";
-import { createProgramBooking, createProgramTicket, createSaunaBooking, createStayBooking } from "@/app/actions/requests";
-import type { ActionResult } from "@/app/admin/actions";
+import { fileRequest } from "@/lib/file-request";
 import { cabinStayType } from "@/lib/cabin";
+import type { ReservationRequest } from "@/lib/payments";
 import type { ContactInput } from "@/lib/request-schema";
 import { ACTIVITY_ORDER, type ActivityId, type Plans, type When } from "@/lib/reservation";
 
@@ -18,43 +17,58 @@ export interface Outcome {
   error?: { activity: ActivityId; message: string };
 }
 
-function send(id: ActivityId, plans: Plans, when: When, contact: ContactInput): Promise<ActionResult<Receipt>> | null {
+/** The request an activity of the plan turns into (without the contact details), or null when it has no bookable time yet. */
+function requestFor(id: ActivityId, plans: Plans, when: When): ReservationRequest | null {
   const { pirtis, keturraciai, nakvyne } = plans;
   if (id === "pirtis" && pirtis?.mode === "session" && pirtis.session) {
-    return createProgramTicket({ eventId: pirtis.session.key, adults: pirtis.adults, children: pirtis.children, ...contact });
+    return { type: "programTicket", input: { eventId: pirtis.session.key, adults: pirtis.adults, children: pirtis.children } };
   }
   if (id === "pirtis" && pirtis?.mode === "private" && pirtis.startHour !== null) {
-    return createProgramBooking({ programId: pirtis.program.id, date: when.day, startHour: pirtis.startHour, party: when.people, ...contact });
+    return { type: "programBooking", input: { programId: pirtis.program.id, date: when.day, startHour: pirtis.startHour, party: when.people } };
   }
   if (id === "pirtis" && pirtis?.mode === "hourly" && pirtis.startHour !== null) {
-    return createSaunaBooking({ saunaId: pirtis.sauna.id, date: when.day, startHour: pirtis.startHour, hours: pirtis.hours, party: when.people, extras: pirtis.extras, ...contact });
+    return {
+      type: "saunaBooking",
+      input: { saunaId: pirtis.sauna.id, date: when.day, startHour: pirtis.startHour, hours: pirtis.hours, party: when.people, extras: pirtis.extras },
+    };
   }
   if (id === "keturraciai" && keturraciai?.startHour != null) {
     const allocations = keturraciai.items.map(({ type, units }) => ({ quadTypeId: type.id, units }));
     // The combined booking takes vehicle quantities, with one driver per vehicle.
-    const rental = { date: when.day, startHour: keturraciai.startHour, hours: keturraciai.hours, riders: keturraciai.units, note: "", ...contact };
+    const rental = { date: when.day, startHour: keturraciai.startHour, hours: keturraciai.hours, riders: keturraciai.units, note: "" };
     return allocations.length === 1
-      ? createQuadRental({ ...rental, ...allocations[0] })
-      : createMixedQuadRental({ ...rental, allocations });
+      ? { type: "quadRental", input: { ...rental, ...allocations[0] } }
+      : { type: "mixedQuadRental", input: { ...rental, allocations } };
   }
   if (id === "nakvyne" && nakvyne) {
-    return createStayBooking({ stayTypeId: nakvyne.roomId === "namelis" ? cabinStayType(nakvyne.size) : nakvyne.roomId, date: when.day, nights: nakvyne.nights, units: nakvyne.units, ...contact });
+    return {
+      type: "stayBooking",
+      input: { stayTypeId: nakvyne.roomId === "namelis" ? cabinStayType(nakvyne.size) : nakvyne.roomId, date: when.day, nights: nakvyne.nights, units: nakvyne.units },
+    };
   }
   return null;
+}
+
+/** Every request of the plan, in activity order. */
+export function requestsFor(plans: Plans, when: When): ReservationRequest[] {
+  return ACTIVITY_ORDER.flatMap((id) => {
+    const request = requestFor(id, plans, when);
+    return request ? [request] : [];
+  });
 }
 
 /**
  * Files each picked activity as its own request, one after another, with the
  * same contact and verified phone. Already-sent ones are skipped, so a retry
- * after a failure never books anything twice.
+ * after a failure never books anything twice. Used when online payment is off.
  */
 export async function submitReservation(plans: Plans, when: When, contact: ContactInput, already: Sent): Promise<Outcome> {
   const sent: Sent = { ...already };
   for (const id of ACTIVITY_ORDER) {
     if (sent[id]) continue;
-    const pending = send(id, plans, when, contact);
-    if (!pending) continue;
-    const result = await pending;
+    const request = requestFor(id, plans, when);
+    if (!request) continue;
+    const result = await fileRequest(request, contact);
     if ("error" in result) return { sent, error: { activity: id, message: result.error.message } };
     sent[id] = { reference: result.data.reference, total: result.data.total };
   }

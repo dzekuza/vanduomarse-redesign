@@ -5,7 +5,7 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
-import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -17,6 +17,14 @@ type CouponRow = Tables<"coupons"> & { coupon_redemptions: Pick<Tables<"coupon_r
 type TicketRow = Tables<"event_tickets"> & { events: Pick<Tables<"events">, "title" | "date" | "start_time"> };
 type InquiryRow = Tables<"inquiries"> & { inquiry_notes: Pick<Tables<"inquiry_notes">, "text" | "created_at">[] };
 type QuadRentalRow = Tables<"quad_rentals"> & { quad_rental_items?: Pick<Tables<"quad_rental_items">, "quad_type_id" | "units">[] };
+
+const PAYMENT_STATUSES: readonly string[] = ["laukia", "apmoketa", "pasibaige", "nepavyko", "grazinta"];
+const isPaymentStatus = (value: string): value is PaymentStatus => PAYMENT_STATUSES.includes(value);
+
+export function toPaymentInfo(r: Tables<"payments">): PaymentInfo | null {
+  if (!isPaymentStatus(r.status)) return null;
+  return { id: r.id, status: r.status, amount: r.amount, refunded: r.refunded, paidAt: r.paid_at ?? undefined, needsReview: r.needs_review };
+}
 
 /** "19:00:00" -> "19:00" */
 export const toHHMM = (time: string) => time.slice(0, 5);

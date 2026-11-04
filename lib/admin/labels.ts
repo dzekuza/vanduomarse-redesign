@@ -1,5 +1,5 @@
 import { CABIN_TOTAL } from "@/lib/cabin";
-import type { BookingKind, BookingSource, BookingStatus, InquirySource, InquiryStatus } from "./types";
+import type { BookingKind, BookingSource, BookingStatus, InquirySource, InquiryStatus, PaymentStatus } from "./types";
 
 export const BOOKING_KIND: Record<BookingKind, string> = {
   pirtis: "Pirtis",
@@ -18,6 +18,14 @@ export const BOOKING_STATUS: Record<BookingStatus, string> = {
   patvirtinta: "Patvirtinta",
   ivykdyta: "Įvykdyta",
   atsaukta: "Atšaukta",
+};
+
+export const PAYMENT_STATUS: Record<PaymentStatus, string> = {
+  laukia: "Laukia apmokėjimo",
+  apmoketa: "Apmokėta",
+  pasibaige: "Apmokėjimas baigėsi",
+  nepavyko: "Apmokėjimas nepavyko",
+  grazinta: "Grąžinta",
 };
 
 export const INQUIRY_STATUS: Record<InquiryStatus, string> = {

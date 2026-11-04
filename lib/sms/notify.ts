@@ -46,3 +46,20 @@ export const notifyOutcome = (phone: string | null | undefined, reference: strin
 /** Heads-up for staff when a request lands; needs STAFF_NOTIFY_PHONE. */
 export const notifyStaff = (reference: string | undefined, summary: string) =>
   sendSms(process.env.STAFF_NOTIFY_PHONE, `Nauja uzklausa${ref(reference)}: ${summary}. Zr. /admin`);
+
+const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amount.toFixed(2));
+
+/** Sent once Stripe confirms the payment of a reservation; staff still confirm each request. */
+export const notifyPaid = (phone: string | null | undefined, references: string[], amount: number) =>
+  sendSms(phone, `Vanduo Marse: apmoketa ${eur(amount)} EUR (${references.join(", ")}). Uzklausas patvirtinsime netrukus.`);
+
+/** A reservation was paid twice (two Checkout Sessions): staff refund the extra payment in Stripe. */
+export const notifyStaffDuplicate = (references: string[], amount: number) =>
+  sendSms(process.env.STAFF_NOTIFY_PHONE, `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
+
+/** Heads-up for staff when a reservation is paid; `review` flags a payment that needs a manual look (late or odd amount). */
+export const notifyStaffPaid = (references: string[], amount: number, review: boolean) =>
+  sendSms(
+    process.env.STAFF_NOTIFY_PHONE,
+    `${review ? "PATIKRINTI APMOKEJIMA" : "Nauja apmoketa uzklausa"} ${references.join(", ")}: ${eur(amount)} EUR. Zr. /admin`,
+  );

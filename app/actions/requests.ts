@@ -20,6 +20,7 @@ import {
 } from "@/lib/request-schema";
 import type { Json } from "@/lib/supabase/database.types";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
+import { requester } from "@/lib/request-identity";
 import { describeRequest, notifyBookingReceived, notifyReceived, notifyStaff, saunaSummary } from "@/lib/sms/notify";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -85,15 +86,18 @@ export interface TicketReceipt {
 
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
-/** SMS the visitor and the staff alert line once the request is stored; never delays or fails the booking. */
+/**
+ * SMS the visitor (when they have a phone: an account that signed in by email has none) and always the
+ * staff alert line once the request is stored; never delays or fails the booking.
+ */
 function notify(
-  phone: string,
+  phone: string | null,
   reference: string | undefined,
   summary: string,
   toCustomer: (phone: string, reference: string | undefined, summary: string) => Promise<boolean> = notifyReceived,
 ) {
   after(async () => {
-    await Promise.all([toCustomer(phone, reference, summary), notifyStaff(reference, summary)]);
+    await Promise.all([phone ? toCustomer(phone, reference, summary) : Promise.resolve(false), notifyStaff(reference, summary)]);
   });
 }
 
@@ -108,10 +112,10 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
   if (v.date < today || (v.date === today && v.startHour <= vilniusHour())) {
     return fail("Šis laikas jau praėjo. Pasirinkite kitą.", "taken");
   }
-  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
-  if (!phone) return UNVERIFIED;
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email } = who;
 
-  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_sauna_booking", {
     p_sauna_id: v.saunaId,
     p_date: v.date,
@@ -120,17 +124,19 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_party: v.party,
     p_extras: v.extras,
     p_name: v.customerName,
-    p_email: v.customerEmail || undefined,
-    p_phone: phone,
+    p_email: email,
+    p_phone: phone ?? undefined,
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  notify(
-    phone,
-    data[0].reference,
-    saunaSummary({ date: v.date, startHour: v.startHour, hours: v.hours, party: v.party, total: data[0].total }),
-    notifyBookingReceived,
-  );
+  if (!v.awaitingPayment) {
+    notify(
+      phone,
+      data[0].reference,
+      saunaSummary({ date: v.date, startHour: v.startHour, hours: v.hours, party: v.party, total: data[0].total }),
+      notifyBookingReceived,
+    );
+  }
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -139,18 +145,18 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: { reference: "MM-0000", total: 0, discount: 0 } };
-  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
-  if (!phone) return UNVERIFIED;
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email } = who;
 
-  const supabase = createPublicClient();
   const units = v.units ?? 1;
   const args = {
     p_stay_type_id: v.stayTypeId,
     p_date: v.date,
     p_nights: v.nights,
     p_name: v.customerName,
-    p_email: v.customerEmail || undefined,
-    p_phone: phone,
+    p_email: email,
+    p_phone: phone ?? undefined,
     p_coupon: v.coupon || undefined,
   };
   const { data, error } = units === 1 && v.guests !== undefined
@@ -158,7 +164,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     : await supabase.rpc("create_stay_booking_with_units", { ...args, p_units: units, p_guests: v.guests });
   if (error) return dbFail(error, BY_HINT.stay_full);
   const quantity = units > 1 ? `${v.stayTypeId === "kemperis" ? "Kemperiu vietos" : "Nameliai"}: ${units}` : undefined;
-  notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -188,20 +194,20 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: { reference: "PR-0000", total: 0 } };
-  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
-  if (!phone) return UNVERIFIED;
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email } = who;
 
-  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_program_ticket", {
     p_event_id: v.eventId,
     p_adults: v.adults,
     p_children: v.children,
     p_name: v.customerName,
-    p_email: v.customerEmail || undefined,
-    p_phone: phone,
+    p_email: email,
+    p_phone: phone ?? undefined,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
-  notify(phone, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -212,21 +218,21 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
   if (v.website) return { data: { reference: "PM-0000", total: 0 } };
   const today = todayKey();
   if (v.date < today || (v.date === today && v.startHour <= vilniusHour())) return fail("Šis laikas jau praėjo. Pasirinkite kitą.", "taken");
-  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
-  if (!phone) return UNVERIFIED;
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email } = who;
 
-  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_program_booking", {
     p_program_id: v.programId,
     p_date: v.date,
     p_start_hour: v.startHour,
     p_party: v.party,
     p_name: v.customerName,
-    p_email: v.customerEmail || undefined,
-    p_phone: phone,
+    p_email: email,
+    p_phone: phone ?? undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  notify(phone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

@@ -1,12 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useMemo, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { saveCustomerName } from "@/app/actions/customer";
+import { startReservationCheckout } from "@/app/actions/payments";
 import { ArrowButton } from "@/components/booking/arrow-button";
-import { ContactStep } from "@/components/booking/contact-step";
 import { Cta } from "@/components/cta";
-import { contactSchema, type ContactInput } from "@/lib/request-schema";
+import { customerNameSchema } from "@/lib/customer-schema";
+import type { Customer } from "@/lib/customer-types";
 import {
   RESERVATION_DAYS,
   bookable,
@@ -26,6 +29,7 @@ import {
 } from "@/lib/reservation";
 import { dateKey, longDateLabel, nextDays } from "@/lib/sauna";
 import type { DayIcon } from "@/components/booking/day-picker";
+import { AccountStep, type AccountValues } from "./account-step";
 import { ActivitiesStep } from "./activities-step";
 import { ACTIVITY_ICON } from "./activity-icons";
 import { ExtrasOfferDialog } from "./extras-offer-dialog";
@@ -36,20 +40,46 @@ import { PlanPanel } from "./plan-panel";
 import { ReservationDone } from "./reservation-done";
 import { ReviewStep } from "./review-step";
 import { StepHeading } from "./step-heading";
-import { submitReservation, type Outcome } from "./submit-reservation";
+import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
 import { WhenStep } from "./when-step";
 
-/** Selection, contact, review. */
+/** Selection, account, review. */
+const accountSchema = z.object({ customerName: customerNameSchema });
+
 const LAST = 2;
 
 /** Headings of the steps after the selection (which starts straight with the list). */
-const HEADINGS = [
-  { eyebrow: "Kontaktai", title: "Kaip tave rasti?", text: "Telefonas jau patvirtintas. Pridėk vardą ir, jei nori, el. paštą." },
-  { eyebrow: "Peržiūra", title: "Viskas gerai?", text: "Patikrink ir siųsk. Mokėti dabar nereikia." },
+const headings = (payments: boolean) => [
+  {
+    eyebrow: "Prisijungimas",
+    title: "Prisijunk arba susikurk paskyrą",
+    text: "Atsiųsime vienkartinį kodą telefonu ar el. paštu. Jei paskyros dar nėra, ją sukursime, o rezervacijas rasi toje pačioje paskyroje.",
+  },
+  {
+    eyebrow: "Peržiūra",
+    title: "Viskas gerai?",
+    text: payments ? "Patikrink ir mokėk saugiai per Stripe. Vietas laikome, kol mokėjimas baigiasi." : "Patikrink ir siųsk. Mokėti dabar nereikia.",
+  },
 ];
 
-/** Activity tabs and date on top, then the chosen activity, contact and review. */
-export function ReservationFlow({ header, data, photo, initialTab }: { header: ReactNode; data: ReservationData; photo: { src: string; alt: string }; initialTab?: ActivityId }) {
+/** Activity tabs and date on top, then the chosen activity, account and review. */
+export function ReservationFlow({
+  header,
+  data,
+  photo,
+  initialTab,
+  payments,
+  initialCustomer,
+}: {
+  header: ReactNode;
+  data: ReservationData;
+  photo: { src: string; alt: string };
+  initialTab?: ActivityId;
+  /** Pay at submit through Stripe Checkout; off when Stripe is not configured. */
+  payments: boolean;
+  /** Already signed in (a returning customer); otherwise the account step asks for a code. */
+  initialCustomer: Customer | null;
+}) {
   const { today } = data.sauna;
   const days = useMemo(() => nextDays(today, RESERVATION_DAYS), [today]);
   const [step, setStep] = useState(0);
@@ -60,12 +90,15 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
   const [people, setPeople] = useState(1);
   const [picks, setPicks] = useState<Picks>({});
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  /** Stripe accepted the payment: the browser is on its way to Checkout. */
+  const [redirecting, setRedirecting] = useState(false);
   /** The "we also have..." popup, and which activities it already offered ("<day>:<id>"): each is offered once per day. */
   const [offerOpen, setOfferOpen] = useState(false);
   const [alreadyOffered, setAlreadyOffered] = useState<string[]>([]);
-  const form = useForm<ContactInput>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: { customerName: "", customerPhone: "", customerEmail: "", website: "" },
+  const [customer, setCustomer] = useState<Customer | null>(initialCustomer);
+  const form = useForm<AccountValues>({
+    resolver: zodResolver(accountSchema),
+    defaultValues: { customerName: initialCustomer?.name ?? "" },
   });
 
   const day = dateKey(date);
@@ -94,7 +127,7 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
   const offers = tabs
     .filter((id) => free[id] && picks[id] === undefined && !alreadyOffered.includes(`${day}:${id}`))
     .map((id) => ({ id, text: extraOfferText(id, data, inPlan) }));
-  const ready = [bookable(plans), true, true][step];
+  const ready = [bookable(plans), customer !== null, true][step];
 
   async function next() {
     if (!ready) return;
@@ -103,13 +136,39 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
       setOfferOpen(true);
       return;
     }
-    // The contact step must validate before the review is shown.
-    if (step === 1 && !(await form.trigger())) return;
+    // The account step needs a signed-in customer with a name before the review is shown.
+    if (step === 1) {
+      if (!(await form.trigger())) return;
+      void saveCustomerName(form.getValues("customerName")).catch(() => null);
+    }
     setStep((s) => Math.min(LAST, s + 1));
   }
 
-  const submit = form.handleSubmit(async (contact) => {
-    setOutcome(await submitReservation(plans, when, contact, outcome?.sent ?? {}));
+  const submit = form.handleSubmit(async ({ customerName }) => {
+    if (!customer) {
+      setStep(1);
+      return;
+    }
+    // The server files every request for the signed-in account (its confirmed phone and email, read
+    // from the session); the contact below only has to pass the same schemas as the other forms.
+    if (!payments) {
+      const contact = { customerName, customerPhone: customer.phone ?? "", customerEmail: customer.email ?? "", viaAccount: true };
+      setOutcome(await submitReservation(plans, when, contact, outcome?.sent ?? {}));
+      return;
+    }
+    // Pay at submit: the server files every request and opens Checkout, or files nothing.
+    form.clearErrors("root");
+    const result = await startReservationCheckout({ contact: { customerName }, requests: requestsFor(plans, when) });
+    if ("error" in result) {
+      form.setError("root", { message: result.error.message });
+      if (result.error.code === "unauthorized") {
+        setCustomer(null);
+        setStep(1);
+      }
+      return;
+    }
+    setRedirecting(true);
+    window.location.assign(result.data.url);
   });
 
   /** Enter in a field moves on until the review; only there does it send. */
@@ -134,14 +193,14 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
             setPicks({});
             setPeople(1);
             setStep(0);
-            form.reset();
+            form.reset({ customerName: customer?.name ?? "" });
           }}
         />
       </div>
     );
   }
 
-  const heading = step > 0 ? HEADINGS[step - 1] : null;
+  const heading = step > 0 ? headings(payments)[step - 1] : null;
   return (
     <FormProvider {...form}>
       <form onSubmit={onSubmit} noValidate className="px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
@@ -163,8 +222,8 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
             {step === 0 ? (
               <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} onToggle={(id) => setPicks((p) => togglePick(p, id, data))} onPick={setPicks} onPeople={setPeople} />
             ) : null}
-            {step === 1 ? <ContactStep step={2} idPrefix="reservation" /> : null}
-            {step === 2 ? <ReviewStep lines={lines} when={whenLabel} total={total} /> : null}
+            {step === 1 ? <AccountStep customer={customer} onCustomer={setCustomer} /> : null}
+            {step === 2 ? <ReviewStep lines={lines} when={whenLabel} total={total} payments={payments} customer={customer} /> : null}
             <div className="flex items-center justify-between gap-4 border-t border-line pt-6">
               {step > 0 ? (
                 <button type="button" onClick={() => setStep(step - 1)} className="inline-flex min-h-11 items-center border-b border-current text-xs font-bold">
@@ -178,8 +237,8 @@ export function ReservationFlow({ header, data, photo, initialTab }: { header: R
                   Toliau
                 </Cta>
               ) : (
-                <ArrowButton type="submit" disabled={!bookable(plans) || form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? "Siunčiama..." : "Rezervuoti"}
+                <ArrowButton type="submit" disabled={!bookable(plans) || form.formState.isSubmitting || redirecting}>
+                  {redirecting ? "Nukreipiame į mokėjimą..." : form.formState.isSubmitting ? "Siunčiama..." : payments ? `Mokėti ${total} €` : "Rezervuoti"}
                 </ArrowButton>
               )}
             </div>

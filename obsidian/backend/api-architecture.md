@@ -25,7 +25,7 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | Route | Method | Input | Output | Auth |
 |-------|--------|-------|--------|------|
-| — | — | No API routes yet | — | — |
+| `/api/stripe/webhook` | POST | Raw body + `stripe-signature` | `{ received: true }`; 400 bad/missing signature, 503 not configured, 500 when the database update failed (Stripe retries) | Stripe signature (`STRIPE_WEBHOOK_SECRET`) |
 
 ## Server actions
 
@@ -48,6 +48,10 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 | `createQuadRental` / `createTourTicket` | `app/actions/quads.ts` | Public: file a rental request / tour seats via anon RPCs; DB hints map to Lithuanian messages; honeypot field | `quadRentalSchema` / `tourTicketSchema` (`lib/quad-schema.ts`) |
 | `createMixedQuadRental` | `app/actions/quads.ts` | Public: book a mix of fleet types for one slot with one reference through `create_mixed_quad_rental`. Requires a verified phone | `mixedQuadRentalSchema` (`lib/quad-schema.ts`): distinct types, up to 20 quads total. Database checks seats and hourly stock |
 | `createStayBooking` | `app/actions/requests.ts` | Public: file one request for the chosen cabin or camper pitch type and number of units. Requires a verified phone. The existing single-unit RPC remains available for the older forms | `stayBookingSchema` (`lib/request-schema.ts`): quantity 1–20, guest count required when quantity is omitted |
+| `sendLoginCode` / `confirmLoginCode` | `app/actions/customer.ts` | Customer sign-in for `/rezervacija`: one-time code to a phone (E.164, only `SMS_ALLOWED_PREFIXES`) or an email through Supabase Auth (`signInWithOtp` creates the account on first use, `verifyOtp` signs in and sets the session cookie). Supabase's own send limits apply. ADR-0027 | `loginTargetSchema` / `loginCodeSchema` (`lib/customer-schema.ts`) |
+| `saveCustomerName` / `signOutCustomer` | `app/actions/customer.ts` | Stores the name on the account (`user_metadata.full_name`) / signs the customer out | `customerNameSchema` |
+| `startReservationCheckout` | `app/actions/payments.ts` | `/rezervacija` pay at submit: files each request through the public actions (flag `awaitingPayment`), `start_payment`, opens a Stripe Checkout Session for the stored total; on any failure cancels what it filed. Needs a signed-in customer and both Stripe secrets; requests are filed with `viaAccount`. ADR-0026 | `checkoutInputSchema` (`lib/payments.ts`: one request per activity, each re-validated by its own action) |
+| `resumeCheckout` | `app/actions/payments.ts` | "Mokėti dar kartą" on `/rezervacija/mokejimas`: the open session of a payment still `laukia` (by its unguessable id) | uuid |
 | `saveQuadType` / `deleteQuadType` / `updateQuadSettings` | `app/admin/actions.ts` | Fleet and rules; also revalidate `/rezervacija` and `/embed/keturraciai`; delete refused once rented (`23503`) | Zod (close > open) |
 | `createRental` / `setRentalStatus` / `setTourTicketStatus` | `app/admin/actions.ts` | Staff-entered rental (price from the fleet row, DB guards capacity); status changes (reopening a cancelled row re-checks capacity) | Zod |
 

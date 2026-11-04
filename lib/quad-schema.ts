@@ -10,6 +10,16 @@ export const contactFields = z.object({
   website: z.string().max(0).optional(),
   /** From the phone gate; the actions check it matches customerPhone. */
   verificationToken,
+  /**
+   * Set only by the paid reservation flow: the request waits for its Stripe payment, so the
+   * "request received" texts are sent when it is paid instead of when it is filed.
+   */
+  awaitingPayment: z.boolean().optional(),
+  /**
+   * Set by the reservation page: file the request for the signed-in customer account (its confirmed
+   * phone or email, read from the session) instead of a typed phone with an SMS token.
+   */
+  viaAccount: z.boolean().optional(),
 });
 
 export const needsContact = (v: { customerPhone: string; customerEmail: string }) => v.customerPhone !== "" || v.customerEmail !== "";

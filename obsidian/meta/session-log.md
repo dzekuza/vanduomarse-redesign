@@ -1,3 +1,39 @@
+## 2026-11-04 — PR #10 and payment hardening
+- **Changed:** branch `feat/accounts-and-payments`, two commits and PR #10. After a security review: `checkoutUrl` only replaces a session Stripe reports expired (lookup errors fail instead of opening a second session), conditional `attach_payment_session` (loser's session is expired), webhook passes `p_payment_id` from metadata, `duplicate` payments are texted to staff; migration `20261104180000_payment_session_guards`.
+- **Status:** migration tested in a rolled-back transaction (stale attach refused, old session paid is found by id, repeat event not a duplicate, double charge flagged); `tsc`/eslint clean. Applied afterwards through the Supabase MCP on your instruction: ledger repaired, signatures and privileges verified live, regenerated types identical.
+- **Next:** restart dev with the Stripe keys, register the webhook, Stripe sandbox end-to-end test.
+
+## 2026-11-04 — Mano rezervacijos rename and code-step buttons
+- **Changed:** `/paskyra` is titled and linked "Mano rezervacijos" (nav label, metadata, H1, reservations left and account right); code-step buttons restructured (confirm on its own row, secondary buttons wrap, `h-auto whitespace-normal`).
+- **Status:** `tsc`/eslint clean; signed-in page checked at 1024 px (shows PM-1068 and the profile); header nav wraps three labels at 1024 px (fits at 1280); button fix not yet seen live.
+- **Next:** restart the dev server for Stripe, cancel the PM-1068 test booking, verify the code-step buttons next time a code is sent.
+
+## 2026-11-04 — Account page /paskyra and sign-in tests
+- **Changed:** `/paskyra` (`app/paskyra/page.tsx`, `components/account/*`, `lib/account*.ts`), `LoginForm` extracted from `AccountStep`, nav link, proxy matcher, migration `20261104170000_customer_own_requests` (applied via MCP, ledger repaired); added keys to the login views (fixes the uncontrolled-input warning on sign-out).
+- **Status:** new-account sign-in through checkout worked (Supabase `user_signedup`, one account for the phone, not staff); returning sign-in failed only because no code reached the phone (test-OTP override inactive, Twilio `30003`); policies tested in a rolled-back transaction; `tsc`/eslint clean; signed-out `/paskyra` checked at 1280 px; signed-in view not seen.
+- **Next:** make the test-OTP override take effect (check it is saved, format `37067312315=000000`), then sign in and check `/paskyra` and the checkout review/pay step; fix delivery (upgrade Twilio, alphanumeric or EU sender).
+
+## 2026-11-04 — Applied the account and payment migrations
+- **Changed:** security review fix: `private.account_owns_contact` now needs every contact on the row (phone and email) to be the account's own. Applied `20261104150000_customer_accounts` and `20261104160000_stripe_payments` to project `mwngljhcvqkvncwbmgeo` through the Supabase MCP (verified the project ref first), repaired the migration ledger to the local file versions, regenerated `lib/supabase/database.types.ts` (kept `create_inquiry.p_date` nullable).
+- **Status:** objects verified live (payments table, 11 functions, `user_id`/`payment_id` columns, cron job, anon cannot call `start_payment`); `supabase db push --dry-run` says up to date; `tsc`/eslint clean.
+- **Next:** Supabase Auth setup (phone provider, email code template, custom SMTP), register the Stripe webhook, then test a real code and a real payment end to end.
+
+## 2026-11-04 — Account login at checkout instead of the phone gate
+- **Changed:** ADR-0027. Removed `ReservationGate`; new `AccountStep` (phone or email one-time code via Supabase Auth, new account or sign-in), `app/actions/customer.ts`, `lib/customer.ts`, `lib/request-identity.ts` (`viaAccount` for the six booking actions); migration `20261104150000_customer_accounts` (`user_id`, trigger accepts the caller's confirmed phone or email); payments now matched by account; `proxy.ts` refreshes the session on `/rezervacija`.
+- **Status:** database rules verified in a rolled-back transaction (own phone/email allowed, foreign phone, unconfirmed account and anon blocked; payment lifecycle by account); `tsc`/eslint clean; browser: no gate, account step renders, unsupported prefix rejected. No real code sent yet (needs your phone/email and the Supabase dashboard settings); migrations not applied.
+- **Next:** apply both migrations in order, set up Supabase Auth (phone provider, email code template, custom SMTP), regenerate types, test real codes end to end.
+
+## 2026-11-04 — Stripe payments on /rezervacija
+- **Changed:** pay-at-submit (full total, hosted Checkout) per ADR-0026: migration `20261104160000_stripe_payments` (payments table, `payment_id` links, service-role payment functions, cron, paid requests exempt from the 48 h expiry and the pending cap); server action `startReservationCheckout` + `resumeCheckout`; webhook route; return page `/rezervacija/mokejimas`; `awaitingPayment` flag holds back request SMS; admin Payment badge and refund note; review step copy and "Mokėti N €" button; vault notes, `.env.example`.
+- **Status:** `tsc` and eslint clean; migration logic verified in a rolled-back transaction (all cases pass); migration NOT applied (production push was refused in-session); no Stripe keys, so no Checkout round trip yet.
+- **Also:** removed the manual Checkout idempotency key (clashes with the changing expiry on retry; the SDK adds its own); confirmed with payments off `/rezervacija` still reaches the old review step and "Rezervuoti" button.
+- **Next:** apply the migration, regenerate types, add Stripe sandbox keys, register the webhook (`stripe listen` locally), run a test payment through paid / abandoned / refunded; consider an admin refund button.
+
+## 2026-11-04 — Live database brought up to date with main
+- **Changed:** `supabase migration repair` for three already-applied migrations, then `db push --include-all` for `20261103213000_program_sessions_only_via_program_ticket`, `20261104130000_stay_booking_units`, `20261104140000_mixed_quad_rentals` on project `mwngljhcvqkvncwbmgeo`. Verified `bookings.stay_units`, `quad_rental_items`, `create_stay_booking_with_units`, `create_mixed_quad_rental` and the program guard exist. All feature branches were already in main and were deleted locally.
+- **Status:** `tsc` and eslint (app, components, lib, hooks) clean; `/rezervacija` checked at 1280 and 375 px (Pirtis, Nakvynė with live "Liko" counts, Keturračiai), no console errors, no overflow. Admin code on main already reads `stayUnits` and `quad_rental_items`; admin screens not seen logged in; no real submit tested.
+- **Next:** staff login to check admin Nakvynė/Keturračiai views with a mixed rental; test a real booking with a verified phone.
+
 ## 2026-11-04 — Page-by-page consistency sweep
 - **Changed:** ui Button/titles/tabs/table heads to font-bold; day-picker min-w so "Uždaryta" fits.
 - **Status:** `/`, `/renginiai`, `/kuponai`, `/skaiciuokle`, all 5 `/embed/*`, `/admin/prisijungti` measured in the browser (Termina only, 400/700, no overflow); logged-in admin screens not seen (needs staff login).

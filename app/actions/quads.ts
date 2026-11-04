@@ -4,6 +4,7 @@ import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
 import { mixedQuadRentalSchema, quadRentalSchema, tourTicketSchema, type MixedQuadRentalInput, type QuadRentalInput, type TourTicketInput } from "@/lib/quad-schema";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
+import { requester } from "@/lib/request-identity";
 import { hourLabel } from "@/lib/quads";
 import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -44,10 +45,10 @@ function dbFail(e: DbError) {
   return fail("Nepavyko pateikti užklausos. Bandykite dar kartą.", "db");
 }
 
-/** SMS the visitor and the staff alert line once the request is stored; never delays or fails the request. */
-function notify(phone: string, reference: string, summary: string) {
+/** SMS the visitor (when they have a phone) and always the staff alert line once the request is stored; never delays or fails the request. */
+function notify(phone: string | null, reference: string, summary: string) {
   after(async () => {
-    await Promise.all([notifyReceived(phone, reference, summary), notifyStaff(reference, summary)]);
+    await Promise.all([phone ? notifyReceived(phone, reference, summary) : Promise.resolve(false), notifyStaff(reference, summary)]);
   });
 }
 
@@ -56,15 +57,15 @@ export interface RequestReceipt {
   total: number;
 }
 
-function rentalArgs(v: Omit<QuadRentalInput, "quadTypeId" | "units">, phone: string) {
+function rentalArgs(v: Omit<QuadRentalInput, "quadTypeId" | "units">, phone: string | null, email: string | undefined) {
   return {
     p_date: v.date,
     p_start_hour: v.startHour,
     p_hours: v.hours,
     p_riders: v.riders,
     p_name: v.customerName,
-    p_email: v.customerEmail || undefined,
-    p_phone: phone,
+    p_email: email,
+    p_phone: phone ?? undefined,
     p_note: v.note || undefined,
   };
 }
@@ -76,17 +77,17 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
 
   // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
   if (v.website) return { data: { reference: "KT-0000", total: 0 } };
-  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
-  if (!phone) return UNVERIFIED;
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email } = who;
 
-  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_quad_rental", {
-    ...rentalArgs(v, phone),
+    ...rentalArgs(v, phone, email),
     p_type_id: v.quadTypeId,
     p_units: v.units,
   });
   if (error) return dbFail(error);
-  notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -95,17 +96,17 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
   const v = parsed.data;
   if (v.website) return { data: { reference: "KT-0000", total: 0 } };
-  const phone = verifiedPhone(v.verificationToken, v.customerPhone);
-  if (!phone) return UNVERIFIED;
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email } = who;
 
-  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_mixed_quad_rental", {
-    ...rentalArgs(v, phone),
+    ...rentalArgs(v, phone, email),
     p_allocations: v.allocations.map((a) => ({ quad_type_id: a.quadTypeId, units: a.units })),
   });
   if (error) return dbFail(error);
   const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
-  notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { StatusActions } from "../quads/status-actions";
-import { BookingStatusBadge } from "../status-badge";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { DeleteEventDialog } from "./delete-event-dialog";
 import { EventDialog } from "./event-dialog";
 import { CategoryTag } from "@/components/events/category-tag";
@@ -131,7 +131,10 @@ export function EventsView() {
             <Card key={t.id} className="h-full gap-3 p-5">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-normal">{t.eventTitle}</p>
-                <BookingStatusBadge status={t.status} />
+                <div className="flex flex-wrap justify-end gap-1">
+                  <BookingStatusBadge status={t.status} />
+                  <PaymentBadge payment={t.payment} />
+                </div>
               </div>
               <p className="text-sm">
                 {formatDay(t.eventDate)} · {t.eventTime}

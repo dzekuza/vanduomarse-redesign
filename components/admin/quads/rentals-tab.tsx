@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdmin } from "../admin-store";
-import { BookingStatusBadge } from "../status-badge";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { RentalSheet } from "./rental-sheet";
 import { formatDay, quadRentalLabel } from "@/lib/admin/format";
 import { BOOKING_STATUS } from "@/lib/admin/labels";
@@ -53,7 +53,10 @@ export function RentalsTab() {
                   {quadRentalLabel(r, quadTypes)}
                 </button>
               </CardTitle>
-              <BookingStatusBadge status={r.status} />
+              <div className="flex flex-wrap justify-end gap-1">
+                <BookingStatusBadge status={r.status} />
+                <PaymentBadge payment={r.payment} />
+              </div>
             </CardHeader>
             <CardContent className="space-y-1 text-sm">
               <p>
