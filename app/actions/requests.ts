@@ -86,15 +86,18 @@ export interface TicketReceipt {
 
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
-/** SMS the visitor and the staff alert line once the request is stored; never delays or fails the booking. */
+/**
+ * SMS the visitor (when they have a phone: an account that signed in by email has none) and always the
+ * staff alert line once the request is stored; never delays or fails the booking.
+ */
 function notify(
-  phone: string,
+  phone: string | null,
   reference: string | undefined,
   summary: string,
   toCustomer: (phone: string, reference: string | undefined, summary: string) => Promise<boolean> = notifyReceived,
 ) {
   after(async () => {
-    await Promise.all([toCustomer(phone, reference, summary), notifyStaff(reference, summary)]);
+    await Promise.all([phone ? toCustomer(phone, reference, summary) : Promise.resolve(false), notifyStaff(reference, summary)]);
   });
 }
 
@@ -126,7 +129,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_coupon: v.coupon || undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  if (phone && !v.awaitingPayment) {
+  if (!v.awaitingPayment) {
     notify(
       phone,
       data[0].reference,
@@ -161,7 +164,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     : await supabase.rpc("create_stay_booking_with_units", { ...args, p_units: units, p_guests: v.guests });
   if (error) return dbFail(error, BY_HINT.stay_full);
   const quantity = units > 1 ? `${v.stayTypeId === "kemperis" ? "Kemperiu vietos" : "Nameliai"}: ${units}` : undefined;
-  if (phone && !v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -204,7 +207,7 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
     p_phone: phone ?? undefined,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
-  if (phone && !v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -229,7 +232,7 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
     p_phone: phone ?? undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  if (phone && !v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

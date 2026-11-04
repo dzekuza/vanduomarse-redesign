@@ -45,10 +45,10 @@ function dbFail(e: DbError) {
   return fail("Nepavyko pateikti užklausos. Bandykite dar kartą.", "db");
 }
 
-/** SMS the visitor and the staff alert line once the request is stored; never delays or fails the request. */
-function notify(phone: string, reference: string, summary: string) {
+/** SMS the visitor (when they have a phone) and always the staff alert line once the request is stored; never delays or fails the request. */
+function notify(phone: string | null, reference: string, summary: string) {
   after(async () => {
-    await Promise.all([notifyReceived(phone, reference, summary), notifyStaff(reference, summary)]);
+    await Promise.all([phone ? notifyReceived(phone, reference, summary) : Promise.resolve(false), notifyStaff(reference, summary)]);
   });
 }
 
@@ -87,7 +87,7 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
     p_units: v.units,
   });
   if (error) return dbFail(error);
-  if (phone && !v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -106,7 +106,7 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   });
   if (error) return dbFail(error);
   const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
-  if (phone && !v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
+  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

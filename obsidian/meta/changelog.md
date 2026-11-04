@@ -1,3 +1,4 @@
+- 2026-11-04 Staff get the new-request SMS for every web reservation, including those from email-only accounts (only the customer text needs a phone).
 - 2026-11-04 Removed the shared guest field from the reservation flow. Sauna cards own their
   group size. Quad rentals use vehicle quantities and send one driver per quad.
 - 2026-11-04 The event calculator uses the reservation date strip and calendar, with optional
