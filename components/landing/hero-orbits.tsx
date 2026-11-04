@@ -1,5 +1,3 @@
-import styles from "./hero-orbits.module.css";
-
 const ORBITS_ART = "/landing/hero-orbits.svg";
 
 /** The two rings travel around the dashed guide while their satellites counter-rotate. */
@@ -10,7 +8,7 @@ export function HeroOrbits() {
       focusable="false"
       viewBox="0 0 1212 1528"
       fill="none"
-      className={`hero-orbits ${styles.stage} pointer-events-none absolute left-1/2 h-auto -translate-x-1/2 -translate-y-1/2 overflow-visible text-dust opacity-50`}
+      className="hero-orbits pointer-events-none absolute left-1/2 h-auto -translate-x-1/2 -translate-y-1/2 overflow-visible text-dust opacity-50"
     >
       <use className="orbit-guide" href={`${ORBITS_ART}#dashed-ring`} />
       <g className="orbit-rings">

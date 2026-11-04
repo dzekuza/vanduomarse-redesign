@@ -1,3 +1,5 @@
+- 2026-11-04 Moved hero orbit centering and sizing into the shared artwork utility so
+  production builds place the guide at the center of the first viewport.
 - 2026-11-04 The reservation summary shows quads first, followed by sauna and overnight stay.
 - 2026-11-04 Quad rental on the reservation page accepts quantities of both quad types for one
   shared time and duration. The plan and staff view show each type under one rental reference.
