@@ -1,3 +1,8 @@
+## 2026-11-05 — PR #13 merged
+- **Changed:** PR #13 (discount codes) merged into `main`; Vercel preview build had passed, no open review threads.
+- **Status:** migrations already applied; production redeploys from `main`.
+- **Next:** staff sign-in to check `/admin/nuolaidos`; one checkout with a code.
+
 ## 2026-11-05 — PR #13 review fixes
 - **Changed:** per-activity discount code in both checkout paths, submit blocked while a code check runs, 0 € plans filed unpaid, delete refused for used codes, non-optimistic admin toggle/delete, integer-cent preview, schema limits shared with the form, FK relationships in the types, a11y fixes; docs wording.
 - **Status:** `tsc` and eslint clean; replies posted on the review threads.
