@@ -11,6 +11,7 @@ import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
 import { notifyRequestOutcome } from "@/lib/notify";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -59,6 +60,23 @@ export async function changeOwnPassword(password: string): Promise<ActionResult>
 
 const bookingStatus = z.enum(["laukia", "patvirtinta", "ivykdyta", "atsaukta"]);
 
+/**
+ * The row's email only when it is the account's own confirmed address. A row's email is what the form
+ * sent, and `user_id` alone does not prove it (a signed-in request can pass on a verified phone with any
+ * email), so the address is checked against auth.users through a service-role function. Null otherwise,
+ * or when the lookup fails: then only the SMS goes out.
+ */
+async function accountEmailFor(userId: string | null, rowEmail: string | null): Promise<string | null> {
+  if (!userId || !rowEmail) return null;
+  try {
+    const { data, error } = await createAdminClient().rpc("account_notify_email", { p_user: userId });
+    if (error || !data) return null;
+    return data.toLowerCase() === rowEmail.trim().toLowerCase() ? data : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Tells a website customer their request was confirmed or cancelled; staff-entered bookings and other status changes send nothing. */
 function notifyCustomer(
   source: string,
@@ -68,9 +86,10 @@ function notifyCustomer(
   summary: string,
 ) {
   if (source !== "svetaine" || (status !== "patvirtinta" && status !== "atsaukta")) return;
-  // Only an account's request carries an email the account confirmed (ADR-0027); an anonymous row's email was typed, not proven.
-  const email = contact.user_id ? contact.customer_email : null;
-  after(() => notifyRequestOutcome({ phone: contact.customer_phone, email }, reference, status, summary));
+  after(async () => {
+    const email = await accountEmailFor(contact.user_id, contact.customer_email);
+    await notifyRequestOutcome({ phone: contact.customer_phone, email }, reference, status, summary);
+  });
 }
 
 export async function setBookingStatus(id: string, status: Booking["status"]): Promise<ActionResult> {

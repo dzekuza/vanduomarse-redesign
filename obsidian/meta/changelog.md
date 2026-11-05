@@ -1,3 +1,4 @@
+- 2026-11-05 Confirm/cancel and payment emails take the address from the account's confirmed email (`auth.users`), not the request row; migration `20261105120000_notify_account_email` (not applied yet).
 - 2026-11-05 PR #12 review: customer emails go only to account-confirmed addresses (the anonymous phone-code forms get SMS only); the webhook reads the email through `payment_state`; Resend and Twilio calls time out after 8 s; amounts in emails use a decimal comma; the `/admin` link is left out without `SITE_URL`.
 - 2026-11-05 Calculator inquiries no longer email or text the customer's typed address and phone (no verification on that form); staff are still alerted and reply themselves.
 - 2026-11-05 Staff booking emails are routed per service: sauna and quads → renginiai@vanduomarse.lt, stays → miegas@vanduomarse.lt; other requests → `STAFF_NOTIFY_EMAIL`. Payment emails follow the reference prefix (ADR-0028).

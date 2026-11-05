@@ -42,11 +42,12 @@ async function onPaid(session: Stripe.Checkout.Session) {
     return;
   }
   if (!paid.newly_paid) return;
-  // complete_payment returns the phone only; payment_state (scoped, service role) gives the account's email.
+  // complete_payment returns the phone only. The email comes from the paying account's confirmed address
+  // (payment_notify_email reads auth.users), never from the request rows, whose email the form sent.
   // A failed lookup only drops the customer email: notifications must never fail the webhook.
-  const { data: state, error: stateError } = await admin.rpc("payment_state", { p_payment_id: paid.payment_id });
-  if (stateError) console.error("Stripe webhook: payment_state lookup failed, customer email skipped", paid.payment_id);
-  await notifyPaymentReceived({ phone: paid.phone, email: state?.[0]?.customer_email }, paid.refs, paid.amount, paid.needs_review);
+  const { data: email, error: emailError } = await admin.rpc("payment_notify_email", { p_payment_id: paid.payment_id });
+  if (emailError) console.error("Stripe webhook: payment_notify_email failed, customer email skipped", paid.payment_id);
+  await notifyPaymentReceived({ phone: paid.phone, email: email ?? null }, paid.refs, paid.amount, paid.needs_review);
 }
 
 async function onClosed(sessionId: string, failed: boolean) {
