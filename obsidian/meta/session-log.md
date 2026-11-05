@@ -1,3 +1,8 @@
+## 2026-11-05 — Stripe configuration check
+- **Checked:** `.env.local` Stripe vars (names/prefixes only), a read-only Stripe API call, webhook endpoints, Vercel env names.
+- **Status:** key value malformed (`secret - ` prefix) and live mode; Vercel lacks all Stripe vars; webhook endpoint registered with the right five events. No checkout run.
+- **Next:** fix the key line (sandbox key recommended for testing), add Stripe vars + `SITE_URL` in Vercel and redeploy, then run a checkout.
+
 ## 2026-11-05 — PR #12 second review
 - **Changed:** `accountEmailFor` logs lookup failures; `notify` comments in requests/quads say email goes only to an account-confirmed address; vault: migration consistently named as required (ADR, changelog, status), webhook RPC named correctly, database row narrowed, frontmatter dates bumped.
 - **Status:** `tsc`/eslint clean; pushed to PR #12.
@@ -76,7 +81,7 @@
 
 ---
 tags: [meta, session-log]
-updated: 2026-11-03
+updated: 2026-11-05
 ---
 
 # Session log
