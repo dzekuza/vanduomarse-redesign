@@ -1,13 +1,12 @@
 import "server-only";
 import { MAIN_CONTACT, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
+import { formatEuro } from "@/lib/coupons";
 import { emailList, escapeHtml, sendEmail } from "./resend";
 
 /**
  * Customer and staff notification emails, sent next to the SMS in `lib/notify.ts`.
  * Plain text plus a minimal HTML copy; the request summary is the same line the SMS uses.
  */
-
-const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amount.toFixed(2));
 
 const siteUrl = () => (process.env.SITE_URL ?? "").replace(/\/$/, "");
 
@@ -74,7 +73,7 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
         subject: `Apmokėjimas gautas (${references.join(", ")})`,
         ...body([
           "Sveiki,",
-          `gavome jūsų apmokėjimą: ${eur(amount)} € už ${references.join(", ")}.`,
+          `gavome jūsų apmokėjimą: ${formatEuro(amount)} už ${references.join(", ")}.`,
           "Užklausas patvirtinsime netrukus ir pranešime atskirai.",
           ...accountLink(),
         ]),
@@ -91,12 +90,13 @@ function staffTo(services: NotifyService[]): string[] {
 }
 
 const servicesOf = (references: string[]) => references.map(serviceOfReference);
-const adminLink = () => (siteUrl() ? `${siteUrl()}/admin` : "/admin");
+/** Without SITE_URL a relative "/admin" would not work in a mail client, so the line is left out. */
+const adminLink = () => (siteUrl() ? [`Atidaryti: ${siteUrl()}/admin`] : []);
 
 function toStaff(services: NotifyService[], subject: string, paragraphs: (string | { strong: string })[]) {
   const to = staffTo(services);
   if (to.length === 0) return Promise.resolve(false);
-  return sendEmail({ to, subject, ...body([...paragraphs, `Atidaryti: ${adminLink()}`], false) });
+  return sendEmail({ to, subject, ...body([...paragraphs, ...adminLink()], false) });
 }
 
 export const emailStaffNew = (service: NotifyService, reference: string | undefined, summary: string) =>
@@ -104,12 +104,12 @@ export const emailStaffNew = (service: NotifyService, reference: string | undefi
 
 export const emailStaffPaid = (references: string[], amount: number, review: boolean) =>
   toStaff(servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Nauja apmokėta užklausa"} ${references.join(", ")}`, [
-    { strong: `${eur(amount)} € už ${references.join(", ")}` },
+    { strong: `${formatEuro(amount)} už ${references.join(", ")}` },
     ...(review ? ["Apmokėta pavėluotai arba kita suma: patikrinkite ir, jei reikia, grąžinkite per Stripe."] : []),
   ]);
 
 export const emailStaffDuplicate = (references: string[], amount: number) =>
   toStaff(servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [
-    { strong: `Antras mokėjimas ${eur(amount)} € už jau apmokėtą rezervaciją ${references.join(", ")}.` },
+    { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
     "Grąžinkite papildomą mokėjimą per Stripe.",
   ]);

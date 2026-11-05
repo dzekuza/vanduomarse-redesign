@@ -39,13 +39,13 @@ export const emailList = (value: string | null | undefined) =>
     .map((s) => s.trim())
     .filter(looksLikeEmail);
 
-/** Returns true when Resend accepted the message. Never throws. */
+/** Returns true when Resend accepted the message (false when skipped, refused or timed out). Never throws. */
 export async function sendEmail(m: EmailMessage, opts: { skipInDev?: boolean } = { skipInDev: true }): Promise<boolean> {
   const to = (Array.isArray(m.to) ? m.to : [m.to]).filter(looksLikeEmail);
   if (to.length === 0) return false;
   if (opts.skipInDev && emailSkippedInDev()) {
     console.info(`[dev] email "${m.subject}" to ${to.length} recipient(s) not sent:\n${m.text}`);
-    return true;
+    return false;
   }
   const key = process.env.RESEND_API_KEY;
   const from = m.from ?? notifyFrom();
@@ -56,12 +56,14 @@ export async function sendEmail(m: EmailMessage, opts: { skipInDev?: boolean } =
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, reply_to: MAIN_CONTACT.email, subject: m.subject, text: m.text, html: m.html }),
+      // The Stripe webhook awaits this: a stalled connection must not hold the response until Stripe retries.
+      signal: AbortSignal.timeout(8000),
     });
     // Log the status only: the body and the address are customer data.
     if (!res.ok) console.error(`Resend email failed: HTTP ${res.status}`);
     return res.ok;
   } catch {
-    console.error("Resend email failed: network error");
+    console.error("Resend email failed: network error or timeout");
     return false;
   }
 }

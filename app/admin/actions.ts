@@ -62,13 +62,15 @@ const bookingStatus = z.enum(["laukia", "patvirtinta", "ivykdyta", "atsaukta"]);
 /** Tells a website customer their request was confirmed or cancelled; staff-entered bookings and other status changes send nothing. */
 function notifyCustomer(
   source: string,
-  contact: { customer_phone: string | null; customer_email: string | null },
+  contact: { customer_phone: string | null; customer_email: string | null; user_id: string | null },
   reference: string,
   status: BookingStatus,
   summary: string,
 ) {
   if (source !== "svetaine" || (status !== "patvirtinta" && status !== "atsaukta")) return;
-  after(() => notifyRequestOutcome({ phone: contact.customer_phone, email: contact.customer_email }, reference, status, summary));
+  // Only an account's request carries an email the account confirmed (ADR-0027); an anonymous row's email was typed, not proven.
+  const email = contact.user_id ? contact.customer_email : null;
+  after(() => notifyRequestOutcome({ phone: contact.customer_phone, email }, reference, status, summary));
 }
 
 export async function setBookingStatus(id: string, status: Booking["status"]): Promise<ActionResult> {
@@ -80,7 +82,7 @@ export async function setBookingStatus(id: string, status: Booking["status"]): P
     .from("bookings")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, customer_email, source, kind, date, start_hour, hours")
+    .select("reference, customer_phone, customer_email, user_id, source, kind, date, start_hour, hours")
     .maybeSingle();
   if (error) return dbError(error);
   if (data) {
@@ -770,7 +772,7 @@ export async function setRentalStatus(id: string, status: BookingStatus): Promis
     .from("quad_rentals")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, customer_email, source, date, start_hour")
+    .select("reference, customer_phone, customer_email, user_id, source, date, start_hour")
     .maybeSingle();
   if (error) return dbError(error);
   if (data) {
@@ -788,7 +790,7 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
     .from("event_tickets")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, customer_email, source, people")
+    .select("reference, customer_phone, customer_email, user_id, source, people")
     .maybeSingle();
   if (error) return dbError(error);
   if (data) notifyCustomer(data.source, data, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));

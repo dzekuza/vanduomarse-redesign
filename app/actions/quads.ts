@@ -78,7 +78,7 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
   if (v.website) return { data: { reference: "KT-0000", total: 0 } };
   const who = await requester(v);
   if (!who) return UNVERIFIED;
-  const { supabase, phone, email } = who;
+  const { supabase, phone, email, notifyEmail } = who;
 
   const { data, error } = await supabase.rpc("create_quad_rental", {
     ...rentalArgs(v, phone, email),
@@ -86,7 +86,7 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
     p_units: v.units,
   });
   if (error) return dbFail(error);
-  if (!v.awaitingPayment) notify(phone, email, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
+  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -97,7 +97,7 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   if (v.website) return { data: { reference: "KT-0000", total: 0 } };
   const who = await requester(v);
   if (!who) return UNVERIFIED;
-  const { supabase, phone, email } = who;
+  const { supabase, phone, email, notifyEmail } = who;
 
   const { data, error } = await supabase.rpc("create_mixed_quad_rental", {
     ...rentalArgs(v, phone, email),
@@ -105,7 +105,7 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   });
   if (error) return dbFail(error);
   const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
-  if (!v.awaitingPayment) notify(phone, email, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
+  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -126,6 +126,6 @@ export async function createTourTicket(input: TourTicketInput): Promise<ActionRe
     p_phone: phone,
   });
   if (error) return dbFail(error);
-  notify(phone, v.customerEmail, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
+  notify(phone, null, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }

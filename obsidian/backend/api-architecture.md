@@ -77,4 +77,4 @@ the service role (anon has no insert grants) and recomputes the price.
 
 ## Notifications
 
-Actions and the Stripe webhook notify only through `lib/notify.ts` (ADR-0028): one call per event sends SMS (Twilio) and email (Resend) to the customer when they gave that contact, and to staff (`STAFF_NOTIFY_PHONE`, `STAFF_NOTIFY_EMAIL`). Sends run in `after()` (or after the DB write in the webhook) and never fail the request.
+Booking and payment notifications go only through `lib/notify.ts` (ADR-0028); coupon emails are the exception (`sendCouponEmail`, same Resend sender). Customer SMS goes to a verified phone; customer email to only a signed-in account's confirmed email (ADR-0027); the anonymous phone-code forms prove the phone, not the typed email, so they get SMS only; calculator inquiries notify staff only. Staff SMS goes to `STAFF_NOTIFY_PHONE`; staff email to the service inbox from `STAFF_INBOX` in `lib/contacts.ts` (sauna and quads → renginiai@vanduomarse.lt, stays → miegas@vanduomarse.lt), with `STAFF_NOTIFY_EMAIL` only as the fallback for other services. Sends run in `after()` (or after the DB write in the webhook) and never fail the request.

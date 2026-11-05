@@ -1,3 +1,8 @@
+## 2026-11-05 — PR #12 review fixes
+- **Changed:** `Requester.notifyEmail` (account email only) for customer emails; admin outcome emails need a `user_id`; webhook uses `payment_state`; 8 s fetch timeouts (Resend, Twilio); dev email skip returns false; `formatEuro` in emails; no relative `/admin` link; vault notes corrected (audiences, signatures, routing).
+- **Status:** `tsc` and eslint clean; pushed to PR #12.
+- **Next:** one sauna and one stay booking through `/rezervacija` (signed in) with `EMAIL_IN_DEV=1`; env vars in Vercel.
+
 ## 2026-11-05 — Security review: inquiry email
 - **Changed:** `createInquiry` passes no customer email or phone to `notify` (the phone part was a pre-existing SMS-abuse path) (unverified form; would let anyone mail arbitrary addresses from our domain).
 - **Status:** committed on `feat/email-notifications` with the email work, new PR into `main` (PR #10 was already merged); `tsc` clean.

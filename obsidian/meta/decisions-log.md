@@ -1,6 +1,6 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Decisions Log (ADRs)
@@ -12,11 +12,11 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ## ADR-0028 — Notifications go out through one dispatcher, SMS and email per event
 
-- **Status:** Accepted 2026-11-05; code built, not yet sent for real (needs `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`).
+- **Status:** Accepted 2026-11-05; code built, Resend sending confirmed with a direct test email; booking emails through the app not tried yet.
 - **Context:** Booking notices were SMS only, so email-only accounts (ADR-0027) heard nothing after submitting, and staff had one alert phone. Resend was already used for coupon emails.
-- **Decision:** `lib/notify.ts` is the only thing actions and the Stripe webhook call (`notifyRequestFiled`, `notifyRequestOutcome`, `notifyPaymentReceived`, `notifyDuplicatePayment`). Each call sends SMS (`lib/sms/notify.ts`) and email (`lib/email/notify.ts`) to the customer, each only when that contact exists and the channel is configured, plus both staff channels. All email goes through `sendEmail` in `lib/email/resend.ts` (Resend HTTP API, no SDK, never throws, replies to `MAIN_CONTACT.email`). Like SMS, `next dev` logs booking emails unless `EMAIL_IN_DEV=1`; coupon emails always send. The webhook reads the customer email from `payments.customer_email` by `payment_id` (service role) instead of changing `complete_payment`.
+- **Decision:** `lib/notify.ts` is the only thing actions and the Stripe webhook call (`notifyRequestFiled`, `notifyRequestOutcome`, `notifyPaymentReceived`, `notifyDuplicatePayment`). Audiences per event, each channel skipped when unconfigured or the contact is missing: `notifyRequestFiled` → customer SMS + email and staff SMS + email; `notifyRequestOutcome` → customer only (SMS + email); `notifyPaymentReceived` → customer and staff; `notifyDuplicatePayment` → staff only. SMS lives in `lib/sms/notify.ts`, email in `lib/email/notify.ts`. Coupon emails are separate (`sendCouponEmail`, staff-triggered) but use the same sender. All email goes through `sendEmail` in `lib/email/resend.ts` (Resend HTTP API, no SDK, never throws, replies to `MAIN_CONTACT.email`). Like SMS, `next dev` logs booking emails unless `EMAIL_IN_DEV=1`; coupon emails always send. The webhook gets the customer email from the scoped `payment_state` function by `payment_id` (no direct table read with the service role, no change to `complete_payment`). Resend and Twilio calls time out after 8 s, because the webhook awaits them.
 - **Staff routing (2026-11-05):** staff emails go to the service's inbox: sauna (incl. programs) and quads (rentals, tours) → `renginiai@vanduomarse.lt`, stays → `miegas@vanduomarse.lt` (`STAFF_INBOX`); everything else to `STAFF_NOTIFY_EMAIL`. Payment emails are routed by reference prefix, and a reservation that mixes services emails each inbox once. The staff SMS still goes to the single `STAFF_NOTIFY_PHONE`.
-- **Unverified addresses (2026-11-05, security review):** the customer email goes only to requests that passed a phone code or come from a signed-in account. The calculator inquiry (`createInquiry`) has neither, so it alerts staff only: it never emails the typed address or texts the typed phone (the SMS was there before this ADR and could be used to make us text any allowed-prefix number). Customer emails carry no free text from the form (no name or message), only the reference and the request summary.
+- **Unverified addresses (2026-11-05, security and PR review):** customer email goes to only a signed-in account's confirmed email (ADR-0027); the anonymous phone-code forms prove the phone, not the typed email, so they get SMS only (`Requester.notifyEmail`; admin confirm/cancel emails only rows with a `user_id`). Payment emails always come from an account. The calculator inquiry (`createInquiry`) has neither, so it alerts staff only: it never emails the typed address or texts the typed phone (the SMS was there before this ADR and could be used to make us text any allowed-prefix number). Customer emails carry no free text from the form (no name or message), only the reference and the request summary.
 - **Consequences:** A new channel (e.g. WhatsApp) is added in one place. Email bodies reuse the ASCII SMS summary line. No migration. Sender domain must be verified in Resend; it can double as Supabase Auth's custom SMTP.
 
 ---
