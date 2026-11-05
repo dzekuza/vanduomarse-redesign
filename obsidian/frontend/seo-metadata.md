@@ -29,6 +29,11 @@ updated: 2026-11-05
 - No Open Graph images; no JSON-LD (LocalBusiness / Event would fit).
 - No canonical URLs yet; `vanduomarse-redesign.vercel.app` still serves a duplicate copy (kept for the WordPress plugin updater, ADR-0014).
 
+## Icons (2026-11-05)
+
+- `app/favicon.ico` (16/32/48), `app/icon.png` (512) and `app/apple-icon.png` (180): the Vanduo Marse badge (helmet scene + wordmark) on white, cropped tight from the owner's 500 px PNG. Next links them automatically. The ICO frames must be RGBA, or Turbopack fails with "The PNG is not in RGBA format".
+- The proxy matcher skips files with an extension, so the icons load while the site gate is on.
+
 ## Site URL, robots, sitemap (2026-11-05)
 
 - `SITE_URL` in `lib/site.ts`: env `SITE_URL`, default `https://www.vanduomarse.lt` (the apex 308-redirects to www). Root layout `metadataBase` uses it.

@@ -1,3 +1,4 @@
+- 2026-11-05 New favicon and app icons from the Vanduo Marse badge: `app/favicon.ico`, `app/icon.png`, `app/apple-icon.png`.
 - 2026-11-05 Removed `/apie-marsa` (and `TeamSection`) and its nav and sitemap entries. Added the coming-soon gate (ADR-0037): `SITE_GATE=1` shows `/netrukus` (503) on every public page, `/admin` and `/api` stay open, and `SITE_GATE_CODE` adds a preview-code field that lets a browser in for 30 days.
 - 2026-11-05 Custom domain: `robots.txt` and `sitemap.xml` (public pages; `/admin`, `/paskyra`, `/embed`, `/api`, payment return disallowed) and `metadataBase`, all from `lib/site.ts` (`SITE_URL`, default `https://www.vanduomarse.lt`).
 - 2026-11-05 Merged PR #13 (discount codes and `/admin/nuolaidos`) into `main`.

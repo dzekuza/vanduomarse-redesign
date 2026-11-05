@@ -14,7 +14,9 @@ updated: 2026-11-05
 
 ## Current focus
 
-**Coming-soon gate (2026-11-05): built, uncommitted, off until env is set.** `/apie-marsa` removed. `SITE_GATE=1` makes every public page show `/netrukus` (503); `/admin`, `/api` and assets stay open; `SITE_GATE_CODE` adds a preview-code field (cookie for 30 days) (ADR-0037). Tested locally with the gate on: public paths 503, admin 200, wrong code error, right code opens `/rezervacija`, httpOnly cookie, bad cookie still gated; gate off: site normal, `/netrukus` → `/`. Gate page checked at 375 / 768 / 1024 (code field only at 1024). To switch on: add `SITE_GATE=1` and a long `SITE_GATE_CODE` in Vercel, commit, redeploy.
+**Favicon (2026-11-05): new badge icons, uncommitted.** `app/favicon.ico`, `app/icon.png`, `app/apple-icon.png` from the owner's badge image; checked on the dev server (linked in the head, served while gated).
+
+**Coming-soon gate (2026-11-05): live on production (commit `76c2c78`).** `SITE_GATE=1` and `SITE_GATE_CODE` are set in Vercel; `www.vanduomarse.lt` public pages return 503 with the code field, `/admin`, robots, sitemap and the webhook answer. The owner has not yet tried a real code on production. `/apie-marsa` removed. `SITE_GATE=1` makes every public page show `/netrukus` (503); `/admin`, `/api` and assets stay open; `SITE_GATE_CODE` adds a preview-code field (cookie for 30 days) (ADR-0037). Tested locally with the gate on: public paths 503, admin 200, wrong code error, right code opens `/rezervacija`, httpOnly cookie, bad cookie still gated; gate off: site normal, `/netrukus` → `/`. Gate page checked at 375 / 768 / 1024 (code field only at 1024). To switch on: add `SITE_GATE=1` and a long `SITE_GATE_CODE` in Vercel, commit, redeploy.
 
 **Custom domain (2026-11-05): live.** `vanduomarse.lt` 308-redirects to `https://www.vanduomarse.lt` (Vercel), which serves the app. `SITE_URL` is the www host (owner updated `.env.local` and Vercel); the Stripe webhook is now `https://www.vanduomarse.lt/api/stripe/webhook` (five events, enabled; the vercel.app endpoint is gone) with its `whsec_` set. Added `lib/site.ts`, `metadataBase`, `app/robots.ts` and `app/sitemap.ts` (uncommitted). Still to do: Supabase Auth → URL Configuration (Site URL + redirect URLs to the www host); submit the sitemap in Search Console after deploy; `EMBED_ALLOWED_ORIGINS` only if a WordPress site still frames the widgets. `vanduomarse-redesign.vercel.app` still serves 200 (duplicate content, but the WordPress plugin updater depends on it, ADR-0014).
 
@@ -76,6 +78,6 @@ Sauna programs for `/rezervacija` (Bendra, Moterų, Vyrų, Visa šeima, Pirtis t
 
 - **Run:** `pnpm dev` (http://localhost:3000)
 - **Deploy:** Vercel
-- **Known issues:** `pnpm lint` over the whole repo is flooded by `.claude/worktrees/`; lint specific paths.
+- **Known issues:** `pnpm lint` over the whole repo is flooded by `.claude/worktrees/`; lint specific paths. Local `pnpm build` fails (also on `76c2c78`, without the icons) with `Can't resolve '@vercel/turbopack-next/internal/font/google/font'` from the Big Shoulders `next/font/google` import; Vercel builds fine. `pnpm dev` works.
 
 > UI consistency pass (2026-11-04): Termina body + role text steps applied; /rezervacija browser-checked at phone width; booking, coupons, events and admin still unchecked.

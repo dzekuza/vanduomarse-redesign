@@ -1,3 +1,8 @@
+## 2026-11-05 — Favicon from the badge
+- **Changed:** `app/favicon.ico` (RGBA 16/32/48), `app/icon.png` (512), `app/apple-icon.png` (180) cropped from the owner's badge PNG. `76c2c78` pushed earlier; the gate is live on production.
+- **Status:** icons linked and served on the dev server (also while gated); local `pnpm build` fails on a pre-existing Google font resolve error, same on HEAD without the icons. Uncommitted.
+- **Next:** commit and push the icons; check the tab icon on production.
+
 ## 2026-11-05 — /apie-marsa removed, coming-soon gate
 - **Changed:** deleted `app/apie-marsa` + `components/about/`; nav and sitemap entries gone. New `lib/site-gate.ts`, `lib/site-gate-schema.ts`, `app/actions/site-gate.ts`, `components/coming-soon.tsx`, `components/gate-code-form.tsx`, `app/netrukus/page.tsx`; proxy matcher widened; `.env.example` (`SITE_GATE`, `SITE_GATE_CODE`); `dev-gate` launch config (dummy local code). ADR-0037.
 - **Status:** `tsc` and eslint clean; gate, bypass code and gate-off behaviour checked in the browser; uncommitted.
