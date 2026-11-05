@@ -9,6 +9,18 @@
         "dev"
       ],
       "port": 3000
+    },
+    {
+      "name": "dev-gate",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "SITE_GATE=1",
+        "SITE_GATE_CODE=localtest-preview",
+        "pnpm",
+        "run",
+        "dev"
+      ],
+      "port": 3000
     }
   ]
 }

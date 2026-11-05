@@ -1,3 +1,19 @@
+## 2026-11-05 — /apie-marsa removed, coming-soon gate
+- **Changed:** deleted `app/apie-marsa` + `components/about/`; nav and sitemap entries gone. New `lib/site-gate.ts`, `lib/site-gate-schema.ts`, `app/actions/site-gate.ts`, `components/coming-soon.tsx`, `components/gate-code-form.tsx`, `app/netrukus/page.tsx`; proxy matcher widened; `.env.example` (`SITE_GATE`, `SITE_GATE_CODE`); `dev-gate` launch config (dummy local code). ADR-0037.
+- **Status:** `tsc` and eslint clean; gate, bypass code and gate-off behaviour checked in the browser; uncommitted.
+- **Next:** owner sets `SITE_GATE=1` + `SITE_GATE_CODE` in Vercel, commit, redeploy; then Supabase Auth URLs.
+- **Docs:** routing (`/netrukus` row, `/apie-marsa` row removed), `components/common.md` (`ComingSoon`, `GateCodeForm`; `TeamSection` removed), `utils.md` (site-gate helpers), `seo-metadata.md`, ADR-0037, changelog, status "Next up".
+
+## 2026-11-05 — Domain env + webhook confirmed
+- **Changed:** owner set `SITE_URL` to the www host and moved the Stripe webhook; confirmed via the Stripe API (one app endpoint on `www.vanduomarse.lt`, five events, enabled) and `.env.local`.
+- **Status:** robots/sitemap/metadataBase still uncommitted; Vercel env not checked from here.
+- **Next:** Supabase Auth URLs, deploy, Search Console sitemap.
+
+## 2026-11-05 — Custom domain check
+- **Changed:** checked `vanduomarse.lt` (apex → 308 → `www.vanduomarse.lt`, Vercel); added `lib/site.ts`, `metadataBase`, `app/robots.ts`, `app/sitemap.ts`; `.env.example` SITE_URL note.
+- **Status:** `tsc` and eslint clean; robots and sitemap render locally; uncommitted.
+- **Next:** SITE_URL to the www host in Vercel and `.env.local`, Stripe webhook on the www host, Supabase Auth URLs, Search Console sitemap.
+
 ## 2026-11-05 — PR #13 merged
 - **Changed:** PR #13 (discount codes) merged into `main`; Vercel preview build had passed, no open review threads.
 - **Status:** migrations already applied; production redeploys from `main`.

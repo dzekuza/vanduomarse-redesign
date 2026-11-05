@@ -30,7 +30,7 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 | Route | View | Status |
 |-------|------|--------|
 | `/` | `app/page.tsx`: `LandingProvider` + `components/landing/` sections (hero, ticker, activities, night, all-in, gallery, FAQ, place, footer). Activity cards open the `ServiceDrawer` (real booking forms, availability via `loadBookingData`), which can open the `CalculatorDrawer`; static page | stable |
-| `/apie-marsa` | `BookingPage` + `PageIntro` + `TeamSection`. Introduces the park and its people, with links to public sauna booking. Linked from the desktop header and mobile menu | stable |
+| `/netrukus` | Coming-soon gate page (`ComingSoon`, `GateCodeForm`). With `SITE_GATE=1` the proxy rewrites every public path here with a 503 (URL unchanged); `/admin`, `/api`, static files stay open; a browser with the preview-code cookie passes. Without the flag it redirects to `/`. Not indexed. ADR-0037. | stable |
 | `/kuponai` | `BookingPage` + `.theme-reservation` + `BookingHeader` + `CouponShop` (steps, picker, sticky order form, confirmation); products from `getCouponProducts()`; orders wait for staff to confirm payment | stable |
 | `/paskyra` | Nav label and title "Mano rezervacijos". `BookingPage` + `BookingHeader` + `AccountLogin` (signed out) or `RequestList` (left, two columns) + `ProfileCard` (right) when signed in. Code sign-in, own reservations with status and payment, name, sign out. Not indexed. ADR-0027. | stable |
 | `/rezervacija/mokejimas` | Return page of the Stripe Checkout (`PaymentStatus`): paid, being checked, cancelled ("pay again"), expired or refunded. Not indexed. ADR-0026. | stable |

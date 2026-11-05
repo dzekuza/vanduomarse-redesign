@@ -10,6 +10,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0037 — Coming-soon gate in the proxy, behind an env flag and a preview code
+
+- **Status:** Accepted 2026-11-05.
+- **Context:** The new site went live on `www.vanduomarse.lt` before it is ready. The owner wants every public page behind a "coming soon / under construction" screen, staff still able to use `/admin`, and a code so chosen people can see the real site.
+- **Decision:** `proxy.ts` now matches every path except `/api/`, `/_next/` and files with an extension (assets, `robots.txt`, `sitemap.xml`). With `SITE_GATE=1`, any path other than `/admin*` and `/netrukus` is rewritten to `/netrukus` with HTTP 503 and `Retry-After` (temporary for search engines, URL unchanged), unless the request carries `vm_gate_pass` equal to SHA-256 of `SITE_GATE_CODE`. The code is checked by the `enterSiteGate` server action (constant-time compare, 800 ms delay on a miss) which sets the cookie httpOnly, 30 days. Non-GET requests are rewritten without the 503 so that action answers normally. The Supabase session refresh still runs only on `/admin`, `/rezervacija`, `/paskyra`.
+- **Consequences:** Switching off = remove `SITE_GATE` and redeploy (Vercel reads env at build/deploy). Changing `SITE_GATE_CODE` signs out every preview browser. Without `SITE_GATE_CODE` no field is shown. `/embed/*` widgets are gated too. Bookings, coupons and the calculator are unreachable for the public while gated; the Stripe webhook (`/api`) keeps working. The code is a shared secret, not an account: use a long one. The proxy now runs on every page request (cheap: no Supabase call outside the session paths).
+
 ## ADR-0036 — Discount codes sit beside gift coupons and are priced by every booking RPC
 
 - **Status:** Accepted 2026-11-05 (ADR-0032 migrations now live too). Migration `20261105150000_discount_codes` tested on the live project in a rolled-back transaction, then applied 2026-11-05 with the owner's approval (`supabase db push --include-all`, after `20261104190000` and `20261104191000`).

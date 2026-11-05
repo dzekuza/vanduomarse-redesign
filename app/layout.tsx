@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Big_Shoulders } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const bigShoulders = Big_Shoulders({
@@ -22,6 +23,7 @@ const termina = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Vanduo Marse - kabelinis vandenlenčių parkas",
   description:
     "Vanduo Marse: kabelinis vandenlenčių parkas prie ežero. Plaukimas, Marso akademija, Pirtis Marse, Miegas Marse ir Skoniai Marse.",

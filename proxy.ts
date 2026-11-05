@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { frameAncestors } from "@/lib/embed";
+import { GATE_COOKIE, GATE_PATH, gateExempt, hasGatePass, siteGateOn } from "@/lib/site-gate";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 const LOGIN_PATH = "/admin/prisijungti";
@@ -15,13 +16,31 @@ function embedResponse() {
   return response;
 }
 
+/** Paths that need the Supabase session refresh below; every other matched path only passes the gate. */
+const SESSION_PREFIXES = ["/admin", "/rezervacija", "/paskyra"];
+
+/**
+ * Site gate (SITE_GATE=1): every public path shows the coming-soon page with a 503, URL unchanged.
+ * Non-GET requests (the code form's server action) are rewritten without the 503 so the action answers normally.
+ */
+function gateResponse(request: NextRequest) {
+  const target = new URL(GATE_PATH, request.url);
+  if (request.method !== "GET" && request.method !== "HEAD") return NextResponse.rewrite(target);
+  return NextResponse.rewrite(target, { status: 503, headers: { "Retry-After": "86400", "Cache-Control": "no-store" } });
+}
+
 /**
  * Refreshes the Supabase session cookie on /admin and /rezervacija requests (customers sign in
  * there with a one-time code) and sends signed-out visitors on /admin to the login page. The staff check itself happens in the admin
  * layout (and in RLS) — this only gates on "signed in at all".
  */
 export async function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/embed")) return embedResponse();
+  const { pathname } = request.nextUrl;
+  if (siteGateOn() && !gateExempt(pathname) && !(await hasGatePass(request.cookies.get(GATE_COOKIE)?.value))) {
+    return gateResponse(request);
+  }
+  if (pathname.startsWith("/embed")) return embedResponse();
+  if (!SESSION_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
   let response = NextResponse.next({ request });
   const { url, anonKey } = supabaseEnv();
@@ -54,5 +73,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/embed/:path*", "/rezervacija/:path*", "/paskyra/:path*"],
+  // Every page (for the site gate) except API routes, Next internals and files with an extension
+  // (static assets, robots.txt, sitemap.xml).
+  matcher: ["/((?!api/|_next/|.*\\..*).*)"],
 };

@@ -10,6 +10,8 @@ them pure and typed; anything with client state belongs in a hook instead.
 
 | Util | File | Signature | Purpose |
 |------|------|-----------|---------|
+| `siteGateOn` / `gateExempt` / `hasGatePass` / `gatePassToken` | `lib/site-gate.ts` | `() => boolean` / `(path) => boolean` / `(cookie?) => Promise<boolean>` / `(code) => Promise<string>` | Coming-soon gate (ADR-0037): `SITE_GATE=1`, exempt `/admin` + `/netrukus`, `vm_gate_pass` cookie = SHA-256 of `SITE_GATE_CODE` (Web Crypto, works in the proxy). Schema: `gateCodeSchema` in `lib/site-gate-schema.ts` |
+| `SITE_URL` | `lib/site.ts` | `string` | Public origin for metadata, robots and sitemap: env `SITE_URL` or `https://www.vanduomarse.lt` |
 | `verifiedPhone` / `UNVERIFIED` | `lib/phone-verification.ts` (server-only) | `(token, typedPhone) => string \| null` | The E.164 phone when the signed token is valid, unexpired and for the same number; every public booking action returns `UNVERIFIED` otherwise. Same file: `newCode`, `hashCode`, `hashIp`, `signToken`, `readToken` (ADR-0018) |
 | `phoneNumberSchema` / `phoneCodeSchema` / `verificationToken` | `lib/phone-schema.ts` | Zod | Phone gate forms; `verificationToken` is part of `contactFields` and `couponOrderSchema` |
 | `smsDestinationAllowed` | `lib/sms/twilio.ts` | `(e164) => boolean` | `SMS_ALLOWED_PREFIXES` country guard (default LT, LV, EE, PL), shared by booking SMS and the phone gate |

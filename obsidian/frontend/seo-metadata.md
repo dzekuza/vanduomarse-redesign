@@ -1,6 +1,6 @@
 ---
 tags: [frontend, wip]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # SEO & Metadata
@@ -19,16 +19,21 @@ updated: 2026-11-04
 | Route | Title | Description | OG image |
 |-------|-------|-------------|----------|
 | `/` | Vanduo Marse - kabelinis vandenlenčių parkas | site default (root layout) | — |
-| `/apie-marsa` | Apie Marsą \| Vanduo Marse | yes | — |
+| `/netrukus` | Netrukus - Vanduo Marse | yes | noindex, nofollow; served with 503 + `Retry-After` while gated |
 | `/renginiai` | Renginiai Marse | yes | — |
 | `/skaiciuokle` | Renginio kainos skaičiuoklė - Vanduo Marse | yes | — |
 | `/admin/*` | "%s · Vanduo Marse valdymas" | — | noindex, nofollow |
 
 ## Gaps
 
-- No `app/sitemap.ts` or `app/robots.ts` yet (robots should disallow `/admin`).
 - No Open Graph images; no JSON-LD (LocalBusiness / Event would fit).
-- No `siteUrl` config value yet; add it before canonical URLs.
+- No canonical URLs yet; `vanduomarse-redesign.vercel.app` still serves a duplicate copy (kept for the WordPress plugin updater, ADR-0014).
+
+## Site URL, robots, sitemap (2026-11-05)
+
+- `SITE_URL` in `lib/site.ts`: env `SITE_URL`, default `https://www.vanduomarse.lt` (the apex 308-redirects to www). Root layout `metadataBase` uses it.
+- `app/robots.ts`: allow `/`, disallow `/admin`, `/paskyra`, `/embed`, `/api`, `/rezervacija/mokejimas`; points at the sitemap.
+- `app/sitemap.ts`: the public pages (`/`, `/rezervacija`, `/renginiai`, `/keturraciai`, `/kuponai`, `/skaiciuokle`). Add new public routes here. `/apie-marsa` was removed 2026-11-05.
 
 ## Related
 
