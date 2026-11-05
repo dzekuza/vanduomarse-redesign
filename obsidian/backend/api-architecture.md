@@ -74,3 +74,7 @@ the service role (anon has no insert grants) and recomputes the price.
 ## Related
 
 [[data-flow]] · [[database]] · [[environment-variables]]
+
+## Notifications
+
+Booking and payment notifications go only through `lib/notify.ts` (ADR-0028); coupon emails are the exception (`sendCouponEmail`, same Resend sender). Customer SMS goes to a verified phone; customer email to only a signed-in account's confirmed email (read from `auth.users` via `account_notify_email` / `payment_notify_email` for outcomes and payments) (ADR-0027); the anonymous phone-code forms prove the phone, not the typed email, so they get SMS only; calculator inquiries notify staff only. Staff SMS goes to `STAFF_NOTIFY_PHONE`; staff email to the service inbox from `STAFF_INBOX` in `lib/contacts.ts` (sauna and quads → renginiai@vanduomarse.lt, stays → miegas@vanduomarse.lt), with `STAFF_NOTIFY_EMAIL` only as the fallback for other services; new-request and paid emails are also copied to `marketingas@vanduomarse.lt` (`STAFF_BOOKING_COPY`). Sends run in `after()` (or after the DB write in the webhook) and never fail the request.

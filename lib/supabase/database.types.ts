@@ -1300,6 +1300,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      account_notify_email: { Args: { p_user: string }; Returns: string }
       cancel_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: undefined
@@ -1562,6 +1563,7 @@ export type Database = {
         Args: { p_days?: number; p_from: string }
         Returns: number
       }
+      payment_notify_email: { Args: { p_payment_id: string }; Returns: string }
       payment_state: {
         Args: { p_payment_id: string }
         Returns: {

@@ -72,12 +72,14 @@ export async function sendSms(to: string | null | undefined, body: string): Prom
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({ To: number, From: from, Body: body }),
+      // The Stripe webhook awaits this: a stalled connection must not hold the response until Stripe retries.
+      signal: AbortSignal.timeout(8000),
     });
     // Log the status only: the response and the number are customer data.
     if (!res.ok) console.error(`Twilio SMS failed: HTTP ${res.status}`);
     return res.ok;
   } catch {
-    console.error("Twilio SMS failed: network error");
+    console.error("Twilio SMS failed: network error or timeout");
     return false;
   }
 }

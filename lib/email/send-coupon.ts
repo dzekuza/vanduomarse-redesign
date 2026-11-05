@@ -1,6 +1,7 @@
 import "server-only";
 import { COUPON_SERVICE_LABEL, formatCode, formatExpiry, type CouponService } from "@/lib/coupons";
 import { CONTACTS } from "@/lib/contacts";
+import { escapeHtml, sendEmail } from "./resend";
 
 /**
  * Coupon delivery over the Resend HTTP API (no SDK). Needs RESEND_API_KEY and
@@ -20,8 +21,6 @@ export interface CouponEmail {
   /** yyyy-mm-dd */
   expiresAt: string;
 }
-
-const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY && process.env.COUPON_FROM_EMAIL);
 
@@ -58,14 +57,6 @@ export async function sendCouponEmail(c: CouponEmail): Promise<boolean> {
     `<p>Klausimai? ${escapeHtml(contact.email)}, ${escapeHtml(contact.phone)}<br>Vanduo Marse</p>`,
   ].join("\n");
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [c.to], subject: `Jūsų Vanduo Marse kuponas ${code}`, text: lines.join("\n"), html }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
+  // Staff pressed "Pažymėti apmokėtu" on purpose, so this sends from `next dev` too.
+  return sendEmail({ from, to: c.to, subject: `Jūsų Vanduo Marse kuponas ${code}`, text: lines.join("\n"), html }, { skipInDev: false });
 }

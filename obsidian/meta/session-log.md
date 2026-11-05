@@ -1,3 +1,52 @@
+## 2026-11-05 — Marketing copy of booking emails
+- **Changed:** `STAFF_BOOKING_COPY` (marketingas@vanduomarse.lt) in `lib/contacts.ts`, added once to every new-request and paid staff email in `lib/email/notify.ts` (not double-charge). Needed because `STAFF_NOTIFY_EMAIL` is only the fallback for services without an inbox.
+- **Status:** `tsc`/eslint clean; not sent for real.
+- **Next:** redeploy production; one test booking.
+
+## 2026-11-05 — Stripe configured
+- **Checked:** Vercel now has `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`; status note rewritten so no paragraph still asks to register the webhook (it is registered).
+- **Next:** redeploy production; checkout test (live charge + refund, or sandbox).
+
+## 2026-11-05 — Stripe recheck
+- **Checked:** `.env.local` key (clean `sk_live_`, API 200), webhook secret format, Vercel env names.
+- **Status:** local config OK; Vercel has `STRIPE_SECRET_KEY` only (no `STRIPE_WEBHOOK_SECRET`, `SITE_URL`). No checkout run.
+- **Next:** add the two Vercel vars (webhook secret from the vercel.app endpoint in Stripe) and redeploy; decide sandbox vs live test.
+
+## 2026-11-05 — Stripe configuration check
+- **Checked:** `.env.local` Stripe vars (names/prefixes only), a read-only Stripe API call, webhook endpoints, Vercel env names.
+- **Status:** key value malformed (`secret - ` prefix) and live mode; Vercel lacks all Stripe vars; webhook endpoint registered with the right five events. No checkout run.
+- **Next:** fix the key line (sandbox key recommended for testing), add Stripe vars + `SITE_URL` in Vercel and redeploy, then run a checkout.
+
+## 2026-11-05 — PR #12 second review
+- **Changed:** `accountEmailFor` logs lookup failures; `notify` comments in requests/quads say email goes only to an account-confirmed address; vault: migration consistently named as required (ADR, changelog, status), webhook RPC named correctly, database row narrowed, frontmatter dates bumped.
+- **Status:** `tsc`/eslint clean; pushed to PR #12.
+- **Next:** signed-in test bookings with `EMAIL_IN_DEV=1`; env vars in Vercel.
+
+## 2026-11-05 — Confirmed-email lookup for notifications
+- **Changed:** migration `20261105120000_notify_account_email` (`account_notify_email`, `payment_notify_email`, service role only); webhook and admin outcome email only that address; types hand-added; `lib/supabase/admin.ts` doc.
+- **Status:** `tsc`/eslint clean; migration applied to `mwngljhcvqkvncwbmgeo` via MCP (ref checked against `.env.local`, ledger aligned, grants and null-for-unconfirmed verified); pushed to PR #12. Regenerated types not adopted (unrelated drift: `graphql_public`, `create_inquiry.p_date`).
+- **Next:** test bookings through `/rezervacija` signed in, with `EMAIL_IN_DEV=1`; look at the `create_inquiry.p_date` type drift.
+
+## 2026-11-05 — PR #12 review fixes
+- **Changed:** `Requester.notifyEmail` (account email only) for customer emails; admin outcome emails need a `user_id`; webhook used `payment_state` (later replaced by `payment_notify_email`, next entry up); 8 s fetch timeouts (Resend, Twilio); dev email skip returns false; `formatEuro` in emails; no relative `/admin` link; vault notes corrected (audiences, signatures, routing).
+- **Status:** `tsc` and eslint clean; pushed to PR #12.
+- **Next:** one sauna and one stay booking through `/rezervacija` (signed in) with `EMAIL_IN_DEV=1`; env vars in Vercel.
+
+## 2026-11-05 — Security review: inquiry email
+- **Changed:** `createInquiry` passes no customer email or phone to `notify` (the phone part was a pre-existing SMS-abuse path) (unverified form; would let anyone mail arbitrary addresses from our domain).
+- **Status:** committed on `feat/email-notifications` with the email work, new PR into `main` (PR #10 was already merged); `tsc` clean.
+- **Next:** test one sauna and one stay booking with `EMAIL_IN_DEV=1`; add the email env vars in Vercel.
+
+## 2026-11-05 — Staff email per service
+- **Changed:** `STAFF_INBOX` + `serviceOfReference` in `lib/contacts.ts`; `notifyRequestFiled` takes a service; staff paid/duplicate emails routed by reference prefix.
+- **Status:** `tsc` and eslint clean; Resend keys added to `.env.local`, one direct test email accepted by Resend (HTTP 200). Booking emails through the app not tried yet.
+- **Next:** set `RESEND_API_KEY` + `NOTIFY_FROM_EMAIL`, test one sauna and one stay booking with `EMAIL_IN_DEV=1`.
+
+## 2026-11-05 — Email notifications (Resend)
+- **Changed:** `lib/email/resend.ts` (shared sender, dev skip), `lib/email/notify.ts` (customer + staff email texts), `lib/notify.ts` (SMS + email per event); request, quad and admin status actions and the Stripe webhook call it (webhook reads `payments.customer_email` by `payment_id`); coupon email reuses the sender; `.env.example`, env note, utils catalog, api-architecture and ADR-0028 updated.
+- **Status:** `tsc` clean, eslint clean on changed files. Not sent for real: no booking filed in the browser (it would write to the live project), dev logs emails instead of sending.
+- **Next:** add `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`, `SITE_URL` (local + Vercel), verify the sender domain in Resend, then one test booking with `EMAIL_IN_DEV=1`.
+
 ## 2026-11-04 — PR #10 and payment hardening
 - **Changed:** branch `feat/accounts-and-payments`, two commits and PR #10. After a security review: `checkoutUrl` only replaces a session Stripe reports expired (lookup errors fail instead of opening a second session), conditional `attach_payment_session` (loser's session is expired), webhook passes `p_payment_id` from metadata, `duplicate` payments are texted to staff; migration `20261104180000_payment_session_guards`.
 - **Status:** migration tested in a rolled-back transaction (stale attach refused, old session paid is found by id, repeat event not a duplicate, double charge flagged); `tsc`/eslint clean. Applied afterwards through the Supabase MCP on your instruction: ledger repaired, signatures and privileges verified live, regenerated types identical.
@@ -46,7 +95,7 @@
 
 ---
 tags: [meta, session-log]
-updated: 2026-11-03
+updated: 2026-11-05
 ---
 
 # Session log

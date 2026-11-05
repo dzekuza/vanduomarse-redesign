@@ -10,7 +10,9 @@ import type { Booking, BookingStatus, ManagedEvent, PriceItem, QuadRental } from
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
-import { describeRequest, notifyOutcome, saunaSummary } from "@/lib/sms/notify";
+import { notifyRequestOutcome } from "@/lib/notify";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
@@ -58,11 +60,41 @@ export async function changeOwnPassword(password: string): Promise<ActionResult>
 
 const bookingStatus = z.enum(["laukia", "patvirtinta", "ivykdyta", "atsaukta"]);
 
+/**
+ * The row's email only when it is the account's own confirmed address. A row's email is what the form
+ * sent, and `user_id` alone does not prove it (a signed-in request can pass on a verified phone with any
+ * email), so the address is checked against auth.users through a service-role function. Null otherwise,
+ * or when the lookup fails: then only the SMS goes out.
+ */
+async function accountEmailFor(userId: string | null, rowEmail: string | null): Promise<string | null> {
+  if (!userId || !rowEmail) return null;
+  try {
+    const { data, error } = await createAdminClient().rpc("account_notify_email", { p_user: userId });
+    if (error) {
+      // A missing migration or service key would otherwise silently stop every outcome email.
+      console.error("account_notify_email failed, customer email skipped");
+      return null;
+    }
+    if (!data) return null;
+    return data.toLowerCase() === rowEmail.trim().toLowerCase() ? data : null;
+  } catch {
+    console.error("account_notify_email failed (no service key?), customer email skipped");
+    return null;
+  }
+}
+
 /** Tells a website customer their request was confirmed or cancelled; staff-entered bookings and other status changes send nothing. */
-function notifyCustomer(source: string, phone: string | null, reference: string, status: BookingStatus, summary: string) {
+function notifyCustomer(
+  source: string,
+  contact: { customer_phone: string | null; customer_email: string | null; user_id: string | null },
+  reference: string,
+  status: BookingStatus,
+  summary: string,
+) {
   if (source !== "svetaine" || (status !== "patvirtinta" && status !== "atsaukta")) return;
   after(async () => {
-    await notifyOutcome(phone, reference, status, summary);
+    const email = await accountEmailFor(contact.user_id, contact.customer_email);
+    await notifyRequestOutcome({ phone: contact.customer_phone, email }, reference, status, summary);
   });
 }
 
@@ -75,7 +107,7 @@ export async function setBookingStatus(id: string, status: Booking["status"]): P
     .from("bookings")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, source, kind, date, start_hour, hours")
+    .select("reference, customer_phone, customer_email, user_id, source, kind, date, start_hour, hours")
     .maybeSingle();
   if (error) return dbError(error);
   if (data) {
@@ -83,7 +115,7 @@ export async function setBookingStatus(id: string, status: Booking["status"]): P
       data.start_hour !== null && data.hours !== null
         ? saunaSummary({ date: data.date, startHour: data.start_hour, hours: data.hours })
         : describeRequest([data.kind === "pirtis" ? "Pirtis" : "Nakvyne", data.date]);
-    notifyCustomer(data.source, data.customer_phone, data.reference, status, summary);
+    notifyCustomer(data.source, data, data.reference, status, summary);
   }
   return done(null);
 }
@@ -765,11 +797,11 @@ export async function setRentalStatus(id: string, status: BookingStatus): Promis
     .from("quad_rentals")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, source, date, start_hour")
+    .select("reference, customer_phone, customer_email, user_id, source, date, start_hour")
     .maybeSingle();
   if (error) return dbError(error);
   if (data) {
-    notifyCustomer(data.source, data.customer_phone, data.reference, status, describeRequest(["Keturraciai", data.date, `${String(data.start_hour).padStart(2, "0")}:00`]));
+    notifyCustomer(data.source, data, data.reference, status, describeRequest(["Keturraciai", data.date, `${String(data.start_hour).padStart(2, "0")}:00`]));
   }
   return done(null);
 }
@@ -783,9 +815,9 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
     .from("event_tickets")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, source, people")
+    .select("reference, customer_phone, customer_email, user_id, source, people")
     .maybeSingle();
   if (error) return dbError(error);
-  if (data) notifyCustomer(data.source, data.customer_phone, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));
+  if (data) notifyCustomer(data.source, data, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));
   return done(null);
 }

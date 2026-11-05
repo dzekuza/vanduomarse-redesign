@@ -16,6 +16,29 @@ export const CONTACTS: Contact[] = [
   { name: "Boardsports Shop", email: "hello@boardsports.lt", phone: "+370 695 55555", href: "https://boards.lt" },
 ];
 
+/**
+ * Staff inboxes for new-booking emails, per service. Services not listed here
+ * (event registrations, calculator inquiries) go to STAFF_NOTIFY_EMAIL when set.
+ */
+export type NotifyService = "pirtis" | "keturraciai" | "nakvyne" | "kita";
+
+export const STAFF_INBOX: Partial<Record<NotifyService, string>> = {
+  pirtis: "renginiai@vanduomarse.lt",
+  keturraciai: "renginiai@vanduomarse.lt",
+  nakvyne: "miegas@vanduomarse.lt",
+};
+
+/** Gets a copy of every staff booking email (new request and paid), whatever the service. */
+export const STAFF_BOOKING_COPY = "marketingas@vanduomarse.lt";
+
+/** The service a reference belongs to: MM- stays, PM- sauna, KT-/KZ- quads, PR- tickets (paid ones are sauna programs). */
+export function serviceOfReference(reference: string): NotifyService {
+  if (reference.startsWith("MM-")) return "nakvyne";
+  if (reference.startsWith("KT-") || reference.startsWith("KZ-")) return "keturraciai";
+  if (reference.startsWith("PM-") || reference.startsWith("PR-")) return "pirtis";
+  return "kita";
+}
+
 /** The park's main line, shown in the top bar. */
 export const MAIN_CONTACT = CONTACTS[0];
 

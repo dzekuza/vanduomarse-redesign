@@ -21,7 +21,9 @@ import {
 import type { Json } from "@/lib/supabase/database.types";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { requester } from "@/lib/request-identity";
-import { describeRequest, notifyBookingReceived, notifyReceived, notifyStaff, saunaSummary } from "@/lib/sms/notify";
+import type { NotifyService } from "@/lib/contacts";
+import { notifyRequestFiled } from "@/lib/notify";
+import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -87,18 +89,19 @@ export interface TicketReceipt {
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
 /**
- * SMS the visitor (when they have a phone: an account that signed in by email has none) and always the
- * staff alert line once the request is stored; never delays or fails the booking.
+ * Text the visitor's verified phone and email only a signed-in account's confirmed address (`notifyEmail`;
+ * null for anonymous requests, whose typed email is unproven), and always alert staff once the request is
+ * stored; never delays or fails the booking.
  */
 function notify(
-  phone: string | null,
+  service: NotifyService,
+  phone: string | null | undefined,
+  email: string | null | undefined,
   reference: string | undefined,
   summary: string,
-  toCustomer: (phone: string, reference: string | undefined, summary: string) => Promise<boolean> = notifyReceived,
+  variant: "request" | "booking" = "request",
 ) {
-  after(async () => {
-    await Promise.all([phone ? toCustomer(phone, reference, summary) : Promise.resolve(false), notifyStaff(reference, summary)]);
-  });
+  after(() => notifyRequestFiled(service, { phone, email }, reference, summary, variant));
 }
 
 export async function createSaunaBooking(input: SaunaBookingInput): Promise<ActionResult<BookingReceipt>> {
@@ -114,7 +117,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
   }
   const who = await requester(v);
   if (!who) return UNVERIFIED;
-  const { supabase, phone, email } = who;
+  const { supabase, phone, email, notifyEmail } = who;
 
   const { data, error } = await supabase.rpc("create_sauna_booking", {
     p_sauna_id: v.saunaId,
@@ -131,10 +134,12 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
   if (error) return dbFail(error, TAKEN);
   if (!v.awaitingPayment) {
     notify(
+      "pirtis",
       phone,
+      notifyEmail,
       data[0].reference,
       saunaSummary({ date: v.date, startHour: v.startHour, hours: v.hours, party: v.party, total: data[0].total }),
-      notifyBookingReceived,
+      "booking",
     );
   }
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
@@ -147,7 +152,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   if (v.website) return { data: { reference: "MM-0000", total: 0, discount: 0 } };
   const who = await requester(v);
   if (!who) return UNVERIFIED;
-  const { supabase, phone, email } = who;
+  const { supabase, phone, email, notifyEmail } = who;
 
   const units = v.units ?? 1;
   const args = {
@@ -164,7 +169,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     : await supabase.rpc("create_stay_booking_with_units", { ...args, p_units: units, p_guests: v.guests });
   if (error) return dbFail(error, BY_HINT.stay_full);
   const quantity = units > 1 ? `${v.stayTypeId === "kemperis" ? "Kemperiu vietos" : "Nameliai"}: ${units}` : undefined;
-  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
+  if (!v.awaitingPayment) notify("nakvyne", phone, notifyEmail, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -185,7 +190,7 @@ export async function createEventTicket(input: EventTicketInput): Promise<Action
     p_phone: phone,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
-  notify(phone, data[0].reference, describeRequest(["Bilietai", `${v.people} asm.`]));
+  notify("kita", phone, null, data[0].reference, describeRequest(["Bilietai", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -196,7 +201,7 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
   if (v.website) return { data: { reference: "PR-0000", total: 0 } };
   const who = await requester(v);
   if (!who) return UNVERIFIED;
-  const { supabase, phone, email } = who;
+  const { supabase, phone, email, notifyEmail } = who;
 
   const { data, error } = await supabase.rpc("create_program_ticket", {
     p_event_id: v.eventId,
@@ -207,7 +212,7 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
     p_phone: phone ?? undefined,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
-  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
+  if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -220,7 +225,7 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
   if (v.date < today || (v.date === today && v.startHour <= vilniusHour())) return fail("Šis laikas jau praėjo. Pasirinkite kitą.", "taken");
   const who = await requester(v);
   if (!who) return UNVERIFIED;
-  const { supabase, phone, email } = who;
+  const { supabase, phone, email, notifyEmail } = who;
 
   const { data, error } = await supabase.rpc("create_program_booking", {
     p_program_id: v.programId,
@@ -232,7 +237,7 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
     p_phone: phone ?? undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -254,7 +259,7 @@ export async function registerForEvent(input: EventRegistrationInput): Promise<A
     p_message: v.message || undefined,
   });
   if (error) return dbFail(error);
-  notify(phone, undefined, describeRequest(["Registracija", `${v.people} asm.`]));
+  notify("kita", phone, null, undefined, describeRequest(["Registracija", `${v.people} asm.`]));
   return { data: null };
 }
 
@@ -279,6 +284,8 @@ export async function createInquiry(input: InquiryInput): Promise<ActionResult<n
     p_phone: v.customerPhone || undefined,
   });
   if (error) return dbFail(error);
-  notify(v.customerPhone, undefined, describeRequest(["Skaiciuokle", `${v.guests} sv.`]));
+  // No phone check or sign-in on this form, so the typed phone and email are unproven: never text or email them
+  // (anyone could make us SMS or mail any number or address). Staff still get the alert and reply themselves.
+  notify("kita", null, null, undefined, describeRequest(["Skaiciuokle", `${v.guests} sv.`]));
   return { data: null };
 }
