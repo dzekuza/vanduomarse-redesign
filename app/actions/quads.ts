@@ -30,6 +30,8 @@ const BY_HINT: Record<string, string> = {
   quad_units: "Netinkamas keturračių tipų arba vienetų skaičius.",
   quad_riders: "Per daug važiuotojų pasirinktam keturračių skaičiui.",
   quad_full: "Šiuo laiku tiek keturračių nebėra. Pasirinkite kitą laiką.",
+  discount_invalid: "Nuolaidos kodas negalioja šiai paslaugai arba datai.",
+  discount_used_up: "Šis nuolaidos kodas jau išnaudotas.",
   tour_unavailable: "Šis žygis nebeprieinamas. Atnaujinkite puslapį.",
   tour_people: "Netinkamas žmonių skaičius.",
   event_full: "Žygyje nebeliko tiek vietų.",
@@ -66,6 +68,7 @@ function rentalArgs(v: Omit<QuadRentalInput, "quadTypeId" | "units">, phone: str
     p_email: email,
     p_phone: phone ?? undefined,
     p_note: v.note || undefined,
+    p_discount_code: v.discountCode || undefined,
   };
 }
 

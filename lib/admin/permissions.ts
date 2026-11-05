@@ -11,6 +11,7 @@ export const PERMISSIONS = [
   { id: "uzklausos", label: "Užklausos", href: "/admin/uzklausos", hint: "Renginių užklausos, būsenos ir pastabos." },
   { id: "keturraciai", label: "Keturračiai", href: "/admin/keturraciai", hint: "Nuomos užklausos, registracijos į žygius, parkas ir taisyklės." },
   { id: "kuponai", label: "Kuponai", href: "/admin/kuponai", hint: "Kuponų užsakymai, apmokėjimo patvirtinimas, panaudojimas ir katalogas." },
+  { id: "nuolaidos", label: "Nuolaidos", href: "/admin/nuolaidos", hint: "Nuolaidų kodai rezervacijoms: kūrimas, galiojimas, išjungimas ir panaudojimai." },
   { id: "renginiai", label: "Renginiai", href: "/admin/renginiai", hint: "Renginių ir žygių kūrimas, paskelbimas ir bilietai." },
   { id: "pirtis", label: "Pirtis", href: "/admin/pirtis", hint: "Pirties kainos, taisyklės ir papildomos paslaugos." },
   { id: "kainos", label: "Kainodara", href: "/admin/kainos", hint: "Visas kainų sąrašas." },

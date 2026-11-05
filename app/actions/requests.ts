@@ -50,6 +50,8 @@ const BY_HINT: Record<string, string> = {
   sauna_session: "Šiuo laiku vyksta pirties seansas. Pasirinkite kitą laiką.",
   extra_unavailable: "Pasirinkto priedo šiuo metu nėra. Atnaujinkite puslapį.",
   coupon_invalid: "Kuponas negalioja šiai paslaugai.",
+  discount_invalid: "Nuolaidos kodas negalioja šiai paslaugai arba datai.",
+  discount_used_up: "Šis nuolaidos kodas jau išnaudotas.",
   stay_unavailable: "Šio nakvynės tipo šiuo metu nėra. Atnaujinkite puslapį.",
   stay_guests: "Per daug svečių pasirinktam nakvynės tipui.",
   stay_units: "Netinkamas namelių arba kemperių vietų skaičius.",
@@ -131,6 +133,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_email: email,
     p_phone: phone ?? undefined,
     p_coupon: v.coupon || undefined,
+    p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error, TAKEN);
   if (!v.awaitingPayment) {
@@ -164,6 +167,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     p_email: email,
     p_phone: phone ?? undefined,
     p_coupon: v.coupon || undefined,
+    p_discount_code: v.discountCode || undefined,
   };
   const { data, error } = units === 1 && v.guests !== undefined
     ? await supabase.rpc("create_stay_booking", { ...args, p_guests: v.guests })
@@ -211,6 +215,7 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
     p_name: v.customerName,
     p_email: email,
     p_phone: phone ?? undefined,
+    p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
   if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
@@ -236,6 +241,7 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
     p_name: v.customerName,
     p_email: email,
     p_phone: phone ?? undefined,
+    p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error, TAKEN);
   if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));

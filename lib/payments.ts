@@ -39,7 +39,7 @@ export function isReservationRequest(value: unknown): value is ReservationReques
  */
 export const checkoutInputSchema = z
   .object({
-    contact: z.object({ customerName: customerNameSchema }),
+    contact: z.object({ customerName: customerNameSchema, discountCode: z.string().trim().max(40).optional() }),
     requests: z.array(z.custom<ReservationRequest>(isReservationRequest)).min(1).max(3),
   })
   .refine(({ requests }) => new Set(requests.map((r) => REQUEST_ACTIVITY[r.type])).size === requests.length, {

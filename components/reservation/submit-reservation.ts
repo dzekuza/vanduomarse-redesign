@@ -1,5 +1,6 @@
 import { fileRequest } from "@/lib/file-request";
 import { cabinStayType } from "@/lib/cabin";
+import { discountCovers, type CheckedDiscount } from "@/lib/discount-codes";
 import type { ReservationRequest } from "@/lib/payments";
 import type { ContactInput } from "@/lib/request-schema";
 import { ACTIVITY_ORDER, type ActivityId, type Plans, type When } from "@/lib/reservation";
@@ -14,7 +15,7 @@ export type Sent = Partial<Record<ActivityId, Receipt>>;
 export interface Outcome {
   sent: Sent;
   /** The first request the server refused; later ones were not tried. */
-  error?: { activity: ActivityId; message: string };
+  error?: { activity: ActivityId; message: string; code?: string };
 }
 
 /** The request an activity of the plan turns into (without the contact details), or null when it has no bookable time yet. */
@@ -61,15 +62,16 @@ export function requestsFor(plans: Plans, when: When): ReservationRequest[] {
  * Files each picked activity as its own request, one after another, with the
  * same contact and verified phone. Already-sent ones are skipped, so a retry
  * after a failure never books anything twice. Used when online payment is off.
+ * The discount code goes only with the activities it covers (the database refuses it for the rest).
  */
-export async function submitReservation(plans: Plans, when: When, contact: ContactInput, already: Sent): Promise<Outcome> {
+export async function submitReservation(plans: Plans, when: When, contact: ContactInput, already: Sent, discount: CheckedDiscount | null = null): Promise<Outcome> {
   const sent: Sent = { ...already };
   for (const id of ACTIVITY_ORDER) {
     if (sent[id]) continue;
     const request = requestFor(id, plans, when);
     if (!request) continue;
-    const result = await fileRequest(request, contact);
-    if ("error" in result) return { sent, error: { activity: id, message: result.error.message } };
+    const result = await fileRequest(request, { ...contact, discountCode: discountCovers(discount, id) ? discount?.code : undefined });
+    if ("error" in result) return { sent, error: { activity: id, message: result.error.message, code: result.error.code } };
     sent[id] = { reference: result.data.reference, total: result.data.total };
   }
   return { sent };

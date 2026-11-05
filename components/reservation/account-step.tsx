@@ -11,6 +11,8 @@ import { LoginForm } from "./login-form";
 
 export interface AccountValues {
   customerName: string;
+  /** Typed into DiscountCodeField; only an applied (checked) code is sent. */
+  discountCode: string;
 }
 
 /**

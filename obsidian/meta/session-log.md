@@ -1,3 +1,18 @@
+## 2026-11-05 — PR #13 review fixes
+- **Changed:** per-activity discount code in both checkout paths, submit blocked while a code check runs, 0 € plans filed unpaid, delete refused for used codes, non-optimistic admin toggle/delete, integer-cent preview, schema limits shared with the form, FK relationships in the types, a11y fixes; docs wording.
+- **Status:** `tsc` and eslint clean; replies posted on the review threads.
+- **Next:** staff sign-in to check `/admin/nuolaidos` and an applied code.
+
+## 2026-11-05 — Discount code migrations applied
+- **Changed:** applied `20261104190000`, `20261104191000` and `20261105150000_discount_codes` to `mwngljhcvqkvncwbmgeo` (owner approved); grants and advisors checked; security review findings recorded in ADR-0036.
+- **Status:** live code check works at the checkout; admin screen not yet checked (needs staff sign-in).
+- **Next:** test code in `/admin/nuolaidos`, applied-code summary, 375 / 768 / 1024 px, delete the test code.
+
+## 2026-11-05 — Discount codes
+- **Changed:** migration `20261105150000_discount_codes` (table, `nuolaidos` permission, RLS, `check_discount_code`, `discount_code_usage`, booking RPCs with `p_discount_code`); `lib/discount-codes.ts`, `lib/discount-code-schema.ts`, `app/actions/discount-codes.ts`, `app/admin/discount-actions.ts`; checkout `DiscountCodeField` + discount in `PlanSummary`; `/admin/nuolaidos` (`components/admin/discounts/`); types merged by hand. ADR-0036.
+- **Status:** PR #13 open (commit 4bc0776). Migration tested in a rolled-back transaction on `mwngljhcvqkvncwbmgeo`, not applied; approval asked. Checkout field checked at 375 px (error path); `/admin/nuolaidos` needs a staff sign-in in the browser pane.
+- **Next:** apply `20261104190000`, `20261104191000`, then `20261105150000`; check the applied code, the summary and `/admin/nuolaidos` at 375 / 768 / 1024 px; one checkout with a code.
+
 ## 2026-11-05 — Twilio sender name check
 - **Checked:** Twilio account, Messaging Services and senders, last messages (read-only API); `.env.local` and Vercel Twilio vars; production deploy after the change.
 - **Status:** setup correct; last real attempt failed 21212 (From set to the `AI…` sender SID). No SMS sent by me.

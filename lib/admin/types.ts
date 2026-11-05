@@ -1,3 +1,4 @@
+import type { DiscountCode } from "@/lib/discount-codes";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
@@ -218,6 +219,8 @@ export interface AdminData {
   programs: SaunaProgram[];
   coupons: Coupon[];
   couponProducts: CouponProduct[];
+  /** Empty without the `nuolaidos` permission (or before its migration). */
+  discountCodes: DiscountCode[];
   quadTypes: QuadType[];
   quadSettings: QuadSettings;
   quadRentals: QuadRental[];

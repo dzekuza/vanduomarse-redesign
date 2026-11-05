@@ -1,7 +1,7 @@
 import "server-only";
-import { isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
+import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -44,9 +44,28 @@ async function readQuadRentals(supabase: ServerSupabase) {
     : result;
 }
 
+/**
+ * Discount codes and their usage, only for staff with the `nuolaidos` page. Optional like payments:
+ * before the discount migration is applied the table is missing and the screen just shows no codes.
+ */
+async function readDiscountCodes(supabase: ServerSupabase, me: StaffAccess) {
+  if (!hasPermission(me, "nuolaidos")) return [];
+  const [codes, usage] = await Promise.all([
+    supabase.from("discount_codes").select("*").order("created_at", { ascending: false }),
+    supabase.rpc("discount_code_usage"),
+  ]);
+  if (codes.error) {
+    console.error("Admin data: discount codes", codes.error.message);
+    return [];
+  }
+  if (usage.error) console.error("Admin data: discount code usage", usage.error.message);
+  const byId = new Map((usage.data ?? []).map((u) => [u.code_id, u]));
+  return codes.data.map((r) => toDiscountCode(r, usage.error ? null : byId.get(r.id)));
+}
+
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -73,6 +92,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("staff_roles").select("*").order("is_owner", { ascending: false }).order("name"),
     supabase.from("staff").select("*").order("created_at"),
     supabase.from("payments").select("*"),
+    readDiscountCodes(supabase, me),
   ]);
 
   for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
@@ -97,6 +117,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     programs: programs.data!.map(toSaunaProgram),
     coupons: coupons.data!.map(toCoupon),
     couponProducts: couponProducts.data!.map(toCouponProduct),
+    discountCodes,
     quadTypes: quadTypes.data!.map(toQuadType),
     quadSettings: toQuadSettings(quadSettings.data!),
     quadRentals: quadRentals.data!.map((r) => ({ ...toQuadRental(r), payment: paymentOf(r.payment_id) })),

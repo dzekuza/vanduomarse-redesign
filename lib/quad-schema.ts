@@ -20,6 +20,8 @@ export const contactFields = z.object({
    * phone or email, read from the session) instead of a typed phone with an SMS token.
    */
   viaAccount: z.boolean().optional(),
+  /** Reservation discount code; every booking RPC validates it and prices it again (ADR-0036). */
+  discountCode: z.string().trim().max(40).optional(),
 });
 
 export const needsContact = (v: { customerPhone: string; customerEmail: string }) => v.customerPhone !== "" || v.customerEmail !== "";
