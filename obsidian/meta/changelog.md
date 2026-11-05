@@ -1,3 +1,16 @@
+- 2026-11-05 Replaced inline quad-route disclosures with separate warm-white Mini/Midi/Maxi information dialogs. Each shows its route photo, fuller supplier-paraphrased description, duration, distance, price and practical tour details without changing the plan.
+- 2026-11-05 Restyled ReservationAccountDialog with the activity dialog's warm-white surface, fixed heading, labelled contact/plan sections and separated footer. Phone/email verification, focus return, dismissal guards and final submission paths are unchanged.
+- 2026-11-05 Split the shared quad tour preview into separate Mini/Midi/Maxi cards after the date, matching the stay-card layout with three columns from lg. Each card owns its information/photo disclosure, time and editable quantity. Unselected drafts are independent; one picked tour stays synchronized with the plan. Pricing, preview guards and backend paths are unchanged.
+- 2026-11-05 Moved final phone/email registration into the dust/ink ReservationAccountDialog opened by either plan action. The activity selection stays visible behind it; summary, existing OTP account form and final submit share the popup. Dismissal creates no reservation, and the existing cash/online routes and local-only quad preview guards are unchanged.
+- 2026-11-05 Centered both reservation-plan action labels consistently while keeping the primary action arrow at the right.
+- 2026-11-05 Added shared Rezervuoti and outlined Atsiskaitysiu vietoj grynais actions to desktop/mobile plans. Both open verified phone/email registration directly; cash uses the existing unpaid request path without Stripe. The choice stays in UI state (no universal persisted cash-method field), and supplier quad previews still finish locally.
+- 2026-11-05 Removed the intermediate plan confirmation from /rezervacija at the owner’s request. Toliau now opens the final phone/email registration step directly, headed Užbaik rezervaciją. Real submit/payment and local-only quad preview completion remain unchanged.
+- 2026-11-05 Removed the additional-activities popup from /rezervacija. Selection now opens one plan confirmation before the final phone/email account step, without a repeated review screen. Plan edits require confirmation again. Real picks retain existing submission/payment; supplier quad previews finish locally without requests or payment.
+- 2026-11-05 Unified the quad preview into one date-first card in /rezervacija and /keturraciai: Mini/Midi/Maxi, route details, time and one vehicle quantity. One or two riders share the same package rate. Preview plans show combined totals but cannot enter real booking or payment actions.
+- 2026-11-05 Added an isolated interactive /keturraciai design preview with Mini/Midi/Maxi routes, source package prices, route-first choices, Marse location, gear and FAQ. Downloaded all 15 unique quad photos from the supplied Ciongo page with a replacement manifest. No route booking or schema changes, per the owner’s preview-only clarification.
+- 2026-11-05 Quad reservations choose start and duration before adding vehicle quantities. Time choices are visible immediately and quantity limits reflect availability for the chosen slot.
+- 2026-11-05 Moved date and time into each activity entry in the plan, review and confirmation. Stays show arrival and departure, and the plan no longer has a shared facts section.
+- 2026-11-05 Added “Keisti laiką” to private sauna entries in the desktop plan and mobile sheet. Available times reuse the booking card rules and stay synchronized with it.
 - 2026-11-05 Merged PR #12 (booking email notifications) into `main`.
 - 2026-11-05 Every staff booking email (new request, paid) is also sent to marketingas@vanduomarse.lt (`STAFF_BOOKING_COPY`); double-charge alerts are not.
 - 2026-11-05 Confirm/cancel and payment emails take the address from the account's confirmed email (`auth.users`), not the request row; migration `20261105120000_notify_account_email`, applied to the live project.
@@ -5,7 +18,31 @@
 - 2026-11-05 Calculator inquiries no longer email or text the customer's typed address and phone (no verification on that form); staff are still alerted and reply themselves.
 - 2026-11-05 Staff booking emails are routed per service: sauna and quads → renginiai@vanduomarse.lt, stays → miegas@vanduomarse.lt; other requests → `STAFF_NOTIFY_EMAIL`. Payment emails follow the reference prefix (ADR-0028).
 - 2026-11-05 Booking email notifications through Resend: customers with an account-confirmed email get "užklausa gauta", "patvirtinta/atšaukta" and "apmokėjimas gautas" next to the SMS; staff get new-request, paid and double-charge emails at the service inbox (`STAFF_NOTIFY_EMAIL` only for other requests). New `lib/notify.ts` dispatches every channel; `lib/email/resend.ts` is the one Resend sender (coupon email now uses it). New env `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`, `EMAIL_IN_DEV`. Migration `20261105120000_notify_account_email` (entry above). ADR-0028.
+- 2026-11-04 Moved removal into the selected sauna card and Toliau into the desktop and mobile plans. Removed the selection footer divider and the Bendra filter.
+- 2026-11-04 Private sauna reservations choose only a time. Ticket quantity remains available for public sessions.
+- 2026-11-04 Put published sauna sessions first in reservation and grouped each private program
+  into one card with a time picker. Session cards show their named attendant and live seat
+  count. Added database checks that reserve session time at Pirtis Marse and let the combined
+  flow sell tickets to legacy sauna sessions. Staff can set sauna event duration in minutes.
 - 2026-11-04 Staff get the new-request SMS for every web reservation, including those from email-only accounts (only the customer text needs a phone).
+- 2026-11-04 Added sauna filters that count matching unblocked time slots for the selected day.
+  Session categories use stable published program IDs. Seansai includes family and custom
+  programs, and Privati offers a Su pirtininku filter alongside the existing hourly add-on.
+- 2026-11-04 Added direct two-click stay dates to the Nakvynė strip and calendar. Pick arrival
+  first, then a later departure within 14 nights. An earlier click restarts a pending range,
+  and the next click after confirmation starts a new one. Room availability and prices appear
+  after both dates are selected. Departure can extend past the arrival cutoff and leaves the
+  other activities on the shared arrival date.
+- 2026-11-04 Grouped the calculator's food controls into Maitinimas, Gėrimai and Aptarnavimas
+  tabs and made the pirtininkas option visible before adding the sauna. The stay starts on the
+  event date, with the night count and departure above the cabin cards. Double and four-person
+  cabins can be priced together using the same nightly unit rates as the reservation.
+- 2026-11-04 Added quantity editing and activity removal to the desktop and mobile reservation
+  plans. Each selected quad type has its own control. Sauna headcount and stay units are editable,
+  and the total updates as the plan changes.
+- 2026-11-04 Enabled direct number entry in the event calculator. Moved day type next to the
+  calendar and grouped guest counts under Svečiai. WAKE, sauna, quad tours and cabins now use
+  matching option cards, with the cabin card visible as soon as Nakvynė opens.
 - 2026-11-04 Removed the shared guest field from the reservation flow. Sauna cards own their
   group size. Quad rentals use vehicle quantities and send one driver per quad.
 - 2026-11-04 The event calculator uses the reservation date strip and calendar, with optional

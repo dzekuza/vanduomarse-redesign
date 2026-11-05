@@ -12,11 +12,6 @@ export const metadata: Metadata = {
   description: "Pasirink dieną, laiką ir žmonių skaičių, tada pirtį, keturračius ir nakvynę vienoje užklausoje. Patvirtinsime telefonu ar el. paštu.",
 };
 
-const PARK_PHOTO = {
-  src: "/landing/aerial.webp",
-  alt: "Vanduo Marse parkas iš oro: ežeras, vandenlenčių trasa ir nameliai",
-};
-
 /** One request for the whole visit: day and group first, then any mix of sauna, stay and quads. */
 export default async function ReservationPage({ searchParams }: { searchParams: Promise<{ veikla?: string }> }) {
   const { veikla } = await searchParams;
@@ -37,7 +32,6 @@ export default async function ReservationPage({ searchParams }: { searchParams: 
         <ReservationFlow
           header={header}
           data={{ sauna, cabin, quads }}
-          photo={PARK_PHOTO}
           initialTab={initialTab}
           payments={paymentsEnabled()}
           initialCustomer={customer}

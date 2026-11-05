@@ -4,22 +4,21 @@ import type { Outcome } from "./submit-reservation";
 
 interface ReservationDoneProps {
   lines: PlanLine[];
-  when: string;
   outcome: Outcome;
+  payOnSite: boolean;
   busy: boolean;
   onRetry: () => void;
   onReset: () => void;
 }
 
 /** After submit: a reference per request, or what was sent and what still needs another try. */
-export function ReservationDone({ lines, when, outcome, busy, onRetry, onReset }: ReservationDoneProps) {
+export function ReservationDone({ lines, outcome, payOnSite, busy, onRetry, onReset }: ReservationDoneProps) {
   const { sent, error } = outcome;
   const pending = lines.some((l) => !sent[l.id]);
   return (
     <div className="border border-line bg-foam/15">
       <div className="border-b border-dashed border-ink px-6 py-4">
         <p className="font-display text-figure font-bold uppercase">{pending ? "Dar ne viskas išsiųsta" : "Gavom. Susisieksim."}</p>
-        <p className="mt-1 text-sm text-copy">{when}</p>
       </div>
       <ul className="divide-y divide-line px-6">
         {lines.map((l) => (
@@ -27,6 +26,7 @@ export function ReservationDone({ lines, when, outcome, busy, onRetry, onReset }
             <span className="min-w-0">
               <span className="block font-normal">{l.title}</span>
               <span className="block text-sm text-copy">{l.detail}</span>
+              <span className="block text-sm text-copy">{l.schedule}</span>
               {error?.activity === l.id ? <span role="alert" className="mt-1 block text-sm text-rust-ink">{error.message}</span> : null}
             </span>
             <span className="shrink-0 text-right">
@@ -39,7 +39,9 @@ export function ReservationDone({ lines, when, outcome, busy, onRetry, onReset }
       <p className="border-t border-dashed border-ink px-6 py-4 text-sm text-copy">
         {pending
           ? `Išsiųstos užklausos jau pas mus, pakartojus jos nesiunčiamos antrą kartą. Reikia pagalbos? Skambink ${MAIN_CONTACT.phone}.`
-          : "Užklausas gavome. Patvirtinsime telefonu arba el. paštu; kol kas vietos dar nėra garantuotos ir mokėti nereikia."}
+          : payOnSite
+            ? "Užklausas gavome. Patvirtinsime telefonu arba el. paštu. Atsiskaitysi vietoje grynais; kol kas vietos dar nėra garantuotos."
+            : "Užklausas gavome. Patvirtinsime telefonu arba el. paštu; kol kas vietos dar nėra garantuotos ir mokėti nereikia."}
       </p>
       <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink px-6 py-4">
         {pending ? (

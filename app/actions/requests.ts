@@ -47,6 +47,7 @@ const BY_HINT: Record<string, string> = {
   sauna_past: "Pasirinkta data jau praėjo arba yra per toli.",
   sauna_blocked: "Šis laikas pirtyje uždarytas. Pasirinkite kitą.",
   sauna_booked: "Šis laikas jau užimtas. Pasirinkite kitą.",
+  sauna_session: "Šiuo laiku vyksta pirties seansas. Pasirinkite kitą laiką.",
   extra_unavailable: "Pasirinkto priedo šiuo metu nėra. Atnaujinkite puslapį.",
   coupon_invalid: "Kuponas negalioja šiai paslaugai.",
   stay_unavailable: "Šio nakvynės tipo šiuo metu nėra. Atnaujinkite puslapį.",

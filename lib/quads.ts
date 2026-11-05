@@ -42,6 +42,10 @@ export type QuadTaken = Record<string, Record<string, Record<number, number>>>;
 export const QUAD_DAYS = 21;
 export const MAX_QUAD_RENTAL_UNITS = 20;
 
+export function quadRentalUnitLimit(type: QuadType, otherUnits: number): number {
+  return Math.max(0, Math.min(type.units, MAX_QUAD_RENTAL_UNITS - otherUnits));
+}
+
 /** Upcoming guided tours shown on the public page (rows of `events`). */
 export interface QuadTourData {
   key: string;

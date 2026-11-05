@@ -1,7 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
-import { CABIN_SIZES, cabinStayType, type CabinAvailability } from "@/lib/cabin";
+import { CABIN_SIZES, MAX_STAY_NIGHTS, cabinStayType, type CabinAvailability } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
@@ -21,7 +21,6 @@ import { createPublicClient } from "@/lib/supabase/public";
 /** Days the sauna and cabin pickers show. */
 export const SAUNA_DAYS = 14;
 export const CABIN_DAYS = 21;
-const MAX_NIGHTS = 14;
 const ROW_PAGE_SIZE = 1000;
 
 interface AvailabilityWindow {
@@ -81,6 +80,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         .from("events")
         .select("*", { count: "exact" })
         .eq("category", "pirtis")
+        .eq("published", true)
         .not("capacity", "is", null)
         .gte("date", today)
         .lte("date", addDays(today, eventDays - 1))
@@ -109,19 +109,23 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
     upsells: activeUpsells,
     programs: must(programs, "Sauna programs").map(toSaunaProgram),
     takenBySauna,
-    events: events.map((e) => ({
-      key: e.id,
-      title: e.title,
-      host: e.place.split(" · ")[1] ?? e.place,
-      date: e.date,
-      time: toHHMM(e.start_time),
-      minutes: e.duration_minutes,
-      pricePerPerson: e.price ?? 0,
-      capacity: e.capacity ?? 0,
-      spotsLeft: spotsLeft(e) ?? 0,
-      blurb: e.blurb,
-      programId: e.program_id,
-    })),
+    events: events.map((e) => {
+      const host = e.place.split(" · ")[1]?.trim();
+      return {
+        key: e.id,
+        title: e.title,
+        host: host ?? e.place,
+        hostName: host && !/^(atvira grupė|su pirtininku|be pirtininko)$/i.test(host) ? host : undefined,
+        date: e.date,
+        time: toHHMM(e.start_time),
+        minutes: e.duration_minutes,
+        pricePerPerson: e.price ?? 0,
+        capacity: e.capacity ?? 0,
+        spotsLeft: spotsLeft(e) ?? 0,
+        blurb: e.blurb,
+        programId: e.program_id,
+      };
+    }),
   };
 }
 
@@ -130,7 +134,7 @@ export async function getCabinPageData(availabilityWindow?: AvailabilityWindow):
   const supabase = createPublicClient();
   const today = todayKey(availabilityWindow?.now);
   // Last check-in day plus the longest stay.
-  const last = addDays(today, (availabilityWindow?.days ?? CABIN_DAYS) + MAX_NIGHTS);
+  const last = addDays(today, (availabilityWindow?.days ?? CABIN_DAYS) + MAX_STAY_NIGHTS);
   const rows = await readAvailabilityRows(
     (from, to) => supabase
       .rpc("stay_occupancy", { p_from: today, p_to: last }, { count: "exact" })

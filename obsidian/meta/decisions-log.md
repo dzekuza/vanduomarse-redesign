@@ -10,6 +10,34 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0035 — Pay on site uses the existing unpaid reservation path
+
+- **Status:** Accepted for the requested reservation flow.
+- **Context:** The owner requested two actions in every plan surface: primary Rezervuoti and outlined Atsiskaitysiu vietoj grynais, both followed directly by phone/email registration.
+- **Decision:** Shared PlanActions renders the pair in the desktop plan, mobile dock and sheet. ReservationFlow owns payOnSite, initially false. The primary explicitly selects false and the cash action selects true before opening ReservationAccountDialog, which contains the existing AccountStep sign-in. Enter preserves the current choice. The choice survives plan/account edits and clears when starting a fresh reservation. After verified sign-in and name validation, cash calls the existing submitReservation path even when Stripe is configured; it creates ordinary unpaid requests without awaitingPayment or a Stripe payment/session. Default online submission retains the existing Checkout path. Preview quad plans are intercepted before either real submission path, regardless of the payment choice.
+- **Consequences:** Server-side identity, capacity and authoritative price checks remain unchanged. There is no new database field, migration or cash-specific notification. payOnSite is UI state only: the resulting ordinary unpaid requests do not carry a universal cash-method marker across all activity types (event tickets have no note field). Staff must not infer an explicit persisted cash choice from this UI alone. Final account and local receipt copy reflect the selected cash choice, but no actual OTP delivery, booking or payment is asserted by UI verification.
+
+## ADR-0034 — Open final phone/email registration in a contact dialog
+
+- **Status:** Accepted for the requested reservation flow.
+- **Context:** The owner removed additional-activity offers and the separate plan confirmation, then clarified that both plan actions should open the contact form in a popup using the earlier dust/ink dialog design instead of a page account step.
+- **Decision:** /rezervacija keeps activity selection visible while either Rezervuoti or Atsiskaitysiu vietoj grynais opens ReservationAccountDialog (step 1), headed Užbaik rezervaciją. Its warm-white (`bg-popover`) surface separates Kontaktai and Tavo planas under a fixed heading, with scrollable content and a distinct action footer. It combines the plan summary, existing AccountStep phone/email OTP flow, name field, submission guidance and final action. Its own form is a sibling of the main selection form under FormProvider. There is no additional-activity offer, separate confirmation, inline StepHeading/account section or duplicate review screen. X, Escape and backdrop dismiss without creating a reservation and restore focus to the original action or selection fallback; active submission blocks dismissal. Plan edits close the dialog and return to selection. The payment paths remain defined in ADR-0035, using existing server request or Stripe actions after verified sign-in and name validation.
+- **Consequences:** Authentication, server-side identity checks and authoritative request/payment pricing remain unchanged. Supplier quad previews follow the same contact dialog, but their final submit is strictly local QuadPreviewComplete (ADR-0033). This UI change requires no database migration. Actual OTP delivery, booking and payment are not asserted by local UI verification.
+
+## ADR-0033 — Supplier quad routes remain an isolated design preview
+
+- **Status:** Accepted for the requested preview.
+- **Context:** The owner requested Ciongo’s Mini/Midi/Maxi catalogue and photographs in the Marse design, then clarified that this stage is design review only.
+- **Decision:** /keturraciai is an explicitly labelled, noindex interactive preview. Both /keturraciai and the /rezervacija quad tab show date selection followed by three separate Mini/Midi/Maxi route cards, arranged in three columns from lg like StayOptions. Each opens QuadRouteDialog for its route photo, fuller supplier-paraphrased description and key facts, and owns its start selector, editable quantity and selection/removal action. Route information uses the warm-white activity-dialog surface and never changes the booking selection. Unselected drafts stay independent; selecting another card replaces the single picked tour, and selected-card/sidebar edits remain synchronized. Reference route and accessory content lives in components/quads/quad-preview-content.ts. It reads fleet and availability through the existing public reader, combines available fleet units across the full tour and uses one package price for one or two riders. Source package pricing is calculated only inside the preview, outside real booking picks. The standalone /keturraciai preview retains QuadPreviewReview. In /rezervacija, preview tours open the final ReservationAccountDialog directly from selection, using the existing phone/email account UI inside it. Final submission is guarded before any request or payment action and renders only local QuadPreviewComplete, even for a mixed plan containing real sauna or stay picks. No reservation reference or booking confirmation is produced for that preview.
+- **Consequences:** Existing reservation requests retain their Supabase hourly pricing contract. Publishing bookable route products needs a later approved data catalogue and authoritative pricing path. The 15 source photos have a manifest for replacement with the Marse photo shoot.
+
+## ADR-0032 — Published sauna sessions reserve their hours at Pirtis Marse
+
+- **Status:** Accepted. Verified locally. Both migrations are pending on live Supabase.
+- **Context:** A public session and a private group share the same sauna. Published sessions can accept multiple ticket orders. Private bookings take the entire sauna.
+- **Decision:** Published events in the `pirtis` category reserve their whole time range at `pirtis-marse`, regardless of ticket inventory. Duration comes from the event, then its linked program, then defaults to 60 minutes. The public availability RPC includes these hours. The database checks private bookings and session publication under the same sauna lock. Adjacent reservations can share a boundary.
+- **Consequences:** Staff can set the duration in the event form. Moving, extending or publishing a session over an existing active booking is rejected. In the combined flow, published legacy sessions accept tickets at the event price and linked sessions retain program pricing. See [[backend/database]] for deployment.
+
 ## ADR-0028 — Notifications go out through one dispatcher, SMS and email per event
 
 - **Status:** Accepted 2026-11-05; code built, Resend sending confirmed with a direct test email; booking emails through the app not tried yet.
@@ -23,6 +51,8 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ## ADR-0027 — Customers sign in at checkout with a one-time code (Supabase Auth), not before booking
 
+The final UI order is refined by ADR-0034: selection opens a contact dialog containing the account form and final submit action, without a separate confirmation or page account step. The auth and ownership contract below is unchanged.
+
 - **Status:** Accepted; code built, migration `20261104150000_customer_accounts` applied to the live project 2026-11-04; needs Supabase Auth dashboard settings (below) before codes reach customers. A security review caught that a confirmed email could vouch for a stranger's phone; `account_owns_contact` now requires every contact on the row to be the account's own (tested: own email + foreign phone and own phone + foreign email are blocked).
 - **Context:** The phone gate asked for an SMS code before the visitor could even pick a time, and needed a working SMS path (Twilio trial blocks real customers, a US sender is dropped by Lithuanian carriers). The owner wants the opposite order: build the plan first, then at checkout log in or create an account with a phone or email code, then pay.
 - **Decision:** `/rezervacija` has no gate. Its second step is `AccountStep`: pick phone or email, get a code from Supabase Auth (`signInWithOtp` with `shouldCreateUser`, so an unknown phone or email gets a new account and a known one signs in), confirm it (`verifyOtp`), then give the name. The server actions (`app/actions/customer.ts`) set the session cookie; `lib/customer.ts` reads it with `getUser()` and only recognises a contact the account confirmed. Requests are filed with the customer's own session (`lib/request-identity.ts`, flag `viaAccount`), so the database records `user_id` (default `auth.uid()`) and the trigger `require_verified_phone` accepts a request that carries the caller's own confirmed phone or email (`private.account_owns_contact`). The anon + SMS-token path is unchanged for the stand-alone and embed forms. Payments are grouped by account (`start_payment(p_user, …)`) instead of by phone. `proxy.ts` refreshes the session on `/rezervacija`. SMS destinations stay limited to `SMS_ALLOWED_PREFIXES` in `sendLoginCode`.
@@ -31,6 +61,8 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 ---
 
 ## ADR-0026 — /rezervacija is paid at submit through Stripe Checkout
+
+ADR-0035 adds an explicit cash-on-site choice that uses the existing unpaid request path. The default online path and payment contract below are unchanged.
 
 - **Status:** Accepted; migration `20261104160000_stripe_payments` applied to the live project 2026-11-04; the webhook endpoint must be registered in Stripe before payments work end to end (keys are in `.env.local`).
 - **Context:** The reservation page filed pending requests with "Mokėti dabar nereikia". The owner wants the full total paid when the visitor submits (sauna, quads and stay in one payment), with staff still confirming each request. Money state must be correct even if the visitor never returns from Stripe.
@@ -558,6 +590,11 @@ sends the breakdown by email.
 **Consequences.** Updating prices means editing one file. When a backend or
 CMS exists, the same shapes can be fed from it. Ranges make totals honest
 but wider; the client can narrow them by fixing values in the sheet.
+
+**2026-11-04 update.** The calculator now offers double and four-person cabins
+using the per-unit nightly rates in `lib/cabin.ts`. Each cabin type has its own
+quantity and both share the night count. Saved inquiries retain their stored
+breakdown and totals.
 
 ---
 

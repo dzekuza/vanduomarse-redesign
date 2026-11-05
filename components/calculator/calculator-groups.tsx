@@ -5,7 +5,9 @@ import { useState } from "react";
 import { StepFrame } from "@/components/booking/stepped";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CALCULATOR_SECTIONS, ExtrasSection } from "./calculator-sections";
+import { CALCULATOR_SECTIONS } from "./calculator-sections";
+import { EntertainmentSection } from "./entertainment-section";
+import { FoodSection } from "./food-section";
 import { StaySection } from "./stay-section";
 import type { EventCalculatorState } from "./use-event-calculator";
 
@@ -18,17 +20,16 @@ interface Group {
 
 const GROUP_SECTIONS: typeof CALCULATOR_SECTIONS = [
   ...CALCULATOR_SECTIONS,
-  { id: "hospitality", label: "Aptarnavimas", Section: ({ calc }) => <ExtrasSection calc={calc} category="hospitality" /> },
-  { id: "wake", label: "Vandenlentės", Section: ({ calc }) => <ExtrasSection calc={calc} category="entertainment" /> },
-  { id: "sauna-and-quads", label: "Pirtis ir keturračiai", Section: ({ calc }) => <StaySection calc={calc} category="entertainment" /> },
+  { id: "food", label: "Maistas", Section: FoodSection },
+  { id: "entertainment", label: "Pramogos", Section: EntertainmentSection },
   { id: "overnight", label: "Nameliai", Section: ({ calc }) => <StaySection calc={calc} category="overnight" /> },
 ];
 
 /** The standalone calculator's questions, grouped by topic. */
 const GROUPS: Group[] = [
   { id: "proga", title: "Vieta ir laikas", sections: ["type", "guests", "space"] },
-  { id: "skoniai", title: "Maistas", sections: ["catering", "drinks", "hospitality"] },
-  { id: "pramogos", title: "Pramogos", sections: ["wake", "sauna-and-quads"] },
+  { id: "skoniai", title: "Maistas", sections: ["food"] },
+  { id: "pramogos", title: "Pramogos", sections: ["entertainment"] },
   { id: "pasiliekam", title: "Nakvynė", sections: ["overnight"] },
 ];
 
@@ -57,8 +58,8 @@ export function CalculatorGroups({ calc }: { calc: EventCalculatorState }) {
                 const { Section, label } = section;
                 return (
                   <div key={sectionId}>
-                    {/* The single section of a chapter has the chapter's title already. */}
-                    {group.sections.length > 1 ? <OptionGroupLabel>{label}</OptionGroupLabel> : null}
+                    {/* The date and guest controls arrange their own headings. */}
+                    {group.sections.length > 1 && sectionId !== "guests" ? <OptionGroupLabel>{label}</OptionGroupLabel> : null}
                     <Section calc={calc} />
                   </div>
                 );

@@ -1,85 +1,100 @@
 "use client";
 
-import { PlusIcon } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
 import { StepLabel } from "@/components/booking/step-label";
 import { Stepper } from "@/components/booking/stepper";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { CABIN_SIZES } from "@/lib/cabin";
 import { PRICES, formatMoney } from "@/lib/event-pricing";
+import { DEFAULT_SAUNA_RATES, nextDays, sessionPrice } from "@/lib/sauna";
+import { CalculatorQuantityCard } from "./calculator-option-card";
 import { OptionToggle } from "./option-toggle";
 import type { EventCalculatorState } from "./use-event-calculator";
 
-type StayCategory = "entertainment" | "overnight";
+const STAY_DATE = new Intl.DateTimeFormat("lt-LT", { weekday: "long", month: "long", day: "numeric" });
 
-interface Row {
-  id: string;
-  category: StayCategory;
-  title: string;
-  blurb: string;
-  /** What is chosen so far, shown on the closed row; null when nothing is. */
-  chosen: string | null;
-  body: ReactNode;
+export function SaunaAndQuadCards({ calc: { input, set, guests } }: { calc: EventCalculatorState }) {
+  const minSaunaHours = DEFAULT_SAUNA_RATES.minHours;
+
+  return (
+    <>
+      <CalculatorQuantityCard
+        title="Pirtis"
+        description={`Privati malkomis kūrenama pirtis prie ežero jūsų svečiams, nuo ${minSaunaHours} val.`}
+        price={`Nuo ${sessionPrice(minSaunaHours, guests).toLocaleString("lt-LT")} €`}
+        label="Valandos"
+        value={input.saunaHours}
+        min={minSaunaHours}
+        max={8}
+        onChange={(hours) => set("saunaHours", hours)}
+      >
+        <div className="min-w-0 grow basis-40 bg-dust">
+          <OptionToggle label="Pirtininkas" hint={`+${formatMoney(PRICES.saunaMaster)}`} checked={input.saunaMaster} onChange={(selected) => set("saunaMaster", selected)} />
+        </div>
+      </CalculatorQuantityCard>
+      <CalculatorQuantityCard
+        title="Keturračiai"
+        description="Žygis keturračiais po Marso apylinkes su instruktoriumi."
+        price={`${PRICES.atvTour} € / asm.`}
+        label="Dalyviai"
+        value={input.atvRiders}
+        max={100}
+        onChange={(riders) => set("atvRiders", riders)}
+      />
+    </>
+  );
 }
 
-/** Sauna, quads and cabins feed the same estimate in the drawer and in their page groups. */
-export function StaySection({ calc: { input, set }, category }: { calc: EventCalculatorState; category?: StayCategory }) {
-  const rows: Row[] = [
-    {
-      id: "pirtis",
-      category: "entertainment",
-      title: "Pirtis",
-      blurb: "Privati malkomis kūrenama pirtis prie ežero jūsų svečiams, nuo 2 val.",
-      chosen: input.saunaHours > 0 ? `${Math.max(2, input.saunaHours)} val.` : null,
-      body: (
-        <div className="grid gap-3 @xl:grid-cols-2">
-          <Stepper label="Pirtis, val. (min. 2)" value={input.saunaHours} onChange={(v) => set("saunaHours", v === 1 ? (input.saunaHours > 1 ? 0 : 2) : v)} min={0} max={8} />
-          {input.saunaHours > 0 ? <OptionToggle label="Pirtininkas" hint={formatMoney(PRICES.saunaMaster)} checked={input.saunaMaster} onChange={(v) => set("saunaMaster", v)} /> : null}
-        </div>
-      ),
-    },
-    {
-      id: "keturraciai",
-      category: "entertainment",
-      title: "Keturračiai",
-      blurb: "Žygis keturračiais po Marso apylinkes su instruktoriumi.",
-      chosen: input.atvRiders > 0 ? `${input.atvRiders} asm.` : null,
-      body: <Stepper label={`Keturračių turas (${PRICES.atvTour} €/asm.)`} value={input.atvRiders} onChange={(v) => set("atvRiders", v)} min={0} max={100} />,
-    },
-    {
-      id: "nakvyne",
-      category: "overnight",
-      title: category === "overnight" ? "Nameliai" : "Nakvynė",
-      blurb: `Nameliai svečiams, ${formatMoney(PRICES.cabinNight)} asmeniui per naktį.`,
-      chosen: input.cabinGuests > 0 ? `${input.cabinGuests} asm. × ${input.cabinNights} n.` : null,
-      body: (
-        <div className="grid gap-3 @xl:grid-cols-2">
-          <Stepper label={`Nakvynė, asm. (${formatMoney(PRICES.cabinNight)})`} value={input.cabinGuests} onChange={(v) => set("cabinGuests", v)} min={0} max={PRICES.cabinBeds} />
-          {input.cabinGuests > 0 ? <Stepper label="Naktys" value={input.cabinNights} onChange={(v) => set("cabinNights", v)} min={1} max={7} /> : null}
-        </div>
-      ),
-    },
-  ];
-  const visibleRows = category ? rows.filter((r) => r.category === category) : rows;
+function CabinOptions({ calc: { input, set, setCabinUnits } }: { calc: EventCalculatorState }) {
+  const nights = input.cabinNights;
+  const dates = input.date ? nextDays(input.date, nights + 1) : null;
 
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+        <Stepper label="Naktys" value={nights} onChange={(next) => set("cabinNights", next)} min={1} max={14} editable compact />
+        <div aria-live="polite" className="space-y-1 text-xs text-copy">
+          {dates ? (
+            <>
+              <p>Atvykimas · {STAY_DATE.format(dates[0])}</p>
+              <p>Išvykimas · {STAY_DATE.format(dates[nights])}</p>
+            </>
+          ) : (
+            <p>Nakvynė prasideda pasirinktą šventės dieną.</p>
+          )}
+        </div>
+      </div>
+      <div>
+        <OptionGroupLabel>Namelio tipas</OptionGroupLabel>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {CABIN_SIZES.map(({ id, label, name, pricePerNight, count }) => (
+            <CalculatorQuantityCard
+              key={id}
+              eyebrow={label}
+              title={name}
+              price={`${pricePerNight} € / naktį`}
+              label="Kiekis"
+              value={input.cabinUnits[id]}
+              max={count}
+              onChange={(units) => setCabinUnits(id, units)}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The page and the drawer share the cabin options and the live estimate. */
+export function StaySection({ calc, category }: { calc: EventCalculatorState; category?: "overnight" }) {
   return (
     <section className="@container">
       <StepLabel step={7}>Pasiliekam Marse</StepLabel>
-      {category ? null : <p className="mb-4 text-xs text-copy">Norisi pasilikti ilgiau? Atidaryk ir pridėk pirtį, keturračius ar nakvynę prie sąmatos.</p>}
-      <Accordion type="multiple" className="border-b border-line">
-        {visibleRows.map((r) => (
-          <AccordionItem key={r.id} value={r.id} className="border-b-0 border-t border-line">
-            <AccordionTrigger className="items-center gap-4 py-4">
-              <span className="min-w-0">
-                <span className="block text-item font-bold">{r.title}</span>
-                <span className="block text-xs font-normal text-copy">{r.blurb}</span>
-              </span>
-              {r.chosen ? <span className="ml-auto shrink-0 border border-ink bg-ink px-2.5 py-1 text-micro text-dust">{r.chosen}</span> : <span className="ml-auto" />}
-              <PlusIcon aria-hidden className="size-6 shrink-0 motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong group-data-[state=open]/trigger:rotate-45" />
-            </AccordionTrigger>
-            <AccordionContent className="pb-6">{r.body}</AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+      {category === "overnight" ? null : (
+        <div className="mb-6 grid gap-3 lg:grid-cols-2">
+          <SaunaAndQuadCards calc={calc} />
+        </div>
+      )}
+      <CabinOptions calc={calc} />
     </section>
   );
 }

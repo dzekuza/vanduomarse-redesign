@@ -3,6 +3,7 @@
 import { InfoIcon } from "@phosphor-icons/react";
 import { SERVICE_GALLERY, type ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
+import { QUAD_PREVIEW_GALLERY } from "@/components/quads/quad-preview-content";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ACTIVITY_TITLE, type ActivityId, type ReservationData } from "@/lib/reservation";
 import { ActivityDetails, activityBlurb } from "./activity-details";
@@ -14,7 +15,7 @@ function photosFor(id: ActivityId, data: ReservationData): ServicePhoto[] {
     const own = data.sauna.saunas.flatMap((s) => s.photos.map((p) => ({ src: p.url, alt: s.name })));
     return own.length > 0 ? own : SERVICE_GALLERY.sauna;
   }
-  return id === "nakvyne" ? SERVICE_GALLERY.cabins : SERVICE_GALLERY.ciongo;
+  return id === "nakvyne" ? SERVICE_GALLERY.cabins : QUAD_PREVIEW_GALLERY;
 }
 
 /** Each activity's info button opens a dialog with photos and the full activity details. */
@@ -42,7 +43,7 @@ export function ActivityAbout({ id, data, active }: { id: ActivityId; data: Rese
         <div className="min-h-0 space-y-6 overflow-y-auto p-6">
           <header className="space-y-2">
             <DialogTitle className="font-display text-heading leading-tight font-bold">{title}</DialogTitle>
-            <DialogDescription className="text-copy">{activityBlurb(id, data)}</DialogDescription>
+            <DialogDescription className="text-copy">{activityBlurb(id)}</DialogDescription>
           </header>
           <ActivityDetails id={id} data={data} />
         </div>

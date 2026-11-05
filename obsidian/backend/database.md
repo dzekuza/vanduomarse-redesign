@@ -122,13 +122,13 @@ Guards: the last active owner can't be removed, demoted or switched off
 (`last_owner`); the owner role can't be edited or deleted (`owner_role`).
 
 Map `23P01` to a form error with `setError` (the trigger `hint` says which:
-`sauna_blocked`, `sauna_booked`, `stay_full`, `event_full`).
+`sauna_blocked`, `sauna_booked`, `sauna_session`, `stay_full`, `event_full`).
 
 ### Functions
 
 | Function | Who | Purpose |
 |----------|-----|---------|
-| `sauna_taken(from, to)` | anon, authenticated | Booked + closed hours per sauna (`sauna_id`, day, hour), no customer data |
+| `sauna_taken(from, to)` | anon, authenticated | Booked and closed hours per sauna, including published sessions at Pirtis Marse after the priority migration. No customer data |
 | `sauna_taken_hours(from, to)` | anon, authenticated | **Deprecated**: hours taken in any sauna; kept for the deploy window |
 | `stay_occupancy(from, to)` | anon, authenticated | Units reserved vs stock per stay type per night, without contact data |
 | `private.is_staff()` | authenticated | Used by every staff policy. Lives in the non-exposed `private` schema, so it isn't an RPC |
@@ -152,6 +152,12 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 Both availability functions cap the range at 370 days. Supabase grants
 EXECUTE on new `public` functions to `anon`/`authenticated` directly, so any new
 function that isn't meant to be an RPC needs an explicit `revoke … from anon, authenticated`.
+
+## Pay-on-site selection in /rezervacija
+
+ADR-0035 adds a client-side payOnSite choice, not a schema change. After the existing verified-account and name checks, cash submission uses the normal submitReservation/fileRequest path. Requests are stored as ordinary unpaid requests; this path does not set awaitingPayment or create a Stripe payment or session. Server-side capacity, pricing and ownership checks still apply.
+
+There is no new payment-method column, migration or cash-specific notification. The cash choice is retained only in the current reservation UI state and its receipt copy. It is not a universal persisted marker across bookings, quad rentals and event tickets (event tickets have no note field). Existing unpaid-request records and normal notifications must not be interpreted as a reliable cash-method flag. Supplier tour previews remain local and call none of these request/payment paths, regardless of the chosen action.
 
 ## Migrations
 
@@ -189,6 +195,17 @@ function that isn't meant to be an RPC needs an explicit `revoke … from anon, 
 
 > [!warning] Phone verification migration: apply together with the deploy
 > Verified on a local Supabase stack together with `20261030100000_saunas.sql` (direct RPCs by anon and by a signed-in non-staff user refused without a verified phone; active staff and the service role pass; code functions closed to anon; cooldown / caps / lockout). Note: since the saunas migration, `seed.sql` fails on a fresh stack (`bookings_sauna`: seeded sauna bookings lack `sauna_id`). **Not applied to the live project.** Apply it in the same window as the code: before it, the old site cannot book (trigger), and the old 5-arg `create_coupon_order` is gone. Set `PHONE_VERIFICATION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` and Twilio first.
+
+> [!warning] Published sauna session priority and legacy tickets
+> Apply `20261104190000_published_sauna_session_priority.sql` and
+> `20261104191000_reservation_legacy_sauna_tickets.sql` before releasing this
+> booking flow. The first migration adds published sessions to `sauna_taken`
+> and protects their hours from private reservations at `pirtis-marse`.
+> The second lets `create_program_ticket` accept legacy published sauna
+> events with capacity. Those use the event's price and per-person tickets.
+> Linked sessions retain program pricing and family tickets.
+> Both passed a full local migration replay and booking conflict, boundary,
+> capacity, and account checkout checks. Live Supabase still needs both migrations.
 
 > [!info] Saunas migration: applied
 > `20261030100000_saunas.sql` passed 41 checks on PGlite with all migrations and the demo seed (backfill, per-sauna overlap and closed hours, both RPC signatures, anon/`pirtis`/`rezervacijos`/`kainos` RLS, storage policies, RLS on every table), then the owner applied it to the live project on 2026-10-30. Live check: one sauna "Pirtis Marse" (rates from `sauna_settings`), 3 extras linked, all 5 sauna bookings and every closed hour carry `sauna_id`, the `sauna-photos` bucket is public with 4 policies; the advisors list only the intended public RPCs. `supabase gen types` was regenerated (keeping the existing hand-edit `create_inquiry.p_date: string | null`). An end-to-end run through /admin (create, photos, reorder, closed hour, picker on /pirtis and /embed/pirtis, delete) left no rows or objects behind. **Open:** `supabase migration list` doesn't record `20261030100000` as applied remotely (applied outside `db push`); run `supabase migration repair --status applied 20261030100000` so a later `db push` doesn't try it again.
