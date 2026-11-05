@@ -1,3 +1,12 @@
+## 2026-11-05 — Stripe configured
+- **Checked:** Vercel now has `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`; status note rewritten so no paragraph still asks to register the webhook (it is registered).
+- **Next:** redeploy production; checkout test (live charge + refund, or sandbox).
+
+## 2026-11-05 — Stripe recheck
+- **Checked:** `.env.local` key (clean `sk_live_`, API 200), webhook secret format, Vercel env names.
+- **Status:** local config OK; Vercel has `STRIPE_SECRET_KEY` only (no `STRIPE_WEBHOOK_SECRET`, `SITE_URL`). No checkout run.
+- **Next:** add the two Vercel vars (webhook secret from the vercel.app endpoint in Stripe) and redeploy; decide sandbox vs live test.
+
 ## 2026-11-05 — Stripe configuration check
 - **Checked:** `.env.local` Stripe vars (names/prefixes only), a read-only Stripe API call, webhook endpoints, Vercel env names.
 - **Status:** key value malformed (`secret - ` prefix) and live mode; Vercel lacks all Stripe vars; webhook endpoint registered with the right five events. No checkout run.
