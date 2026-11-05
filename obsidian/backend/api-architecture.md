@@ -74,3 +74,7 @@ the service role (anon has no insert grants) and recomputes the price.
 ## Related
 
 [[data-flow]] · [[database]] · [[environment-variables]]
+
+## Notifications
+
+Actions and the Stripe webhook notify only through `lib/notify.ts` (ADR-0028): one call per event sends SMS (Twilio) and email (Resend) to the customer when they gave that contact, and to staff (`STAFF_NOTIFY_PHONE`, `STAFF_NOTIFY_EMAIL`). Sends run in `after()` (or after the DB write in the webhook) and never fail the request.

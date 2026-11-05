@@ -1,3 +1,5 @@
+- 2026-11-05 Staff booking emails are routed per service: sauna and quads → renginiai@vanduomarse.lt, stays → miegas@vanduomarse.lt; other requests → `STAFF_NOTIFY_EMAIL`. Payment emails follow the reference prefix (ADR-0028).
+- 2026-11-05 Booking email notifications through Resend: customers who gave an email get "užklausa gauta", "patvirtinta/atšaukta" and "apmokėjimas gautas" next to the SMS; staff get new-request, paid and double-charge emails at `STAFF_NOTIFY_EMAIL`. New `lib/notify.ts` dispatches every channel; `lib/email/resend.ts` is the one Resend sender (coupon email now uses it). New env `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`, `EMAIL_IN_DEV`. No migration. ADR-0028.
 - 2026-11-04 Staff get the new-request SMS for every web reservation, including those from email-only accounts (only the customer text needs a phone).
 - 2026-11-04 Removed the shared guest field from the reservation flow. Sauna cards own their
   group size. Quad rentals use vehicle quantities and send one driver per quad.

@@ -6,7 +6,8 @@ import { mixedQuadRentalSchema, quadRentalSchema, tourTicketSchema, type MixedQu
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { requester } from "@/lib/request-identity";
 import { hourLabel } from "@/lib/quads";
-import { describeRequest, notifyReceived, notifyStaff } from "@/lib/sms/notify";
+import { notifyRequestFiled } from "@/lib/notify";
+import { describeRequest } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -45,11 +46,9 @@ function dbFail(e: DbError) {
   return fail("Nepavyko pateikti užklausos. Bandykite dar kartą.", "db");
 }
 
-/** SMS the visitor (when they have a phone) and always the staff alert line once the request is stored; never delays or fails the request. */
-function notify(phone: string | null, reference: string, summary: string) {
-  after(async () => {
-    await Promise.all([phone ? notifyReceived(phone, reference, summary) : Promise.resolve(false), notifyStaff(reference, summary)]);
-  });
+/** Text and email the visitor (whichever they gave) and always alert staff once the request is stored; never delays or fails the request. */
+function notify(phone: string | null, email: string | null | undefined, reference: string, summary: string) {
+  after(() => notifyRequestFiled("keturraciai", { phone, email }, reference, summary));
 }
 
 export interface RequestReceipt {
@@ -87,7 +86,7 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
     p_units: v.units,
   });
   if (error) return dbFail(error);
-  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
+  if (!v.awaitingPayment) notify(phone, email, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -106,7 +105,7 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   });
   if (error) return dbFail(error);
   const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
-  if (!v.awaitingPayment) notify(phone, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
+  if (!v.awaitingPayment) notify(phone, email, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -127,6 +126,6 @@ export async function createTourTicket(input: TourTicketInput): Promise<ActionRe
     p_phone: phone,
   });
   if (error) return dbFail(error);
-  notify(phone, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
+  notify(phone, v.customerEmail, data[0].reference, describeRequest(["Zygis", `${v.people} asm.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }

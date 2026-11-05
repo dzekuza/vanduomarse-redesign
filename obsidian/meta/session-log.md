@@ -1,3 +1,13 @@
+## 2026-11-05 — Staff email per service
+- **Changed:** `STAFF_INBOX` + `serviceOfReference` in `lib/contacts.ts`; `notifyRequestFiled` takes a service; staff paid/duplicate emails routed by reference prefix.
+- **Status:** `tsc` and eslint clean; Resend keys added to `.env.local`, one direct test email accepted by Resend (HTTP 200). Booking emails through the app not tried yet.
+- **Next:** set `RESEND_API_KEY` + `NOTIFY_FROM_EMAIL`, test one sauna and one stay booking with `EMAIL_IN_DEV=1`.
+
+## 2026-11-05 — Email notifications (Resend)
+- **Changed:** `lib/email/resend.ts` (shared sender, dev skip), `lib/email/notify.ts` (customer + staff email texts), `lib/notify.ts` (SMS + email per event); request, quad and admin status actions and the Stripe webhook call it (webhook reads `payments.customer_email` by `payment_id`); coupon email reuses the sender; `.env.example`, env note, utils catalog, api-architecture and ADR-0028 updated.
+- **Status:** `tsc` clean, eslint clean on changed files. Not sent for real: no booking filed in the browser (it would write to the live project), dev logs emails instead of sending.
+- **Next:** add `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`, `SITE_URL` (local + Vercel), verify the sender domain in Resend, then one test booking with `EMAIL_IN_DEV=1`.
+
 ## 2026-11-04 — PR #10 and payment hardening
 - **Changed:** branch `feat/accounts-and-payments`, two commits and PR #10. After a security review: `checkoutUrl` only replaces a session Stripe reports expired (lookup errors fail instead of opening a second session), conditional `attach_payment_session` (loser's session is expired), webhook passes `p_payment_id` from metadata, `duplicate` payments are texted to staff; migration `20261104180000_payment_session_guards`.
 - **Status:** migration tested in a rolled-back transaction (stale attach refused, old session paid is found by id, repeat event not a duplicate, double charge flagged); `tsc`/eslint clean. Applied afterwards through the Supabase MCP on your instruction: ledger repaired, signatures and privileges verified live, regenerated types identical.

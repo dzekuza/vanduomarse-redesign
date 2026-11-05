@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0028 — Notifications go out through one dispatcher, SMS and email per event
+
+- **Status:** Accepted 2026-11-05; code built, not yet sent for real (needs `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`).
+- **Context:** Booking notices were SMS only, so email-only accounts (ADR-0027) heard nothing after submitting, and staff had one alert phone. Resend was already used for coupon emails.
+- **Decision:** `lib/notify.ts` is the only thing actions and the Stripe webhook call (`notifyRequestFiled`, `notifyRequestOutcome`, `notifyPaymentReceived`, `notifyDuplicatePayment`). Each call sends SMS (`lib/sms/notify.ts`) and email (`lib/email/notify.ts`) to the customer, each only when that contact exists and the channel is configured, plus both staff channels. All email goes through `sendEmail` in `lib/email/resend.ts` (Resend HTTP API, no SDK, never throws, replies to `MAIN_CONTACT.email`). Like SMS, `next dev` logs booking emails unless `EMAIL_IN_DEV=1`; coupon emails always send. The webhook reads the customer email from `payments.customer_email` by `payment_id` (service role) instead of changing `complete_payment`.
+- **Staff routing (2026-11-05):** staff emails go to the service's inbox: sauna (incl. programs) and quads (rentals, tours) → `renginiai@vanduomarse.lt`, stays → `miegas@vanduomarse.lt` (`STAFF_INBOX`); everything else to `STAFF_NOTIFY_EMAIL`. Payment emails are routed by reference prefix, and a reservation that mixes services emails each inbox once. The staff SMS still goes to the single `STAFF_NOTIFY_PHONE`.
+- **Consequences:** A new channel (e.g. WhatsApp) is added in one place. Email bodies reuse the ASCII SMS summary line. No migration. Sender domain must be verified in Resend; it can double as Supabase Auth's custom SMTP.
+
+---
+
 ## ADR-0027 — Customers sign in at checkout with a one-time code (Supabase Auth), not before booking
 
 - **Status:** Accepted; code built, migration `20261104150000_customer_accounts` applied to the live project 2026-11-04; needs Supabase Auth dashboard settings (below) before codes reach customers. A security review caught that a confirmed email could vouch for a stranger's phone; `account_owns_contact` now requires every contact on the row to be the account's own (tested: own email + foreign phone and own phone + foreign email are blocked).

@@ -1,7 +1,7 @@
 import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
-import { notifyPaid, notifyStaffDuplicate, notifyStaffPaid } from "@/lib/sms/notify";
+import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -21,7 +21,8 @@ const paymentIdOf = (session: Stripe.Checkout.Session) => {
 async function onPaid(session: Stripe.Checkout.Session) {
   // A delayed payment method completes the session while it is still unpaid; wait for `async_payment_succeeded`.
   if (session.payment_status === "unpaid") return;
-  const { data, error } = await createAdminClient().rpc("complete_payment", {
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("complete_payment", {
     p_session_id: session.id,
     p_payment_intent: paymentIntentId(session.payment_intent),
     p_amount: (session.amount_total ?? 0) / 100,
@@ -37,12 +38,14 @@ async function onPaid(session: Stripe.Checkout.Session) {
   }
   // A second, different payment on an already-paid reservation is a double charge: staff must refund it.
   if (paid.duplicate) {
-    await Promise.allSettled([notifyStaffDuplicate(paid.refs, (session.amount_total ?? 0) / 100)]);
+    await notifyDuplicatePayment(paid.refs, (session.amount_total ?? 0) / 100);
     return;
   }
   if (!paid.newly_paid) return;
-  // Texts must never fail the webhook: a retry would only re-send nothing, the payment is already recorded.
-  await Promise.allSettled([notifyPaid(paid.phone, paid.refs, paid.amount), notifyStaffPaid(paid.refs, paid.amount, paid.needs_review)]);
+  // The function returns the phone only; the email is on the payment row (service role, no RLS).
+  // A failed lookup just means no customer email: texts and emails must never fail the webhook.
+  const { data: row } = await admin.from("payments").select("customer_email").eq("id", paid.payment_id).maybeSingle();
+  await notifyPaymentReceived({ phone: paid.phone, email: row?.customer_email }, paid.refs, paid.amount, paid.needs_review);
 }
 
 async function onClosed(sessionId: string, failed: boolean) {
