@@ -1,3 +1,22 @@
+- 2026-11-05 Replaced inline quad-route disclosures with separate warm-white Mini/Midi/Maxi information dialogs. Each shows its route photo, fuller supplier-paraphrased description, duration, distance, price and practical tour details without changing the plan.
+- 2026-11-05 Restyled ReservationAccountDialog with the activity dialog's warm-white surface, fixed heading, labelled contact/plan sections and separated footer. Phone/email verification, focus return, dismissal guards and final submission paths are unchanged.
+- 2026-11-05 Split the shared quad tour preview into separate Mini/Midi/Maxi cards after the date, matching the stay-card layout with three columns from lg. Each card owns its information/photo disclosure, time and editable quantity. Unselected drafts are independent; one picked tour stays synchronized with the plan. Pricing, preview guards and backend paths are unchanged.
+- 2026-11-05 Moved final phone/email registration into the dust/ink ReservationAccountDialog opened by either plan action. The activity selection stays visible behind it; summary, existing OTP account form and final submit share the popup. Dismissal creates no reservation, and the existing cash/online routes and local-only quad preview guards are unchanged.
+- 2026-11-05 Centered both reservation-plan action labels consistently while keeping the primary action arrow at the right.
+- 2026-11-05 Added shared Rezervuoti and outlined Atsiskaitysiu vietoj grynais actions to desktop/mobile plans. Both open verified phone/email registration directly; cash uses the existing unpaid request path without Stripe. The choice stays in UI state (no universal persisted cash-method field), and supplier quad previews still finish locally.
+- 2026-11-05 Removed the intermediate plan confirmation from /rezervacija at the owner’s request. Toliau now opens the final phone/email registration step directly, headed Užbaik rezervaciją. Real submit/payment and local-only quad preview completion remain unchanged.
+- 2026-11-05 Removed the additional-activities popup from /rezervacija. Selection now opens one plan confirmation before the final phone/email account step, without a repeated review screen. Plan edits require confirmation again. Real picks retain existing submission/payment; supplier quad previews finish locally without requests or payment.
+- 2026-11-05 Unified the quad preview into one date-first card in /rezervacija and /keturraciai: Mini/Midi/Maxi, route details, time and one vehicle quantity. One or two riders share the same package rate. Preview plans show combined totals but cannot enter real booking or payment actions.
+- 2026-11-05 Added an isolated interactive /keturraciai design preview with Mini/Midi/Maxi routes, source package prices, route-first choices, Marse location, gear and FAQ. Downloaded all 15 unique quad photos from the supplied Ciongo page with a replacement manifest. No route booking or schema changes, per the owner’s preview-only clarification.
+- 2026-11-05 Quad reservations choose start and duration before adding vehicle quantities. Time choices are visible immediately and quantity limits reflect availability for the chosen slot.
+- 2026-11-05 Moved date and time into each activity entry in the plan, review and confirmation. Stays show arrival and departure, and the plan no longer has a shared facts section.
+- 2026-11-05 Added “Keisti laiką” to private sauna entries in the desktop plan and mobile sheet. Available times reuse the booking card rules and stay synchronized with it.
+- 2026-11-04 Moved removal into the selected sauna card and Toliau into the desktop and mobile plans. Removed the selection footer divider and the Bendra filter.
+- 2026-11-04 Private sauna reservations choose only a time. Ticket quantity remains available for public sessions.
+- 2026-11-04 Put published sauna sessions first in reservation and grouped each private program
+  into one card with a time picker. Session cards show their named attendant and live seat
+  count. Added database checks that reserve session time at Pirtis Marse and let the combined
+  flow sell tickets to legacy sauna sessions. Staff can set sauna event duration in minutes.
 - 2026-11-04 Staff get the new-request SMS for every web reservation, including those from email-only accounts (only the customer text needs a phone).
 - 2026-11-04 Added sauna filters that count matching unblocked time slots for the selected day.
   Session categories use stable published program IDs. Seansai includes family and custom

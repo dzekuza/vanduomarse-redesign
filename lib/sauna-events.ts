@@ -14,6 +14,8 @@ export interface SaunaEventData {
   key: string;
   title: string;
   host: string;
+  /** Named attendant, when the event has one in its location label. */
+  hostName?: string;
   /** yyyy-mm-dd */
   date: string;
   time: string;

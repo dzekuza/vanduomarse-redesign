@@ -23,12 +23,10 @@ export function planQuantities(
 ): PlanQuantities {
   const quantities: PlanQuantities = {};
 
-  if (pirtis) {
+  if (pirtis && pirtis.mode !== "private") {
     const capacity = pirtis.mode === "hourly"
       ? pirtis.sauna.rates.maxParty
-      : pirtis.mode === "private"
-        ? Math.min(pirtis.program.capacity ?? 0, pirtis.sauna?.rates.maxParty ?? 0)
-        : pirtis.session?.spotsLeft ?? 0;
+      : pirtis.session?.spotsLeft ?? 0;
     if (capacity > 0) {
       quantities.pirtis = [{ id: "people", label: "Žmonės pirtyje", value: people, max: Math.min(MAX_PEOPLE, capacity), onChange: setPeople }];
     }

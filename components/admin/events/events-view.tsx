@@ -33,9 +33,9 @@ export function EventsView() {
     (a, b) => Number(b.status === "laukia") - Number(a.status === "laukia") || `${a.eventDate}${a.eventTime}`.localeCompare(`${b.eventDate}${b.eventTime}`),
   );
 
-  function togglePublished(e: ManagedEvent) {
-    setEventPublished(e.id, !e.published);
-    toast.success(e.published ? "Paslėpta" : "Paskelbta");
+  async function togglePublished(e: ManagedEvent) {
+    const result = await setEventPublished(e.id, !e.published);
+    if ("data" in result) toast.success(e.published ? "Paslėpta" : "Paskelbta");
   }
 
   return (

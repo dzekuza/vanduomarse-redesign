@@ -80,6 +80,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         .from("events")
         .select("*", { count: "exact" })
         .eq("category", "pirtis")
+        .eq("published", true)
         .not("capacity", "is", null)
         .gte("date", today)
         .lte("date", addDays(today, eventDays - 1))
@@ -108,19 +109,23 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
     upsells: activeUpsells,
     programs: must(programs, "Sauna programs").map(toSaunaProgram),
     takenBySauna,
-    events: events.map((e) => ({
-      key: e.id,
-      title: e.title,
-      host: e.place.split(" · ")[1] ?? e.place,
-      date: e.date,
-      time: toHHMM(e.start_time),
-      minutes: e.duration_minutes,
-      pricePerPerson: e.price ?? 0,
-      capacity: e.capacity ?? 0,
-      spotsLeft: spotsLeft(e) ?? 0,
-      blurb: e.blurb,
-      programId: e.program_id,
-    })),
+    events: events.map((e) => {
+      const host = e.place.split(" · ")[1]?.trim();
+      return {
+        key: e.id,
+        title: e.title,
+        host: host ?? e.place,
+        hostName: host && !/^(atvira grupė|su pirtininku|be pirtininko)$/i.test(host) ? host : undefined,
+        date: e.date,
+        time: toHHMM(e.start_time),
+        minutes: e.duration_minutes,
+        pricePerPerson: e.price ?? 0,
+        capacity: e.capacity ?? 0,
+        spotsLeft: spotsLeft(e) ?? 0,
+        blurb: e.blurb,
+        programId: e.program_id,
+      };
+    }),
   };
 }
 

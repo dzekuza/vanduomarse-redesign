@@ -214,17 +214,19 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "inquiry/note", id, text });
         return report(actions.addInquiryNote(id, text));
       },
-      saveEvent: (event: ManagedEvent) => {
-        dispatch({ type: "event/upsert", event });
-        return report(actions.saveEvent(event));
+      saveEvent: async (event: ManagedEvent) => {
+        const result = await actions.saveEvent(event);
+        if ("data" in result) dispatch({ type: "event/upsert", event });
+        return result;
       },
       deleteEvent: (id: string) => {
         dispatch({ type: "event/delete", id });
         return report(actions.deleteEvent(id));
       },
-      setEventPublished: (id: string, published: boolean) => {
-        dispatch({ type: "event/publish", id, published });
-        return report(actions.setEventPublished(id, published));
+      setEventPublished: async (id: string, published: boolean) => {
+        const result = await report(actions.setEventPublished(id, published));
+        if ("data" in result) dispatch({ type: "event/publish", id, published });
+        return result;
       },
       updatePrices: (items: PriceItem[]) => {
         dispatch({ type: "prices/update", items });

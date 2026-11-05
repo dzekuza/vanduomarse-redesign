@@ -2,7 +2,6 @@ import { FilterChip } from "@/components/events/filter-chip";
 import type { SessionRow } from "@/lib/reservation";
 
 const SESSION_PROGRAMS = {
-  common: "bendra-pirtis",
   women: "moteru-pirtis",
   men: "vyru-pirtis",
 } as const;
@@ -13,7 +12,6 @@ const FILTERS: { id: Exclude<SaunaFilter, "attendant">; label: string }[] = [
   { id: "all", label: "Visi" },
   { id: "private", label: "Privati" },
   { id: "sessions", label: "Seansai" },
-  { id: "common", label: "Bendra" },
   { id: "women", label: "Moterų" },
   { id: "men", label: "Vyrų" },
 ];
@@ -21,7 +19,7 @@ const FILTERS: { id: Exclude<SaunaFilter, "attendant">; label: string }[] = [
 /** Match the published program IDs, which stay stable when staff edit the names. */
 export function matchesSaunaFilter(row: SessionRow, filter: SaunaFilter): boolean {
   if (filter === "all") return true;
-  if (filter === "private") return row.mode !== "session";
+  if (filter === "private") return row.mode === "private";
   if (filter === "attendant") return row.mode === "private" && row.programId === "privati-pirtis-su-programa";
   return row.mode === "session" && (filter === "sessions" || row.programId === SESSION_PROGRAMS[filter]);
 }

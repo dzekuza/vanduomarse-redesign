@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-schema";
 import { fromSaunaRates, toBooking, toQuadRental } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus, ManagedEvent, PriceItem, QuadRental } from "@/lib/admin/types";
@@ -231,7 +232,7 @@ const eventInput = z.object({
   category: z.enum(["pirtis", "vakarai", "akademija", "sventes", "keturratis"]),
   date: z.iso.date(),
   time: z.string().regex(/^\d{2}:\d{2}$/),
-  durationMinutes: z.number().int().positive().optional(),
+  durationMinutes: eventDurationMinutes.optional(),
   place: z.string().trim().min(2).max(80),
   blurb: z.string().trim().max(240),
   price: z.number().min(0).nullable(),

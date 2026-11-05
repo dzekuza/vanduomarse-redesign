@@ -2,25 +2,27 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
-import { ArrowButton } from "@/components/booking/arrow-button";
-import { Cta } from "@/components/cta";
+import { QuadPreviewComplete } from "@/components/quads/quad-preview-complete";
+import { quadPreviewPlan, type QuadPreviewPick } from "@/components/quads/quad-preview-plan";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
 import {
   RESERVATION_DAYS,
   bookable,
+  chosen,
   ACTIVITY_TAB_ORDER,
   ACTIVITY_TITLE,
   dayAvailability,
-  extraOfferText,
   describePlans,
   offered,
   planAll,
+  planHours,
+  sessionRows,
   totalOf,
   type ActivityId,
   type Picks,
@@ -29,52 +31,34 @@ import {
 } from "@/lib/reservation";
 import { dateKey, longDateLabel, nextDays } from "@/lib/sauna";
 import type { DayIcon } from "@/components/booking/day-picker";
-import { AccountStep, type AccountValues } from "./account-step";
+import type { AccountValues } from "./account-step";
 import { ActivitiesStep } from "./activities-step";
 import { ACTIVITY_ICON } from "./activity-icons";
-import { ExtrasOfferDialog } from "./extras-offer-dialog";
 import { ActivityAbout } from "./activity-about";
 import { ActivityTabs } from "./activity-tabs";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
 import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
-import { ReviewStep } from "./review-step";
-import { StepHeading } from "./step-heading";
+import { ReservationAccountDialog } from "./reservation-account-dialog";
 import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
 import { WhenStep, type StayDatePhase } from "./when-step";
 
-/** Selection, account, review. */
+/** Selection, then verified contact and final submission inside the dialog. */
 const accountSchema = z.object({ customerName: customerNameSchema });
 
-const LAST = 2;
+const LAST = 1;
 
-/** Headings of the steps after the selection (which starts straight with the list). */
-const headings = (payments: boolean) => [
-  {
-    eyebrow: "Prisijungimas",
-    title: "Prisijunk arba susikurk paskyrą",
-    text: "Atsiųsime vienkartinį kodą telefonu ar el. paštu. Jei paskyros dar nėra, ją sukursime, o rezervacijas rasi toje pačioje paskyroje.",
-  },
-  {
-    eyebrow: "Peržiūra",
-    title: "Viskas gerai?",
-    text: payments ? "Patikrink ir mokėk saugiai per Stripe. Vietas laikome, kol mokėjimas baigiasi." : "Patikrink ir siųsk. Mokėti dabar nereikia.",
-  },
-];
-
-/** Activity tabs and date on top, then the chosen activity, account and review. */
+/** Activity choices stay visible behind the phone/email reservation dialog. */
 export function ReservationFlow({
   header,
   data,
-  photo,
   initialTab,
   payments,
   initialCustomer,
 }: {
   header: ReactNode;
   data: ReservationData;
-  photo: { src: string; alt: string };
   initialTab?: ActivityId;
   /** Pay at submit through Stripe Checkout; off when Stripe is not configured. */
   payments: boolean;
@@ -84,6 +68,8 @@ export function ReservationFlow({
   const { today } = data.sauna;
   const days = useMemo(() => nextDays(today, RESERVATION_DAYS), [today]);
   const [step, setStep] = useState(0);
+  const [payOnSite, setPayOnSite] = useState(false);
+  const selectionHeader = useRef<HTMLDivElement>(null);
   const offer = offered(data);
   const tabs = ACTIVITY_TAB_ORDER.filter((id) => offer[id]);
   const [tab, setTab] = useState<ActivityId>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
@@ -92,12 +78,11 @@ export function ReservationFlow({
   const [stayDatePhase, setStayDatePhase] = useState<StayDatePhase>("idle");
   const [people, setPeople] = useState(1);
   const [picks, setPicks] = useState<Picks>({});
+  const [previewQuad, setPreviewQuad] = useState<QuadPreviewPick | null>(null);
+  const [previewComplete, setPreviewComplete] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   /** Stripe accepted the payment: the browser is on its way to Checkout. */
   const [redirecting, setRedirecting] = useState(false);
-  /** The "we also have..." popup, and which activities it already offered ("<day>:<id>"): each is offered once per day. */
-  const [offerOpen, setOfferOpen] = useState(false);
-  const [alreadyOffered, setAlreadyOffered] = useState<string[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(initialCustomer);
   const form = useForm<AccountValues>({
     resolver: zodResolver(accountSchema),
@@ -112,21 +97,18 @@ export function ReservationFlow({
   const showStayDates = stayDatePhase !== "idle" && (picks.nakvyne !== undefined || (step === 0 && tab === "nakvyne"));
   const when: When = { day, people };
   const plans = planAll(incompleteStay ? { ...picks, nakvyne: undefined } : picks, data, when);
-  const lines = describePlans(plans);
+  const quadTour = quadPreviewPlan(data.quads, when, previewQuad, planHours(plans.pirtis));
+  const lines = describePlans(plans, when);
+  if (quadTour) lines.unshift(quadTour.line);
   if (incompleteStay) {
-    lines.push({ id: "nakvyne", title: ACTIVITY_TITLE.nakvyne, detail: "Pasirink išvykimo datą.", price: 0 });
+    lines.push({ id: "nakvyne", title: ACTIVITY_TITLE.nakvyne, detail: "Pasirink išvykimo datą.", schedule: `Atvykimas ${longDateLabel(date)}`, price: 0 });
   }
   const total = totalOf(lines);
-  const tracksPeople = picks.pirtis !== undefined;
+  const tracksPeople = Boolean(plans.pirtis && plans.pirtis.mode !== "private");
   const dateLabel = longDateLabel(date);
   const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
   const datesLabel = checkoutLabel ? `${dateLabel} iki ${checkoutLabel}` : dateLabel;
   const whenLabel = tracksPeople ? `${datesLabel}, ${people} žm.` : datesLabel;
-  const facts = [
-    { label: showStayDates ? "Atvykimas" : "Data", value: dateLabel },
-    ...(checkoutLabel ? [{ label: "Išvykimas", value: checkoutLabel }] : []),
-    ...(tracksPeople ? [{ label: "Žmonės", value: String(people) }] : []),
-  ];
   /** Sauna, quad and stay icons under each day, lit when something is still free. */
   const dayIcons = (d: Date): DayIcon[] => {
     const free = dayAvailability(data, dateKey(d), people, stayEnd ? stayNights : 1);
@@ -136,18 +118,20 @@ export function ReservationFlow({
       on: free[id],
     }));
   };
-  const free = dayAvailability(data, day, people, stayEnd ? stayNights : 1);
-  const inPlan = tabs.filter((id) => picks[id] !== undefined);
-  const offers = tabs
-    .filter((id) => free[id] && picks[id] === undefined && !alreadyOffered.includes(`${day}:${id}`))
-    .map((id) => ({ id, text: extraOfferText(id, data, inPlan) }));
-  const ready = !incompleteStay && bookable(plans) && (step === 0 || customer !== null);
+  const inPlan = tabs.filter((id) => picks[id] !== undefined || (id === "keturraciai" && previewQuad !== null));
+  const validPlan = previewQuad === null
+    ? bookable(plans)
+    : Boolean(quadTour?.ok && (chosen(plans).length === 0 || bookable(plans)));
+  const selectionReady = !incompleteStay && validPlan;
+  const ready = selectionReady && customer !== null;
   const busy = form.formState.isSubmitting || redirecting;
 
   function selectStayDate(next: Date) {
     if (busy) return;
+    setStep(0);
     const key = dateKey(next);
     if (stayDatePhase !== "selectingEnd" || key <= day) {
+      if (key !== day) setPreviewQuad(null);
       setDate(next);
       setStayDatePhase("selectingEnd");
       return;
@@ -164,7 +148,14 @@ export function ReservationFlow({
   }
 
   function removeActivity(id: ActivityId) {
+    if (id === "keturraciai" && previewQuad) {
+      if (busy) return;
+      setPreviewQuad(null);
+      setStep(0);
+      return;
+    }
     if (busy || !picks[id]) return;
+    setStep(0);
     setPicks((current) => {
       const remaining = { ...current };
       delete remaining[id];
@@ -172,31 +163,59 @@ export function ReservationFlow({
     });
     if (id === "pirtis") setPeople(1);
     if (id === "nakvyne") setDraftNights(stayNights);
-    if (inPlan.length === 1) setStep(0);
   }
 
+  const editPicks: typeof setPicks = (next) => {
+    if (busy) return;
+    setStep(0);
+    setPicks(next);
+  };
+  const editPeople: typeof setPeople = (next) => {
+    if (busy) return;
+    setStep(0);
+    setPeople(next);
+  };
+
+  const privateSauna = plans.pirtis?.mode === "private" ? plans.pirtis : null;
+  const privateStarts = privateSauna
+    ? sessionRows(data.sauna, day, [...planHours(plans.keturraciai), ...(quadTour?.hours ?? [])])
+      .find((row) => row.mode === "private" && row.programId === privateSauna.program.id)?.startHours ?? []
+    : [];
+  const quantities = planQuantities(plans, data, when, editPicks, editPeople);
+  if (previewQuad && quadTour && quadTour.maxUnits > 0) {
+    quantities.keturraciai = [{
+      id: "tour",
+      label: "Keturračių kiekis",
+      value: previewQuad.units,
+      max: quadTour.maxUnits,
+      onChange: (units) => {
+        if (busy) return;
+        setStep(0);
+        setPreviewQuad((current) => current ? { ...current, units } : current);
+      },
+    }];
+  }
   const planDetails = {
-    facts,
     lines,
     total,
-    quantities: planQuantities(plans, data, when, setPicks, setPeople),
+    quantities,
+    saunaTime: privateSauna ? {
+      value: privateSauna.startHour,
+      starts: privateStarts,
+      onChange: (startHour: number) => {
+        if (busy || !privateStarts.includes(startHour)) return;
+        setStep(0);
+        setPicks((current) => current.pirtis ? { ...current, pirtis: { ...current.pirtis, startHour } } : current);
+      },
+    } : undefined,
     busy,
     onRemove: removeActivity,
   };
 
-  async function next() {
-    if (!ready || busy) return;
-    // Other activities are free that day and not in the plan yet: offer each once before the account step.
-    if (step === 0 && offers.length) {
-      setOfferOpen(true);
-      return;
-    }
-    // The account step needs a signed-in customer with a name before the review is shown.
-    if (step === 1) {
-      if (!(await form.trigger())) return;
-      void saveCustomerName(form.getValues("customerName")).catch(() => null);
-    }
-    setStep((s) => Math.min(LAST, s + 1));
+  function next(cash = payOnSite) {
+    if (!selectionReady || busy) return;
+    setPayOnSite(cash);
+    setStep(LAST);
   }
 
   const submit = form.handleSubmit(async ({ customerName }) => {
@@ -204,9 +223,14 @@ export function ReservationFlow({
       setStep(1);
       return;
     }
+    if (previewQuad) {
+      setPreviewComplete(true);
+      return;
+    }
+    void saveCustomerName(customerName).catch(() => null);
     // The server files every request for the signed-in account (its confirmed phone and email, read
     // from the session); the contact below only has to pass the same schemas as the other forms.
-    if (!payments) {
+    if (payOnSite || !payments) {
       const contact = { customerName, customerPhone: customer.phone ?? "", customerEmail: customer.email ?? "", viaAccount: true };
       setOutcome(await submitReservation(plans, when, contact, outcome?.sent ?? {}));
       return;
@@ -226,11 +250,22 @@ export function ReservationFlow({
     window.location.assign(result.data.url);
   });
 
-  /** Enter in a field moves on until the review; only there does it send. */
+  /** Only the dialog's final form can submit a verified customer's plan. */
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (step < LAST) void next();
-    else if (ready && !busy) void submit();
+    if (step === LAST && ready && !busy) void submit();
+  }
+
+  if (previewComplete) {
+    return (
+      <div className="space-y-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
+        {header}
+        <QuadPreviewComplete lines={lines} total={total} onReset={() => {
+          setPreviewComplete(false);
+          setStep(0);
+        }} />
+      </div>
+    );
   }
 
   if (outcome) {
@@ -239,12 +274,13 @@ export function ReservationFlow({
         {header}
         <ReservationDone
           lines={lines}
-          when={whenLabel}
           outcome={outcome}
+          payOnSite={payOnSite}
           busy={form.formState.isSubmitting}
           onRetry={submit}
           onReset={() => {
             setOutcome(null);
+            setPayOnSite(false);
             setPicks({});
             setPeople(1);
             setDraftNights(1);
@@ -257,17 +293,21 @@ export function ReservationFlow({
     );
   }
 
-  const heading = step > 0 ? headings(payments)[step - 1] : null;
+  const continueAction = { label: "Rezervuoti", disabled: !selectionReady || busy, onClick: () => next(false) };
+  const secondaryAction = { label: "Atsiskaitysiu vietoj grynais", disabled: !selectionReady || busy, onClick: () => next(true) };
   return (
     <FormProvider {...form}>
-      <form onSubmit={onSubmit} noValidate className="px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
+      <form onSubmit={(event) => {
+        event.preventDefault();
+        next();
+      }} noValidate className="px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
         <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
           <div className="min-w-0 space-y-8 lg:col-span-2">
-            {header}
+            <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>
             <ActivityTabs
               ids={tabs}
               active={tab}
-              included={tabs.filter((id) => picks[id] !== undefined)}
+              included={inPlan}
               renderDetails={(id, active) => <ActivityAbout id={id} data={data} active={active} />}
               onChange={(id) => {
                 if (busy) return;
@@ -278,54 +318,59 @@ export function ReservationFlow({
             <WhenStep
               days={days}
               date={date}
-              onDate={(next) => { if (!busy) setDate(next); }}
+              onDate={(next) => {
+                if (busy) return;
+                if (dateKey(next) !== day) setPreviewQuad(null);
+                setStep(0);
+                setDate(next);
+              }}
               icons={dayIcons}
               stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
             />
-            {heading ? <StepHeading step={step + 1} {...heading} /> : null}
-            {step === 0 ? (
-              <ActivitiesStep data={data} when={when} tab={tab} picks={picks} plans={plans} stayNights={stayEnd ? stayNights : null} onRemove={removeActivity} onPick={setPicks} onPeople={setPeople} />
-            ) : null}
-            {step === 1 ? <AccountStep customer={customer} onCustomer={setCustomer} /> : null}
-            {step === 2 ? <ReviewStep lines={lines} when={whenLabel} total={total} payments={payments} customer={customer} /> : null}
-            <div className="flex items-center justify-between gap-4 border-t border-line pt-6">
-              {step > 0 ? (
-                <button type="button" disabled={busy} onClick={() => setStep(step - 1)} className="inline-flex min-h-11 items-center border-b border-current text-xs font-bold">
-                  Atgal
-                </button>
-              ) : (
-                <span />
-              )}
-              {step < LAST ? (
-                <Cta tone="dark" small disabled={!ready || busy} onClick={() => void next()}>
-                  Toliau
-                </Cta>
-              ) : (
-                <ArrowButton type="submit" disabled={!ready || busy}>
-                  {redirecting ? "Nukreipiame į mokėjimą..." : form.formState.isSubmitting ? "Siunčiama..." : payments ? `Mokėti ${total} €` : "Rezervuoti"}
-                </ArrowButton>
-              )}
-            </div>
+            <ActivitiesStep
+              data={data}
+              when={when}
+              tab={tab}
+              picks={picks}
+              plans={plans}
+              stayNights={stayEnd ? stayNights : null}
+              previewQuad={previewQuad}
+              quadPreviewHours={quadTour?.hours ?? []}
+              onQuadPreview={(next) => {
+                if (busy) return;
+                setStep(0);
+                setPreviewQuad(next);
+                if (next) setPicks((current) => {
+                  const remaining = { ...current };
+                  delete remaining.keturraciai;
+                  return remaining;
+                });
+              }}
+              onRemove={removeActivity}
+              onPick={editPicks}
+              onPeople={editPeople}
+            />
           </div>
-          <PlanPanel activity={tab} {...planDetails} />
+          <PlanPanel activity={tab} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
         </div>
-        <ExtrasOfferDialog
-          open={offerOpen}
-          offers={offers}
-          photo={photo}
-          onPick={(id) => {
-            setAlreadyOffered((o) => [...o, ...offers.map((x) => `${day}:${x.id}`)]);
-            setOfferOpen(false);
-            setTab(id);
-          }}
-          onContinue={() => {
-            setAlreadyOffered((o) => [...o, ...offers.map((x) => `${day}:${x.id}`)]);
-            setOfferOpen(false);
-            setStep(1);
-          }}
-        />
       </form>
-      <MobilePlanDock activity={tab} whenLabel={whenLabel} {...planDetails} />
+      <MobilePlanDock activity={tab} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
+      <ReservationAccountDialog
+        open={step === LAST}
+        onClose={() => { if (!busy) setStep(0); }}
+        onReturnToPlan={() => selectionHeader.current?.focus({ preventScroll: true })}
+        customer={customer}
+        onCustomer={setCustomer}
+        lines={lines}
+        total={total}
+        payments={payments}
+        payOnSite={payOnSite}
+        preview={previewQuad !== null}
+        ready={ready}
+        busy={busy}
+        redirecting={redirecting}
+        onSubmit={onSubmit}
+      />
     </FormProvider>
   );
 }

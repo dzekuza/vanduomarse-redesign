@@ -1,17 +1,15 @@
 import { CABIN_SIZES, CAMPER_MAX_GUESTS, ROOM_TYPES } from "@/lib/cabin";
-import { formatHour, fromRate } from "@/lib/sauna";
+import { Cta } from "@/components/cta";
+import { QuadInformation } from "@/components/quads/quad-information";
+import { QUAD_PREVIEW_ACCESSORIES, QUAD_PREVIEW_ROUTES } from "@/components/quads/quad-preview-content";
 import type { ActivityId, ReservationData } from "@/lib/reservation";
 
-/** Short line under the tabs: what the activity is, with its starting price. Built from the live data, so prices never drift. */
-export function activityBlurb(id: ActivityId, data: ReservationData): string {
-  if (id === "pirtis") {
-    const from = Math.min(...data.sauna.saunas.map((s) => fromRate(s.rates)));
-    return `Rezervuok pirtį savo grupei valandoms arba prisijunk prie seanso su programa. Nuo ${from} € / val.`;
-  }
+/** Dialog introduction, using the same price catalogues as the activity controls. */
+export function activityBlurb(id: ActivityId): string {
+  if (id === "pirtis") return "Prisijunk prie pirties seanso arba rezervuok privačią pirtį savo grupei.";
   if (id === "nakvyne") return `Nameliai 2 ar 4 asmenims ir kemperių aikštelė su elektra. Nuo ${CABIN_SIZES[0].pricePerNight} € / naktį.`;
-  const types = data.quads.types.filter((t) => t.units > 0);
-  const from = Math.min(...types.map((t) => t.pricePerHour));
-  return `Keturračiai vienam ar dviem važiuotojams. Nuo ${from} € / val.`;
+  const from = Math.min(...QUAD_PREVIEW_ROUTES.map((route) => route.price));
+  return `Mini, Midi arba Maxi. Nuo ${from} € už keturratį. Vienam ar dviem kaina ta pati.`;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -43,7 +41,7 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
         <Section title="Pirtys">
           <ul className="space-y-3">
             {data.sauna.saunas.map((s) => (
-              <Item key={s.id} title={s.name} text={[s.description, s.features.join(" · ")].filter(Boolean).join(" ")} meta={`nuo ${fromRate(s.rates)} € / val.`} />
+              <Item key={s.id} title={s.name} text={[s.description, s.features.join(" · ")].filter(Boolean).join(" ")} />
             ))}
           </ul>
         </Section>
@@ -81,35 +79,17 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
     );
   }
 
-  const { settings, types } = data.quads;
-  const rules: { label: string; value: string }[] = [
-    { label: "Darbo laikas", value: `${formatHour(settings.openHour)}–${formatHour(settings.closeHour)}` },
-    { label: "Ilgiausia nuoma", value: `${settings.maxHours} val.` },
-    { label: "Minimalus amžius", value: `${settings.minAge} m.` },
-    ...(settings.deposit > 0 ? [{ label: "Užstatas", value: `${settings.deposit} €` }] : []),
-  ];
   return (
     <div className="space-y-6">
-      <Section title="Keturračiai">
+      <Cta tone="dark" small href="/keturraciai">Mini, Midi, Maxi. Trasų peržiūra</Cta>
+      <Section title="Turai">
         <ul className="space-y-3">
-          {types
-            .filter((t) => t.units > 0)
-            .map((t) => (
-              <Item key={t.id} title={`${t.name}, ${t.seats === 1 ? "vienvietis" : "dvivietis"}`} text={t.description} meta={`${t.pricePerHour} € / val.`} />
-            ))}
+          {QUAD_PREVIEW_ROUTES.map((route) => (
+            <Item key={route.id} title={`${route.name} turas`} text={`${route.kilometres} km · ${route.hours} val. ${route.description}`} meta={`${route.price} € / keturračiui`} />
+          ))}
         </ul>
       </Section>
-      <Section title="Nuomos sąlygos">
-        <dl className="divide-y divide-line text-sm">
-          {rules.map((r) => (
-            <div key={r.label} className="flex items-baseline justify-between gap-4 py-2 first:pt-0">
-              <dt className="text-copy">{r.label}</dt>
-              <dd className="font-bold">{r.value}</dd>
-            </div>
-          ))}
-        </dl>
-        {settings.rules ? <p className="whitespace-pre-line text-xs leading-relaxed text-copy">{settings.rules}</p> : null}
-      </Section>
+      <QuadInformation accessories={QUAD_PREVIEW_ACCESSORIES} />
     </div>
   );
 }
