@@ -1,3 +1,8 @@
+## 2026-11-05 — Twilio sender name check
+- **Checked:** Twilio account, Messaging Services and senders, last messages (read-only API); `.env.local` and Vercel Twilio vars; production deploy after the change.
+- **Status:** setup correct; last real attempt failed 21212 (From set to the `AI…` sender SID). No SMS sent by me.
+- **Next:** confirm Supabase phone provider uses `MGd815…`; one test SMS and one sign-in code to a real number.
+
 ## 2026-11-05 — PR #12 merged
 - **Changed:** PR #12 (email notifications, confirmed-email lookup, marketing copy, review fixes) merged into `main` as 9699683; Vercel preview build had passed.
 - **Status:** migration `20261105120000` already applied; production redeploys from `main`.
