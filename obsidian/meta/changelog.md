@@ -11,6 +11,13 @@
 - 2026-11-05 Quad reservations choose start and duration before adding vehicle quantities. Time choices are visible immediately and quantity limits reflect availability for the chosen slot.
 - 2026-11-05 Moved date and time into each activity entry in the plan, review and confirmation. Stays show arrival and departure, and the plan no longer has a shared facts section.
 - 2026-11-05 Added “Keisti laiką” to private sauna entries in the desktop plan and mobile sheet. Available times reuse the booking card rules and stay synchronized with it.
+- 2026-11-05 Merged PR #12 (booking email notifications) into `main`.
+- 2026-11-05 Every staff booking email (new request, paid) is also sent to marketingas@vanduomarse.lt (`STAFF_BOOKING_COPY`); double-charge alerts are not.
+- 2026-11-05 Confirm/cancel and payment emails take the address from the account's confirmed email (`auth.users`), not the request row; migration `20261105120000_notify_account_email`, applied to the live project.
+- 2026-11-05 PR #12 review: customer emails go only to account-confirmed addresses (the anonymous phone-code forms get SMS only); the webhook reads the paying account's confirmed email through `payment_notify_email` (after `complete_payment`); Resend and Twilio calls time out after 8 s; amounts in emails use a decimal comma; the `/admin` link is left out without `SITE_URL`.
+- 2026-11-05 Calculator inquiries no longer email or text the customer's typed address and phone (no verification on that form); staff are still alerted and reply themselves.
+- 2026-11-05 Staff booking emails are routed per service: sauna and quads → renginiai@vanduomarse.lt, stays → miegas@vanduomarse.lt; other requests → `STAFF_NOTIFY_EMAIL`. Payment emails follow the reference prefix (ADR-0028).
+- 2026-11-05 Booking email notifications through Resend: customers with an account-confirmed email get "užklausa gauta", "patvirtinta/atšaukta" and "apmokėjimas gautas" next to the SMS; staff get new-request, paid and double-charge emails at the service inbox (`STAFF_NOTIFY_EMAIL` only for other requests). New `lib/notify.ts` dispatches every channel; `lib/email/resend.ts` is the one Resend sender (coupon email now uses it). New env `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`, `EMAIL_IN_DEV`. Migration `20261105120000_notify_account_email` (entry above). ADR-0028.
 - 2026-11-04 Moved removal into the selected sauna card and Toliau into the desktop and mobile plans. Removed the selection footer divider and the Bendra filter.
 - 2026-11-04 Private sauna reservations choose only a time. Ticket quantity remains available for public sessions.
 - 2026-11-04 Put published sauna sessions first in reservation and grouped each private program
@@ -137,7 +144,7 @@
 
 ---
 tags: [meta, changelog]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Changelog

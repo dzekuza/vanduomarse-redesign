@@ -20,7 +20,9 @@ updated: 2026-11-01
 |------|-------|----------|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | client + server | **yes** | Supabase project URL (project "Vanduo") |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client + server | **yes** | Public anon key; RLS decides what it can see |
-| `RESEND_API_KEY` | server | no | Coupon emails (`lib/email/send-coupon.ts`, Resend HTTP API, no SDK). Without it "Pažymėti apmokėtu" still issues the code and the admin is told the email was not sent |
+| `RESEND_API_KEY` | server | no | All email, through `sendEmail` in `lib/email/resend.ts` (Resend HTTP API, no SDK): coupon emails (`lib/email/send-coupon.ts`) and booking notifications (`lib/email/notify.ts`, dispatched with SMS by `lib/notify.ts`). Without it "Pažymėti apmokėtu" still issues the code (admin told the email was not sent) and bookings are texted only |
+| `NOTIFY_FROM_EMAIL` | server | no | Sender for booking emails, e.g. `Vanduo Marse <rezervacijos@vanduomarse.lt>`, on a Resend-verified domain; falls back to `COUPON_FROM_EMAIL`. Replies go to `MAIN_CONTACT.email` |
+| `STAFF_NOTIFY_EMAIL` | server | no | Fallback staff inbox(es), comma-separated, for services without a fixed inbox (event tickets and registrations, calculator inquiries). Sauna and quads go to `renginiai@vanduomarse.lt`, stays to `miegas@vanduomarse.lt` (`STAFF_INBOX` in `lib/contacts.ts`), whatever this is set to. Empty = no email for the other services |
 | `COUPON_FROM_EMAIL` | server | no | Sender for coupon emails, e.g. `Vanduo Marse <kuponai@vanduomarse.lt>`; must be on a Resend-verified domain. Needs `RESEND_API_KEY` too |
 | `EMBED_ALLOWED_ORIGINS` | server | only for the WordPress widgets | Comma-separated origins allowed to frame `/embed/*` (CSP `frame-ancestors`, set in `proxy.ts` via `frameAncestors()` in `lib/embed.ts`). Non-origin entries are dropped; empty = same-origin only. Production: `https://vanduomarse.lt,https://www.vanduomarse.lt`; Vercel needs a redeploy after a change (ADR-0014) |
 | `SUPABASE_SERVICE_ROLE_KEY` | server | **yes** (staff management + phone gate) | Read by `lib/supabase/admin.ts`. Used by the owner-only actions in `app/admin/staff-actions.ts` (create, reset, delete logins) and by `app/actions/phone.ts` to call `request_phone_code` / `verify_phone_code`, the only functions it touches (ADR-0018). Without it the phone gate says SMS checks are down, so nobody can book online |
@@ -28,7 +30,7 @@ updated: 2026-11-01
 
 | `STRIPE_SECRET_KEY` | server | for online payment | Restricted key (`rk_…`, Checkout Sessions write, Payment Intents read) or secret key. Read by `lib/stripe.ts`. Online payment on `/rezervacija` is on only when this **and** `STRIPE_WEBHOOK_SECRET` are set |
 | `STRIPE_WEBHOOK_SECRET` | server | for online payment | Signing secret (`whsec_…`) of the endpoint `https://<site>/api/stripe/webhook`; verified in `app/api/stripe/webhook/route.ts` |
-| `SITE_URL` | server | no | Public origin for the Stripe return URLs (e.g. `https://vanduomarse.lt`); defaults to the request's own origin |
+| `SITE_URL` | server | no | Public origin for the Stripe return URLs (e.g. `https://vanduomarse.lt`); defaults to the request's own origin. Also the `/paskyra` and `/admin` links in emails, which are left out (customer) or relative (staff) without it |
 
 Values: Supabase dashboard → Project Settings → API. Stripe: Developers → API keys and Webhooks (use a sandbox for development).
 
@@ -43,7 +45,9 @@ error when either variable is missing. Every client (`lib/supabase/server.ts`,
 [[api-architecture]] · [[tech-stack]]
 
 
-## SMS in local development
+## SMS and email in local development
+
+`EMAIL_IN_DEV` (optional, `1`): by default `next dev` logs booking emails to the server console instead of sending them; set it to send real ones. Coupon emails (a deliberate staff action) always send. Ignored in production builds.
 
 `SMS_IN_DEV` (optional, `1`): by default `next dev` sends no SMS and the phone gate auto-confirms the typed number; set it to send real SMS locally. Ignored in production builds.
 

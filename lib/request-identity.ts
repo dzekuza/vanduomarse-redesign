@@ -11,6 +11,11 @@ export interface Requester {
   /** E.164, or null for an account that signed in with email only. */
   phone: string | null;
   email: string | undefined;
+  /**
+   * The address we may email: only a signed-in account's confirmed email. The anonymous path proves the
+   * phone only, so its typed email is filed with the request but never mailed (it could be anyone's).
+   */
+  notifyEmail: string | null;
 }
 
 /**
@@ -23,9 +28,9 @@ export async function requester(v: { customerPhone: string; customerEmail: strin
   if (v.viaAccount) {
     const customer = await getCustomer();
     if (!customer) return null;
-    return { supabase: await createClient(), phone: customer.phone, email: customer.email ?? undefined };
+    return { supabase: await createClient(), phone: customer.phone, email: customer.email ?? undefined, notifyEmail: customer.email ?? null };
   }
   const phone = verifiedPhone(v.verificationToken, v.customerPhone);
   if (!phone) return null;
-  return { supabase: createPublicClient(), phone, email: v.customerEmail || undefined };
+  return { supabase: createPublicClient(), phone, email: v.customerEmail || undefined, notifyEmail: null };
 }
