@@ -1,3 +1,8 @@
+## 2026-11-05 — PR #12 merged
+- **Changed:** PR #12 (email notifications, confirmed-email lookup, marketing copy, review fixes) merged into `main` as 9699683; Vercel preview build had passed.
+- **Status:** migration `20261105120000` already applied; production redeploys from `main`.
+- **Next:** check the production deploy picked up the Stripe and email env vars; one test booking and checkout.
+
 ## 2026-11-05 — Marketing copy of booking emails
 - **Changed:** `STAFF_BOOKING_COPY` (marketingas@vanduomarse.lt) in `lib/contacts.ts`, added once to every new-request and paid staff email in `lib/email/notify.ts` (not double-charge). Needed because `STAFF_NOTIFY_EMAIL` is only the fallback for services without an inbox.
 - **Status:** `tsc`/eslint clean; not sent for real.

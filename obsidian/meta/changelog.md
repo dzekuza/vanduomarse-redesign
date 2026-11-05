@@ -1,3 +1,4 @@
+- 2026-11-05 Merged PR #12 (booking email notifications) into `main`.
 - 2026-11-05 Every staff booking email (new request, paid) is also sent to marketingas@vanduomarse.lt (`STAFF_BOOKING_COPY`); double-charge alerts are not.
 - 2026-11-05 Confirm/cancel and payment emails take the address from the account's confirmed email (`auth.users`), not the request row; migration `20261105120000_notify_account_email`, applied to the live project.
 - 2026-11-05 PR #12 review: customer emails go only to account-confirmed addresses (the anonymous phone-code forms get SMS only); the webhook reads the paying account's confirmed email through `payment_notify_email` (after `complete_payment`); Resend and Twilio calls time out after 8 s; amounts in emails use a decimal comma; the `/admin` link is left out without `SITE_URL`.
