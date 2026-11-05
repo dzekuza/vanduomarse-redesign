@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
@@ -92,7 +92,9 @@ export function ReservationFlow({
     resolver: zodResolver(accountSchema),
     defaultValues: { customerName: initialCustomer?.name ?? "", discountCode: "" },
   });
-  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const [appliedDiscount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const [checkingCode, setCheckingCode] = useState(false);
+  const onCheckingCode = useCallback((checking: boolean) => setCheckingCode(checking), []);
 
   const day = dateKey(date);
   const stayNights = picks.nakvyne?.nights ?? draftNights;
@@ -109,6 +111,8 @@ export function ReservationFlow({
     lines.push({ id: "nakvyne", title: ACTIVITY_TITLE.nakvyne, detail: "Pasirink išvykimo datą.", schedule: `Atvykimas ${longDateLabel(date)}`, price: 0 });
   }
   const total = totalOf(lines);
+  // A quad preview books nothing, so no code applies to it.
+  const discount = previewQuad ? null : appliedDiscount;
   // Preview only: each request's database function prices the code again.
   const discountAmount = discount
     ? Math.round(lines.reduce((sum, line) => sum + (isDiscountService(line.id) ? discountFor(discount, line.id, line.price) : 0), 0) * 100) / 100
@@ -239,15 +243,18 @@ export function ReservationFlow({
     void saveCustomerName(customerName).catch(() => null);
     // The server files every request for the signed-in account (its confirmed phone and email, read
     // from the session); the contact below only has to pass the same schemas as the other forms.
-    if (payOnSite || !payments) {
+    // A code that covers everything leaves nothing to pay online: file the requests unpaid instead.
+    if (payOnSite || !payments || total - discountAmount <= 0) {
       const contact = {
         customerName,
         customerPhone: customer.phone ?? "",
         customerEmail: customer.email ?? "",
         viaAccount: true,
-        discountCode: discount?.code,
       };
-      setOutcome(await submitReservation(plans, when, contact, outcome?.sent ?? {}));
+      const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount);
+      // The code stopped holding (used up, expired) part-way: drop it so "Bandyti dar kartą" files the rest without it.
+      if (DISCOUNT_HINTS.has(result.error?.code ?? "")) setDiscount(null);
+      setOutcome(result);
       return;
     }
     // Pay at submit: the server files every request and opens Checkout, or files nothing.
@@ -391,6 +398,8 @@ export function ReservationFlow({
           form.clearErrors("discountCode");
           setDiscount(next);
         }}
+        checkingCode={checkingCode}
+        onCheckingCode={onCheckingCode}
         payments={payments}
         payOnSite={payOnSite}
         preview={previewQuad !== null}

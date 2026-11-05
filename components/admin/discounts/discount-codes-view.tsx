@@ -27,7 +27,7 @@ export function DiscountCodesView() {
   const states = Object.keys(DISCOUNT_STATE_LABEL) as DiscountState[];
   const chips: { id: Filter; label: string; count: number }[] = [
     { id: "visi", label: "Visi", count: withState.length },
-    ...states.map((s) => ({ id: s, label: DISCOUNT_STATE_LABEL[s], count: withState.filter((c) => c.state === s).length })).filter((c) => c.count > 0),
+    ...states.map((s) => ({ id: s, label: DISCOUNT_STATE_LABEL[s], count: withState.filter((c) => c.state === s).length })).filter((c) => c.count > 0 || c.id === filter),
   ];
   const rows = withState.filter((c) => filter === "visi" || c.state === filter);
 
@@ -64,9 +64,9 @@ export function DiscountCodesView() {
             key={code.id}
             code={code}
             state={state}
-            onActive={(active) => {
-              setDiscountCodeActive(code.id, active);
-              toast.success(active ? `${code.code}: įjungtas` : `${code.code}: išjungtas`);
+            onActive={async (active) => {
+              const result = await setDiscountCodeActive(code.id, active);
+              if ("data" in result) toast.success(active ? `${code.code}: įjungtas` : `${code.code}: išjungtas`);
             }}
             onEdit={() => setEditing({ code })}
             onDelete={() => setDeleting(code)}
@@ -84,8 +84,8 @@ export function DiscountCodesView() {
           <DialogHeader>
             <DialogTitle>Ištrinti kodą {deleting?.code}?</DialogTitle>
             <DialogDescription>
-              {deleting && deleting.uses > 0
-                ? "Jau pateiktose užklausose kodas ir nuolaida liks įrašyti. Jei kodą norite tik sustabdyti, verčiau jį išjunkite."
+              {deleting && deleting.uses !== 0
+                ? "Panaudoto kodo ištrinti negalima, nes dingtų jo panaudojimų skaičius. Tokį kodą išjunkite."
                 : "Kodo nebus galima panaudoti."}
             </DialogDescription>
           </DialogHeader>
@@ -95,10 +95,12 @@ export function DiscountCodesView() {
             </Button>
             <Button
               variant="destructive"
-              onClick={() => {
+              onClick={async () => {
                 if (!deleting) return;
-                deleteDiscountCode(deleting.id);
+                const target = deleting;
                 setDeleting(null);
+                const result = await deleteDiscountCode(target.id);
+                if ("data" in result) toast.success(`${target.code}: ištrintas`);
               }}
             >
               Ištrinti

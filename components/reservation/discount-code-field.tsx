@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useTransition, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useTransition, type KeyboardEvent } from "react";
 import { useFormContext } from "react-hook-form";
 import { checkDiscountCode } from "@/app/actions/discount-codes";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ interface DiscountCodeFieldProps {
   amount: number;
   disabled: boolean;
   onChange: (discount: CheckedDiscount | null) => void;
+  /** True while a check runs: the dialog holds back the final submit until it answers. */
+  onPending: (pending: boolean) => void;
 }
 
 /**
@@ -22,18 +24,24 @@ interface DiscountCodeFieldProps {
  * `setError`. The database validates and prices the code again on every request.
  * Sits inside the reservation form, so Enter applies the code instead of submitting.
  */
-export function DiscountCodeField({ discount, amount, disabled, onChange }: DiscountCodeFieldProps) {
+export function DiscountCodeField({ discount, amount, disabled, onChange, onPending }: DiscountCodeFieldProps) {
   const id = useId();
   const { register, getValues, setValue, setError, clearErrors, formState } = useFormContext<AccountValues>();
   const [pending, startTransition] = useTransition();
+  /** Only the latest check may apply its answer. */
+  const latest = useRef(0);
   const error = formState.errors.discountCode?.message;
+
+  useEffect(() => onPending(pending), [pending, onPending]);
 
   function apply() {
     const code = getValues("discountCode").trim();
     if (!code) return setError("discountCode", { message: "Įveskite nuolaidos kodą." });
     clearErrors("discountCode");
+    const attempt = ++latest.current;
     startTransition(async () => {
       const result = await checkDiscountCode(code);
+      if (attempt !== latest.current) return;
       if ("error" in result) {
         setError("discountCode", { message: result.error.message });
         return;
@@ -88,6 +96,7 @@ export function DiscountCodeField({ discount, amount, disabled, onChange }: Disc
           aria-describedby={error ? `${id}-discount-error` : undefined}
           className="min-h-11 uppercase"
           disabled={disabled}
+          readOnly={pending}
           onKeyDown={onKeyDown}
           {...register("discountCode")}
         />

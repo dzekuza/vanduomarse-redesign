@@ -4,7 +4,9 @@ import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
 import { getCustomer } from "@/lib/customer";
 import { fileRequest } from "@/lib/file-request";
-import { checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
+import { discountCovers, isDiscountService, normalizeDiscountCode, type DiscountService } from "@/lib/discount-codes";
+import { REQUEST_ACTIVITY, checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
+import { createPublicClient } from "@/lib/supabase/public";
 import { MissingStripeKeyError, getStripe, paymentsEnabled, siteOrigin, toCents } from "@/lib/stripe";
 import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin";
 
@@ -120,9 +122,18 @@ export async function startReservationCheckout(input: unknown): Promise<ActionRe
     customerEmail: customer.email ?? "",
     viaAccount: true,
     awaitingPayment: true,
-    // Each request's database function checks and prices the code itself.
-    discountCode: contact.discountCode || undefined,
   };
+
+  // The code goes only with the requests whose activity it covers; each request's database
+  // function then checks and prices it again (ADR-0036).
+  let covered: DiscountService[] = [];
+  const code = normalizeDiscountCode(contact.discountCode ?? "");
+  if (code) {
+    const { data, error } = await createPublicClient().rpc("check_discount_code", { p_code: code });
+    if (error) return fail(FAILED, "payment");
+    if (!data[0]) return fail("Nuolaidos kodas nebegalioja.", "discount_invalid");
+    covered = data[0].services.filter(isDiscountService);
+  }
 
   const filed: string[] = [];
   const release = async () => {
@@ -136,7 +147,8 @@ export async function startReservationCheckout(input: unknown): Promise<ActionRe
 
   try {
     for (const request of requests) {
-      const result = await fileRequest(request, asCustomer);
+      const withCode = code && discountCovers({ services: covered }, REQUEST_ACTIVITY[request.type]);
+      const result = await fileRequest(request, { ...asCustomer, discountCode: withCode ? code : undefined });
       if ("error" in result) {
         await release();
         return result;

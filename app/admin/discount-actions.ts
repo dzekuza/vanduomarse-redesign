@@ -43,11 +43,18 @@ export async function setDiscountCodeActive(id: string, active: boolean): Promis
   return error ? dbError(error) : done(null);
 }
 
-/** Requests that used the code keep its text and amount (the link is set to null). */
+/**
+ * Only a code no live request holds can be deleted: deleting unlinks its requests (`on delete set null`),
+ * which would drop them from the use count and let a recreated code go past its limit. Used codes are
+ * switched off instead. Cancelled requests keep the code's text and amount either way.
+ */
 export async function deleteDiscountCode(id: string): Promise<ActionResult> {
   const ctx = await staffClient("nuolaidos");
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const usage = await ctx.supabase.rpc("discount_code_usage");
+  if (usage.error) return dbError(usage.error);
+  if ((usage.data.find((u) => u.code_id === id)?.uses ?? 0) > 0) return fail("Kodas jau panaudotas, todėl jį galima tik išjungti.", "in_use");
   const { error } = await ctx.supabase.from("discount_codes").delete().eq("id", id);
   return error ? dbError(error) : done(null);
 }

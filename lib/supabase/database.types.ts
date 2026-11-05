@@ -174,6 +174,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bookings_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bookings_payment_id_fkey"
             columns: ["payment_id"]
             isOneToOne: false
@@ -468,6 +475,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "event_tickets_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "event_tickets_event_id_fkey"
             columns: ["event_id"]
@@ -836,6 +850,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "quad_rentals_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quad_rentals_payment_id_fkey"
             columns: ["payment_id"]

@@ -103,9 +103,9 @@ export function DiscountCodeDialog({ code, onOpenChange }: DiscountCodeDialogPro
               <Controller
                 control={control}
                 name="validUntil"
-                render={({ field }) => <DatePicker id="dc-until" value={field.value} onChange={field.onChange} placeholder="Neribotai" invalid={!!err.validUntil} />}
+                render={({ field }) => <DatePicker id="dc-until" value={field.value} onChange={field.onChange} placeholder="Neribotai" invalid={!!err.validUntil} describedBy={err.validUntil ? "dc-until-error" : undefined} />}
               />
-              {err.validUntil ? <p className="text-xs text-destructive">{err.validUntil.message}</p> : null}
+              {err.validUntil ? <p id="dc-until-error" className="text-xs text-destructive">{err.validUntil.message}</p> : null}
             </div>
           </div>
           <div className="space-y-1.5">

@@ -42,10 +42,10 @@ export interface DiscountCode extends CheckedDiscount {
   active: boolean;
   note: string;
   createdAt: string;
-  /** Requests holding the code that are not cancelled. */
-  uses: number;
-  /** Euros those requests got off. */
-  discountTotal: number;
+  /** Requests holding the code that are not cancelled; null when the usage could not be read. */
+  uses: number | null;
+  /** Euros those requests got off; null when the usage could not be read. */
+  discountTotal: number | null;
 }
 
 /** Upper case letters and digits, like the database stores it. */
@@ -53,12 +53,23 @@ export const normalizeDiscountCode = (code: string) => code.toUpperCase().replac
 
 export const isDiscountService = (value: string): value is DiscountService => (DISCOUNT_SERVICES as readonly string[]).includes(value);
 
-/** Euros a code takes off one activity's subtotal (the database rounds the same way). */
+const toCents = (euros: number) => Math.round(euros * 100);
+
+/**
+ * Euros a code takes off one activity's subtotal. Integer cents, so it matches the database's
+ * `round(subtotal * value / 100, 2)` (half away from zero) instead of drifting with floats.
+ */
 export function discountFor(discount: Pick<CheckedDiscount, "kind" | "value" | "services">, service: DiscountService, subtotal: number): number {
   if (!discount.services.includes(service) || subtotal <= 0) return 0;
-  const amount = discount.kind === "procentai" ? (subtotal * discount.value) / 100 : Math.min(discount.value, subtotal);
-  return Math.round(amount * 100) / 100;
+  const subtotalCents = toCents(subtotal);
+  if (discount.kind === "suma") return Math.min(toCents(discount.value), subtotalCents) / 100;
+  // cents × (percent × 100) / 10 000, rounded half up on exact integers.
+  return Math.floor((subtotalCents * toCents(discount.value) + 5000) / 10000) / 100;
 }
+
+/** Whether a code covers an activity of the plan (and so goes with that activity's request). */
+export const discountCovers = (discount: Pick<CheckedDiscount, "services"> | null | undefined, service: string) =>
+  !!discount && isDiscountService(service) && discount.services.includes(service);
 
 /** "10 %" or "5 €". */
 export const discountValueLabel = (discount: Pick<CheckedDiscount, "kind" | "value">) =>
@@ -82,6 +93,11 @@ export function discountState(code: DiscountCode, today: string): DiscountState 
   if (!code.active) return "isjungtas";
   if (code.validUntil && code.validUntil < today) return "nebegalioja";
   if (code.validFrom && code.validFrom > today) return "dar_negalioja";
-  if (code.maxUses !== null && code.uses >= code.maxUses) return "isnaudotas";
+  if (code.maxUses !== null && code.uses !== null && code.uses >= code.maxUses) return "isnaudotas";
   return "aktyvus";
 }
+
+const DATE_WITH_YEAR = new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+
+/** "2026 m. lapkričio 5 d." for a yyyy-mm-dd, with the year (codes can run across years). */
+export const discountDateLabel = (date: string) => DATE_WITH_YEAR.format(new Date(`${date}T00:00:00Z`));

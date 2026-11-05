@@ -175,7 +175,8 @@ export function toCouponProduct(r: Tables<"coupon_products">): CouponProduct {
   return { id: r.id, kind: r.kind, service: r.service, name: r.name, description: r.description, value: r.value, active: r.active };
 }
 
-export function toDiscountCode(r: Tables<"discount_codes">, usage?: { uses: number; discount_total: number }): DiscountCode {
+/** `usage` null = the usage query failed (shown as unknown, never as zero). */
+export function toDiscountCode(r: Tables<"discount_codes">, usage: { uses: number; discount_total: number } | null | undefined): DiscountCode {
   return {
     id: r.id,
     code: r.code,
@@ -188,8 +189,8 @@ export function toDiscountCode(r: Tables<"discount_codes">, usage?: { uses: numb
     active: r.active,
     note: r.note ?? "",
     createdAt: r.created_at,
-    uses: usage?.uses ?? 0,
-    discountTotal: Number(usage?.discount_total ?? 0),
+    uses: usage === null ? null : (usage?.uses ?? 0),
+    discountTotal: usage === null ? null : Number(usage?.discount_total ?? 0),
   };
 }
 

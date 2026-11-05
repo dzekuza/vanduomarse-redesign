@@ -7,8 +7,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { formatEuro } from "@/lib/coupons";
-import { DISCOUNT_STATE_LABEL, discountServicesLabel, discountValueLabel, type DiscountCode, type DiscountState } from "@/lib/discount-codes";
-import { longDateLabel } from "@/lib/sauna";
+import { DISCOUNT_STATE_LABEL, discountDateLabel, discountServicesLabel, discountValueLabel, type DiscountCode, type DiscountState } from "@/lib/discount-codes";
 
 interface DiscountCodeCardProps {
   code: DiscountCode;
@@ -19,8 +18,8 @@ interface DiscountCodeCardProps {
 }
 
 const validity = (c: DiscountCode) => {
-  const from = c.validFrom ? longDateLabel(new Date(`${c.validFrom}T12:00:00`)) : null;
-  const until = c.validUntil ? longDateLabel(new Date(`${c.validUntil}T12:00:00`)) : null;
+  const from = c.validFrom ? discountDateLabel(c.validFrom) : null;
+  const until = c.validUntil ? discountDateLabel(c.validUntil) : null;
   if (from && until) return `${from} – ${until}`;
   if (from) return `Nuo ${from}`;
   if (until) return `Iki ${until}`;
@@ -33,14 +32,14 @@ export function DiscountCodeCard({ code, state, onActive, onEdit, onDelete }: Di
     <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2 font-display tracking-wide">
-          {code.code}
+          <span className="min-w-0 wrap-anywhere">{code.code}</span>
           <Badge variant={state === "aktyvus" ? "default" : "secondary"}>{DISCOUNT_STATE_LABEL[state]}</Badge>
         </CardTitle>
         <CardDescription>
           {discountValueLabel(code)} · {discountServicesLabel(code.services)}
         </CardDescription>
         <CardAction className="flex items-center gap-1">
-          <Switch checked={code.active} aria-label={`Įjungti kodą ${code.code}`} onCheckedChange={onActive} />
+          <Switch checked={code.active} aria-label={`Kodas ${code.code} įjungtas`} onCheckedChange={onActive} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label={`Veiksmai: ${code.code}`}>
@@ -62,11 +61,11 @@ export function DiscountCodeCard({ code, state, onActive, onEdit, onDelete }: Di
           <dd>{validity(code)}</dd>
           <dt className="text-muted-foreground">Panaudota</dt>
           <dd className="tabular-nums">
-            {code.uses}
+            {code.uses ?? "—"}
             {code.maxUses !== null ? ` / ${code.maxUses}` : ""}
           </dd>
           <dt className="text-muted-foreground">Nuolaidų suma</dt>
-          <dd className="tabular-nums">{formatEuro(code.discountTotal)}</dd>
+          <dd className="tabular-nums">{code.discountTotal === null ? "—" : formatEuro(code.discountTotal)}</dd>
           {code.note ? (
             <>
               <dt className="text-muted-foreground">Pastaba</dt>

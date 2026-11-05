@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckIcon } from "@phosphor-icons/react";
+import { useId } from "react";
 import { DISCOUNT_SERVICES, type DiscountService } from "@/lib/discount-codes";
 
 interface ServiceChecksProps {
@@ -12,12 +13,14 @@ interface ServiceChecksProps {
 
 /** Which services a discount code covers: wrapping toggle chips, at least one. */
 export function ServiceChecks({ value, onChange, labels, error }: ServiceChecksProps) {
+  const errorId = useId();
+
   function toggle(service: DiscountService) {
     onChange(value.includes(service) ? value.filter((s) => s !== service) : DISCOUNT_SERVICES.filter((s) => s === service || value.includes(s)));
   }
 
   return (
-    <fieldset className="space-y-1.5">
+    <fieldset className="space-y-1.5" aria-invalid={!!error} aria-describedby={error ? errorId : undefined}>
       <legend className="text-sm font-medium">Taikoma paslaugoms</legend>
       <div className="flex flex-wrap gap-2">
         {DISCOUNT_SERVICES.map((s) => {
@@ -36,7 +39,11 @@ export function ServiceChecks({ value, onChange, labels, error }: ServiceChecksP
           );
         })}
       </div>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? (
+        <p id={errorId} className="text-xs text-destructive">
+          {error}
+        </p>
+      ) : null}
     </fieldset>
   );
 }

@@ -1,3 +1,8 @@
+## 2026-11-05 — PR #13 review fixes
+- **Changed:** per-activity discount code in both checkout paths, submit blocked while a code check runs, 0 € plans filed unpaid, delete refused for used codes, non-optimistic admin toggle/delete, integer-cent preview, schema limits shared with the form, FK relationships in the types, a11y fixes; docs wording.
+- **Status:** `tsc` and eslint clean; replies posted on the review threads.
+- **Next:** staff sign-in to check `/admin/nuolaidos` and an applied code.
+
 ## 2026-11-05 — Discount code migrations applied
 - **Changed:** applied `20261104190000`, `20261104191000` and `20261105150000_discount_codes` to `mwngljhcvqkvncwbmgeo` (owner approved); grants and advisors checked; security review findings recorded in ADR-0036.
 - **Status:** live code check works at the checkout; admin screen not yet checked (needs staff sign-in).

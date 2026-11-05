@@ -288,13 +288,17 @@ function useAdminReducer(initial: AdminData) {
       },
       /** Not optimistic: the id and usage come from the database, and a taken code is refused. */
       saveDiscountCode: (input: DiscountCodeInput) => report(discountActions.saveDiscountCode(input)),
-      setDiscountCodeActive: (id: string, active: boolean) => {
-        dispatch({ type: "discountCode/active", id, active });
-        return report(discountActions.setDiscountCodeActive(id, active));
+      /** Not optimistic: the list changes only once the database accepted it. */
+      setDiscountCodeActive: async (id: string, active: boolean) => {
+        const result = await report(discountActions.setDiscountCodeActive(id, active));
+        if ("data" in result) dispatch({ type: "discountCode/active", id, active });
+        return result;
       },
-      deleteDiscountCode: (id: string) => {
-        dispatch({ type: "discountCode/delete", id });
-        return report(discountActions.deleteDiscountCode(id));
+      /** Not optimistic: refused while live requests hold the code. */
+      deleteDiscountCode: async (id: string) => {
+        const result = await report(discountActions.deleteDiscountCode(id));
+        if ("data" in result) dispatch({ type: "discountCode/delete", id });
+        return result;
       },
       /** Not optimistic: the code and expiry come from the database. */
       activateCoupon: (id: string) => report(actions.activateCoupon(id)),

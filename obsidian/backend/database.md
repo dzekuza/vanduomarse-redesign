@@ -151,7 +151,7 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `private.generate_coupon_code()` | internal | 12 symbols of `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` from `gen_random_uuid()` bytes |
 | `check_discount_code(code)` | anon, authenticated | `security definer`. Kind, value and services of an active code that is in its dates and not used up; nothing otherwise. A preview only (ADR-0036) |
 | `discount_code_usage()` | `nuolaidos` (`security definer`, raises `42501` otherwise) | Uses and euro total per code, from non-cancelled bookings, quad rentals and tickets |
-| `private.apply_discount_code(code, service, subtotal)` | internal (booking RPCs) | Locks the code row, raises `discount_invalid` (unknown, off, wrong service, outside dates) or `discount_used_up`, returns the euros off (percent rounded to cents, fixed capped at the subtotal). Every `create_*` booking RPC takes `p_discount_code` and returns `code_discount` |
+| `private.apply_discount_code(code, service, subtotal)` | internal (booking RPCs) | Locks the code row, raises `discount_invalid` (unknown, off, wrong service, outside dates) or `discount_used_up`, returns the euros off (percent rounded to cents, fixed capped at the subtotal). The seven checkout RPCs (`create_sauna_booking` with `p_sauna_id`, `create_stay_booking`, `create_stay_booking_with_units`, `create_quad_rental`, `create_mixed_quad_rental`, `create_program_booking`, `create_program_ticket`) take `p_discount_code` and return `code_discount`; the deprecated sauna overload, `create_event_ticket` and `create_tour_ticket` do not |
 
 Both availability functions cap the range at 370 days. Supabase grants
 EXECUTE on new `public` functions to `anon`/`authenticated` directly, so any new

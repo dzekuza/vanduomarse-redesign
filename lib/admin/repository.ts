@@ -58,13 +58,14 @@ async function readDiscountCodes(supabase: ServerSupabase, me: StaffAccess) {
     console.error("Admin data: discount codes", codes.error.message);
     return [];
   }
+  if (usage.error) console.error("Admin data: discount code usage", usage.error.message);
   const byId = new Map((usage.data ?? []).map((u) => [u.code_id, u]));
-  return codes.data.map((r) => toDiscountCode(r, byId.get(r.id)));
+  return codes.data.map((r) => toDiscountCode(r, usage.error ? null : byId.get(r.id)));
 }
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -91,8 +92,8 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("staff_roles").select("*").order("is_owner", { ascending: false }).order("name"),
     supabase.from("staff").select("*").order("created_at"),
     supabase.from("payments").select("*"),
+    readDiscountCodes(supabase, me),
   ]);
-  const discountCodes = await readDiscountCodes(supabase, me);
 
   for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
