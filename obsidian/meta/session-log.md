@@ -1,3 +1,8 @@
+## 2026-11-05 — Marketing copy of booking emails
+- **Changed:** `STAFF_BOOKING_COPY` (marketingas@vanduomarse.lt) in `lib/contacts.ts`, added once to every new-request and paid staff email in `lib/email/notify.ts` (not double-charge). Needed because `STAFF_NOTIFY_EMAIL` is only the fallback for services without an inbox.
+- **Status:** `tsc`/eslint clean; not sent for real.
+- **Next:** redeploy production; one test booking.
+
 ## 2026-11-05 — Stripe configured
 - **Checked:** Vercel now has `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`; status note rewritten so no paragraph still asks to register the webhook (it is registered).
 - **Next:** redeploy production; checkout test (live charge + refund, or sandbox).

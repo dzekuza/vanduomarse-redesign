@@ -28,6 +28,9 @@ export const STAFF_INBOX: Partial<Record<NotifyService, string>> = {
   nakvyne: "miegas@vanduomarse.lt",
 };
 
+/** Gets a copy of every staff booking email (new request and paid), whatever the service. */
+export const STAFF_BOOKING_COPY = "marketingas@vanduomarse.lt";
+
 /** The service a reference belongs to: MM- stays, PM- sauna, KT-/KZ- quads, PR- tickets (paid ones are sauna programs). */
 export function serviceOfReference(reference: string): NotifyService {
   if (reference.startsWith("MM-")) return "nakvyne";

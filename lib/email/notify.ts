@@ -1,5 +1,5 @@
 import "server-only";
-import { MAIN_CONTACT, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
+import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
 import { emailList, escapeHtml, sendEmail } from "./resend";
 
@@ -82,19 +82,27 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
 
 /* ---------------- staff: the service's inbox (STAFF_INBOX), else STAFF_NOTIFY_EMAIL ---------------- */
 
-/** Inboxes for these services; services without one fall back to STAFF_NOTIFY_EMAIL (comma-separated). */
-function staffTo(services: NotifyService[]): string[] {
+/**
+ * Inboxes for these services; services without one fall back to STAFF_NOTIFY_EMAIL (comma-separated).
+ * Booking emails also go to STAFF_BOOKING_COPY (marketing), once.
+ */
+function staffTo(services: NotifyService[], withBookingCopy: boolean): string[] {
   const fallback = emailList(process.env.STAFF_NOTIFY_EMAIL);
   const to = services.flatMap((s) => (STAFF_INBOX[s] ? [STAFF_INBOX[s]] : fallback));
-  return [...new Set(to)];
+  return [...new Set(withBookingCopy ? [...to, STAFF_BOOKING_COPY] : to)];
 }
 
 const servicesOf = (references: string[]) => references.map(serviceOfReference);
 /** Without SITE_URL a relative "/admin" would not work in a mail client, so the line is left out. */
 const adminLink = () => (siteUrl() ? [`Atidaryti: ${siteUrl()}/admin`] : []);
 
-function toStaff(services: NotifyService[], subject: string, paragraphs: (string | { strong: string })[]) {
-  const to = staffTo(services);
+function toStaff(
+  services: NotifyService[],
+  subject: string,
+  paragraphs: (string | { strong: string })[],
+  withBookingCopy = true,
+) {
+  const to = staffTo(services, withBookingCopy);
   if (to.length === 0) return Promise.resolve(false);
   return sendEmail({ to, subject, ...body([...paragraphs, ...adminLink()], false) });
 }
@@ -112,4 +120,4 @@ export const emailStaffDuplicate = (references: string[], amount: number) =>
   toStaff(servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [
     { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
     "Grąžinkite papildomą mokėjimą per Stripe.",
-  ]);
+  ], false); // a refund task for the service's staff, not a booking
