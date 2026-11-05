@@ -283,8 +283,8 @@ export async function createInquiry(input: InquiryInput): Promise<ActionResult<n
     p_phone: v.customerPhone || undefined,
   });
   if (error) return dbFail(error);
-  // No phone check or sign-in on this form, so the typed email is unproven: never email it (that would let anyone
-  // send mail from our domain to any address). Staff still get the alert and reply themselves.
-  notify("kita", v.customerPhone, null, undefined, describeRequest(["Skaiciuokle", `${v.guests} sv.`]));
+  // No phone check or sign-in on this form, so the typed phone and email are unproven: never text or email them
+  // (anyone could make us SMS or mail any number or address). Staff still get the alert and reply themselves.
+  notify("kita", null, null, undefined, describeRequest(["Skaiciuokle", `${v.guests} sv.`]));
   return { data: null };
 }

@@ -1,5 +1,5 @@
 ## 2026-11-05 — Security review: inquiry email
-- **Changed:** `createInquiry` passes no customer email to `notify` (unverified form; would let anyone mail arbitrary addresses from our domain).
+- **Changed:** `createInquiry` passes no customer email or phone to `notify` (the phone part was a pre-existing SMS-abuse path) (unverified form; would let anyone mail arbitrary addresses from our domain).
 - **Status:** committed on `feat/email-notifications` with the email work, new PR into `main` (PR #10 was already merged); `tsc` clean.
 - **Next:** test one sauna and one stay booking with `EMAIL_IN_DEV=1`; add the email env vars in Vercel.
 
