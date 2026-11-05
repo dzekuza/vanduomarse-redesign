@@ -201,10 +201,11 @@ There is no new payment-method column, migration or cash-specific notification. 
 > [!warning] Phone verification migration: apply together with the deploy
 > Verified on a local Supabase stack together with `20261030100000_saunas.sql` (direct RPCs by anon and by a signed-in non-staff user refused without a verified phone; active staff and the service role pass; code functions closed to anon; cooldown / caps / lockout). Note: since the saunas migration, `seed.sql` fails on a fresh stack (`bookings_sauna`: seeded sauna bookings lack `sauna_id`). **Not applied to the live project.** Apply it in the same window as the code: before it, the old site cannot book (trigger), and the old 5-arg `create_coupon_order` is gone. Set `PHONE_VERIFICATION_SECRET`, `SUPABASE_SERVICE_ROLE_KEY` and Twilio first.
 
-> [!warning] Published sauna session priority and legacy tickets
-> Apply `20261104190000_published_sauna_session_priority.sql` and
-> `20261104191000_reservation_legacy_sauna_tickets.sql` before releasing this
-> booking flow. The first migration adds published sessions to `sauna_taken`
+> [!info] Published sauna session priority and legacy tickets
+> `20261104190000_published_sauna_session_priority.sql` and
+> `20261104191000_reservation_legacy_sauna_tickets.sql` were applied to the live
+> project on 2026-11-05, before `20261105150000_discount_codes.sql` (which
+> replaces `create_program_ticket` again, so it must stay after them). The first migration adds published sessions to `sauna_taken`
 > and protects their hours from private reservations at `pirtis-marse`.
 > The second lets `create_program_ticket` accept legacy published sauna
 > events with capacity. Those use the event's price and per-person tickets.
