@@ -46,7 +46,7 @@ function dbFail(e: DbError) {
   return fail("Nepavyko pateikti užklausos. Bandykite dar kartą.", "db");
 }
 
-/** Text and email the visitor (whichever they gave) and always alert staff once the request is stored; never delays or fails the request. */
+/** Text the visitor's verified phone, email only a signed-in account's confirmed address (null for anonymous requests), and always alert staff; never delays or fails the request. */
 function notify(phone: string | null, email: string | null | undefined, reference: string, summary: string) {
   after(() => notifyRequestFiled("keturraciai", { phone, email }, reference, summary));
 }

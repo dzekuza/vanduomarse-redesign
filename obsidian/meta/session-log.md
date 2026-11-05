@@ -1,10 +1,15 @@
+## 2026-11-05 — PR #12 second review
+- **Changed:** `accountEmailFor` logs lookup failures; `notify` comments in requests/quads say email goes only to an account-confirmed address; vault: migration consistently named as required (ADR, changelog, status), webhook RPC named correctly, database row narrowed, frontmatter dates bumped.
+- **Status:** `tsc`/eslint clean; pushed to PR #12.
+- **Next:** signed-in test bookings with `EMAIL_IN_DEV=1`; env vars in Vercel.
+
 ## 2026-11-05 — Confirmed-email lookup for notifications
 - **Changed:** migration `20261105120000_notify_account_email` (`account_notify_email`, `payment_notify_email`, service role only); webhook and admin outcome email only that address; types hand-added; `lib/supabase/admin.ts` doc.
 - **Status:** `tsc`/eslint clean; migration applied to `mwngljhcvqkvncwbmgeo` via MCP (ref checked against `.env.local`, ledger aligned, grants and null-for-unconfirmed verified); pushed to PR #12. Regenerated types not adopted (unrelated drift: `graphql_public`, `create_inquiry.p_date`).
 - **Next:** test bookings through `/rezervacija` signed in, with `EMAIL_IN_DEV=1`; look at the `create_inquiry.p_date` type drift.
 
 ## 2026-11-05 — PR #12 review fixes
-- **Changed:** `Requester.notifyEmail` (account email only) for customer emails; admin outcome emails need a `user_id`; webhook uses `payment_state`; 8 s fetch timeouts (Resend, Twilio); dev email skip returns false; `formatEuro` in emails; no relative `/admin` link; vault notes corrected (audiences, signatures, routing).
+- **Changed:** `Requester.notifyEmail` (account email only) for customer emails; admin outcome emails need a `user_id`; webhook used `payment_state` (later replaced by `payment_notify_email`, next entry up); 8 s fetch timeouts (Resend, Twilio); dev email skip returns false; `formatEuro` in emails; no relative `/admin` link; vault notes corrected (audiences, signatures, routing).
 - **Status:** `tsc` and eslint clean; pushed to PR #12.
 - **Next:** one sauna and one stay booking through `/rezervacija` (signed in) with `EMAIL_IN_DEV=1`; env vars in Vercel.
 

@@ -89,8 +89,9 @@ export interface TicketReceipt {
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
 /**
- * Text and email the visitor (whichever they gave: an account that signed in by email has no phone) and
- * always alert staff once the request is stored; never delays or fails the booking.
+ * Text the visitor's verified phone and email only a signed-in account's confirmed address (`notifyEmail`;
+ * null for anonymous requests, whose typed email is unproven), and always alert staff once the request is
+ * stored; never delays or fails the booking.
  */
 function notify(
   service: NotifyService,

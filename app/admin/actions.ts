@@ -70,9 +70,15 @@ async function accountEmailFor(userId: string | null, rowEmail: string | null): 
   if (!userId || !rowEmail) return null;
   try {
     const { data, error } = await createAdminClient().rpc("account_notify_email", { p_user: userId });
-    if (error || !data) return null;
+    if (error) {
+      // A missing migration or service key would otherwise silently stop every outcome email.
+      console.error("account_notify_email failed, customer email skipped");
+      return null;
+    }
+    if (!data) return null;
     return data.toLowerCase() === rowEmail.trim().toLowerCase() ? data : null;
   } catch {
+    console.error("account_notify_email failed (no service key?), customer email skipped");
     return null;
   }
 }
