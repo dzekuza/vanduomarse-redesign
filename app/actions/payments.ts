@@ -120,6 +120,8 @@ export async function startReservationCheckout(input: unknown): Promise<ActionRe
     customerEmail: customer.email ?? "",
     viaAccount: true,
     awaitingPayment: true,
+    // Each request's database function checks and prices the code itself.
+    discountCode: contact.discountCode || undefined,
   };
 
   const filed: string[] = [];

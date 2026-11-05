@@ -1,5 +1,6 @@
 import { isPermissionId } from "@/lib/admin/permissions";
 import type { CouponProduct } from "@/lib/coupons";
+import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
@@ -172,6 +173,24 @@ export function toSaunaProgram(r: Tables<"sauna_programs">): SaunaProgram {
 
 export function toCouponProduct(r: Tables<"coupon_products">): CouponProduct {
   return { id: r.id, kind: r.kind, service: r.service, name: r.name, description: r.description, value: r.value, active: r.active };
+}
+
+export function toDiscountCode(r: Tables<"discount_codes">, usage?: { uses: number; discount_total: number }): DiscountCode {
+  return {
+    id: r.id,
+    code: r.code,
+    kind: r.kind,
+    value: Number(r.value),
+    services: r.services.filter(isDiscountService),
+    validFrom: r.valid_from,
+    validUntil: r.valid_until,
+    maxUses: r.max_uses,
+    active: r.active,
+    note: r.note ?? "",
+    createdAt: r.created_at,
+    uses: usage?.uses ?? 0,
+    discountTotal: Number(usage?.discount_total ?? 0),
+  };
 }
 
 export function toCoupon(r: CouponRow): Coupon {

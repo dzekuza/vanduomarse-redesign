@@ -94,6 +94,9 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           date: string
+          discount_amount: number
+          discount_code: string | null
+          discount_code_id: string | null
           guests: number | null
           hours: number | null
           id: string
@@ -119,6 +122,9 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           date: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           guests?: number | null
           hours?: number | null
           id?: string
@@ -144,6 +150,9 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           date?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           guests?: number | null
           hours?: number | null
           id?: string
@@ -352,6 +361,51 @@ export type Database = {
           },
         ]
       }
+      discount_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["discount_kind"]
+          max_uses: number | null
+          note: string | null
+          services: string[]
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["discount_kind"]
+          max_uses?: number | null
+          note?: string | null
+          services: string[]
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+          value: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["discount_kind"]
+          max_uses?: number | null
+          note?: string | null
+          services?: string[]
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
       event_tickets: {
         Row: {
           children: number
@@ -359,6 +413,9 @@ export type Database = {
           customer_email: string | null
           customer_name: string
           customer_phone: string | null
+          discount_amount: number
+          discount_code: string | null
+          discount_code_id: string | null
           event_id: string
           id: string
           payment_id: string | null
@@ -376,6 +433,9 @@ export type Database = {
           customer_email?: string | null
           customer_name: string
           customer_phone?: string | null
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           event_id: string
           id?: string
           payment_id?: string | null
@@ -393,6 +453,9 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string | null
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           event_id?: string
           id?: string
           payment_id?: string | null
@@ -706,6 +769,9 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           date: string
+          discount_amount: number
+          discount_code: string | null
+          discount_code_id: string | null
           hours: number
           id: string
           note: string | null
@@ -727,6 +793,9 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           date: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           hours: number
           id?: string
           note?: string | null
@@ -748,6 +817,9 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           date?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           hours?: number
           id?: string
           note?: string | null
@@ -1318,6 +1390,15 @@ export type Database = {
           service: Database["public"]["Enums"]["coupon_service"]
         }[]
       }
+      check_discount_code: {
+        Args: { p_code: string }
+        Returns: {
+          code: string
+          kind: Database["public"]["Enums"]["discount_kind"]
+          services: string[]
+          value: number
+        }[]
+      }
       complete_payment: {
         Args: {
           p_amount: number
@@ -1387,6 +1468,7 @@ export type Database = {
         Args: {
           p_allocations: Json
           p_date: string
+          p_discount_code?: string
           p_email?: string
           p_hours: number
           p_name: string
@@ -1396,6 +1478,7 @@ export type Database = {
           p_start_hour: number
         }
         Returns: {
+          code_discount: number
           id: string
           reference: string
           total: number
@@ -1404,6 +1487,7 @@ export type Database = {
       create_program_booking: {
         Args: {
           p_date: string
+          p_discount_code?: string
           p_email?: string
           p_name: string
           p_note?: string
@@ -1413,6 +1497,7 @@ export type Database = {
           p_start_hour: number
         }
         Returns: {
+          code_discount: number
           id: string
           reference: string
           total: number
@@ -1422,12 +1507,14 @@ export type Database = {
         Args: {
           p_adults: number
           p_children: number
+          p_discount_code?: string
           p_email?: string
           p_event_id: string
           p_name: string
           p_phone?: string
         }
         Returns: {
+          code_discount: number
           id: string
           reference: string
           total: number
@@ -1436,6 +1523,7 @@ export type Database = {
       create_quad_rental: {
         Args: {
           p_date: string
+          p_discount_code?: string
           p_email?: string
           p_hours: number
           p_name: string
@@ -1447,6 +1535,7 @@ export type Database = {
           p_units: number
         }
         Returns: {
+          code_discount: number
           id: string
           reference: string
           total: number
@@ -1477,6 +1566,7 @@ export type Database = {
             Args: {
               p_coupon?: string
               p_date: string
+              p_discount_code?: string
               p_email?: string
               p_extras: Json
               p_hours: number
@@ -1488,6 +1578,7 @@ export type Database = {
               p_start_hour: number
             }
             Returns: {
+              code_discount: number
               discount: number
               id: string
               reference: string
@@ -1498,6 +1589,7 @@ export type Database = {
         Args: {
           p_coupon?: string
           p_date: string
+          p_discount_code?: string
           p_email?: string
           p_guests: number
           p_name: string
@@ -1507,6 +1599,7 @@ export type Database = {
           p_stay_type_id: string
         }
         Returns: {
+          code_discount: number
           discount: number
           id: string
           reference: string
@@ -1517,6 +1610,7 @@ export type Database = {
         Args: {
           p_coupon?: string
           p_date: string
+          p_discount_code?: string
           p_email?: string
           p_guests?: number
           p_name: string
@@ -1527,6 +1621,7 @@ export type Database = {
           p_units: number
         }
         Returns: {
+          code_discount: number
           discount: number
           id: string
           reference: string
@@ -1545,6 +1640,14 @@ export type Database = {
           id: string
           reference: string
           total: number
+        }[]
+      }
+      discount_code_usage: {
+        Args: never
+        Returns: {
+          code_id: string
+          discount_total: number
+          uses: number
         }[]
       }
       expire_payment: {
@@ -1662,6 +1765,7 @@ export type Database = {
         | "aktyvus"
         | "panaudotas"
         | "atsauktas"
+      discount_kind: "procentai" | "suma"
       event_category:
         | "pirtis"
         | "vakarai"
@@ -1823,6 +1927,7 @@ export const Constants = {
         "panaudotas",
         "atsauktas",
       ],
+      discount_kind: ["procentai", "suma"],
       event_category: [
         "pirtis",
         "vakarai",

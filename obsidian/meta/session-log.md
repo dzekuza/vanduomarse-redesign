@@ -1,3 +1,8 @@
+## 2026-11-05 — Discount codes
+- **Changed:** migration `20261105150000_discount_codes` (table, `nuolaidos` permission, RLS, `check_discount_code`, `discount_code_usage`, booking RPCs with `p_discount_code`); `lib/discount-codes.ts`, `lib/discount-code-schema.ts`, `app/actions/discount-codes.ts`, `app/admin/discount-actions.ts`; checkout `DiscountCodeField` + discount in `PlanSummary`; `/admin/nuolaidos` (`components/admin/discounts/`); types merged by hand. ADR-0036.
+- **Status:** migration tested in a rolled-back transaction on `mwngljhcvqkvncwbmgeo`, not applied. Checkout field checked at 375 px (error path).
+- **Next:** apply `20261104190000`, `20261104191000`, then `20261105150000`; check the applied code, the summary and `/admin/nuolaidos` at 375 / 768 / 1024 px; one checkout with a code.
+
 ## 2026-11-05 — Twilio sender name check
 - **Checked:** Twilio account, Messaging Services and senders, last messages (read-only API); `.env.local` and Vercel Twilio vars; production deploy after the change.
 - **Status:** setup correct; last real attempt failed 21212 (From set to the `AI…` sender SID). No SMS sent by me.

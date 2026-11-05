@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { CalendarCheckIcon, CalendarDotsIcon, ChartPieSliceIcon, ConfettiIcon, EnvelopeSimpleIcon, FireIcon, GiftIcon, MotorcycleIcon, TagIcon, UsersThreeIcon } from "@phosphor-icons/react";
+import { CalendarCheckIcon, CalendarDotsIcon, ChartPieSliceIcon, ConfettiIcon, EnvelopeSimpleIcon, FireIcon, GiftIcon, MotorcycleIcon, PercentIcon, TagIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { hasPermission, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
 
 export type AdminNavGroup = "darbai" | "turinys" | "nustatymai";
@@ -30,6 +30,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, group: "darbai", permission: "uzklausos", badge: "newInquiries" },
   { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "darbai", permission: "keturraciai", badge: "pendingQuads" },
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "darbai", permission: "kuponai", badge: "pendingCoupons" },
+  { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "turinys", permission: "nuolaidos" },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
   { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "nustatymai", permission: "pirtis" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },

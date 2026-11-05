@@ -11,6 +11,7 @@ import { quadPreviewPlan, type QuadPreviewPick } from "@/components/quads/quad-p
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
+import { discountFor, isDiscountService, type CheckedDiscount } from "@/lib/discount-codes";
 import {
   RESERVATION_DAYS,
   bookable,
@@ -45,7 +46,10 @@ import { requestsFor, submitReservation, type Outcome } from "./submit-reservati
 import { WhenStep, type StayDatePhase } from "./when-step";
 
 /** Selection, then verified contact and final submission inside the dialog. */
-const accountSchema = z.object({ customerName: customerNameSchema });
+const accountSchema = z.object({ customerName: customerNameSchema, discountCode: z.string().trim().max(40, "Per ilgas kodas.") });
+
+/** Database hints that mean the applied code no longer holds: shown on the code field. */
+const DISCOUNT_HINTS = new Set(["discount_invalid", "discount_used_up"]);
 
 const LAST = 1;
 
@@ -86,8 +90,9 @@ export function ReservationFlow({
   const [customer, setCustomer] = useState<Customer | null>(initialCustomer);
   const form = useForm<AccountValues>({
     resolver: zodResolver(accountSchema),
-    defaultValues: { customerName: initialCustomer?.name ?? "" },
+    defaultValues: { customerName: initialCustomer?.name ?? "", discountCode: "" },
   });
+  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
 
   const day = dateKey(date);
   const stayNights = picks.nakvyne?.nights ?? draftNights;
@@ -104,6 +109,10 @@ export function ReservationFlow({
     lines.push({ id: "nakvyne", title: ACTIVITY_TITLE.nakvyne, detail: "Pasirink išvykimo datą.", schedule: `Atvykimas ${longDateLabel(date)}`, price: 0 });
   }
   const total = totalOf(lines);
+  // Preview only: each request's database function prices the code again.
+  const discountAmount = discount
+    ? Math.round(lines.reduce((sum, line) => sum + (isDiscountService(line.id) ? discountFor(discount, line.id, line.price) : 0), 0) * 100) / 100
+    : 0;
   const tracksPeople = Boolean(plans.pirtis && plans.pirtis.mode !== "private");
   const dateLabel = longDateLabel(date);
   const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
@@ -231,14 +240,26 @@ export function ReservationFlow({
     // The server files every request for the signed-in account (its confirmed phone and email, read
     // from the session); the contact below only has to pass the same schemas as the other forms.
     if (payOnSite || !payments) {
-      const contact = { customerName, customerPhone: customer.phone ?? "", customerEmail: customer.email ?? "", viaAccount: true };
+      const contact = {
+        customerName,
+        customerPhone: customer.phone ?? "",
+        customerEmail: customer.email ?? "",
+        viaAccount: true,
+        discountCode: discount?.code,
+      };
       setOutcome(await submitReservation(plans, when, contact, outcome?.sent ?? {}));
       return;
     }
     // Pay at submit: the server files every request and opens Checkout, or files nothing.
     form.clearErrors("root");
-    const result = await startReservationCheckout({ contact: { customerName }, requests: requestsFor(plans, when) });
+    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code }, requests: requestsFor(plans, when) });
     if ("error" in result) {
+      if (DISCOUNT_HINTS.has(result.error.code ?? "")) {
+        // The code stopped holding between the check and the payment (used up, expired): ask again.
+        setDiscount(null);
+        form.setError("discountCode", { message: result.error.message });
+        return;
+      }
       form.setError("root", { message: result.error.message });
       if (result.error.code === "unauthorized") {
         setCustomer(null);
@@ -286,7 +307,8 @@ export function ReservationFlow({
             setDraftNights(1);
             setStayDatePhase("idle");
             setStep(0);
-            form.reset({ customerName: customer?.name ?? "" });
+            setDiscount(null);
+            form.reset({ customerName: customer?.name ?? "", discountCode: "" });
           }}
         />
       </div>
@@ -363,6 +385,12 @@ export function ReservationFlow({
         onCustomer={setCustomer}
         lines={lines}
         total={total}
+        discount={discount}
+        discountAmount={discountAmount}
+        onDiscount={(next) => {
+          form.clearErrors("discountCode");
+          setDiscount(next);
+        }}
         payments={payments}
         payOnSite={payOnSite}
         preview={previewQuad !== null}
