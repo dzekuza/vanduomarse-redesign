@@ -36,15 +36,15 @@ function quadNotice(plan: QuadPlan): string {
 }
 
 /**
- * The chosen tab's activity. Stay types are shown once both dates are selected.
+ * The chosen tab's activity. Stay types and rates are visible before date selection.
  */
 export function ActivitiesStep({ data, when, tab, picks, plans, stayNights, onRemove, onPick, onPeople, previewQuad, quadPreviewHours, onQuadPreview }: ActivitiesStepProps) {
   const included = picks[tab] !== undefined;
   // Not in the plan yet: preview the activity with its defaults so the choices can be shown.
   let shown = plans;
-  if (!included && tab === "nakvyne" && stayNights !== null) {
-    shown = { nakvyne: planStay({ ...defaultPick(tab, data), nights: stayNights }, data.cabin, when.day) };
-  } else if (!included && tab !== "nakvyne") {
+  if (tab === "nakvyne") {
+    shown = { nakvyne: plans.nakvyne ?? planStay({ ...(picks.nakvyne ?? defaultPick(tab, data)), nights: stayNights ?? 1 }, data.cabin, when.day) };
+  } else if (!included) {
     shown = planAll({ [tab]: defaultPick(tab, data) }, data, when);
   }
   const { pirtis, keturraciai, nakvyne } = shown;
@@ -73,7 +73,7 @@ export function ActivitiesStep({ data, when, tab, picks, plans, stayNights, onRe
         />
       ) : null}
       {tab === "nakvyne" && nakvyne ? (
-        <StayOptions plan={nakvyne} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onRemove("nakvyne")} />
+        <StayOptions plan={nakvyne} datesSelected={stayNights !== null} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onRemove("nakvyne")} />
       ) : null}
       {included && (tab === "keturraciai" || (tab === "pirtis" && !pirtis)) ? (
         <button type="button" onClick={() => onRemove(tab)} className="inline-flex min-h-11 items-center text-sm text-ink/70 underline underline-offset-4 hover:text-rust">

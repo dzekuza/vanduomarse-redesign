@@ -9,7 +9,7 @@ import { PhoneCodeStep, PhoneNumberStep } from "./phone-verify-steps";
  * the wrapped flow. The verification is shared by the whole tab (and every gate
  * on the page), and ContactFields fills in and locks the verified number.
  */
-export function PhoneGate({ children }: { children: React.ReactNode }) {
+export function PhoneGate({ children, initialPhone = "", description }: { children: React.ReactNode; initialPhone?: string; description?: string }) {
   const verification = usePhoneVerification();
   const [sent, setSent] = useState<{ phone: string; resendAt: number } | null>(null);
 
@@ -25,5 +25,5 @@ export function PhoneGate({ children }: { children: React.ReactNode }) {
       />
     );
   }
-  return <PhoneNumberStep onSent={(phone, resendAt) => setSent({ phone, resendAt })} />;
+  return <PhoneNumberStep initialPhone={initialPhone} description={description} onSent={(phone, resendAt) => setSent({ phone, resendAt })} />;
 }

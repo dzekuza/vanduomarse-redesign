@@ -40,27 +40,25 @@ export function LandingHero() {
 
       <div className={`absolute inset-x-gutter bottom-39 z-4 md:flex md:items-end md:justify-between lg:bottom-hero-actions ${ENTER} motion-safe:slide-in-from-bottom-4 motion-safe:delay-350`}>
         <p className="max-w-105 text-xs leading-loose md:text-sm">
-          Vanduo. Garas. Greitis.
-          <br />
-          Ir žmonės, su kuriais norisi pasilikti.
+          Vandenlenčių ir pramogų parkas – vos 20 min. nuo Kauno centro. Švenčių erdvės, pirtys, keturračiai, maistas ir nakvynė.
         </p>
         <Link href="#kryptys" className="group/cta mt-4 inline-flex min-h-11 transition-opacity duration-150 active:opacity-70 items-center gap-6 border-b border-current py-2.5 text-xs font-bold md:mr-5 md:mt-0">
-          Rask savo planą
+          Ką gali rezervuoti?
           <ArrowDownIcon aria-hidden className="size-6 transition-transform motion-safe:group-hover/cta:translate-y-1" />
         </Link>
       </div>
 
       <div className="absolute top-90 left-7 z-5 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:duration-700 motion-safe:delay-500 motion-safe:ease-out-strong motion-safe:fill-mode-both md:top-45 md:right-gutter md:left-auto lg:top-hero-kicker lg:mt-7.5">
         <Link
-          href="#kryptys"
-          aria-label="Rezervuoti dieną Marse"
+          href="/rezervacija"
+          aria-label="Rezervuok laiką Marse"
           className="@container grid size-30 rotate-12 place-items-center rounded-full border border-ink bg-rust text-center font-bold text-ink ring-7 ring-rust motion-safe:transition-[rotate,scale] motion-safe:duration-150 motion-safe:ease-out-strong motion-safe:hover:rotate-0 motion-safe:active:scale-95 md:size-32 lg:size-41"
         >
           <span className="grid justify-items-center gap-hero-sticker-gap text-hero-sticker whitespace-nowrap">
             <span>
-              MAŽIAU PLANŲ.
+              REZERVUOK
               <br />
-              DAUGIAU MARSO.
+              LAIKĄ MARSE
             </span>
             <ArrowUpRightIcon aria-hidden weight="light" className="size-hero-sticker-arrow" />
           </span>

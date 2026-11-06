@@ -13,19 +13,17 @@ export function LandingPlace() {
       <div className="relative h-82 overflow-hidden md:h-138">
         <Image src="/landing/aerial.webp" alt="Marso parkas iš oro, Kauno rajone" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[60%_center]" />
         <span aria-hidden className="absolute top-5 left-5 -rotate-8 bg-dust px-4 py-3 text-xs font-bold text-ink md:top-7.5 md:left-7.5">
-          ↘ ČIA MARSE.
+          TIK 20 MIN.
         </span>
       </div>
       </Reveal>
       <Reveal className="delay-150">
-        <SectionKicker left="06 / NUSILEIDIMO VIETA" />
+        <SectionKicker left="06 / KAIP ATVYKTI" />
         <h2 id="landing-title" className="mt-6 text-title font-bold md:mt-8">
-          MARSAS
+          VANDUO MARSE
           <br />
           <span className="text-lake">
-            ARČIAU,
-            <br />
-            NEI MANAI.
+            YRA VOS <span className="whitespace-nowrap">20 MIN.</span> NUO KAUNO CENTRO.
           </span>
         </h2>
         <address className="my-6 text-xs leading-loose not-italic">

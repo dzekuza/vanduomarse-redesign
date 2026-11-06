@@ -38,15 +38,11 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
           <ArrowUpRightIcon size={28} weight="light" />
         </span>
       </span>
-      <span className="flex items-end justify-between gap-5 border-b border-line py-4 md:py-5">
-        <span>
-          <span className="block text-micro">{card.num}</span>
-          <span className="mt-2 block text-heading font-bold tracking-tighter md:text-tile">{card.title}</span>
-        </span>
-        <span className="shrink-0 text-right text-xs leading-snug text-copy">
-          {card.note[0]}
-          <br />
-          {card.note[1]}
+      <span className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 border-b border-line py-4 md:py-5">
+        <span className="col-span-2 block text-micro whitespace-nowrap">{card.num}</span>
+        <span className="min-w-0 text-heading font-bold tracking-tighter md:text-tile">{card.title}</span>
+        <span className="min-w-0 text-right text-xs leading-snug text-copy">
+          {card.note.map((line) => <span key={line} className="block">{line}</span>)}
         </span>
       </span>
     </>

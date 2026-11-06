@@ -1,26 +1,17 @@
 "use client";
 
 import { InfoIcon } from "@phosphor-icons/react";
-import { SERVICE_GALLERY, type ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
-import { QUAD_PREVIEW_GALLERY } from "@/components/quads/quad-preview-content";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ACTIVITY_TITLE, type ActivityId, type ReservationData } from "@/lib/reservation";
 import { ActivityDetails, activityBlurb } from "./activity-details";
 import { DialogPhotoClose } from "./dialog-photo-close";
-
-/** Photos for an activity's dialog: the saunas' own uploads when there are any, otherwise the park's landing gallery. */
-function photosFor(id: ActivityId, data: ReservationData): ServicePhoto[] {
-  if (id === "pirtis") {
-    const own = data.sauna.saunas.flatMap((s) => s.photos.map((p) => ({ src: p.url, alt: s.name })));
-    return own.length > 0 ? own : SERVICE_GALLERY.sauna;
-  }
-  return id === "nakvyne" ? SERVICE_GALLERY.cabins : QUAD_PREVIEW_GALLERY;
-}
+import { activityPhotos } from "./activity-photos";
 
 /** Each activity's info button opens a dialog with photos and the full activity details. */
 export function ActivityAbout({ id, data, active }: { id: ActivityId; data: ReservationData; active: boolean }) {
   const title = ACTIVITY_TITLE[id];
+  const photos = activityPhotos(id, data);
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -37,7 +28,7 @@ export function ActivityAbout({ id, data, active }: { id: ActivityId; data: Rese
       </DialogTrigger>
       <DialogContent showCloseButton={false} className="flex max-h-9/10 flex-col gap-0 overflow-hidden rounded-none p-0 sm:max-w-lg">
         <div className="relative shrink-0">
-          <ServiceGallery key={id} photos={photosFor(id, data)} />
+          <ServiceGallery key={`${id}:${photos.map(({ src }) => src).join("|")}`} photos={photos} />
           <DialogPhotoClose />
         </div>
         <div className="min-h-0 space-y-6 overflow-y-auto p-6">

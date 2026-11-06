@@ -9,6 +9,7 @@ import { OptionGroupLabel } from "./option-card";
 
 interface StayOptionsProps {
   plan: StayPlan;
+  datesSelected: boolean;
   included: boolean;
   onChange: (pick: StayPick) => void;
   onRemove: () => void;
@@ -17,7 +18,7 @@ interface StayOptionsProps {
 const STAY_TYPES: StayUnitType[] = [...CABIN_SIZES.map(({ id }) => id), "kemperis"];
 
 /** One unit type for the chosen dates, with a count independent of the activity group size. */
-export function StayOptions({ plan, included, onChange, onRemove }: StayOptionsProps) {
+export function StayOptions({ plan, datesSelected, included, onChange, onRemove }: StayOptionsProps) {
   const { roomId, size, nights, units } = plan;
   const selectedType = roomId === "kemperis" ? roomId : size;
 
@@ -36,7 +37,7 @@ export function StayOptions({ plan, included, onChange, onRemove }: StayOptionsP
                 title={roomLabel(choice.roomId, choice.size)}
                 price={roomPrice(choice.roomId, choice.size)}
                 camper={camper}
-                free={plan.free(type)}
+                free={datesSelected ? plan.free(type) : null}
                 selected={selected}
                 units={units}
                 onChange={(next) => onChange({ ...choice, units: next })}
@@ -46,7 +47,7 @@ export function StayOptions({ plan, included, onChange, onRemove }: StayOptionsP
           })}
         </div>
       </div>
-      {included && !plan.ok && (
+      {datesSelected && included && !plan.ok && (
         <p role="status" className="text-sm text-rust-ink">
           Šioms naktims pasirinkto kiekio nebeliko. Pakeisk datas, kiekį arba tipą.
         </p>
@@ -59,14 +60,14 @@ function StayUnitCard({ title, price, camper, free, selected, units, onChange, o
   title: string;
   price: number;
   camper: boolean;
-  free: number;
+  free: number | null;
   selected: boolean;
   units: number;
   onChange: (units: number) => void;
   onRemove: () => void;
 }) {
   const [draft, setDraft] = useState(1);
-  const max = Math.min(MAX_STAY_UNITS, free);
+  const max = free === null ? 0 : Math.min(MAX_STAY_UNITS, free);
   const count = selected ? units : Math.min(draft, max);
   const line = selected ? "border-line-on-ink" : "border-line";
   const copy = selected ? "text-dust/80" : "text-copy";
@@ -74,12 +75,12 @@ function StayUnitCard({ title, price, camper, free, selected, units, onChange, o
   return (
     <article aria-label={title} className={`flex flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
       <div className="space-y-2">
-        <p className={`text-micro uppercase ${copy}`}>{free === 0 ? "Užimta" : Number.isFinite(free) ? `Liko: ${free}` : "Nakvynė"}</p>
+        <p className={`text-micro uppercase ${copy}`}>{free === null ? "Nakvynė" : free === 0 ? "Užimta" : Number.isFinite(free) ? `Liko: ${free}` : "Nakvynė"}</p>
         <h3 className="text-item font-bold">{title}</h3>
         {camper && <p className={`text-xs leading-relaxed ${copy}`}>Viena vieta vienai transporto priemonei, su elektra.</p>}
         <p className="text-xs font-bold">{price} € / naktį</p>
       </div>
-      <div className="mt-auto space-y-4">
+      {free !== null ? <div className="mt-auto space-y-4">
         {max > 0 && (
           <div className={`border-t pt-3 ${line}`}>
             <Stepper
@@ -104,7 +105,7 @@ function StayUnitCard({ title, price, camper, free, selected, units, onChange, o
           {selected ? "Pašalinti" : "Pasirinkti"}
           <TextCtaArrow />
         </button>
-      </div>
+      </div> : null}
     </article>
   );
 }

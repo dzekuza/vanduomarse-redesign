@@ -8,14 +8,12 @@ export function LandingActivities() {
       <Reveal>
       <div className="mb-6 md:mb-10 md:flex md:items-end md:justify-between md:gap-15">
         <h2 id="activities-title" className="text-display font-bold">
-          KĄ ŠIANDIEN
+          PRAMOGOS
           <br />
-          <span className="text-rust">VEIKIAM?</span>
+          <span className="text-rust">IR POILSIS</span>
         </h2>
         <p className="mt-6 text-xs leading-loose text-copy md:mt-0 md:mb-2">
-          Nuo pirmo šuolio iki paskutinio garo.
-          <br />
-          Susirask savo priežastį išsukti.
+          Nuo pirties vakaro iki vestuvių ar įmonės šventės. Pramogos, maistas ir nakvynė tavo kompanijai.
         </p>
       </div>
       </Reveal>

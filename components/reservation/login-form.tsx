@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Customer } from "@/lib/customer-types";
 import type { LoginTarget } from "@/lib/customer-schema";
+import { LoginCodeStep } from "./login-code-step";
 
 type Channel = LoginTarget["channel"];
 
@@ -91,53 +92,18 @@ export function LoginForm({ onCustomer }: { onCustomer: (customer: Customer) => 
 
   if (sent) {
     return (
-      <div key="code" className="space-y-4">
-        <p className="text-sm text-copy">
-          Išsiuntėme kodą {sent.to.channel === "phone" ? "SMS žinute numeriu" : "el. paštu"} <span className="font-bold text-ink">{sent.to.value}</span>.
-        </p>
-        <div className="space-y-1.5">
-          <Label htmlFor={`${id}-code`}>Kodas</Label>
-          <Input
-            id={`${id}-code`}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={10}
-            placeholder="123456"
-            autoFocus
-            aria-invalid={!!error}
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            onKeyDown={onEnter(() => void confirm())}
-          />
-          <FieldError message={error ?? undefined} />
-        </div>
-        <Button type="button" variant="default" size="lg" className="w-full sm:w-auto" disabled={busy || code.length < 4} onClick={() => void confirm()}>
-          {busy ? "Tikrinama..." : "Patvirtinti"}
-        </Button>
-        {/* The secondary actions wrap and may break their text, so a long countdown label never spills out of its box. */}
-        <div className="flex flex-wrap items-stretch gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-auto min-h-11 whitespace-normal border-ink bg-transparent py-2 text-center"
-            disabled={busy || wait > 0}
-            onClick={() => void send()}
-          >
-            {wait > 0 ? `Siųsti dar kartą po ${wait} s` : "Siųsti dar kartą"}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-auto min-h-11 whitespace-normal border border-transparent py-2 text-center hover:border-ink"
-            onClick={() => {
-              setSent(null);
-              setError(null);
-            }}
-          >
-            Keisti {sent.to.channel === "phone" ? "numerį" : "adresą"}
-          </Button>
-        </div>
-      </div>
+      <LoginCodeStep
+        key="code"
+        target={sent.to}
+        code={code}
+        busy={busy}
+        error={error}
+        wait={wait}
+        onCode={setCode}
+        onConfirm={() => void confirm()}
+        onResend={() => void send()}
+        onChangeContact={() => { setSent(null); setError(null); }}
+      />
     );
   }
 

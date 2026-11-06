@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 
 interface SiteHeaderProps {
   nav: readonly { href: string; label: string }[];
-  /** Coral call to action beside the menu button. */
-  cta: ReactNode;
+  /** Call to action beside the menu button; a renderer can react to the open menu. */
+  cta: ReactNode | ((menuOpen: boolean) => ReactNode);
   /** Content of the full-screen menu; `close` shuts it. */
   menu: (close: () => void) => ReactNode;
   /** `overlay` floats over a hero (home); `bar` also reserves its own ink strip in the page flow. */
@@ -65,7 +65,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
         ))}
       </nav>
       <div className="flex items-center gap-2 md:gap-3">
-        {cta}
+        {typeof cta === "function" ? cta(menuOpen) : cta}
         <button
           type="button"
           aria-label={menuOpen ? "Uždaryti meniu" : "Atidaryti meniu"}

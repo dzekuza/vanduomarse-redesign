@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import type { CouponOrderResult } from "@/app/actions/coupons";
-import { PhoneGate } from "@/components/booking/phone-gate";
 import { Panel } from "@/components/panel";
 import type { CouponProduct } from "@/lib/coupons";
 import { CouponSteps } from "./coupon-steps";
@@ -36,9 +35,7 @@ export function CouponShop({ products, header }: { products: CouponProduct[]; he
         {ordered ? (
           <OrderConfirmation order={ordered.order} email={ordered.email} onReset={() => setOrdered(null)} />
         ) : (
-          <PhoneGate>
-            <OrderForm product={selected} onOrdered={(order, email) => setOrdered({ order, email })} />
-          </PhoneGate>
+          <OrderForm product={selected} onOrdered={(order, email) => setOrdered({ order, email })} />
         )}
       </div>
     </div>

@@ -10,8 +10,9 @@ import { hourLabel } from "@/lib/quads";
 import type { When } from "@/lib/reservation";
 import { hoursLabel } from "@/lib/sauna";
 import { QUAD_PREVIEW_MIN_UNITS, QUAD_PREVIEW_ROUTES, type QuadPreviewRoute } from "./quad-preview-content";
-import { quadPreviewStarts, type QuadPreviewPick } from "./quad-preview-plan";
+import { quadPreviewAccessories, quadPreviewStarts, type QuadPreviewPick } from "./quad-preview-plan";
 import { QuadRouteDialog } from "./quad-route-dialog";
+import { QuadAccessories } from "./quad-accessories";
 
 interface QuadTourCardProps {
   data: QuadPageData;
@@ -24,6 +25,7 @@ interface QuadTourCardProps {
 interface DraftPick {
   startHour: number | null;
   units: number;
+  accessories?: Record<string, number>;
 }
 
 /** Three route cards after the date picker, with independent drafts and one selected tour. */
@@ -31,14 +33,14 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
   const [drafts, setDrafts] = useState<Record<string, DraftPick>>({});
 
   function choose(next: QuadPreviewPick | null) {
-    if (pick) setDrafts((current) => ({ ...current, [pick.routeId]: { startHour: pick.startHour, units: pick.units } }));
+    if (pick) setDrafts((current) => ({ ...current, [pick.routeId]: { startHour: pick.startHour, units: pick.units, accessories: pick.accessories } }));
     onChange(next);
   }
 
   return (
     <div>
       <OptionGroupLabel>Trasos · dizaino peržiūra</OptionGroupLabel>
-      <div className="grid gap-3 lg:grid-cols-3">
+      <div className="grid items-start gap-3 lg:grid-cols-3">
         {QUAD_PREVIEW_ROUTES.map((route) => (
           <RouteCard
             key={route.id}
@@ -54,7 +56,6 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
           />
         ))}
       </div>
-      <p className="mt-3 text-xs text-copy">Vienam ar dviem kaina ta pati.</p>
     </div>
   );
 }
@@ -69,7 +70,7 @@ function RouteCard({ route, starts, selected, choice, onDraft, onChoose }: {
 }) {
   const title = `${route.name} turas`;
   const slot = starts.find(({ hour }) => hour === choice.startHour);
-  const ready = Boolean(slot && choice.units >= QUAD_PREVIEW_MIN_UNITS && choice.units <= slot.free);
+  const ready = Boolean(slot && choice.units >= QUAD_PREVIEW_MIN_UNITS && choice.units <= slot.free && quadPreviewAccessories(choice.accessories).ok);
   const copy = selected ? "text-dust/80" : "text-copy";
   const line = selected ? "border-line-on-ink" : "border-line";
 
@@ -91,10 +92,18 @@ function RouteCard({ route, starts, selected, choice, onDraft, onChoose }: {
             </SelectContent>
           </Select>
         </div>
-        <fieldset disabled={!slot && !selected} className="min-w-0 disabled:opacity-50">
-          <Stepper label={`Kiekis: ${route.name}`} value={choice.units} min={1} max={Math.max(1, slot?.free ?? 0)} onChange={(units) => onDraft({ ...choice, units })} editable compact />
-        </fieldset>
-        <p role="status" className={`text-xs ${copy}`}>{starts.length === 0 ? "Laisvo laiko nėra. Pasirink kitą datą." : selected && !ready ? "Patikslink laiką arba kiekį." : `Bent ${QUAD_PREVIEW_MIN_UNITS} keturračiai.`}</p>
+        {slot ? (
+          <>
+            <div className="space-y-2">
+              <Stepper label={`Kiekis: ${route.name}`} value={choice.units} min={1} max={slot.free} onChange={(units) => onDraft({ ...choice, units })} editable compact />
+              <p className={`text-xs ${copy}`}>Bent {QUAD_PREVIEW_MIN_UNITS} keturračiai.</p>
+            </div>
+            <QuadAccessories title={title} selected={selected} quantities={choice.accessories ?? {}} onChange={(accessories) => onDraft({ ...choice, accessories })} />
+          </>
+        ) : null}
+        {starts.length === 0 || (selected && !ready) ? (
+          <p role="status" className={`text-xs ${copy}`}>{starts.length === 0 ? "Laisvo laiko nėra. Pasirink kitą datą." : "Patikslink laiką arba kiekį."}</p>
+        ) : null}
         <Cta
           tone={selected ? "cream" : "dark"}
           small
@@ -103,7 +112,7 @@ function RouteCard({ route, starts, selected, choice, onDraft, onChoose }: {
           disabled={!selected && !ready}
           onClick={() => {
             if (selected) onChoose(null);
-            else if (slot && ready) onChoose({ routeId: route.id, startHour: slot.hour, units: choice.units });
+            else if (slot && ready) onChoose({ routeId: route.id, startHour: slot.hour, units: choice.units, accessories: choice.accessories });
           }}
         >{selected ? "Pašalinti" : "Pasirinkti"}</Cta>
       </div>

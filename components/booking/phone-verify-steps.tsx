@@ -27,8 +27,8 @@ function FieldError({ message }: { message?: string }) {
 }
 
 /** Step 1: which number to text. */
-export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: number) => void }) {
-  const form = useForm<PhoneNumberValues>({ resolver: zodResolver(phoneNumberSchema), defaultValues: { phone: "" } });
+export function PhoneNumberStep({ onSent, initialPhone = "", description = "Prieš rezervuodami patvirtinkite telefono numerį: atsiųsime 6 skaitmenų kodą SMS žinute." }: { onSent: (phone: string, resendAt: number) => void; initialPhone?: string; description?: string }) {
+  const form = useForm<PhoneNumberValues>({ resolver: zodResolver(phoneNumberSchema), defaultValues: { phone: initialPhone } });
   const { errors, isSubmitting } = form.formState;
   const id = useId();
   const [canSkip, setCanSkip] = useState(false);
@@ -67,7 +67,7 @@ export function PhoneNumberStep({ onSent }: { onSent: (phone: string, resendAt: 
       >
         <div className="space-y-4">
           <StepLabel step={1}>{STEP_TITLE}</StepLabel>
-          <p className="text-sm text-ink/80">Prieš rezervuodami patvirtinkite telefono numerį: atsiųsime 6 skaitmenų kodą SMS žinute.</p>
+          <p className="text-sm text-ink/80">{description}</p>
           <div className="space-y-1.5">
             <Label htmlFor={id}>Telefonas</Label>
             <Input id={id} type="tel" autoComplete="tel" placeholder="+370 612 34567" aria-invalid={!!errors.phone} {...form.register("phone")} />

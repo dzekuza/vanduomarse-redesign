@@ -1,35 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { FilterChip } from "@/components/events/filter-chip";
 import { cn } from "@/lib/utils";
 import { ACTIVITY_CARDS, FILTERS, type ActivityFilter } from "./content";
 import { ActivityTile } from "./activity-tile";
 import { Reveal } from "@/components/reveal";
 
-/** Filter chips + the grid of activity cards. Chips wrap; they never scroll sideways. */
+/** The requested single-row category picker scrolls inside its own container. */
 export function ActivityBoard() {
   const [filter, setFilter] = useState<ActivityFilter>("all");
   const cards = ACTIVITY_CARDS.filter((c) => filter === "all" || c.categories.includes(filter));
 
   return (
     <>
-      <div role="group" aria-label="Veiklų filtras" className="mb-6 flex flex-wrap gap-1.5 py-3 md:mb-8 md:gap-2.5 md:py-4">
+      <div role="group" aria-label="Veiklų filtras" className="scrollbar-ink mb-6 flex gap-2 overflow-x-auto overscroll-x-contain py-3 md:mb-8 md:py-4">
         {FILTERS.map((f) => {
-          const active = f.id === filter;
+          const count = f.id === "all" ? ACTIVITY_CARDS.length : ACTIVITY_CARDS.filter((card) => card.categories.includes(f.id)).length;
           return (
-            <button
+            <FilterChip
               key={f.id}
-              type="button"
-              aria-pressed={active}
+              active={f.id === filter}
+              count={count}
               onClick={() => setFilter(f.id)}
-              className={cn(
-                "min-h-11 border px-3 text-xs whitespace-nowrap transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 md:px-4",
-                active ? "border-ink bg-ink text-dust" : "border-transparent hover:border-ink",
-              )}
+              className={cn("shrink-0 whitespace-nowrap", f.id !== filter && "border-ink/30")}
             >
               {f.label}
-              {f.count ? <span className="ml-2 text-micro">{f.count}</span> : null}
-            </button>
+            </FilterChip>
           );
         })}
       </div>

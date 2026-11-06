@@ -35,7 +35,7 @@ export const PARK_ADDRESS = {
   street: PARK_STREET,
   village: "Žemaitkiemio km.",
   area: "Kauno rajonas, Lietuva",
-  compact: `${PARK_STREET}, Žemaitkiemio k.`,
+  compact: `${PARK_STREET}, Žemaitkiemio\u00a0k.`,
 } as const;
 
 const restaurant = CONTACTS.find((c) => c.name === "Skoniai Marse") ?? MAIN_CONTACT;
@@ -160,11 +160,11 @@ export const SERVICES: Record<ServiceId, Service> = {
 
 export type ActivityFilter = "all" | "action" | "rest" | "celebrate";
 
-export const FILTERS: { id: ActivityFilter; label: string; count?: string }[] = [
-  { id: "all", label: "Visas Marsas", count: "06" },
-  { id: "action", label: "Reikia veiksmo" },
-  { id: "rest", label: "Norisi ramiau" },
-  { id: "celebrate", label: "Yra ką švęsti" },
+export const FILTERS: { id: ActivityFilter; label: string }[] = [
+  { id: "all", label: "Visi" },
+  { id: "action", label: "Pramogos" },
+  { id: "rest", label: "Poilsis ir nakvynė" },
+  { id: "celebrate", label: "Šventės" },
 ];
 
 export interface ActivityCard {
@@ -174,16 +174,16 @@ export interface ActivityCard {
   tag: string;
   num: string;
   title: string;
-  note: [string, string];
+  note: string[];
 }
 
 export const ACTIVITY_CARDS: ActivityCard[] = [
-  { id: "sauna", categories: ["rest"], alt: "Marso pirtis su dideliais langais į vandenį", tag: "SUSITINKAM GARUOSE", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Šiluma, kuriai", "verta rasti laiko."] },
-  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "DAUGIAU GAZO.", note: ["Vienu keturračiu", "galima dviese."] },
-  { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "TAVO PROGA. TAVO ŽMONĖS.", num: "03 / ŠVĘSK", title: "GARSO IKI RYTO.", note: ["Šventės", "be skubėjimo namo."] },
-  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "NIEKUR NESKUBAM", num: "04 / PASILIK", title: "RYTAS MARSE.", note: ["Nameliai.", "Vanduo už lango."] },
-  { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "ŠILTASIS SEZONAS", num: "05 / PAGAUK BANGĄ", title: "VANDUO VEŽA.", note: ["Pirmas kartas", "ar dar vienas ratas?"] },
-  { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "PRIE VIENO STALO", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Po veiksmo", "visada skaniau."] },
+  { id: "sauna", categories: ["rest"], alt: "Marso pirtis su dideliais langais į vandenį", tag: "MALKINĖ PIRTIS IR SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Malkinė – iki 25 asm.", "Sauna – iki 20 asm."] },
+  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Vienu keturračiu", "galima dviese."] },
+  { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "KUPOLAS · RESTORANAS · TERASA", num: "03 / ŠVĘSK", title: "ŠVENTĖS MARSE.", note: ["Vestuvės, gimtadieniai,", "įmonių renginiai."] },
+  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Nameliai", "prie vandens."] },
+  { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKE", note: ["Plaukimai –", "sezono metu."] },
+  { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "RESTORANAS · MAITINIMAS", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Geras maistas", "kiekvienai progai."] },
 ];
 
 export const EVENT_OPTIONS = [
@@ -217,10 +217,10 @@ export const FAQ_ITEMS = [
 ] as const;
 
 export const GALLERY_SLIDES = [
-  { src: "/landing/aerial.webp", alt: "Vanduo Marse parkas iš drono: ežeras, sala, nameliai ir kupolas", left: "01 / MŪSŲ MAŽA PLANETA", right: "VANDUO MARSE" },
-  { src: "/landing/wake-dusk.webp", alt: "Vandenlentininkas šuolyje vakaro šviesoje", left: "02 / DAR VIENAS RATAS", right: "VANDENLENTĖS" },
-  { src: "/landing/sauna.webp", alt: "Pirtis prie vandens, mediniai suolai ir akmenų krosnelė", left: "03 / GRĮŽTAM Į ŠILUMĄ", right: "PIRTIS MARSE" },
-  { src: "/landing/cabins.webp", alt: "Nameliai prie vandens ir lėtas rytas", left: "04 / NIEKUR NESKUBAM", right: "MIEGAS MARSE" },
+  { src: "/landing/aerial.webp", alt: "Vanduo Marse parkas iš drono: ežeras, sala, nameliai ir kupolas", caption: "01 / VISAS PARKAS" },
+  { src: "/landing/wake-dusk.webp", alt: "Vandenlentininkas šuolyje vakaro šviesoje", caption: "02 / VANDENLENTĖS" },
+  { src: "/landing/sauna.webp", alt: "Suomiška pirtis su vaizdu į vandenį", caption: "03 / SUOMIŠKA PIRTIS" },
+  { src: "/landing/cabins.webp", alt: "Nameliai prie vandens ir lėtas rytas", caption: "04 / NAMELIAI" },
 ] as const;
 
 export interface ServicePhoto {

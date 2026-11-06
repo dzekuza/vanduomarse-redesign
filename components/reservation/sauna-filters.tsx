@@ -35,9 +35,9 @@ export function SaunaFilters({ rows, filter, onChange }: {
 
   return (
     <div className="space-y-3">
-      <div role="group" aria-label="Pirties tipai" className="flex flex-wrap gap-2">
+      <div role="group" aria-label="Pirties tipai" className="scrollbar-ink flex gap-2 overflow-x-auto overscroll-x-contain pb-2">
         {FILTERS.map(({ id, label }) => (
-          <FilterChip key={id} active={id === filter || (id === "private" && privateActive)} count={count(id)} onClick={() => onChange(id)}>
+          <FilterChip key={id} active={id === filter || (id === "private" && privateActive)} count={count(id)} onClick={() => onChange(id)} className="shrink-0 whitespace-nowrap">
             {label}
           </FilterChip>
         ))}

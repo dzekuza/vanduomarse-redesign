@@ -10,8 +10,8 @@ export const NAV_LINKS = [
 /** Sections of the home page, listed under the big links of the menu panel. */
 export const SECTION_LINKS = [
   { href: "/", label: "Pradžia" },
-  { href: "/#kryptys", label: "Ką veikiam?" },
-  { href: "/#sventes", label: "Šventės ir verslas" },
-  { href: "/#vieta", label: "Kur nusileisti?" },
+  { href: "/#kryptys", label: "Pramogos ir poilsis" },
+  { href: "/#sventes", label: "Šventės ir renginiai" },
+  { href: "/#vieta", label: "Kaip atvykti" },
   { href: "/#klausimai", label: "Klausimai" },
 ] as const;

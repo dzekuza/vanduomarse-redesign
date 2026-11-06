@@ -37,6 +37,7 @@ import { ActivitiesStep } from "./activities-step";
 import { ACTIVITY_ICON } from "./activity-icons";
 import { ActivityAbout } from "./activity-about";
 import { ActivityTabs } from "./activity-tabs";
+import { activityPhotos } from "./activity-photos";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
 import { planQuantities } from "./plan-quantities";
@@ -324,6 +325,7 @@ export function ReservationFlow({
 
   const continueAction = { label: "Rezervuoti", disabled: !selectionReady || busy, onClick: () => next(false) };
   const secondaryAction = { label: "Atsiskaitysiu vietoj grynais", disabled: !selectionReady || busy, onClick: () => next(true) };
+  const photos = activityPhotos(tab, data);
   return (
     <FormProvider {...form}>
       <form onSubmit={(event) => {
@@ -380,10 +382,10 @@ export function ReservationFlow({
               onPeople={editPeople}
             />
           </div>
-          <PlanPanel activity={tab} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
+          <PlanPanel activity={tab} photos={photos} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
         </div>
       </form>
-      <MobilePlanDock activity={tab} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
+      <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
       <ReservationAccountDialog
         open={step === LAST}
         onClose={() => { if (!busy) setStep(0); }}

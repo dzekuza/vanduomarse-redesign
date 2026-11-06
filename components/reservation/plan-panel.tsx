@@ -1,18 +1,13 @@
-import Image from "next/image";
 import { useRef } from "react";
-import { SERVICES, type Service } from "@/components/landing/content";
+import type { ServicePhoto } from "@/components/landing/content";
+import { ServiceGallery } from "@/components/landing/service-gallery";
 import { PhoneHelp } from "@/components/phone-help";
-import type { ActivityId } from "@/lib/reservation";
+import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
 import { PlanLines, type PlanLinesProps } from "./plan-lines";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
+import { activityPhotos } from "./activity-photos";
 
 export type { PlanContinueAction } from "./plan-actions";
-
-export const PLAN_ACTIVITY_PHOTOS: Record<ActivityId, Pick<Service, "photo" | "alt">> = {
-  pirtis: SERVICES.sauna,
-  nakvyne: SERVICES.cabins,
-  keturraciai: SERVICES.ciongo,
-};
 
 export interface PlanDetailsProps extends PlanLinesProps {
   total: number;
@@ -20,22 +15,18 @@ export interface PlanDetailsProps extends PlanLinesProps {
 
 interface PlanPanelProps extends PlanDetailsProps {
   activity: ActivityId;
+  photos?: ServicePhoto[];
   continueAction?: PlanContinueAction;
   secondaryAction?: PlanContinueAction;
 }
 
-/** Side panel that follows the visitor: photo, "Tavo pasirinkimas" and the running total. */
-export function PlanPanel({ activity, continueAction, secondaryAction, ...details }: PlanPanelProps) {
-  const { photo, alt } = PLAN_ACTIVITY_PHOTOS[activity];
-
+/** Side panel that follows the visitor: activity photos and the running reservation total. */
+export function PlanPanel({ activity, photos = activityPhotos(activity), continueAction, secondaryAction, ...details }: PlanPanelProps) {
   return (
-    <aside aria-label="Tavo pasirinkimas" className="hidden border border-line bg-foam/15 lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto">
-      <div className="relative aspect-video max-h-48 w-full bg-dust-soft">
-        <Image src={photo} alt={alt} fill sizes="33vw" className="object-cover" />
-        <span className="absolute bottom-0 left-4 bg-dust px-3 py-2 text-micro uppercase">Tavo planas Marse</span>
-      </div>
+    <aside aria-label="Rezervuoti" className="hidden border border-line bg-foam/15 lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto">
+      <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />
       <div className="space-y-6 p-5 sm:p-8">
-        <h2 className="text-tile font-bold">Tavo pasirinkimas</h2>
+        <h2 className="text-tile font-bold">Rezervuoti</h2>
         <PlanDetails {...details} />
         {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
       </div>
