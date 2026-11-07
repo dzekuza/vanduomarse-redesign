@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { RiderPage } from "@/components/admin/apyrankes/rider-page";
+import { redirect } from "next/navigation";
 import { requirePermission } from "@/lib/admin/guard";
 
-export const metadata: Metadata = { title: "Naudotojas" };
-
+// Naudotojas is now the Klientai profile (ADR-0042); keep the old link working.
 export default async function AdminRiderPage({ params }: PageProps<"/admin/apyrankes/[id]">) {
   await requirePermission("apyrankes");
   const { id } = await params;
-  return <RiderPage id={id} />;
+  redirect(`/admin/klientai/${id}`);
 }

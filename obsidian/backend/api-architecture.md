@@ -61,13 +61,15 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | `saveRidePlan` / `deleteRidePlan` | `app/admin/actions.ts` | `/admin/apyrankes` plan catalogue, grouped by `category`; delete refused while a rider is still on it (`23503`) | Zod |
 | `createRider` / `updateRiderPlan` | `app/admin/actions.ts` | New guest + plan, or reassign an existing rider's plan; both also insert a snapshotted `purchases` row (the sale) | Zod |
-| `updateRiderProfile` | `app/admin/actions.ts` | Name, surname, phone, additional phone, email, birthdate | Zod |
-| `uploadRiderAvatar` / `removeRiderAvatar` | `app/admin/actions.ts` | Profile photo in the private `rider-photos` bucket; upload replaces (and removes) any previous one | File type/size |
-| `getRiderFileUrl` | `app/admin/actions.ts` | 1-hour signed URL for a private `rider-photos` or `rider-documents` object | Zod |
-| `addRiderComment` / `deleteRiderComment` | `app/admin/actions.ts` | Staff notes on a rider; `author_name` snapshotted from `staff.display_name` at write time | Zod |
-| `addRiderDocument` / `deleteRiderDocument` | `app/admin/actions.ts` | Files (ID scan, signed waiver, …) in the private `rider-documents` bucket | File type/size |
-| `deleteRider` | `app/admin/actions.ts` | Removes the rider and their avatar/document storage objects; bracelet, purchases, comments and documents cascade in the database | uuid |
+| `updateRiderProfile` | `app/admin/actions.ts` | Name, surname, phone, additional phone, email, birthdate. `apyrankes` or `klientai` (ADR-0042) | Zod |
+| `uploadRiderAvatar` / `removeRiderAvatar` | `app/admin/actions.ts` | Profile photo in the private `rider-photos` bucket; upload replaces (and removes) any previous one. `apyrankes` or `klientai` | File type/size |
+| `getRiderFileUrl` | `app/admin/actions.ts` | 1-hour signed URL for a private `rider-photos`, `rider-documents` or `rider-waivers` object. `apyrankes` or `klientai` | Zod |
+| `addRiderComment` / `deleteRiderComment` | `app/admin/actions.ts` | Staff notes on a rider; `author_name` snapshotted from `staff.display_name` at write time. `apyrankes` or `klientai` | Zod |
+| `addRiderDocument` / `deleteRiderDocument` | `app/admin/actions.ts` | Files (ID scan, signed waiver, …) in the private `rider-documents` bucket. `apyrankes` or `klientai` | File type/size |
+| `deleteRider` | `app/admin/actions.ts` | Removes the rider and their avatar/document storage objects; bracelet, purchases, comments and documents cascade in the database. `apyrankes` or `klientai` | uuid |
 | `bindRiderCard` | `app/admin/actions.ts` | Binds a scanned bracelet UID to a rider; one UID → one rider, rebinding moves it; returns the rider it was moved from, if any | Zod (digits only, 6-32 chars) |
+
+| `registerRider` | `app/actions/registration.ts` | Public: `/registracija` self-registration. Anon RPC `register_rider_public` creates the rider + `rider_waivers` row, then uploads the photo (`rider-photos` bucket) and signature (`rider-waivers` bucket, both via Storage insert policies scoped to that new row), then anon RPC `finalize_rider_registration_public` links the two paths. No service role, no raw table/storage write — same contract as the rest of this section (ADR-0010, ADR-0043) | `registrationSchema` (`lib/registration-schema.ts`); file type/size checked server-side; honeypot field |
 
 Every action in `app/admin/actions.ts`: `staffClient(need)` (`lib/admin/action-helpers.ts`) (session + `public.staff` row, else `unauthorized`
 / `forbidden`; `need` is the page permission, a list of alternatives, `"owner"` or `"any"`), Zod parse, write as the user (RLS), then

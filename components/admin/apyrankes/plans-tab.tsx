@@ -37,7 +37,7 @@ export function PlansTab() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={RIDE_PLAN_CATEGORIES[0]}>
-          <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsList className="w-full justify-start overflow-x-auto overflow-y-hidden">
             {RIDE_PLAN_CATEGORIES.map((category) => (
               <TabsTrigger key={category} value={category} className="min-h-11 shrink-0">
                 {category}

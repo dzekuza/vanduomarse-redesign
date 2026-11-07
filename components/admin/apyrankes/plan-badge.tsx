@@ -5,7 +5,7 @@ import { formatPlanPrice } from "@/lib/ride-plans";
 import { cn } from "@/lib/utils";
 
 /** A rider's plan by id, live — renames reflect immediately. */
-export function PlanBadge({ planId, className }: { planId: string; className?: string }) {
+export function PlanBadge({ planId, className }: { planId: string | null; className?: string }) {
   const { ridePlans } = useAdmin();
   const plan = ridePlans.find((p) => p.id === planId);
 

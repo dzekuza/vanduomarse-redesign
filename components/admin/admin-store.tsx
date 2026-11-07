@@ -8,7 +8,7 @@ import * as staffActions from "@/app/admin/staff-actions";
 import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
-import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
 import type { QuadSettings, QuadType } from "@/lib/quads";
@@ -67,6 +67,7 @@ type Action =
   | { type: "rider/avatar"; id: string; avatarPath: string | null }
   | { type: "rider/delete"; id: string }
   | { type: "riderCard/bind"; cardNumber: string; riderId: string }
+  | { type: "riderSession/scan"; session: RiderSession }
   | { type: "purchase/add"; purchase: Purchase }
   | { type: "riderComment/add"; comment: RiderComment }
   | { type: "riderComment/delete"; id: string }
@@ -219,6 +220,7 @@ function reducer(state: AdminData, action: Action): AdminData {
         purchases: state.purchases.filter((p) => p.riderId !== action.id),
         riderComments: state.riderComments.filter((c) => c.riderId !== action.id),
         riderDocuments: state.riderDocuments.filter((d) => d.riderId !== action.id),
+        riderWaivers: state.riderWaivers.filter((w) => w.riderId !== action.id),
       };
     case "riderCard/bind":
       return {
@@ -227,6 +229,11 @@ function reducer(state: AdminData, action: Action): AdminData {
           ...state.riderCards.filter((c) => c.cardNumber !== action.cardNumber && c.riderId !== action.riderId),
           { cardNumber: action.cardNumber, riderId: action.riderId, boundAt: new Date().toISOString() },
         ],
+      };
+    case "riderSession/scan":
+      return {
+        ...state,
+        riderSessions: [action.session, ...state.riderSessions.filter((s) => s.id !== action.session.id)],
       };
     case "purchase/add":
       return { ...state, purchases: [action.purchase, ...state.purchases] };
@@ -466,7 +473,7 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "rider/avatar", id, avatarPath: null });
         return result;
       },
-      getRiderFileUrl: (bucket: "rider-photos" | "rider-documents", path: string) => actions.getRiderFileUrl(bucket, path),
+      getRiderFileUrl: (bucket: "rider-photos" | "rider-documents" | "rider-waivers", path: string) => actions.getRiderFileUrl(bucket, path),
       addRiderComment: async (riderId: string, text: string) => {
         const result = await report(actions.addRiderComment(riderId, text));
         if ("data" in result) dispatch({ type: "riderComment/add", comment: result.data });
@@ -493,6 +500,17 @@ function useAdminReducer(initial: AdminData) {
       bindRiderCard: async (cardNumber: string, riderId: string) => {
         const result = await report(actions.bindRiderCard(cardNumber, riderId));
         if ("data" in result) dispatch({ type: "riderCard/bind", cardNumber, riderId });
+        return result;
+      },
+      /**
+       * Not optimistic: whether this scan checks a rider in or out comes from
+       * the server. An unassigned bracelet is a routine result the screen
+       * shows inline, not an error toast — only an unexpected failure gets one.
+       */
+      scanRiderSession: async (cardNumber: string) => {
+        const result = await actions.scanRiderSession(cardNumber);
+        if ("data" in result) dispatch({ type: "riderSession/scan", session: result.data.session });
+        else if (result.error.code !== "not_found") toast.error(result.error.message);
         return result;
       },
     }),

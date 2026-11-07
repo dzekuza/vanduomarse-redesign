@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-schema";
-import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRidePlan } from "@/lib/admin/mappers";
-import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan } from "@/lib/admin/types";
+import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRiderSession, toRidePlan } from "@/lib/admin/mappers";
+import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RiderSession, RidePlan } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
@@ -825,11 +825,15 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
 }
 
 // ---------------------------------------------------------------------------
-// Apyrankės: ride plans, riders, purchases, comments, documents, bracelet bindings
+// Apyrankės: ride plans, riders, purchases, comments, documents, bracelet
+// bindings. Riders are also Klientai's customer records (ADR-0042): profile,
+// avatar, comments and document actions accept either permission, since the
+// RLS policies on those tables are additive for both.
 // ---------------------------------------------------------------------------
 
 const RIDER_PHOTO_BUCKET = "rider-photos" as const;
 const RIDER_DOCUMENT_BUCKET = "rider-documents" as const;
+const RIDER_WAIVER_BUCKET = "rider-waivers" as const;
 
 const ridePlanCategory = z.enum(RIDE_PLAN_CATEGORIES);
 
@@ -920,7 +924,7 @@ const riderProfileInput = z.object({
 export type RiderProfileInput = z.infer<typeof riderProfileInput>;
 
 export async function updateRiderProfile(riderId: string, input: RiderProfileInput): Promise<ActionResult<Rider>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
   const parsed = riderProfileInput.safeParse(input);
@@ -937,7 +941,7 @@ export async function updateRiderProfile(riderId: string, input: RiderProfileInp
 }
 
 export async function deleteRider(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data } = await ctx.supabase.from("riders").select("avatar_path").eq("id", id).maybeSingle();
@@ -952,7 +956,7 @@ export async function deleteRider(id: string): Promise<ActionResult> {
 const AVATAR_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };
 
 export async function uploadRiderAvatar(riderId: string, form: FormData): Promise<ActionResult<{ avatarPath: string }>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const file = form.get("file");
   if (!z.uuid().safeParse(riderId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
@@ -977,7 +981,7 @@ export async function uploadRiderAvatar(riderId: string, form: FormData): Promis
 }
 
 export async function removeRiderAvatar(riderId: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data: rider } = await ctx.supabase.from("riders").select("avatar_path").eq("id", riderId).maybeSingle();
@@ -988,11 +992,11 @@ export async function removeRiderAvatar(riderId: string): Promise<ActionResult> 
   return done(null);
 }
 
-/** Short-lived signed URL for a private rider photo or document. */
-export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents", path: string): Promise<ActionResult<{ url: string }>> {
-  const ctx = await staffClient("apyrankes");
+/** Short-lived signed URL for a private rider photo, document or signed waiver. */
+export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents" | "rider-waivers", path: string): Promise<ActionResult<{ url: string }>> {
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
-  if (!(bucket === RIDER_PHOTO_BUCKET || bucket === RIDER_DOCUMENT_BUCKET) || !path) return fail("Netinkamos reikšmės.", "invalid");
+  if (!(bucket === RIDER_PHOTO_BUCKET || bucket === RIDER_DOCUMENT_BUCKET || bucket === RIDER_WAIVER_BUCKET) || !path) return fail("Netinkamos reikšmės.", "invalid");
   const { data, error } = await ctx.supabase.storage.from(bucket).createSignedUrl(path, 3600);
   if (error || !data) return fail("Nepavyko gauti nuorodos.", "storage");
   return done({ url: data.signedUrl });
@@ -1001,7 +1005,7 @@ export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents"
 const commentInput = z.object({ riderId: z.uuid(), text: z.string().trim().min(1).max(2000) });
 
 export async function addRiderComment(riderId: string, text: string): Promise<ActionResult<RiderComment>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const parsed = commentInput.safeParse({ riderId, text });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
@@ -1016,7 +1020,7 @@ export async function addRiderComment(riderId: string, text: string): Promise<Ac
 }
 
 export async function deleteRiderComment(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("rider_comments").delete().eq("id", id);
@@ -1026,7 +1030,7 @@ export async function deleteRiderComment(id: string): Promise<ActionResult> {
 const DOCUMENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
 export async function addRiderDocument(riderId: string, form: FormData): Promise<ActionResult<RiderDocument>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const file = form.get("file");
   if (!z.uuid().safeParse(riderId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
@@ -1049,7 +1053,7 @@ export async function addRiderDocument(riderId: string, form: FormData): Promise
 }
 
 export async function deleteRiderDocument(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data } = await ctx.supabase.from("rider_documents").select("file_path").eq("id", id).maybeSingle();
@@ -1085,4 +1089,42 @@ export async function bindRiderCard(scannedCardNumber: string, riderId: string):
 
   const { error } = await ctx.supabase.from("rider_cards").insert({ card_number: v.cardNumber, rider_id: v.riderId });
   return error ? dbError(error) : done({ replaced });
+}
+
+export interface RiderSessionScan {
+  rider: Rider;
+  session: RiderSession;
+  action: "checked_in" | "checked_out";
+}
+
+/**
+ * The instructor scan: resolve a bracelet to its rider, then toggle their
+ * session — opens one if they have none running, closes the open one if they
+ * do. Lets one scanner handle both check-in and check-out.
+ */
+export async function scanRiderSession(scannedCardNumber: string): Promise<ActionResult<RiderSessionScan>> {
+  const ctx = await staffClient("instruktorius");
+  if (!ctx.ok) return ctx.error;
+  const parsed = cardNumber.safeParse(scannedCardNumber);
+  if (!parsed.success) return fail("Netinkama apyrankė.", "invalid");
+  const v = parsed.data;
+
+  const { data: binding } = await ctx.supabase.from("rider_cards").select("rider_id").eq("card_number", v).maybeSingle();
+  if (!binding) return fail("Apyrankė nepriskirta jokiam naudotojui.", "not_found");
+
+  const { data: riderRow } = await ctx.supabase.from("riders").select("*").eq("id", binding.rider_id).maybeSingle();
+  if (!riderRow) return fail("Naudotojas nerastas.", "not_found");
+  const rider = toRider(riderRow);
+
+  const { data: open } = await ctx.supabase.from("rider_sessions").select("*").eq("rider_id", rider.id).is("ended_at", null).maybeSingle();
+
+  if (open) {
+    const { data, error } = await ctx.supabase.from("rider_sessions").update({ ended_at: new Date().toISOString() }).eq("id", open.id).select("*").single();
+    if (error) return dbError(error);
+    return done({ rider, session: toRiderSession(data), action: "checked_out" });
+  }
+
+  const { data, error } = await ctx.supabase.from("rider_sessions").insert({ rider_id: rider.id, card_number: v }).select("*").single();
+  if (error) return dbError(error);
+  return done({ rider, session: toRiderSession(data), action: "checked_in" });
 }

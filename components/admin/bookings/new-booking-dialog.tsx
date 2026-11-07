@@ -24,21 +24,23 @@ interface NewBookingDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Called with the new booking's id so the list can open it. */
   onCreated: (id: string) => void;
+  /** Prefills the form, e.g. when opened from a free cell on the Užimtumas grid. */
+  initial?: { saunaId?: string; date?: string; startHour?: number };
 }
 
 const range = (from: number, to: number) => (to < from ? [] : Array.from({ length: to - from + 1 }, (_, i) => from + i));
 
 /** Staff-entered booking (phone or walk-in): free slots only, price from admin rates. */
-export function NewBookingDialog({ onOpenChange, onCreated }: NewBookingDialogProps) {
+export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookingDialogProps) {
   const { bookings, blocks, saunas, upsells: catalogue, prices, createBooking } = useAdmin();
   const [extras, setExtras] = useState<Record<string, number>>({});
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
     defaultValues: {
       kind: "pirtis",
-      saunaId: (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "",
-      date: dateKey(new Date()),
-      startHour: "",
+      saunaId: initial?.saunaId ?? (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "",
+      date: initial?.date ?? dateKey(new Date()),
+      startHour: initial?.startHour != null ? String(initial.startHour) : "",
       hours: "",
       nights: "1",
       guests: "2",

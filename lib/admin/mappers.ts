@@ -6,7 +6,7 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
-import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -50,6 +50,7 @@ export function toBooking(r: BookingRow): Booking {
     createdAt: r.created_at,
     source: r.source,
     note: r.note ?? undefined,
+    riderId: r.rider_id ?? undefined,
   };
 }
 
@@ -214,6 +215,7 @@ export function toCoupon(r: CouponRow): Coupon {
     redemptions: r.coupon_redemptions
       .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
       .map((x) => ({ id: x.id, amount: x.amount, note: x.note, at: x.created_at })),
+    riderId: r.rider_id ?? undefined,
   };
 }
 
@@ -233,11 +235,16 @@ export function toRider(r: Tables<"riders">): Rider {
     avatarPath: r.avatar_path,
     planId: r.plan_id,
     createdAt: r.created_at,
+    selfRegistered: r.self_registered,
   };
 }
 
 export function toRiderCard(r: Tables<"rider_cards">): RiderCard {
   return { cardNumber: r.card_number, riderId: r.rider_id, boundAt: r.bound_at };
+}
+
+export function toRiderSession(r: Tables<"rider_sessions">): RiderSession {
+  return { id: r.id, riderId: r.rider_id, cardNumber: r.card_number, startedAt: r.started_at, endedAt: r.ended_at };
 }
 
 export function toPurchase(r: Tables<"purchases">): Purchase {
@@ -250,6 +257,10 @@ export function toRiderComment(r: Tables<"rider_comments">): RiderComment {
 
 export function toRiderDocument(r: Tables<"rider_documents">): RiderDocument {
   return { id: r.id, riderId: r.rider_id, filePath: r.file_path, fileName: r.file_name, uploadedAt: r.uploaded_at };
+}
+
+export function toRiderWaiver(r: Tables<"rider_waivers">): RiderWaiver {
+  return { id: r.id, riderId: r.rider_id, termsVersion: r.terms_version, signaturePath: r.signature_path, signedAt: r.signed_at };
 }
 
 export function toQuadType(r: Tables<"quad_types">): QuadType {
@@ -282,6 +293,7 @@ export function toQuadRental(r: QuadRentalRow): QuadRental {
     source: r.source,
     note: r.note ?? undefined,
     createdAt: r.created_at,
+    riderId: r.rider_id ?? undefined,
   };
 }
 
@@ -298,6 +310,7 @@ export function toTourTicket(r: TicketRow): TourTicket {
     total: r.total,
     status: r.status,
     createdAt: r.created_at,
+    riderId: r.rider_id ?? undefined,
   };
 }
 

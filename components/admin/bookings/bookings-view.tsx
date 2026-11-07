@@ -7,6 +7,7 @@ import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { BookingActions } from "./booking-actions";
+import { BookingCalendarTab } from "./booking-calendar-tab";
 import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
 import { NewBookingDialog } from "./new-booking-dialog";
@@ -19,8 +20,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const INITIAL: BookingFilterState = { kind: "visos", status: "visos", when: "busimos", query: "" };
+const TAB_IDS = ["sarasas", "kalendorius"] as const;
 
 /** Bookings list with filters; a row opens the details sheet. */
 export function BookingsView() {
@@ -31,7 +34,10 @@ export function BookingsView() {
   // `?nauja=1` comes from the header button and the tab bar's centre "+".
   const router = useRouter();
   const pathname = usePathname();
-  const fromLink = useSearchParams().get("nauja") === "1";
+  const searchParams = useSearchParams();
+  const fromLink = searchParams.get("nauja") === "1";
+  const requestedTab = searchParams.get("view");
+  const initialTab = (TAB_IDS as readonly string[]).includes(requestedTab ?? "") ? requestedTab! : "sarasas";
   const newOpen = creating || fromLink;
   const setNewOpen = (open: boolean) => {
     setCreating(open);
@@ -69,61 +75,76 @@ export function BookingsView() {
         </>
       }
     >
-      <BookingFilters value={filters} onChange={setFilters} />
-      <Card className="py-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Klientas</TableHead>
-              <TableHead className="hidden md:table-cell">Tipas</TableHead>
-              <TableHead className="hidden lg:table-cell">Svečiai</TableHead>
-              <TableHead className="hidden sm:table-cell text-right">Suma</TableHead>
-              <TableHead>Būsena</TableHead>
-              <TableHead className="hidden w-12 sm:table-cell"><span className="sr-only">Veiksmai</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((b) => (
-              <TableRow key={b.id} onClick={() => setOpenId(b.id)} className="cursor-pointer">
-                <TableCell>
-                  <p className="font-normal">{formatDay(b.date)}</p>
-                  <p className="text-xs text-muted-foreground">{bookingWhen(b)}</p>
-                </TableCell>
-                <TableCell className="max-w-32 sm:max-w-none">
-                  <p className="truncate">{b.customer.name}</p>
-                  <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                    {b.reference}
-                    {b.source && b.source !== "svetaine" ? (
-                      <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                        {b.source === "telefonu" ? "Tel." : BOOKING_SOURCE[b.source]}
-                      </Badge>
-                    ) : null}
-                  </p>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">{bookingTypeLabel(b)}</TableCell>
-                <TableCell className="hidden lg:table-cell">{b.guests ?? "—"}</TableCell>
-                <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(b.total)}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    <BookingStatusBadge status={b.status} />
-                    <PaymentBadge payment={b.payment} />
-                  </div>
-                </TableCell>
-                <TableCell className="hidden sm:table-cell"><BookingActions booking={b} /></TableCell>
-              </TableRow>
-            ))}
-            {rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Rezervacijų pagal filtrus nėra.</TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
-      </Card>
-      <p className="text-sm text-muted-foreground">Rodoma: {rows.length}</p>
-      <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
-      {newOpen ? <NewBookingDialog onOpenChange={setNewOpen} onCreated={setOpenId} /> : null}
+      <Tabs defaultValue={initialTab}>
+        <TabsList>
+          <TabsTrigger value="sarasas" className="min-h-11">
+            Sąrašas
+          </TabsTrigger>
+          <TabsTrigger value="kalendorius" className="min-h-11">
+            Kalendorius
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="sarasas" className="mt-6 space-y-4">
+          <BookingFilters value={filters} onChange={setFilters} />
+          <Card className="py-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Klientas</TableHead>
+                  <TableHead className="hidden md:table-cell">Tipas</TableHead>
+                  <TableHead className="hidden lg:table-cell">Svečiai</TableHead>
+                  <TableHead className="hidden sm:table-cell text-right">Suma</TableHead>
+                  <TableHead>Būsena</TableHead>
+                  <TableHead className="hidden w-12 sm:table-cell"><span className="sr-only">Veiksmai</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((b) => (
+                  <TableRow key={b.id} onClick={() => setOpenId(b.id)} className="cursor-pointer">
+                    <TableCell>
+                      <p className="font-normal">{formatDay(b.date)}</p>
+                      <p className="text-xs text-muted-foreground">{bookingWhen(b)}</p>
+                    </TableCell>
+                    <TableCell className="max-w-32 sm:max-w-none">
+                      <p className="truncate">{b.customer.name}</p>
+                      <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                        {b.reference}
+                        {b.source && b.source !== "svetaine" ? (
+                          <Badge variant="outline" className="px-1.5 py-0 text-xs">
+                            {b.source === "telefonu" ? "Tel." : BOOKING_SOURCE[b.source]}
+                          </Badge>
+                        ) : null}
+                      </p>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{bookingTypeLabel(b)}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{b.guests ?? "—"}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(b.total)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        <BookingStatusBadge status={b.status} />
+                        <PaymentBadge payment={b.payment} />
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell"><BookingActions booking={b} /></TableCell>
+                  </TableRow>
+                ))}
+                {rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Rezervacijų pagal filtrus nėra.</TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
+          </Card>
+          <p className="text-sm text-muted-foreground">Rodoma: {rows.length}</p>
+          <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
+          {newOpen ? <NewBookingDialog onOpenChange={setNewOpen} onCreated={setOpenId} /> : null}
+        </TabsContent>
+        <TabsContent value="kalendorius" className="mt-6">
+          <BookingCalendarTab />
+        </TabsContent>
+      </Tabs>
     </AdminPage>
   );
 }

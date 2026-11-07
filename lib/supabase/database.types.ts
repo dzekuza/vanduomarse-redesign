@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.18"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       booking_extras: {
@@ -106,6 +81,7 @@ export type Database = {
           payment_id: string | null
           program_id: string | null
           reference: string
+          rider_id: string | null
           sauna_id: string | null
           source: Database["public"]["Enums"]["booking_source"]
           start_hour: number | null
@@ -134,6 +110,7 @@ export type Database = {
           payment_id?: string | null
           program_id?: string | null
           reference: string
+          rider_id?: string | null
           sauna_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
           start_hour?: number | null
@@ -162,6 +139,7 @@ export type Database = {
           payment_id?: string | null
           program_id?: string | null
           reference?: string
+          rider_id?: string | null
           sauna_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
           start_hour?: number | null
@@ -192,6 +170,13 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "sauna_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
             referencedColumns: ["id"]
           },
           {
@@ -312,6 +297,7 @@ export type Database = {
           product_name: string
           recipient_name: string
           reference: string
+          rider_id: string | null
           service: Database["public"]["Enums"]["coupon_service"]
           status: Database["public"]["Enums"]["coupon_status"]
           updated_at: string
@@ -333,6 +319,7 @@ export type Database = {
           product_name: string
           recipient_name?: string
           reference: string
+          rider_id?: string | null
           service: Database["public"]["Enums"]["coupon_service"]
           status?: Database["public"]["Enums"]["coupon_status"]
           updated_at?: string
@@ -354,6 +341,7 @@ export type Database = {
           product_name?: string
           recipient_name?: string
           reference?: string
+          rider_id?: string | null
           service?: Database["public"]["Enums"]["coupon_service"]
           status?: Database["public"]["Enums"]["coupon_status"]
           updated_at?: string
@@ -364,6 +352,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "coupon_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
             referencedColumns: ["id"]
           },
         ]
@@ -428,6 +423,7 @@ export type Database = {
           payment_id: string | null
           people: number
           reference: string
+          rider_id: string | null
           source: Database["public"]["Enums"]["booking_source"]
           status: Database["public"]["Enums"]["booking_status"]
           total: number
@@ -448,6 +444,7 @@ export type Database = {
           payment_id?: string | null
           people: number
           reference: string
+          rider_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
           status?: Database["public"]["Enums"]["booking_status"]
           total: number
@@ -468,6 +465,7 @@ export type Database = {
           payment_id?: string | null
           people?: number
           reference?: string
+          rider_id?: string | null
           source?: Database["public"]["Enums"]["booking_source"]
           status?: Database["public"]["Enums"]["booking_status"]
           total?: number
@@ -494,6 +492,13 @@ export type Database = {
             columns: ["payment_id"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tickets_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
             referencedColumns: ["id"]
           },
         ]
@@ -840,6 +845,7 @@ export type Database = {
           payment_id: string | null
           quad_type_id: string | null
           reference: string
+          rider_id: string | null
           riders: number
           source: Database["public"]["Enums"]["booking_source"]
           start_hour: number
@@ -864,6 +870,7 @@ export type Database = {
           payment_id?: string | null
           quad_type_id?: string | null
           reference: string
+          rider_id?: string | null
           riders: number
           source?: Database["public"]["Enums"]["booking_source"]
           start_hour: number
@@ -888,6 +895,7 @@ export type Database = {
           payment_id?: string | null
           quad_type_id?: string | null
           reference?: string
+          rider_id?: string | null
           riders?: number
           source?: Database["public"]["Enums"]["booking_source"]
           start_hour?: number
@@ -917,6 +925,13 @@ export type Database = {
             columns: ["quad_type_id"]
             isOneToOne: false
             referencedRelation: "quad_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quad_rentals_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
             referencedColumns: ["id"]
           },
         ]
@@ -1125,17 +1140,83 @@ export type Database = {
           },
         ]
       }
+      rider_sessions: {
+        Row: {
+          card_number: string
+          ended_at: string | null
+          id: string
+          rider_id: string
+          started_at: string
+        }
+        Insert: {
+          card_number: string
+          ended_at?: string | null
+          id?: string
+          rider_id: string
+          started_at?: string
+        }
+        Update: {
+          card_number?: string
+          ended_at?: string | null
+          id?: string
+          rider_id?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_sessions_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_waivers: {
+        Row: {
+          id: string
+          rider_id: string
+          signature_path: string | null
+          signed_at: string
+          terms_version: string
+        }
+        Insert: {
+          id?: string
+          rider_id: string
+          signature_path?: string | null
+          signed_at?: string
+          terms_version: string
+        }
+        Update: {
+          id?: string
+          rider_id?: string
+          signature_path?: string | null
+          signed_at?: string
+          terms_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_waivers_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riders: {
         Row: {
           avatar_path: string | null
           birthdate: string | null
           created_at: string
           email: string | null
+          grabby_id: string | null
           id: string
           name: string
           phone: string | null
           phone2: string | null
-          plan_id: string
+          plan_id: string | null
+          self_registered: boolean
           surname: string
           updated_at: string
         }
@@ -1144,11 +1225,13 @@ export type Database = {
           birthdate?: string | null
           created_at?: string
           email?: string | null
+          grabby_id?: string | null
           id?: string
           name: string
           phone?: string | null
           phone2?: string | null
-          plan_id: string
+          plan_id?: string | null
+          self_registered?: boolean
           surname: string
           updated_at?: string
         }
@@ -1157,11 +1240,13 @@ export type Database = {
           birthdate?: string | null
           created_at?: string
           email?: string | null
+          grabby_id?: string | null
           id?: string
           name?: string
           phone?: string | null
           phone2?: string | null
-          plan_id?: string
+          plan_id?: string | null
+          self_registered?: boolean
           surname?: string
           updated_at?: string
         }
@@ -1607,6 +1692,7 @@ export type Database = {
     }
     Functions: {
       abandon_payment: { Args: { p_payment_id: string }; Returns: number }
+      account_notify_email: { Args: { p_user: string }; Returns: string }
       activate_coupon: {
         Args: { p_id: string }
         Returns: {
@@ -1623,7 +1709,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      account_notify_email: { Args: { p_user: string }; Returns: string }
       cancel_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: undefined
@@ -1913,6 +1998,14 @@ export type Database = {
           tickets: number
         }[]
       }
+      finalize_rider_registration_public: {
+        Args: {
+          p_avatar_path: string
+          p_rider_id: string
+          p_signature_path: string
+        }
+        Returns: undefined
+      }
       materialize_sauna_events: {
         Args: { p_days?: number; p_from: string }
         Returns: number
@@ -1958,12 +2051,29 @@ export type Database = {
           id: string
         }[]
       }
+      register_rider_public: {
+        Args: {
+          p_birthdate: string
+          p_email: string
+          p_name: string
+          p_phone: string
+          p_phone2: string
+          p_surname: string
+          p_terms_version: string
+        }
+        Returns: string
+      }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
         Returns: {
           reason: string
           retry_after: number
         }[]
+      }
+      rider_awaiting_photo: { Args: { p_rider_id: string }; Returns: boolean }
+      rider_waiver_awaiting_signature: {
+        Args: { p_rider_id: string }
+        Returns: boolean
       }
       sauna_taken: {
         Args: { p_from: string; p_to: string }
@@ -2162,9 +2272,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       booking_kind: ["pirtis", "namelis", "kemperis"],

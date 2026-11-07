@@ -60,11 +60,11 @@ export function SaunaRatesFields({ register, errors }: SaunaRatesFieldsProps) {
   return (
     <div className="space-y-6">
       <section>
-        <h3 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Kainos</h3>
+        <h3 className="mb-2 text-xs font-bold text-muted-foreground">Kainos</h3>
         {renderFields(PRICE_FIELDS)}
       </section>
       <section>
-        <h3 className="mb-2 text-xs font-bold uppercase text-muted-foreground">Rezervacijos taisyklės</h3>
+        <h3 className="mb-2 text-xs font-bold text-muted-foreground">Rezervacijos taisyklės</h3>
         {renderFields(RULE_FIELDS)}
       </section>
     </div>

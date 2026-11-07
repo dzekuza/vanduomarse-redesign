@@ -1,6 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { firstAllowedHref, hasPermission, type PermissionId } from "@/lib/admin/permissions";
+import { firstAllowedHref, hasAnyPermission, hasPermission, type PermissionId } from "@/lib/admin/permissions";
 import { currentStaff } from "@/lib/admin/repository";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,14 +12,20 @@ import { createClient } from "@/lib/supabase/server";
  *
  * A role with no pages at all is not redirected: the panel layout already shows
  * its "no access" screen, and redirecting here would loop.
+ *
+ * A page merged from two routes (Rezervacijos/Užimtumas, Klientai/Apyrankės
+ * naudotojai) accepts either permission by passing an array.
  */
-export async function requirePermission(permission: PermissionId | "owner"): Promise<void> {
+export async function requirePermission(permission: PermissionId | "owner" | readonly PermissionId[]): Promise<void> {
   const supabase = await createClient();
   const { user, staff, access } = await currentStaff(supabase);
   if (!user) redirect("/admin/prisijungti");
   if (!staff || !staff.active || !access) return;
 
-  const allowed = permission === "owner" ? access.isOwner : hasPermission(access, permission);
+  const allowed =
+    typeof permission === "string"
+      ? permission === "owner" ? access.isOwner : hasPermission(access, permission)
+      : hasAnyPermission(access, permission);
   if (allowed) return;
 
   const target = firstAllowedHref(access);

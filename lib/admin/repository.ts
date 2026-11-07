@@ -1,7 +1,7 @@
 import "server-only";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -63,9 +63,26 @@ async function readDiscountCodes(supabase: ServerSupabase, me: StaffAccess) {
   return codes.data.map((r) => toDiscountCode(r, usage.error ? null : byId.get(r.id)));
 }
 
+/**
+ * Open and recently-closed rider sessions, only for staff with the
+ * `instruktorius` page. Bounded to the last day so the table (an append-only
+ * scan log) never grows the payload — open sessions older than that are rare
+ * (a lost/forgotten bracelet) and get closed by staff directly in the database.
+ */
+async function readRiderSessions(supabase: ServerSupabase, me: StaffAccess) {
+  if (!hasPermission(me, "instruktorius")) return [];
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase.from("rider_sessions").select("*").gte("started_at", since).order("started_at", { ascending: false });
+  if (error) {
+    console.error("Admin data: rider sessions", error.message);
+    return [];
+  }
+  return data.map(toRiderSession);
+}
+
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -94,14 +111,22 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("payments").select("*"),
     readDiscountCodes(supabase, me),
     supabase.from("ride_plans").select("*").order("sort_order"),
-    supabase.from("riders").select("*").order("created_at"),
+    // Supabase's REST API caps a response at 1000 rows regardless of table size; riders is
+    // past that (8,900+, ADR-0041's Grabby import). Newest-first so a new signup — a
+    // purchase, a bracelet sale, a /registracija self-registration — is always inside the
+    // loaded window; the trade-off is that very old, never-revisited imported contacts past
+    // row 1000 stop being loaded at all. A real fix is server-side search/pagination instead
+    // of bulk-loading every rider into the client store; this is the stopgap until then.
+    supabase.from("riders").select("*").order("created_at", { ascending: false }),
     supabase.from("rider_cards").select("*"),
+    readRiderSessions(supabase, me),
     supabase.from("purchases").select("*").order("sold_at", { ascending: false }),
     supabase.from("rider_comments").select("*").order("created_at", { ascending: false }),
     supabase.from("rider_documents").select("*").order("uploaded_at", { ascending: false }),
+    supabase.from("rider_waivers").select("*").order("signed_at", { ascending: false }),
   ]);
 
-  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments]) {
+  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments, riderWaivers]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
@@ -136,8 +161,10 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),
+    riderSessions,
     purchases: purchases.data!.map(toPurchase),
     riderComments: riderComments.data!.map(toRiderComment),
     riderDocuments: riderDocuments.data!.map(toRiderDocument),
+    riderWaivers: riderWaivers.data!.map(toRiderWaiver),
   };
 }

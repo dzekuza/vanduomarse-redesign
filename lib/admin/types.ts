@@ -65,6 +65,8 @@ export interface Booking {
   /** Internal note from staff (manual bookings). */
   note?: string;
   payment?: PaymentInfo;
+  /** Linked customer (Klientai), when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** Sauna hours closed by staff (maintenance, private use). */
@@ -165,6 +167,8 @@ export interface QuadRental {
   note?: string;
   createdAt: string;
   payment?: PaymentInfo;
+  /** Linked customer (Klientai), when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** A ticket for an event (a row of event_tickets); quad tours and other events share the shape. */
@@ -183,6 +187,8 @@ export interface TourTicket {
   status: BookingStatus;
   createdAt: string;
   payment?: PaymentInfo;
+  /** Linked customer (Klientai), when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** The plan catalogue's category: which /admin/apyrankes tab (and which till tab) it belongs to. */
@@ -212,8 +218,11 @@ export interface Rider {
   birthdate: string | null;
   /** Path in the private `rider-photos` bucket; resolve to a signed URL on demand. */
   avatarPath: string | null;
-  planId: string;
+  /** Null until staff sells them a plan (e.g. a bulk-imported contact). */
+  planId: string | null;
   createdAt: string;
+  /** Created through /registracija rather than by staff (ADR-0043). */
+  selfRegistered: boolean;
 }
 
 /** A physical bracelet (USB IC/RFID reader UID) bound to a rider. One bracelet -> one rider. */
@@ -221,6 +230,15 @@ export interface RiderCard {
   cardNumber: string;
   riderId: string;
   boundAt: string;
+}
+
+/** One open/closed interval of a rider being out on the water, started and ended by scanning their bracelet (/admin/instruktorius). `endedAt` null = still out. */
+export interface RiderSession {
+  id: string;
+  riderId: string;
+  cardNumber: string;
+  startedAt: string;
+  endedAt: string | null;
 }
 
 /** One plan sold to a rider ("sales"): a snapshot, so later plan edits/deletes never rewrite history. */
@@ -252,6 +270,16 @@ export interface RiderDocument {
   uploadedAt: string;
 }
 
+/** A signed copy of the park rules from a /registracija self-registration (ADR-0043). */
+export interface RiderWaiver {
+  id: string;
+  riderId: string;
+  termsVersion: string;
+  /** Path in the private `rider-waivers` bucket; null if the upload failed. */
+  signaturePath: string | null;
+  signedAt: string;
+}
+
 /** A coupon order or issued coupon. `code` stays unset until payment is confirmed. */
 export interface Coupon {
   id: string;
@@ -271,6 +299,8 @@ export interface Coupon {
   /** yyyy-mm-dd */
   expiresAt?: string;
   redemptions: { id: string; amount: number; note: string; at: string }[];
+  /** Linked customer (Klientai), the buyer, when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** Everything the dashboard renders, loaded once per request in the admin layout. */
@@ -303,7 +333,10 @@ export interface AdminData {
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];
+  /** Empty without the `instruktorius` permission. */
+  riderSessions: RiderSession[];
   purchases: Purchase[];
   riderComments: RiderComment[];
   riderDocuments: RiderDocument[];
+  riderWaivers: RiderWaiver[];
 }
