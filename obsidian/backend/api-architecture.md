@@ -1,6 +1,6 @@
 ---
 tags: [backend, stable]
-updated: 2026-11-04
+updated: 2026-11-07
 ---
 
 # API Architecture
@@ -58,6 +58,16 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 | `createStaff` / `resetStaffPassword` / `removeStaff` | `app/admin/staff-actions.ts` | Owner-only. Creates the login (service-role key, server only) with a generated temporary password shown once; reset; remove (staff row first, so the last-owner guard runs) | Zod |
 | `setStaffRole` / `setStaffActive` / `saveRole` / `deleteRole` | `app/admin/staff-actions.ts` | Owner-only. Role changes take effect on the next request; deleting a role in use is refused; yourself can't be switched off or removed | Zod, `PERMISSION_IDS` |
 | `changeOwnPassword` | `app/admin/actions.ts` | Any active staff member, via their own session | Zod (8-72 chars) |
+
+| `saveRidePlan` / `deleteRidePlan` | `app/admin/actions.ts` | `/admin/apyrankes` plan catalogue, grouped by `category`; delete refused while a rider is still on it (`23503`) | Zod |
+| `createRider` / `updateRiderPlan` | `app/admin/actions.ts` | New guest + plan, or reassign an existing rider's plan; both also insert a snapshotted `purchases` row (the sale) | Zod |
+| `updateRiderProfile` | `app/admin/actions.ts` | Name, surname, phone, additional phone, email, birthdate | Zod |
+| `uploadRiderAvatar` / `removeRiderAvatar` | `app/admin/actions.ts` | Profile photo in the private `rider-photos` bucket; upload replaces (and removes) any previous one | File type/size |
+| `getRiderFileUrl` | `app/admin/actions.ts` | 1-hour signed URL for a private `rider-photos` or `rider-documents` object | Zod |
+| `addRiderComment` / `deleteRiderComment` | `app/admin/actions.ts` | Staff notes on a rider; `author_name` snapshotted from `staff.display_name` at write time | Zod |
+| `addRiderDocument` / `deleteRiderDocument` | `app/admin/actions.ts` | Files (ID scan, signed waiver, …) in the private `rider-documents` bucket | File type/size |
+| `deleteRider` | `app/admin/actions.ts` | Removes the rider and their avatar/document storage objects; bracelet, purchases, comments and documents cascade in the database | uuid |
+| `bindRiderCard` | `app/admin/actions.ts` | Binds a scanned bracelet UID to a rider; one UID → one rider, rebinding moves it; returns the rider it was moved from, if any | Zod (digits only, 6-32 chars) |
 
 Every action in `app/admin/actions.ts`: `staffClient(need)` (`lib/admin/action-helpers.ts`) (session + `public.staff` row, else `unauthorized`
 / `forbidden`; `need` is the page permission, a list of alternatives, `"owner"` or `"any"`), Zod parse, write as the user (RLS), then

@@ -2,6 +2,7 @@ import type { DiscountCode } from "@/lib/discount-codes";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
+import type { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import type { QuadSettings, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -184,6 +185,73 @@ export interface TourTicket {
   payment?: PaymentInfo;
 }
 
+/** The plan catalogue's category: which /admin/apyrankes tab (and which till tab) it belongs to. */
+export type RidePlanCategory = (typeof RIDE_PLAN_CATEGORIES)[number];
+
+/** A plan a rider can be sold: a day pass, an hour slot, a subscription, … */
+export interface RidePlan {
+  id: string;
+  name: string;
+  description: string;
+  /** EUR incl. 21% PVM; null = no charge (e.g. staff). */
+  price: number | null;
+  category: RidePlanCategory;
+  active: boolean;
+  sortOrder: number;
+}
+
+/** A park rider: contact details and the plan they're currently on, with an optional bound bracelet. */
+export interface Rider {
+  id: string;
+  name: string;
+  surname: string;
+  phone: string | null;
+  phone2: string | null;
+  email: string | null;
+  /** yyyy-mm-dd */
+  birthdate: string | null;
+  /** Path in the private `rider-photos` bucket; resolve to a signed URL on demand. */
+  avatarPath: string | null;
+  planId: string;
+  createdAt: string;
+}
+
+/** A physical bracelet (USB IC/RFID reader UID) bound to a rider. One bracelet -> one rider. */
+export interface RiderCard {
+  cardNumber: string;
+  riderId: string;
+  boundAt: string;
+}
+
+/** One plan sold to a rider ("sales"): a snapshot, so later plan edits/deletes never rewrite history. */
+export interface Purchase {
+  id: string;
+  riderId: string;
+  planId: string | null;
+  planName: string;
+  planCategory: RidePlanCategory;
+  price: number | null;
+  soldAt: string;
+}
+
+/** A staff note on a rider. */
+export interface RiderComment {
+  id: string;
+  riderId: string;
+  text: string;
+  authorName: string;
+  createdAt: string;
+}
+
+/** A file attached to a rider (ID scan, signed waiver, …), stored in the private `rider-documents` bucket. */
+export interface RiderDocument {
+  id: string;
+  riderId: string;
+  filePath: string;
+  fileName: string;
+  uploadedAt: string;
+}
+
 /** A coupon order or issued coupon. `code` stays unset until payment is confirmed. */
 export interface Coupon {
   id: string;
@@ -232,4 +300,10 @@ export interface AdminData {
   roles: StaffRole[];
   /** Empty unless `me` is an owner. */
   staff: StaffMember[];
+  ridePlans: RidePlan[];
+  riders: Rider[];
+  riderCards: RiderCard[];
+  purchases: Purchase[];
+  riderComments: RiderComment[];
+  riderDocuments: RiderDocument[];
 }
