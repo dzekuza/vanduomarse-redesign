@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
-  // LAN/Tailscale host used to open the dev server from other devices.
-  allowedDevOrigins: ["100.66.120.126"],
+  // LAN/Tailscale hosts used to open the dev server from other devices.
+  allowedDevOrigins: ["100.66.120.126", "127.210.108.239"],
   // Sauna photos are compressed in the browser first; this is headroom for large originals.
   experimental: { serverActions: { bodySizeLimit: "4mb" } },
   images: {

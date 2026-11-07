@@ -6,10 +6,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-schema";
-import { fromSaunaRates, toBooking, toQuadRental } from "@/lib/admin/mappers";
-import type { Booking, BookingStatus, ManagedEvent, PriceItem, QuadRental } from "@/lib/admin/types";
+import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRidePlan } from "@/lib/admin/mappers";
+import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { QuadSettings, QuadType } from "@/lib/quads";
+import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
 import { notifyRequestOutcome } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -17,7 +18,7 @@ import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
-import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { dbError, done, fail, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
 import { createClient } from "@/lib/supabase/server";
 
 export type { ActionResult };
@@ -821,4 +822,267 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
   if (error) return dbError(error);
   if (data) notifyCustomer(data.source, data, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));
   return done(null);
+}
+
+// ---------------------------------------------------------------------------
+// Apyrankės: ride plans, riders, purchases, comments, documents, bracelet bindings
+// ---------------------------------------------------------------------------
+
+const RIDER_PHOTO_BUCKET = "rider-photos" as const;
+const RIDER_DOCUMENT_BUCKET = "rider-documents" as const;
+
+const ridePlanCategory = z.enum(RIDE_PLAN_CATEGORIES);
+
+const ridePlanInput = z.object({
+  name: z.string().trim().min(1).max(60),
+  description: z.string().trim().max(200),
+  price: z.number().min(0).max(100_000).nullable(),
+  category: ridePlanCategory,
+  active: z.boolean(),
+  sortOrder: z.number().int().min(0).max(1000),
+});
+
+export async function saveRidePlan(plan: RidePlan): Promise<ActionResult<RidePlan>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = ridePlanInput.safeParse(plan);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const p = parsed.data;
+  const { data, error } = await ctx.supabase
+    .from("ride_plans")
+    .upsert({ id: plan.id || undefined, name: p.name, description: p.description, price: p.price, category: p.category, active: p.active, sort_order: p.sortOrder })
+    .select("*")
+    .single();
+  if (error) return dbError(error);
+  return done(toRidePlan(data));
+}
+
+export async function deleteRidePlan(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("ride_plans").delete().eq("id", id);
+  if (error?.code === "23503") return fail("Šiuo planu dar naudojasi naudotojai – pirmiausia pakeiskite jų planą.", "in_use");
+  return error ? dbError(error) : done(null);
+}
+
+/** Logs a plan assignment as a sale: a snapshot of the plan, so later edits/deletes never rewrite history. */
+async function recordPurchase(ctx: Extract<StaffContext, { ok: true }>, riderId: string, planId: string): Promise<Purchase | null> {
+  const { data: plan } = await ctx.supabase.from("ride_plans").select("name, category, price").eq("id", planId).maybeSingle();
+  if (!plan) return null;
+  const { data, error } = await ctx.supabase
+    .from("purchases")
+    .insert({ rider_id: riderId, plan_id: planId, plan_name: plan.name, plan_category: plan.category, price: plan.price, sold_by: ctx.userId })
+    .select("*")
+    .single();
+  if (error || !data) return null;
+  return toPurchase(data);
+}
+
+const newRiderInput = z.object({
+  name: z.string().trim().min(1).max(60),
+  surname: z.string().trim().min(1).max(60),
+  planId: z.uuid(),
+});
+
+export async function createRider(input: { name: string; surname: string; planId: string }): Promise<ActionResult<{ rider: Rider; purchase: Purchase | null }>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = newRiderInput.safeParse(input);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+  const { data, error } = await ctx.supabase.from("riders").insert({ name: v.name, surname: v.surname, plan_id: v.planId }).select("*").single();
+  if (error) return dbError(error);
+  const rider = toRider(data);
+  const purchase = await recordPurchase(ctx, rider.id, v.planId);
+  return done({ rider, purchase });
+}
+
+export async function updateRiderPlan(riderId: string, planId: string): Promise<ActionResult<{ purchase: Purchase | null }>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = z.object({ riderId: z.uuid(), planId: z.uuid() }).safeParse({ riderId, planId });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("riders").update({ plan_id: planId }).eq("id", riderId);
+  if (error) return dbError(error);
+  const purchase = await recordPurchase(ctx, riderId, planId);
+  return done({ purchase });
+}
+
+const riderProfileInput = z.object({
+  name: z.string().trim().min(1).max(60),
+  surname: z.string().trim().min(1).max(60),
+  phone: z.string().trim().max(30).nullable(),
+  phone2: z.string().trim().max(30).nullable(),
+  email: z.string().trim().max(120).nullable(),
+  birthdate: z.iso.date().nullable(),
+});
+export type RiderProfileInput = z.infer<typeof riderProfileInput>;
+
+export async function updateRiderProfile(riderId: string, input: RiderProfileInput): Promise<ActionResult<Rider>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
+  const parsed = riderProfileInput.safeParse(input);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+  const { data, error } = await ctx.supabase
+    .from("riders")
+    .update({ name: v.name, surname: v.surname, phone: v.phone || null, phone2: v.phone2 || null, email: v.email || null, birthdate: v.birthdate })
+    .eq("id", riderId)
+    .select("*")
+    .single();
+  if (error) return dbError(error);
+  return done(toRider(data));
+}
+
+export async function deleteRider(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data } = await ctx.supabase.from("riders").select("avatar_path").eq("id", id).maybeSingle();
+  const { data: docs } = await ctx.supabase.from("rider_documents").select("file_path").eq("rider_id", id);
+  const { error } = await ctx.supabase.from("riders").delete().eq("id", id);
+  if (error) return dbError(error);
+  if (data?.avatar_path) await ctx.supabase.storage.from(RIDER_PHOTO_BUCKET).remove([data.avatar_path]);
+  if (docs?.length) await ctx.supabase.storage.from(RIDER_DOCUMENT_BUCKET).remove(docs.map((d) => d.file_path));
+  return done(null);
+}
+
+const AVATAR_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };
+
+export async function uploadRiderAvatar(riderId: string, form: FormData): Promise<ActionResult<{ avatarPath: string }>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const file = form.get("file");
+  if (!z.uuid().safeParse(riderId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
+  const ext = AVATAR_TYPES[file.type];
+  if (!ext) return fail("Tinka JPG, PNG, WebP arba AVIF nuotraukos.", "invalid");
+  if (file.size > 5 * 1024 * 1024) return fail("Nuotrauka per didelė (daugiausia 5 MB).", "invalid");
+  const { supabase } = ctx;
+
+  const { data: rider } = await supabase.from("riders").select("avatar_path").eq("id", riderId).maybeSingle();
+  if (!rider) return fail("Naudotojas nerastas.", "not_found");
+
+  const path = `${riderId}/${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await supabase.storage.from(RIDER_PHOTO_BUCKET).upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+  if (uploadError) return fail("Nepavyko įkelti nuotraukos. Bandykite dar kartą.", "storage");
+  const { error } = await supabase.from("riders").update({ avatar_path: path }).eq("id", riderId);
+  if (error) {
+    await supabase.storage.from(RIDER_PHOTO_BUCKET).remove([path]);
+    return dbError(error);
+  }
+  if (rider.avatar_path) await supabase.storage.from(RIDER_PHOTO_BUCKET).remove([rider.avatar_path]);
+  return done({ avatarPath: path });
+}
+
+export async function removeRiderAvatar(riderId: string): Promise<ActionResult> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data: rider } = await ctx.supabase.from("riders").select("avatar_path").eq("id", riderId).maybeSingle();
+  if (!rider?.avatar_path) return done(null);
+  const { error } = await ctx.supabase.from("riders").update({ avatar_path: null }).eq("id", riderId);
+  if (error) return dbError(error);
+  await ctx.supabase.storage.from(RIDER_PHOTO_BUCKET).remove([rider.avatar_path]);
+  return done(null);
+}
+
+/** Short-lived signed URL for a private rider photo or document. */
+export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents", path: string): Promise<ActionResult<{ url: string }>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!(bucket === RIDER_PHOTO_BUCKET || bucket === RIDER_DOCUMENT_BUCKET) || !path) return fail("Netinkamos reikšmės.", "invalid");
+  const { data, error } = await ctx.supabase.storage.from(bucket).createSignedUrl(path, 3600);
+  if (error || !data) return fail("Nepavyko gauti nuorodos.", "storage");
+  return done({ url: data.signedUrl });
+}
+
+const commentInput = z.object({ riderId: z.uuid(), text: z.string().trim().min(1).max(2000) });
+
+export async function addRiderComment(riderId: string, text: string): Promise<ActionResult<RiderComment>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = commentInput.safeParse({ riderId, text });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data: staffRow } = await ctx.supabase.from("staff").select("display_name").eq("user_id", ctx.userId).single();
+  const { data, error } = await ctx.supabase
+    .from("rider_comments")
+    .insert({ rider_id: parsed.data.riderId, text: parsed.data.text, author_id: ctx.userId, author_name: staffRow?.display_name ?? "Darbuotojas" })
+    .select("*")
+    .single();
+  if (error) return dbError(error);
+  return done(toRiderComment(data));
+}
+
+export async function deleteRiderComment(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("rider_comments").delete().eq("id", id);
+  return error ? dbError(error) : done(null);
+}
+
+const DOCUMENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+
+export async function addRiderDocument(riderId: string, form: FormData): Promise<ActionResult<RiderDocument>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const file = form.get("file");
+  if (!z.uuid().safeParse(riderId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
+  if (!DOCUMENT_TYPES.has(file.type)) return fail("Tinka JPG, PNG, WebP arba PDF failai.", "invalid");
+  if (file.size > 10 * 1024 * 1024) return fail("Failas per didelis (daugiausia 10 MB).", "invalid");
+  const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
+  const path = `${riderId}/${crypto.randomUUID()}${ext}`;
+  const { error: uploadError } = await ctx.supabase.storage.from(RIDER_DOCUMENT_BUCKET).upload(path, file, { contentType: file.type });
+  if (uploadError) return fail("Nepavyko įkelti failo. Bandykite dar kartą.", "storage");
+  const { data, error } = await ctx.supabase
+    .from("rider_documents")
+    .insert({ rider_id: riderId, file_path: path, file_name: file.name.slice(0, 200), uploaded_by: ctx.userId })
+    .select("*")
+    .single();
+  if (error) {
+    await ctx.supabase.storage.from(RIDER_DOCUMENT_BUCKET).remove([path]);
+    return dbError(error);
+  }
+  return done(toRiderDocument(data));
+}
+
+export async function deleteRiderDocument(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data } = await ctx.supabase.from("rider_documents").select("file_path").eq("id", id).maybeSingle();
+  const { error } = await ctx.supabase.from("rider_documents").delete().eq("id", id);
+  if (error) return dbError(error);
+  if (data?.file_path) await ctx.supabase.storage.from(RIDER_DOCUMENT_BUCKET).remove([data.file_path]);
+  return done(null);
+}
+
+const cardNumber = z.string().regex(/^[0-9]{6,32}$/);
+
+/**
+ * Bind a scanned bracelet UID to a rider ("write user to key" — the reader can't
+ * actually write to the bracelet, only report its factory UID). One bracelet ->
+ * one rider; rebinding moves it. Returns the rider it was moved from, if any.
+ */
+export async function bindRiderCard(scannedCardNumber: string, riderId: string): Promise<ActionResult<{ replaced: Rider | null }>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = z.object({ cardNumber, riderId: z.uuid() }).safeParse({ cardNumber: scannedCardNumber, riderId });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+
+  const { data: existing } = await ctx.supabase.from("rider_cards").select("rider_id").eq("card_number", v.cardNumber).maybeSingle();
+  let replaced: Rider | null = null;
+  if (existing && existing.rider_id !== v.riderId) {
+    const { data: prevRider } = await ctx.supabase.from("riders").select("*").eq("id", existing.rider_id).maybeSingle();
+    replaced = prevRider ? toRider(prevRider) : null;
+  }
+
+  const { error: deleteError } = await ctx.supabase.from("rider_cards").delete().or(`card_number.eq.${v.cardNumber},rider_id.eq.${v.riderId}`);
+  if (deleteError) return dbError(deleteError);
+
+  const { error } = await ctx.supabase.from("rider_cards").insert({ card_number: v.cardNumber, rider_id: v.riderId });
+  return error ? dbError(error) : done({ replaced });
 }

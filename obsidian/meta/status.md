@@ -1,6 +1,6 @@
 ---
 tags: [meta, status]
-updated: 2026-11-05
+updated: 2026-11-07
 ---
 
 # Current status — vanduomarse-redesign
@@ -10,9 +10,11 @@ updated: 2026-11-05
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-07
 
 ## Current focus
+
+**Apyrankės — bracelet pass scanning (2026-11-07): built end to end, live on Supabase, uncommitted.** New `/admin/apyrankes` staff screen (ported from a separate `pass-scanner` prototype, ADR-0038) behind a new `apyrankes` page permission: **Skenavimas** (tap a USB IC/RFID bracelet, resolve rider + plan from data already in `useAdmin()`), **Pardavimas** (pick a plan from a 4-column card grid grouped by category tabs — `RidePlanPicker` — assign to an existing rider or a new guest, bind their bracelet), **Naudotojai** (search, rebind, open a rider's page), **Planai** (CRUD catalogue, grouped into category tabs matching the till: Plaukimas / Įranga / Abonementai / Pramogos / Apgyvendinimas / Parduotuvė / Dubenėlyje). Two migrations **applied directly to the live "Vanduo" project** via the Supabase MCP: `20261107120000_bracelet_passes` (`ride_plans`, `riders`, `rider_cards`) and `20261107140000_rider_profiles` (rider contact fields + avatar, `purchases` sales log, `rider_comments`, `rider_documents`, two private Storage buckets `rider-photos`/`rider-documents` served via signed URLs, ADR-0039). `ride_plans` was reseeded with the real 13-item "Plaukimas" price list from the owner's screenshot, replacing the four placeholder plans. Rider detail is a full page `/admin/apyrankes/[id]` (`RiderPage`, same pattern as `/admin/pirtis/[id]`), not a drawer — Profilis / Pardavimai / Aktyvios paslaugos / Abonementai / Dokumentai / Komentarai + remove-rider. The admin sidebar was regrouped per the owner's dashboard-merge sitemap (ADR-0040): Apžvalga is now its own ungrouped item, and Rezervacijos/Užimtumas/Keturračiai/Kuponai/Apyrankės/Užklausos moved into a new "Pardavimai" section. `tsc`, full-repo `eslint` and `next build` are all clean throughout. **Not checked in the browser** (no staff login available in-session) — only confirmed via curl that the routes compile and correctly redirect to `/admin/prisijungti` when unauthenticated. `next.config.ts` `allowedDevOrigins` also got a second LAN IP (`127.210.108.239`) for cross-origin HMR.
 
 **Favicon (2026-11-05): new badge icons, uncommitted.** `app/favicon.ico`, `app/icon.png`, `app/apple-icon.png` from the owner's badge image; checked on the dev server (linked in the head, served while gated).
 
@@ -46,11 +48,14 @@ Sauna programs for `/rezervacija` (Bendra, Moterų, Vyrų, Visa šeima, Pirtis t
 
 ## Done recently
 
+- Apyrankės (bracelet pass scanning) built and its two migrations applied live; sidebar regrouped into "Pardavimai" (2026-11-07, see Current focus).
 - `/rezervacija` restyled to the live-site layout, start time per activity, availability icons on days (2026-11-03).
 - Migration `20261103180450_sauna_programs.sql` applied to the live project (table, RLS, RPCs, seed); "we also have..." popup after the seansas selection.
 - Dev server allowed from the Tailscale host (`allowedDevOrigins`).
 
 ## In progress
+
+- Apyrankės: entirely uncommitted. Needs a staff browser check (no credentials available this session) — scan a real bracelet, sell a plan end to end, upload a rider photo/document, confirm signed URLs resolve, check 375/768/1024 px. Then commit.
 
 - Account login at checkout (ADR-0027), uncommitted: `app/actions/customer.ts`, `lib/customer*.ts`, `lib/request-identity.ts`, `components/reservation/account-step.tsx`, `reservation-flow.tsx`/`review-step.tsx` changes, `proxy.ts`, migration `20261104150000`. The `ReservationGate` component was deleted. Waiting on: Supabase Auth phone provider + email code template + custom SMTP, the Stripe webhook endpoint, then a real code test.
 - Stripe payments (ADR-0026): code done and uncommitted (`lib/stripe.ts`, `lib/payments.ts`, `lib/file-request.ts`, `lib/stripe-events.ts`, `app/actions/payments.ts`, `app/api/stripe/webhook/`, `app/rezervacija/mokejimas/`, admin payment badge/note, migration `20261104160000`). Waiting on: migration push, regenerated types, Stripe sandbox keys + webhook. Checkout sessions use the SDK's own retry idempotency (no hand-made key, which would clash with the changing expiry on a retry).
@@ -59,6 +64,7 @@ Sauna programs for `/rezervacija` (Bendra, Moterų, Vyrų, Visa šeima, Pirtis t
 
 ## Next up
 
+- Apyrankės: staff sign-in and a full browser pass (scan, sell, rebind, upload photo/document, delete rider), then commit. The other till categories (Įranga, Abonementai, Pramogos, Apgyvendinimas, Parduotuvė, Dubenėlyje) are empty — fill them from `/admin/apyrankes` → Planai when the owner has the pricing.
 - Gate (ADR-0037): owner adds `SITE_GATE=1` and a long `SITE_GATE_CODE` in Vercel; commit and deploy; check `https://www.vanduomarse.lt` shows `/netrukus` and the code lets a browser in. Open the site later by removing `SITE_GATE` and redeploying.
 - Domain: Supabase Auth Site URL and redirect URLs to `https://www.vanduomarse.lt`; submit the sitemap in Search Console once the site is open.
 

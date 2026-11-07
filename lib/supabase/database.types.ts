@@ -743,6 +743,54 @@ export type Database = {
         }
         Relationships: []
       }
+      purchases: {
+        Row: {
+          id: string
+          plan_category: string
+          plan_id: string | null
+          plan_name: string
+          price: number | null
+          rider_id: string
+          sold_at: string
+          sold_by: string | null
+        }
+        Insert: {
+          id?: string
+          plan_category: string
+          plan_id?: string | null
+          plan_name: string
+          price?: number | null
+          rider_id: string
+          sold_at?: string
+          sold_by?: string | null
+        }
+        Update: {
+          id?: string
+          plan_category?: string
+          plan_id?: string | null
+          plan_name?: string
+          price?: number | null
+          rider_id?: string
+          sold_at?: string
+          sold_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ride_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quad_rental_items: {
         Row: {
           quad_type_id: string
@@ -944,6 +992,188 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ride_plans: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string
+          id: string
+          name: string
+          price: number | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          price?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          price?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rider_cards: {
+        Row: {
+          bound_at: string
+          card_number: string
+          rider_id: string
+        }
+        Insert: {
+          bound_at?: string
+          card_number: string
+          rider_id: string
+        }
+        Update: {
+          bound_at?: string
+          card_number?: string
+          rider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_cards_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: true
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_comments: {
+        Row: {
+          author_id: string | null
+          author_name: string
+          created_at: string
+          id: string
+          rider_id: string
+          text: string
+        }
+        Insert: {
+          author_id?: string | null
+          author_name: string
+          created_at?: string
+          id?: string
+          rider_id: string
+          text: string
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string
+          created_at?: string
+          id?: string
+          rider_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_comments_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_documents: {
+        Row: {
+          file_name: string
+          file_path: string
+          id: string
+          rider_id: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          id?: string
+          rider_id: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          id?: string
+          rider_id?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_documents_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      riders: {
+        Row: {
+          avatar_path: string | null
+          birthdate: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          phone2: string | null
+          plan_id: string
+          surname: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          birthdate?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          phone2?: string | null
+          plan_id: string
+          surname: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_path?: string | null
+          birthdate?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          phone2?: string | null
+          plan_id?: string
+          surname?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "riders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ride_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sauna_blocks: {
         Row: {

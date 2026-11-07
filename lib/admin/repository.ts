@@ -1,7 +1,7 @@
 import "server-only";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toQuadRental, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -65,7 +65,7 @@ async function readDiscountCodes(supabase: ServerSupabase, me: StaffAccess) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -93,9 +93,15 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("staff").select("*").order("created_at"),
     supabase.from("payments").select("*"),
     readDiscountCodes(supabase, me),
+    supabase.from("ride_plans").select("*").order("sort_order"),
+    supabase.from("riders").select("*").order("created_at"),
+    supabase.from("rider_cards").select("*"),
+    supabase.from("purchases").select("*").order("sold_at", { ascending: false }),
+    supabase.from("rider_comments").select("*").order("created_at", { ascending: false }),
+    supabase.from("rider_documents").select("*").order("uploaded_at", { ascending: false }),
   ]);
 
-  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff]) {
+  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
@@ -127,5 +133,11 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     roles: roles.data!.map(toStaffRole),
     // RLS already hides other people's rows from non-owners; this keeps the payload explicit.
     staff: me.isOwner ? staff.data!.map(toStaffMember) : [],
+    ridePlans: ridePlans.data!.map(toRidePlan),
+    riders: riders.data!.map(toRider),
+    riderCards: riderCards.data!.map(toRiderCard),
+    purchases: purchases.data!.map(toPurchase),
+    riderComments: riderComments.data!.map(toRiderComment),
+    riderDocuments: riderDocuments.data!.map(toRiderDocument),
   };
 }

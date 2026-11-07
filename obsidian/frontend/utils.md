@@ -1,6 +1,6 @@
 ---
 tags: [frontend, catalog, stable]
-updated: 2026-11-05
+updated: 2026-11-07
 ---
 
 # Utils Catalog
@@ -51,7 +51,10 @@ them pure and typed; anything with client state belongs in a hook instead.
 | `couponOrderSchema` | `lib/coupon-schema.ts` | Zod object | Checkout form shape, shared by `OrderForm` and the `createCouponOrder` action (honeypot `website` must stay empty) |
 | `sendCouponEmail` / `emailConfigured` | `lib/email/send-coupon.ts` (server-only) | `(CouponEmail) => Promise<boolean>` / `() => boolean` | Coupon delivery over the Resend HTTP API (no SDK); false when unconfigured or refused |
 | `loadAdminData` / `currentStaff` | `lib/admin/repository.ts` (server-only) | `(supabase) => Promise<AdminData>` / `(supabase) => { user, staff }` | Dashboard reads as the signed-in user; staff check |
-| `toBooking` / `toInquiry` / `toManagedEvent` / `toPriceItem` / `toSauna` / `toSaunaRates` / `fromSaunaRates` / `toUpsell` / `toBlock` / `toCoupon` / `toCouponProduct` / `toQuadType` / `toQuadSettings` / `toQuadRental` / `toTourTicket` / `toStaffRole` / `toStaffMember` / `toHHMM` | `lib/admin/mappers.ts` | `(row) => model` | Supabase rows → app models (null → optional, `HH:MM:SS` → `HH:MM`, extras → labels) |
+| `toBooking` / `toInquiry` / `toManagedEvent` / `toPriceItem` / `toSauna` / `toSaunaRates` / `fromSaunaRates` / `toUpsell` / `toBlock` / `toCoupon` / `toCouponProduct` / `toQuadType` / `toQuadSettings` / `toQuadRental` / `toTourTicket` / `toStaffRole` / `toStaffMember` / `toRidePlan` / `toRider` / `toRiderCard` / `toPurchase` / `toRiderComment` / `toRiderDocument` / `toHHMM` | `lib/admin/mappers.ts` | `(row) => model` | Supabase rows → app models (null → optional, `HH:MM:SS` → `HH:MM`, extras → labels) |
+| `CardScanner` | `lib/card-scanner.ts` | class, `new CardScanner(opts)` | Framework-agnostic USB keyboard-wedge reader core behind `useCardScanner` (ADR-0038) |
+| `formatPlanPrice` | `lib/ride-plans.ts` | `(price: number \| null) => string` | A ride plan's euro price, or "—" for a free plan (e.g. staff); wraps `formatEuro` |
+| `RIDE_PLAN_CATEGORIES` | `lib/ride-plans.ts` | `readonly [...]` | The /admin/apyrankes plan catalogue's categories (the till's tabs: Plaukimas, Įranga, Abonementai, Pramogos, Apgyvendinimas, Parduotuvė, Dubenėlyje); `RidePlanCategory` in `lib/admin/types.ts` is derived from it (ADR-0039) |
 | `createClient` / `createPublicClient` / `supabaseEnv` | `lib/supabase/server.ts` / `public.ts` / `env.ts` | — | Cookie client (acts as the user) / cookieless anon client / env reader |
 | `formatDay` / `formatDateTime` / `formatEur` / `bookingWhen` | `lib/admin/format.ts` | `(yyyy-mm-dd) => string` etc. | Admin date and money formatting in site wording |
 | `bookingsToCsv` / `toCsv` / `csvCell` / `exportFileName` | `lib/admin/export.ts` | `(bookings: Booking[]) => string` / `(prefix, dayKey) => string` | Excel-ready CSV (UTF-8 BOM, `;`, decimal comma, Lithuanian headers); quotes `;` `"` and line breaks, defuses formula-like cells |

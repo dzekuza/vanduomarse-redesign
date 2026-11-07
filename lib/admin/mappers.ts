@@ -6,7 +6,7 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
-import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -215,6 +215,41 @@ export function toCoupon(r: CouponRow): Coupon {
       .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
       .map((x) => ({ id: x.id, amount: x.amount, note: x.note, at: x.created_at })),
   };
+}
+
+export function toRidePlan(r: Tables<"ride_plans">): RidePlan {
+  return { id: r.id, name: r.name, description: r.description, price: r.price, category: r.category as RidePlanCategory, active: r.active, sortOrder: r.sort_order };
+}
+
+export function toRider(r: Tables<"riders">): Rider {
+  return {
+    id: r.id,
+    name: r.name,
+    surname: r.surname,
+    phone: r.phone,
+    phone2: r.phone2,
+    email: r.email,
+    birthdate: r.birthdate,
+    avatarPath: r.avatar_path,
+    planId: r.plan_id,
+    createdAt: r.created_at,
+  };
+}
+
+export function toRiderCard(r: Tables<"rider_cards">): RiderCard {
+  return { cardNumber: r.card_number, riderId: r.rider_id, boundAt: r.bound_at };
+}
+
+export function toPurchase(r: Tables<"purchases">): Purchase {
+  return { id: r.id, riderId: r.rider_id, planId: r.plan_id, planName: r.plan_name, planCategory: r.plan_category as RidePlanCategory, price: r.price, soldAt: r.sold_at };
+}
+
+export function toRiderComment(r: Tables<"rider_comments">): RiderComment {
+  return { id: r.id, riderId: r.rider_id, text: r.text, authorName: r.author_name, createdAt: r.created_at };
+}
+
+export function toRiderDocument(r: Tables<"rider_documents">): RiderDocument {
+  return { id: r.id, riderId: r.rider_id, filePath: r.file_path, fileName: r.file_name, uploadedAt: r.uploaded_at };
 }
 
 export function toQuadType(r: Tables<"quad_types">): QuadType {
