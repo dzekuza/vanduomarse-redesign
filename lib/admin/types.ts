@@ -221,6 +221,8 @@ export interface Rider {
   /** Null until staff sells them a plan (e.g. a bulk-imported contact). */
   planId: string | null;
   createdAt: string;
+  /** Created through /registracija rather than by staff (ADR-0043). */
+  selfRegistered: boolean;
 }
 
 /** A physical bracelet (USB IC/RFID reader UID) bound to a rider. One bracelet -> one rider. */
@@ -228,6 +230,15 @@ export interface RiderCard {
   cardNumber: string;
   riderId: string;
   boundAt: string;
+}
+
+/** One open/closed interval of a rider being out on the water, started and ended by scanning their bracelet (/admin/instruktorius). `endedAt` null = still out. */
+export interface RiderSession {
+  id: string;
+  riderId: string;
+  cardNumber: string;
+  startedAt: string;
+  endedAt: string | null;
 }
 
 /** One plan sold to a rider ("sales"): a snapshot, so later plan edits/deletes never rewrite history. */
@@ -257,6 +268,16 @@ export interface RiderDocument {
   filePath: string;
   fileName: string;
   uploadedAt: string;
+}
+
+/** A signed copy of the park rules from a /registracija self-registration (ADR-0043). */
+export interface RiderWaiver {
+  id: string;
+  riderId: string;
+  termsVersion: string;
+  /** Path in the private `rider-waivers` bucket; null if the upload failed. */
+  signaturePath: string | null;
+  signedAt: string;
 }
 
 /** A coupon order or issued coupon. `code` stays unset until payment is confirmed. */
@@ -312,7 +333,10 @@ export interface AdminData {
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];
+  /** Empty without the `instruktorius` permission. */
+  riderSessions: RiderSession[];
   purchases: Purchase[];
   riderComments: RiderComment[];
   riderDocuments: RiderDocument[];
+  riderWaivers: RiderWaiver[];
 }

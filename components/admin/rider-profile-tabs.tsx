@@ -32,6 +32,35 @@ const profileSchema = z.object({
 });
 type ProfileValues = z.infer<typeof profileSchema>;
 
+/** The signed registration waiver (/registracija), if this rider self-registered — a date and a link to the signature. */
+function WaiverStatus({ riderId }: { riderId: string }) {
+  const { riderWaivers, getRiderFileUrl } = useAdmin();
+  const [opening, setOpening] = useState(false);
+  const waiver = riderWaivers.find((w) => w.riderId === riderId);
+  if (!waiver) return null;
+
+  async function openSignature() {
+    if (!waiver!.signaturePath) return;
+    setOpening(true);
+    const result = await getRiderFileUrl("rider-waivers", waiver!.signaturePath);
+    setOpening(false);
+    if ("data" in result) window.open(result.data.url, "_blank", "noopener,noreferrer");
+  }
+
+  return (
+    <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+      Taisyklės pasirašytos {formatDateTime(waiver.signedAt)}.{" "}
+      {waiver.signaturePath ? (
+        <button type="button" className="underline underline-offset-4 disabled:opacity-50" disabled={opening} onClick={openSignature}>
+          Peržiūrėti parašą
+        </button>
+      ) : (
+        "Parašo failas nerastas."
+      )}
+    </p>
+  );
+}
+
 export function RiderProfileTab({ rider }: { rider: Rider }) {
   const { updateRiderProfile, uploadRiderAvatar, removeRiderAvatar } = useAdmin();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -75,6 +104,7 @@ export function RiderProfileTab({ rider }: { rider: Rider }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      <WaiverStatus riderId={rider.id} />
       <div className="flex items-center gap-3">
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleAvatarPick} />
         <Button type="button" variant="outline" size="sm" className="min-h-9" disabled={uploading} onClick={() => fileRef.current?.click()}>

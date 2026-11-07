@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/admin/guard";
 export const metadata: Metadata = { title: "Rezervacijos" };
 
 export default async function AdminBookingsPage() {
-  await requirePermission("rezervacijos");
+  // Užimtumas-only staff (closing hours) open this page's Kalendorius tab.
+  await requirePermission(["rezervacijos", "uzimtumas"]);
   return <BookingsView />;
 }

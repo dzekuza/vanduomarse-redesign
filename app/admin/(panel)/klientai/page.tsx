@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/admin/guard";
 export const metadata: Metadata = { title: "Klientai" };
 
 export default async function AdminKlientaiPage() {
-  await requirePermission("klientai");
+  // Apyrankės-only staff lose their Naudotojai tab (ADR-0042) without this.
+  await requirePermission(["klientai", "apyrankes"]);
   return <KlientaiView />;
 }

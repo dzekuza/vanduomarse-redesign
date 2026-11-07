@@ -1140,6 +1140,70 @@ export type Database = {
           },
         ]
       }
+      rider_sessions: {
+        Row: {
+          card_number: string
+          ended_at: string | null
+          id: string
+          rider_id: string
+          started_at: string
+        }
+        Insert: {
+          card_number: string
+          ended_at?: string | null
+          id?: string
+          rider_id: string
+          started_at?: string
+        }
+        Update: {
+          card_number?: string
+          ended_at?: string | null
+          id?: string
+          rider_id?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_sessions_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_waivers: {
+        Row: {
+          id: string
+          rider_id: string
+          signature_path: string | null
+          signed_at: string
+          terms_version: string
+        }
+        Insert: {
+          id?: string
+          rider_id: string
+          signature_path?: string | null
+          signed_at?: string
+          terms_version: string
+        }
+        Update: {
+          id?: string
+          rider_id?: string
+          signature_path?: string | null
+          signed_at?: string
+          terms_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_waivers_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riders: {
         Row: {
           avatar_path: string | null
@@ -1152,6 +1216,7 @@ export type Database = {
           phone: string | null
           phone2: string | null
           plan_id: string | null
+          self_registered: boolean
           surname: string
           updated_at: string
         }
@@ -1166,6 +1231,7 @@ export type Database = {
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
+          self_registered?: boolean
           surname: string
           updated_at?: string
         }
@@ -1180,6 +1246,7 @@ export type Database = {
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
+          self_registered?: boolean
           surname?: string
           updated_at?: string
         }
@@ -1931,6 +1998,14 @@ export type Database = {
           tickets: number
         }[]
       }
+      finalize_rider_registration_public: {
+        Args: {
+          p_avatar_path: string
+          p_rider_id: string
+          p_signature_path: string
+        }
+        Returns: undefined
+      }
       materialize_sauna_events: {
         Args: { p_days?: number; p_from: string }
         Returns: number
@@ -1976,12 +2051,29 @@ export type Database = {
           id: string
         }[]
       }
+      register_rider_public: {
+        Args: {
+          p_birthdate: string
+          p_email: string
+          p_name: string
+          p_phone: string
+          p_phone2: string
+          p_surname: string
+          p_terms_version: string
+        }
+        Returns: string
+      }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
         Returns: {
           reason: string
           retry_after: number
         }[]
+      }
+      rider_awaiting_photo: { Args: { p_rider_id: string }; Returns: boolean }
+      rider_waiver_awaiting_signature: {
+        Args: { p_rider_id: string }
+        Returns: boolean
       }
       sauna_taken: {
         Args: { p_from: string; p_to: string }

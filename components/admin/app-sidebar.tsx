@@ -52,7 +52,7 @@ export function AppSidebar({ staffName }: { staffName: string }) {
       <SidebarContent>
         {ADMIN_NAV_GROUPS.filter((group) => nav.some((item) => item.group === group.id)).map((group) => (
           <SidebarGroup key={group.id}>
-            {group.label ? <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase">{group.label}</SidebarGroupLabel> : null}
+            {group.label ? <SidebarGroupLabel className="text-sidebar-foreground/50">{group.label}</SidebarGroupLabel> : null}
             <SidebarGroupContent>
               <SidebarMenu>
                 {nav.filter((item) => item.group === group.id).map((item) => {
@@ -64,7 +64,7 @@ export function AppSidebar({ staffName }: { staffName: string }) {
                       <SidebarMenuButton asChild isActive={current} tooltip={item.label} size="lg" className={ACTIVE_MARKER}>
                         <Link href={item.href} aria-current={current ? "page" : undefined}>
                           <Icon size={20} weight={current ? "fill" : "regular"} />
-                          <span>{item.label}</span>
+                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                       {count > 0 ? (
@@ -87,7 +87,7 @@ export function AppSidebar({ staffName }: { staffName: string }) {
             <SidebarMenuButton asChild tooltip="Į svetainę">
               <Link href="/">
                 <ArrowSquareOutIcon size={18} />
-                <span>Į svetainę</span>
+                <span className="group-data-[collapsible=icon]:hidden">Į svetainę</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

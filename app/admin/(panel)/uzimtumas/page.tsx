@@ -1,10 +1,8 @@
-import type { Metadata } from "next";
-import { AvailabilityView } from "@/components/admin/availability/availability-view";
+import { redirect } from "next/navigation";
 import { requirePermission } from "@/lib/admin/guard";
 
-export const metadata: Metadata = { title: "Užimtumas" };
-
+// Užimtumas is now the Rezervacijos page's "Kalendorius" tab; keep the old link working.
 export default async function AdminAvailabilityPage() {
   await requirePermission("uzimtumas");
-  return <AvailabilityView />;
+  redirect("/admin/rezervacijos?view=kalendorius");
 }

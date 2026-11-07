@@ -1,10 +1,11 @@
 "use client";
 
-import { CalendarCheckIcon, CoinsIcon, EnvelopeSimpleIcon, HourglassIcon } from "@phosphor-icons/react";
+import { CalendarCheckIcon, CoinsIcon, EnvelopeSimpleIcon, HourglassIcon, IdentificationBadgeIcon, TicketIcon, UsersIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { BookingStatusBadge, InquiryStatusBadge } from "../status-badge";
+import { useNavCounts } from "../use-nav-counts";
 import { StatCard } from "./stat-card";
 import { bookingTypeLabel, bookingWhen, formatDateTime, formatDay, formatEur } from "@/lib/admin/format";
 import { dateKey } from "@/lib/sauna";
@@ -17,14 +18,14 @@ function nextDays(n: number): string[] {
 
 /** Admin landing: today's load, work waiting on staff, money, and what's next. */
 export function Overview() {
-  const { bookings, inquiries, events, saunas } = useAdmin();
+  const { bookings, inquiries, events, saunas, riders, riderCards, ridePlans, purchases } = useAdmin();
+  const counts = useNavCounts();
   const [today, ...rest] = nextDays(7);
   const week = [today, ...rest];
   const month = today.slice(0, 7);
 
   const live = bookings.filter((b) => b.status !== "atsaukta");
   const todays = live.filter((b) => b.date === today).sort((a, b) => (a.startHour ?? 99) - (b.startHour ?? 99));
-  const pending = bookings.filter((b) => b.status === "laukia");
   const fresh = inquiries.filter((q) => q.status === "nauja");
   const revenue = live.filter((b) => b.date.startsWith(month)).reduce((sum, b) => sum + b.total, 0);
   const saunaHours = live.filter((b) => b.kind === "pirtis" && week.includes(b.date)).reduce((s, b) => s + (b.hours ?? 0), 0);
@@ -33,11 +34,18 @@ export function Overview() {
   const occupancy = openHours ? Math.round((saunaHours / openHours) * 100) : 0;
   const upcoming = events.filter((e) => e.date >= today && e.published).slice(0, 4);
 
+  const activeSubscriptions = riders.filter((r) => {
+    const plan = ridePlans.find((p) => p.id === r.planId);
+    return plan?.category === "Abonementai";
+  }).length;
+  const todaysSales = purchases.filter((p) => p.soldAt.startsWith(today));
+  const todaysSalesRevenue = todaysSales.reduce((sum, p) => sum + (p.price ?? 0), 0);
+
   return (
     <AdminPage title="Apžvalga" description="Šiandienos darbai, laukiantys sprendimai ir artimiausi renginiai.">
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="Šiandien" value={String(todays.length)} hint={`Pirties užimtumas 7 d.: ${occupancy}%`} icon={CalendarCheckIcon} />
-        <StatCard label="Laukia patvirtinimo" value={String(pending.length)} hint="Rezervacijos be atsakymo" icon={HourglassIcon} />
+        <StatCard label="Laukia patvirtinimo" value={String(counts.pendingAll)} hint="Rezervacijos, kuponai, keturračiai ir užklausos" icon={HourglassIcon} />
         <StatCard label="Naujos užklausos" value={String(fresh.length)} hint="Renginiai ir skaičiuoklė" icon={EnvelopeSimpleIcon} />
         <StatCard label="Šio mėnesio suma" value={formatEur(revenue)} hint="Patvirtintos ir įvykdytos" icon={CoinsIcon} />
       </div>
@@ -111,6 +119,19 @@ export function Overview() {
           ))}
         </CardContent>
       </Card>
+
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-normal text-muted-foreground">Apyrankės</h2>
+        <Link href="/admin/apyrankes" className="text-sm underline underline-offset-4 hover:text-rust">
+          Valdyti
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <StatCard label="Apyrankės priskirtos" value={String(riderCards.length)} hint="Aktyvūs naudotojai su apyranke" icon={IdentificationBadgeIcon} />
+        <StatCard label="Aktyvūs abonementai" value={String(activeSubscriptions)} hint="Naudotojai su abonemento planu" icon={TicketIcon} />
+        <StatCard label="Naudotojai iš viso" value={String(riders.length)} hint="Registruota sistemoje" icon={UsersIcon} />
+        <StatCard label="Šiandien parduota" value={String(todaysSales.length)} hint={`Suma: ${formatEur(todaysSalesRevenue)}`} icon={CoinsIcon} />
+      </div>
     </AdminPage>
   );
 }
