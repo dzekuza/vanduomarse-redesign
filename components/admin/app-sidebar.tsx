@@ -52,7 +52,7 @@ export function AppSidebar({ staffName }: { staffName: string }) {
       <SidebarContent>
         {ADMIN_NAV_GROUPS.filter((group) => nav.some((item) => item.group === group.id)).map((group) => (
           <SidebarGroup key={group.id}>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase">{group.label}</SidebarGroupLabel>
+            {group.label ? <SidebarGroupLabel className="text-sidebar-foreground/50 uppercase">{group.label}</SidebarGroupLabel> : null}
             <SidebarGroupContent>
               <SidebarMenu>
                 {nav.filter((item) => item.group === group.id).map((item) => {

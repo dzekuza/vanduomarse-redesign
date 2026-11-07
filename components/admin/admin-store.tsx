@@ -7,7 +7,8 @@ import * as discountActions from "@/app/admin/discount-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
-import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, QuadRental, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
+import type { RiderProfileInput } from "@/app/admin/actions";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
 import type { QuadSettings, QuadType } from "@/lib/quads";
@@ -57,7 +58,20 @@ type Action =
   | { type: "staff/active"; userId: string; active: boolean }
   | { type: "staff/remove"; userId: string }
   | { type: "role/upsert"; role: StaffRole }
-  | { type: "role/delete"; id: string };
+  | { type: "role/delete"; id: string }
+  | { type: "ridePlan/upsert"; plan: RidePlan }
+  | { type: "ridePlan/delete"; id: string }
+  | { type: "rider/add"; rider: Rider }
+  | { type: "rider/plan"; id: string; planId: string }
+  | { type: "rider/profile"; rider: Rider }
+  | { type: "rider/avatar"; id: string; avatarPath: string | null }
+  | { type: "rider/delete"; id: string }
+  | { type: "riderCard/bind"; cardNumber: string; riderId: string }
+  | { type: "purchase/add"; purchase: Purchase }
+  | { type: "riderComment/add"; comment: RiderComment }
+  | { type: "riderComment/delete"; id: string }
+  | { type: "riderDocument/add"; document: RiderDocument }
+  | { type: "riderDocument/delete"; id: string };
 
 function reducer(state: AdminData, action: Action): AdminData {
   switch (action.type) {
@@ -182,6 +196,48 @@ function reducer(state: AdminData, action: Action): AdminData {
     }
     case "role/delete":
       return { ...state, roles: state.roles.filter((r) => r.id !== action.id) };
+    case "ridePlan/upsert": {
+      const exists = state.ridePlans.some((p) => p.id === action.plan.id);
+      const ridePlans = exists ? state.ridePlans.map((p) => (p.id === action.plan.id ? action.plan : p)) : [...state.ridePlans, action.plan];
+      return { ...state, ridePlans: ridePlans.toSorted((a, b) => a.sortOrder - b.sortOrder) };
+    }
+    case "ridePlan/delete":
+      return { ...state, ridePlans: state.ridePlans.filter((p) => p.id !== action.id) };
+    case "rider/add":
+      return { ...state, riders: [...state.riders, action.rider] };
+    case "rider/plan":
+      return { ...state, riders: state.riders.map((r) => (r.id === action.id ? { ...r, planId: action.planId } : r)) };
+    case "rider/profile":
+      return { ...state, riders: state.riders.map((r) => (r.id === action.rider.id ? action.rider : r)) };
+    case "rider/avatar":
+      return { ...state, riders: state.riders.map((r) => (r.id === action.id ? { ...r, avatarPath: action.avatarPath } : r)) };
+    case "rider/delete":
+      return {
+        ...state,
+        riders: state.riders.filter((r) => r.id !== action.id),
+        riderCards: state.riderCards.filter((c) => c.riderId !== action.id),
+        purchases: state.purchases.filter((p) => p.riderId !== action.id),
+        riderComments: state.riderComments.filter((c) => c.riderId !== action.id),
+        riderDocuments: state.riderDocuments.filter((d) => d.riderId !== action.id),
+      };
+    case "riderCard/bind":
+      return {
+        ...state,
+        riderCards: [
+          ...state.riderCards.filter((c) => c.cardNumber !== action.cardNumber && c.riderId !== action.riderId),
+          { cardNumber: action.cardNumber, riderId: action.riderId, boundAt: new Date().toISOString() },
+        ],
+      };
+    case "purchase/add":
+      return { ...state, purchases: [action.purchase, ...state.purchases] };
+    case "riderComment/add":
+      return { ...state, riderComments: [action.comment, ...state.riderComments] };
+    case "riderComment/delete":
+      return { ...state, riderComments: state.riderComments.filter((c) => c.id !== action.id) };
+    case "riderDocument/add":
+      return { ...state, riderDocuments: [action.document, ...state.riderDocuments] };
+    case "riderDocument/delete":
+      return { ...state, riderDocuments: state.riderDocuments.filter((d) => d.id !== action.id) };
   }
 }
 
@@ -366,6 +422,78 @@ function useAdminReducer(initial: AdminData) {
       deleteRole: (id: string) => {
         dispatch({ type: "role/delete", id });
         return report(staffActions.deleteRole(id));
+      },
+      /** Not optimistic: a new plan's id comes from the server. */
+      saveRidePlan: async (plan: RidePlan) => {
+        const result = await report(actions.saveRidePlan(plan));
+        if ("data" in result) dispatch({ type: "ridePlan/upsert", plan: result.data });
+        return result;
+      },
+      /** Not optimistic: refused while a rider is still on this plan. */
+      deleteRidePlan: async (id: string) => {
+        const result = await report(actions.deleteRidePlan(id));
+        if ("data" in result) dispatch({ type: "ridePlan/delete", id });
+        return result;
+      },
+      /** Not optimistic: the id comes from the server; also logs the sale. */
+      createRider: async (input: { name: string; surname: string; planId: string }) => {
+        const result = await actions.createRider(input);
+        if ("data" in result) {
+          dispatch({ type: "rider/add", rider: result.data.rider });
+          if (result.data.purchase) dispatch({ type: "purchase/add", purchase: result.data.purchase });
+        }
+        return result;
+      },
+      /** Optimistic plan change; the sale it logs arrives once the server confirms. */
+      updateRiderPlan: async (id: string, planId: string) => {
+        dispatch({ type: "rider/plan", id, planId });
+        const result = await report(actions.updateRiderPlan(id, planId));
+        if ("data" in result && result.data.purchase) dispatch({ type: "purchase/add", purchase: result.data.purchase });
+        return result;
+      },
+      updateRiderProfile: async (id: string, input: RiderProfileInput) => {
+        const result = await report(actions.updateRiderProfile(id, input));
+        if ("data" in result) dispatch({ type: "rider/profile", rider: result.data });
+        return result;
+      },
+      uploadRiderAvatar: async (id: string, form: FormData) => {
+        const result = await report(actions.uploadRiderAvatar(id, form));
+        if ("data" in result) dispatch({ type: "rider/avatar", id, avatarPath: result.data.avatarPath });
+        return result;
+      },
+      removeRiderAvatar: async (id: string) => {
+        const result = await report(actions.removeRiderAvatar(id));
+        if ("data" in result) dispatch({ type: "rider/avatar", id, avatarPath: null });
+        return result;
+      },
+      getRiderFileUrl: (bucket: "rider-photos" | "rider-documents", path: string) => actions.getRiderFileUrl(bucket, path),
+      addRiderComment: async (riderId: string, text: string) => {
+        const result = await report(actions.addRiderComment(riderId, text));
+        if ("data" in result) dispatch({ type: "riderComment/add", comment: result.data });
+        return result;
+      },
+      deleteRiderComment: (id: string) => {
+        dispatch({ type: "riderComment/delete", id });
+        return report(actions.deleteRiderComment(id));
+      },
+      addRiderDocument: async (riderId: string, form: FormData) => {
+        const result = await report(actions.addRiderDocument(riderId, form));
+        if ("data" in result) dispatch({ type: "riderDocument/add", document: result.data });
+        return result;
+      },
+      deleteRiderDocument: (id: string) => {
+        dispatch({ type: "riderDocument/delete", id });
+        return report(actions.deleteRiderDocument(id));
+      },
+      deleteRider: (id: string) => {
+        dispatch({ type: "rider/delete", id });
+        return report(actions.deleteRider(id));
+      },
+      /** Not optimistic: whether a bracelet was moved from someone else comes from the server. */
+      bindRiderCard: async (cardNumber: string, riderId: string) => {
+        const result = await report(actions.bindRiderCard(cardNumber, riderId));
+        if ("data" in result) dispatch({ type: "riderCard/bind", cardNumber, riderId });
+        return result;
       },
     }),
     [],

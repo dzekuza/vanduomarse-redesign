@@ -1,6 +1,6 @@
 ---
 tags: [frontend, stable]
-updated: 2026-11-05
+updated: 2026-11-07
 ---
 
 # Routing
@@ -39,7 +39,8 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 | `/renginiai` | `BookingPage` + `EventsBoard`; data from `getParkEvents()` | stable |
 | `/skaiciuokle` | `BookingPage` + `.theme-reservation` wrapper + `BookingHeader` + `EventCalculator` (header and questions left, sticky `EstimateSummary` right). Supplies the current Vilnius date at request time. The event date is optional, with a 60-day strip and a calendar for any future date | stable |
 | `/embed/pirtis`, `/embed/keturraciai`, `/embed/miegas`, `/embed/renginiai`, `/embed/kuponai` | `app/embed/layout.tsx` (`EmbedFrame`, noindex) + the bare booking component of the matching page (same data reads, same `?skirtukas=`); no header, footer, hero or sticker dock. Framed by the WordPress plugin; only `EMBED_ALLOWED_ORIGINS` may frame them (ADR-0014) | stable |
-| `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/keturraciai`, `/kuponai`, `/nuolaidos`, `/renginiai`, `/pirtis`, `/kainos`) | `app/admin/layout.tsx` (noindex metadata) → `app/admin/(panel)/layout.tsx` (staff check, `loadAdminData`, sidebar shell, `AdminStoreProvider`) + one view per page | Supabase, staff login (ADR-0007); each page checks its role permission (`requirePermission`, ADR-0012) and bounces to the first page the role allows |
+| `/admin` (+ `/rezervacijos`, `/uzimtumas`, `/uzklausos`, `/keturraciai`, `/kuponai`, `/nuolaidos`, `/renginiai`, `/pirtis`, `/kainos`, `/apyrankes`, `/apyrankes/[id]`) | `app/admin/layout.tsx` (noindex metadata) → `app/admin/(panel)/layout.tsx` (staff check, `loadAdminData`, sidebar shell, `AdminStoreProvider`) + one view per page | Supabase, staff login (ADR-0007); each page checks its role permission (`requirePermission`, ADR-0012) and bounces to the first page the role allows |
+| `/admin/apyrankes/[id]` | `RiderPage` (`components/admin/apyrankes/rider-page.tsx`), own page like `/admin/pirtis/[id]` — not a drawer. "Visi naudotojai" goes back to `/admin/apyrankes?tab=nariai`, which `ApyrankesView` reads via `useSearchParams` to reopen the Naudotojai tab (ADR-0039) | same as `/admin/apyrankes` |
 | `/admin/darbuotojai` | `StaffView` (tabs Darbuotojai / Rolės). Owner-only: `requirePermission("owner")` | stable |
 | `/admin/prisijungti` | `AuthCard` + `LoginForm` (outside the panel group) | stable |
 
