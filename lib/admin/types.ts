@@ -65,6 +65,8 @@ export interface Booking {
   /** Internal note from staff (manual bookings). */
   note?: string;
   payment?: PaymentInfo;
+  /** Linked customer (Klientai), when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** Sauna hours closed by staff (maintenance, private use). */
@@ -165,6 +167,8 @@ export interface QuadRental {
   note?: string;
   createdAt: string;
   payment?: PaymentInfo;
+  /** Linked customer (Klientai), when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** A ticket for an event (a row of event_tickets); quad tours and other events share the shape. */
@@ -183,6 +187,8 @@ export interface TourTicket {
   status: BookingStatus;
   createdAt: string;
   payment?: PaymentInfo;
+  /** Linked customer (Klientai), when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** The plan catalogue's category: which /admin/apyrankes tab (and which till tab) it belongs to. */
@@ -212,7 +218,8 @@ export interface Rider {
   birthdate: string | null;
   /** Path in the private `rider-photos` bucket; resolve to a signed URL on demand. */
   avatarPath: string | null;
-  planId: string;
+  /** Null until staff sells them a plan (e.g. a bulk-imported contact). */
+  planId: string | null;
   createdAt: string;
 }
 
@@ -271,6 +278,8 @@ export interface Coupon {
   /** yyyy-mm-dd */
   expiresAt?: string;
   redemptions: { id: string; amount: number; note: string; at: string }[];
+  /** Linked customer (Klientai), the buyer, when matched or created. ADR-0042 */
+  riderId?: string;
 }
 
 /** Everything the dashboard renders, loaded once per request in the admin layout. */

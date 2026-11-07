@@ -1,13 +1,14 @@
 import type { Icon } from "@phosphor-icons/react";
-import { CalendarCheckIcon, CalendarDotsIcon, ChartPieSliceIcon, ConfettiIcon, EnvelopeSimpleIcon, FireIcon, GiftIcon, MotorcycleIcon, PercentIcon, ScanIcon, TagIcon, UsersThreeIcon } from "@phosphor-icons/react";
+import { AddressBookIcon, CalendarCheckIcon, CalendarDotsIcon, ChartPieSliceIcon, ConfettiIcon, EnvelopeSimpleIcon, FireIcon, GiftIcon, MotorcycleIcon, PercentIcon, ScanIcon, TagIcon, UsersThreeIcon } from "@phosphor-icons/react";
 import { hasPermission, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
 
-export type AdminNavGroup = "apzvalga" | "pardavimai" | "turinys" | "nustatymai";
+export type AdminNavGroup = "apzvalga" | "pardavimai" | "klientai" | "turinys" | "nustatymai";
 
-/** `label: null` renders no group header (just Apžvalga, kept out of Pardavimai per the dashboard-merge sitemap, ADR-0040). */
+/** `label: null` renders no group header (Apžvalga and Klientai stand alone, per the dashboard-merge sitemap, ADR-0040/ADR-0042). */
 export const ADMIN_NAV_GROUPS: { id: AdminNavGroup; label: string | null }[] = [
   { id: "apzvalga", label: null },
   { id: "pardavimai", label: "Pardavimai" },
+  { id: "klientai", label: null },
   { id: "turinys", label: "Turinys" },
   { id: "nustatymai", label: "Nustatymai" },
 ];
@@ -33,6 +34,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "pardavimai", permission: "kuponai", badge: "pendingCoupons" },
   { href: "/admin/apyrankes", label: "Apyrankės", icon: ScanIcon, group: "pardavimai", permission: "apyrankes" },
   { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, group: "pardavimai", permission: "uzklausos", badge: "newInquiries" },
+  { href: "/admin/klientai", label: "Klientai", icon: AddressBookIcon, group: "klientai", permission: "klientai" },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
   { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "turinys", permission: "nuolaidos" },
   { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "nustatymai", permission: "pirtis" },

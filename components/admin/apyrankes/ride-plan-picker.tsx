@@ -32,7 +32,7 @@ export function RidePlanPicker({ value, onChange }: RidePlanPickerProps) {
 
   return (
     <Tabs value={tab} onValueChange={(v) => setTab(v as RidePlanCategory)}>
-      <TabsList className="w-full justify-start overflow-x-auto">
+      <TabsList className="w-full justify-start overflow-x-auto overflow-y-hidden">
         {categories.map((category) => (
           <TabsTrigger key={category} value={category} className="min-h-10 shrink-0">
             {category} ({byCategory.get(category)!.length})

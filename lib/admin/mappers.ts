@@ -50,6 +50,7 @@ export function toBooking(r: BookingRow): Booking {
     createdAt: r.created_at,
     source: r.source,
     note: r.note ?? undefined,
+    riderId: r.rider_id ?? undefined,
   };
 }
 
@@ -214,6 +215,7 @@ export function toCoupon(r: CouponRow): Coupon {
     redemptions: r.coupon_redemptions
       .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
       .map((x) => ({ id: x.id, amount: x.amount, note: x.note, at: x.created_at })),
+    riderId: r.rider_id ?? undefined,
   };
 }
 
@@ -282,6 +284,7 @@ export function toQuadRental(r: QuadRentalRow): QuadRental {
     source: r.source,
     note: r.note ?? undefined,
     createdAt: r.created_at,
+    riderId: r.rider_id ?? undefined,
   };
 }
 
@@ -298,6 +301,7 @@ export function toTourTicket(r: TicketRow): TourTicket {
     total: r.total,
     status: r.status,
     createdAt: r.created_at,
+    riderId: r.rider_id ?? undefined,
   };
 }
 

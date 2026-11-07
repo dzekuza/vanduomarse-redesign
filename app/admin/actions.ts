@@ -825,7 +825,10 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
 }
 
 // ---------------------------------------------------------------------------
-// Apyrankės: ride plans, riders, purchases, comments, documents, bracelet bindings
+// Apyrankės: ride plans, riders, purchases, comments, documents, bracelet
+// bindings. Riders are also Klientai's customer records (ADR-0042): profile,
+// avatar, comments and document actions accept either permission, since the
+// RLS policies on those tables are additive for both.
 // ---------------------------------------------------------------------------
 
 const RIDER_PHOTO_BUCKET = "rider-photos" as const;
@@ -920,7 +923,7 @@ const riderProfileInput = z.object({
 export type RiderProfileInput = z.infer<typeof riderProfileInput>;
 
 export async function updateRiderProfile(riderId: string, input: RiderProfileInput): Promise<ActionResult<Rider>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
   const parsed = riderProfileInput.safeParse(input);
@@ -937,7 +940,7 @@ export async function updateRiderProfile(riderId: string, input: RiderProfileInp
 }
 
 export async function deleteRider(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data } = await ctx.supabase.from("riders").select("avatar_path").eq("id", id).maybeSingle();
@@ -952,7 +955,7 @@ export async function deleteRider(id: string): Promise<ActionResult> {
 const AVATAR_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };
 
 export async function uploadRiderAvatar(riderId: string, form: FormData): Promise<ActionResult<{ avatarPath: string }>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const file = form.get("file");
   if (!z.uuid().safeParse(riderId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
@@ -977,7 +980,7 @@ export async function uploadRiderAvatar(riderId: string, form: FormData): Promis
 }
 
 export async function removeRiderAvatar(riderId: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data: rider } = await ctx.supabase.from("riders").select("avatar_path").eq("id", riderId).maybeSingle();
@@ -990,7 +993,7 @@ export async function removeRiderAvatar(riderId: string): Promise<ActionResult> 
 
 /** Short-lived signed URL for a private rider photo or document. */
 export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents", path: string): Promise<ActionResult<{ url: string }>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!(bucket === RIDER_PHOTO_BUCKET || bucket === RIDER_DOCUMENT_BUCKET) || !path) return fail("Netinkamos reikšmės.", "invalid");
   const { data, error } = await ctx.supabase.storage.from(bucket).createSignedUrl(path, 3600);
@@ -1001,7 +1004,7 @@ export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents"
 const commentInput = z.object({ riderId: z.uuid(), text: z.string().trim().min(1).max(2000) });
 
 export async function addRiderComment(riderId: string, text: string): Promise<ActionResult<RiderComment>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const parsed = commentInput.safeParse({ riderId, text });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
@@ -1016,7 +1019,7 @@ export async function addRiderComment(riderId: string, text: string): Promise<Ac
 }
 
 export async function deleteRiderComment(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("rider_comments").delete().eq("id", id);
@@ -1026,7 +1029,7 @@ export async function deleteRiderComment(id: string): Promise<ActionResult> {
 const DOCUMENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
 export async function addRiderDocument(riderId: string, form: FormData): Promise<ActionResult<RiderDocument>> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const file = form.get("file");
   if (!z.uuid().safeParse(riderId).success || !(file instanceof File)) return fail("Netinkamos reikšmės.", "invalid");
@@ -1049,7 +1052,7 @@ export async function addRiderDocument(riderId: string, form: FormData): Promise
 }
 
 export async function deleteRiderDocument(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("apyrankes");
+  const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data } = await ctx.supabase.from("rider_documents").select("file_path").eq("id", id).maybeSingle();

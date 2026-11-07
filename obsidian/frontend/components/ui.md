@@ -34,7 +34,7 @@ files are listed in the last column; re-running `shadcn add` would overwrite the
 | Sonner | `components/ui/sonner.tsx` | `Toaster` | — (admin passes `theme="light"`) |
 | Switch | `components/ui/switch.tsx` | `checked`, `onCheckedChange` | — |
 | Table | `components/ui/table.tsx` | table parts | — |
-| Tabs | `components/ui/tabs.tsx` | Radix tabs | list height h-11 |
+| Tabs | `components/ui/tabs.tsx` | Radix tabs | list height auto (was h-11); `bg-muted` on both variants |
 | Textarea | `components/ui/textarea.tsx` | native textarea props | `bg-card` |
 | Tooltip | `components/ui/tooltip.tsx` | needs `TooltipProvider` | — |
 
