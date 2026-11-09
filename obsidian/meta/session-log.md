@@ -1,3 +1,11 @@
+## 2026-11-10 — Hourly quad rental on the quad page
+
+- **Why:** The owner has the "Nuoma" (hourly rental) fleet in admin Parkas but the public quad page offered only the guided tours.
+- **Changed:** `QuadServiceBooking` gets a Turas / Nuoma mode switch; new `components/quads/quad-hourly-controls.tsx`; `ReservationFlow` passes `picks.keturraciai` and keeps tour and rental exclusive (`onQuadPick`, start reset on a new day); `service-pricing.tsx` and `quad-service-facts.ts` list the hourly prices and limits from the rows; panel intro text made neutral. No database change: the hourly RPCs and `planQuads` already existed.
+- **Status:** `tsc`/`eslint` clean. On live data in the browser: prices and facts show 30 / 45 EUR per hour; 2 quads x 1 h = 60 EUR; the checkout dialog shows "Mokėti 60 €" (disabled until a contact is verified); switching back to a tour clears the rental. No booking or payment was made. Branch `feat/quad-tour-products`.
+- **Next:** `/rezervacija`'s Keturračiai tab still shows only tour cards (no hourly rental there); say if it should get the same switch. Hourly rentals are filed as a "Keturračiai" payment line, like tours.
+- **Docs:** `components/common.md`, `changelog.md`, `status.md`, this entry.
+
 ## 2026-11-10 — Payable quad tours, live database (ADR-0053)
 
 - **Why:** The owner chose to put the quad tour products in the database so tours can be booked and paid like the sauna (the quad dialog was a mailto preview with constant prices), then asked to fix the padding of the booking-confirmed screen.

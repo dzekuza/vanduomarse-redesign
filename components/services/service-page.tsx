@@ -75,7 +75,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, photos, wak
               <p className="text-micro uppercase text-copy">{copy.label}</p>
               <h2 id="service-booking-title" className="text-tile font-bold">{bookingTitle}</h2>
               {slug === "pirtis" ? <p className="text-xs leading-relaxed text-copy">Rinkis privačią pirtį savo kompanijai arba vietą pirties seanse.</p> : null}
-              {slug === "keturraciu-nuoma" ? <p className="text-xs leading-relaxed text-copy">Susidėliok turo planą. Rezervaciją patvirtins komanda.</p> : null}
+              {slug === "keturraciu-nuoma" ? <p className="text-xs leading-relaxed text-copy">Rinkis turą su gidu arba keturračių nuomą valandomis. Rezervaciją patvirtins komanda.</p> : null}
             </div>
             {booking}
             {slug === "keturraciu-nuoma" ? <QuadServiceHelp contact={contact} /> : !booking && (

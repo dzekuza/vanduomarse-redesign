@@ -148,7 +148,11 @@ export function ReservationFlow({
 
   function selectDate(next: Date) {
     if (busy) return;
-    if (dateKey(next) !== day) setTourPick(null);
+    if (dateKey(next) !== day) {
+      setTourPick(null);
+      // An hourly rental keeps its quads and duration, but its start belongs to the old day.
+      setPicks((current) => current.keturraciai ? { ...current, keturraciai: { ...current.keturraciai, startHour: null } } : current);
+    }
     setStep(0);
     setDate(next);
   }
@@ -376,6 +380,7 @@ export function ReservationFlow({
               days={days}
               date={dayChosen ? date : null}
               pick={tourPick}
+              quadPick={picks.keturraciai ?? null}
               busy={busy}
               onDate={(next) => {
                 if (busy) return;
@@ -386,6 +391,21 @@ export function ReservationFlow({
                 if (busy) return;
                 setStep(0);
                 setTourPick(next);
+                if (next) setPicks((current) => {
+                  const rest = { ...current };
+                  delete rest.keturraciai;
+                  return rest;
+                });
+              }}
+              onQuadPick={(next) => {
+                if (busy) return;
+                setStep(0);
+                setTourPick(null);
+                setPicks((current) => {
+                  const rest = { ...current };
+                  delete rest.keturraciai;
+                  return next ? { ...rest, keturraciai: next } : rest;
+                });
               }}
             /> : <>
               <WhenStep

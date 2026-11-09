@@ -13,6 +13,12 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData) 
       : program.description,
   })) ?? [];
   if (slug === "keturraciu-nuoma") return [
+    // Hourly rental: the fleet rows the admin edits under "Parkas".
+    ...(quads?.types ?? []).map((type) => ({
+      label: `Nuoma valandomis: ${type.name}`,
+      price: `${type.pricePerHour} € / val.`,
+      note: [type.seats === 1 ? "1 vieta" : `${type.seats} vietos`, type.description].filter(Boolean).join(" · "),
+    })),
     ...(quads?.tourRoutes ?? []).map((route) => ({
       label: `${route.name} turas`,
       price: `${route.price} € / keturračiui`,

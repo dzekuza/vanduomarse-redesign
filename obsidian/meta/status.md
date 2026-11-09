@@ -14,6 +14,8 @@ updated: 2026-11-07
 
 ## Current focus
 
+**Hourly quad rental on `/keturraciu-nuoma` (2026-11-10): built on `feat/quad-tour-products`, browser-checked to the checkout dialog on live data, not pushed.** Switch between guided tours and "Nuoma valandomis" (the admin Parkas fleet); `/rezervacija`'s quad tab still shows only tours.
+
 **Payable quad tours (2026-11-10, ADR-0053): built end to end on branch `feat/quad-tour-products` (database part is LIVE; code committed locally, not pushed).** The quad tour flow now books and pays through the shared checkout dialog; browser-checked to the dialog, never submitted (the local `.env.local` has the live Stripe key). Live database now has `quad_tour_routes` / `quad_tour_accessories` / `create_quad_tour_rental` (applied with `supabase db query --linked`; never `db push`). Admin cards for routes, gear and the cancellation line are in /admin/keturraciai -> Parkas (not browser-checked). The booking-confirmed screen padding is fixed for inline panels. Still to do: push + PR, an admin browser pass, and one real paid test booking against Stripe test mode.
 
 **Klientai "Rolė" tab (2026-11-09, ADR-0051): merged (PR #16), not browser-checked.** Owner-only tab on `/admin/klientai/[id]` to make a customer an admin (Savininkas) or give them a permissions role; the customer is matched to a staff login by email, or a login is created with a one-time temporary password. Needs a browser pass as owner (customer with/without email, with/without an existing login) at 375 / 768 / 1024 px.
