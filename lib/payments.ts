@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { QuadRentalInput, MixedQuadRentalInput } from "@/lib/quad-schema";
+import type { QuadRentalInput, MixedQuadRentalInput, QuadTourRentalInput } from "@/lib/quad-schema";
 import type { ContactInput, ProgramBookingInput, ProgramTicketInput, SaunaBookingInput, StayBookingInput } from "@/lib/request-schema";
 import { customerNameSchema } from "@/lib/customer-schema";
 
@@ -13,6 +13,7 @@ export type ReservationRequest =
   | { type: "saunaBooking"; input: WithoutContact<SaunaBookingInput> }
   | { type: "quadRental"; input: WithoutContact<QuadRentalInput> }
   | { type: "mixedQuadRental"; input: WithoutContact<MixedQuadRentalInput> }
+  | { type: "quadTourRental"; input: WithoutContact<QuadTourRentalInput> }
   | { type: "stayBooking"; input: WithoutContact<StayBookingInput> };
 
 export type ReservationRequestType = ReservationRequest["type"];
@@ -24,6 +25,7 @@ export const REQUEST_ACTIVITY: Record<ReservationRequestType, "pirtis" | "keturr
   saunaBooking: "pirtis",
   quadRental: "keturraciai",
   mixedQuadRental: "keturraciai",
+  quadTourRental: "keturraciai",
   stayBooking: "nakvyne",
 };
 

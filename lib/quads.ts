@@ -18,6 +18,36 @@ export interface QuadType {
   active: boolean;
 }
 
+/** A guided tour product (Mini / Midi / Maxi), booked as one rental of `minUnits`+ quads for `hours`. */
+export interface QuadTourRoute {
+  id: string;
+  name: string;
+  kilometres: number;
+  hours: number;
+  /** Card text such as "Iki 2 val."; the booking uses `hours`. */
+  durationLabel: string;
+  /** EUR per quad incl. 21% PVM, the same for a driver alone or with a passenger. */
+  price: number;
+  minUnits: number;
+  description: string;
+  longDescription: string;
+  /** A path under /public. */
+  photo: string;
+  badge: string | null;
+  active: boolean;
+  sortOrder: number;
+}
+
+/** Optional gear sold with a tour; EUR per item incl. 21% PVM. */
+export interface QuadTourAccessory {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  active: boolean;
+  sortOrder: number;
+}
+
 export interface QuadRentalItem {
   type: QuadType;
   units: number;
@@ -33,6 +63,8 @@ export interface QuadSettings {
   minAge: number;
   /** Free-text rules; empty = nothing shown. */
   rules: string;
+  /** The free-cancellation line shown with a tour; empty = nothing shown. */
+  tourCancellationNote: string;
 }
 
 /** yyyy-mm-dd -> quad type id -> hour -> quads taken, from `quad_taken()`. */

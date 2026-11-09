@@ -1,4 +1,4 @@
-import { createMixedQuadRental, createQuadRental } from "@/app/actions/quads";
+import { createMixedQuadRental, createQuadRental, createQuadTourRental } from "@/app/actions/quads";
 import { createProgramBooking, createProgramTicket, createSaunaBooking, createStayBooking } from "@/app/actions/requests";
 import type { ActionResult } from "@/app/admin/actions";
 import type { ReservationRequest } from "@/lib/payments";
@@ -19,6 +19,8 @@ export function fileRequest(request: ReservationRequest, contact: ContactInput):
       return createQuadRental({ ...request.input, ...contact });
     case "mixedQuadRental":
       return createMixedQuadRental({ ...request.input, ...contact });
+    case "quadTourRental":
+      return createQuadTourRental({ ...request.input, ...contact });
     case "stayBooking":
       return createStayBooking({ ...request.input, ...contact });
   }

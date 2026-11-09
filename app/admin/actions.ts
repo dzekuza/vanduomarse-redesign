@@ -719,6 +719,7 @@ const quadSettingsInput = z
     deposit: z.number().min(0).max(10_000),
     minAge: z.number().int().min(10).max(99),
     rules: z.string().trim().max(800),
+    tourCancellationNote: z.string().trim().max(200),
   })
   .refine((s) => s.closeHour > s.openHour);
 
@@ -730,7 +731,7 @@ export async function updateQuadSettings(settings: QuadSettings): Promise<Action
   const s = parsed.data;
   const { error } = await ctx.supabase
     .from("quad_settings")
-    .update({ open_hour: s.openHour, close_hour: s.closeHour, max_hours: s.maxHours, deposit: s.deposit, min_age: s.minAge, rules: s.rules })
+    .update({ open_hour: s.openHour, close_hour: s.closeHour, max_hours: s.maxHours, deposit: s.deposit, min_age: s.minAge, rules: s.rules, tour_cancellation_note: s.tourCancellationNote })
     .eq("id", true);
   revalidatePath("/embed/keturraciai");
   revalidatePath("/rezervacija");
