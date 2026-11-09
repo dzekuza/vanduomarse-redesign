@@ -9,6 +9,8 @@ import { useAdmin } from "../admin-store";
 import { NewRentalDialog } from "./new-rental-dialog";
 import { QuadSettingsCard } from "./quad-settings-card";
 import { QuadTypesCard } from "./quad-types-card";
+import { TourAccessoriesCard } from "./tour-accessories-card";
+import { TourRoutesCard } from "./tour-routes-card";
 import { RentalsTab } from "./rentals-tab";
 import { ToursTab } from "./tours-tab";
 import { Button } from "@/components/ui/button";
@@ -55,6 +57,8 @@ export function QuadsView() {
         </TabsContent>
         <TabsContent value="parkas" className="mt-6 space-y-6">
           <QuadTypesCard />
+          <TourRoutesCard />
+          <TourAccessoriesCard />
           <QuadSettingsCard />
           <Link href="/admin/klientai?activity=keturraciai" className="text-sm underline underline-offset-4 hover:text-rust">
             Žr. klientus →

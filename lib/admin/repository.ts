@@ -1,7 +1,7 @@
 import "server-only";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toQuadTourAccessory, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -82,7 +82,7 @@ async function readRiderSessions(supabase: ServerSupabase, me: StaffAccess) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -124,9 +124,11 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("rider_comments").select("*").order("created_at", { ascending: false }),
     supabase.from("rider_documents").select("*").order("uploaded_at", { ascending: false }),
     supabase.from("rider_waivers").select("*").order("signed_at", { ascending: false }),
+    supabase.from("quad_tour_routes").select("*").order("sort_order").order("id"),
+    supabase.from("quad_tour_accessories").select("*").order("sort_order").order("id"),
   ]);
 
-  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments, riderWaivers]) {
+  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
@@ -151,6 +153,8 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     discountCodes,
     quadTypes: quadTypes.data!.map(toQuadType),
     quadSettings: toQuadSettings(quadSettings.data!),
+    quadTourRoutes: quadTourRoutes.data!.map(toQuadTourRoute),
+    quadTourAccessories: quadTourAccessories.data!.map(toQuadTourAccessory),
     quadRentals: quadRentals.data!.map((r) => ({ ...toQuadRental(r), payment: paymentOf(r.payment_id) })),
     tourTickets: tourTickets.data!.map((r) => ({ ...toTourTicket(r), payment: paymentOf(r.payment_id) })),
     eventTickets: eventTickets.data!.map((r) => ({ ...toTourTicket(r), payment: paymentOf(r.payment_id) })),

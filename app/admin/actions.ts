@@ -9,7 +9,7 @@ import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-sc
 import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRiderSession, toRidePlan } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RiderSession, RidePlan } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
-import type { QuadSettings, QuadType } from "@/lib/quads";
+import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
 import { notifyRequestOutcome } from "@/lib/notify";
@@ -708,6 +708,87 @@ export async function deleteQuadType(id: string): Promise<ActionResult> {
   if (error?.code === "23503") return fail("Šio tipo jau buvo nuomų – jį galima tik išjungti.", "in_use");
   revalidatePath("/embed/keturraciai");
   revalidatePath("/rezervacija");
+  return error ? dbError(error) : done(null);
+}
+
+/* Tour products (ADR-0053): Mini / Midi / Maxi and their gear. Prices are EUR incl. PVM; bookings re-read them in the database. */
+
+const tourRouteInput = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  name: z.string().trim().min(1).max(60),
+  kilometres: z.number().int().min(1).max(500),
+  hours: z.number().int().min(1).max(8),
+  durationLabel: z.string().trim().max(30),
+  price: z.number().min(0).max(10_000),
+  minUnits: z.number().int().min(1).max(20),
+  description: z.string().trim().max(200),
+  longDescription: z.string().trim().max(1200),
+  /** A path under /public (or empty). */
+  photo: z.string().trim().max(200).regex(/^(\/[A-Za-z0-9._/-]*)?$/),
+  badge: z.string().trim().max(20).nullable(),
+  active: z.boolean(),
+  sortOrder: z.number().int().min(0).max(1000),
+});
+
+const tourAccessoryInput = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  name: z.string().trim().min(1).max(60),
+  description: z.string().trim().max(200),
+  price: z.number().min(0).max(10_000),
+  active: z.boolean(),
+  sortOrder: z.number().int().min(0).max(1000),
+});
+
+function revalidateTours() {
+  revalidatePath("/keturraciu-nuoma");
+  revalidatePath("/keturraciai");
+  revalidatePath("/rezervacija");
+}
+
+export async function saveQuadTourRoute(route: QuadTourRoute): Promise<ActionResult> {
+  const ctx = await staffClient("keturraciai");
+  if (!ctx.ok) return ctx.error;
+  const parsed = tourRouteInput.safeParse(route);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const r = parsed.data;
+  const { error } = await ctx.supabase.from("quad_tour_routes").upsert({
+    id: r.id, name: r.name, kilometres: r.kilometres, hours: r.hours, duration_label: r.durationLabel, price: r.price,
+    min_units: r.minUnits, description: r.description, long_description: r.longDescription, photo: r.photo,
+    badge: r.badge || null, active: r.active, sort_order: r.sortOrder,
+  });
+  revalidateTours();
+  return error ? dbError(error) : done(null);
+}
+
+export async function deleteQuadTourRoute(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("keturraciai");
+  if (!ctx.ok) return ctx.error;
+  if (!z.string().regex(/^[a-z0-9-]+$/).safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("quad_tour_routes").delete().eq("id", id);
+  if (error?.code === "23503") return fail("Šio turo jau buvo rezervacijų – jį galima tik išjungti.", "in_use");
+  revalidateTours();
+  return error ? dbError(error) : done(null);
+}
+
+export async function saveQuadTourAccessory(accessory: QuadTourAccessory): Promise<ActionResult> {
+  const ctx = await staffClient("keturraciai");
+  if (!ctx.ok) return ctx.error;
+  const parsed = tourAccessoryInput.safeParse(accessory);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const a = parsed.data;
+  const { error } = await ctx.supabase.from("quad_tour_accessories").upsert({
+    id: a.id, name: a.name, description: a.description, price: a.price, active: a.active, sort_order: a.sortOrder,
+  });
+  revalidateTours();
+  return error ? dbError(error) : done(null);
+}
+
+export async function deleteQuadTourAccessory(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("keturraciai");
+  if (!ctx.ok) return ctx.error;
+  if (!z.string().regex(/^[a-z0-9-]+$/).safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("quad_tour_accessories").delete().eq("id", id);
+  revalidateTours();
   return error ? dbError(error) : done(null);
 }
 

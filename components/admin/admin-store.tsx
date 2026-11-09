@@ -11,7 +11,7 @@ import type { RiderProfileInput } from "@/app/admin/actions";
 import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
-import type { QuadSettings, QuadType } from "@/lib/quads";
+import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { SaunaValues } from "./sauna/sauna-schema";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
@@ -52,6 +52,10 @@ type Action =
   | { type: "ticket/status"; id: string; status: BookingStatus }
   | { type: "quadType/upsert"; quadType: QuadType }
   | { type: "quadType/delete"; id: string }
+  | { type: "quadTourRoute/upsert"; route: QuadTourRoute }
+  | { type: "quadTourRoute/delete"; id: string }
+  | { type: "quadTourAccessory/upsert"; accessory: QuadTourAccessory }
+  | { type: "quadTourAccessory/delete"; id: string }
   | { type: "quadSettings"; settings: QuadSettings }
   | { type: "staff/add"; member: StaffMember }
   | { type: "staff/role"; userId: string; roleId: string }
@@ -181,6 +185,18 @@ function reducer(state: AdminData, action: Action): AdminData {
     }
     case "quadType/delete":
       return { ...state, quadTypes: state.quadTypes.filter((t) => t.id !== action.id) };
+    case "quadTourRoute/upsert": {
+      const rest = state.quadTourRoutes.filter((r) => r.id !== action.route.id);
+      return { ...state, quadTourRoutes: [...rest, action.route].toSorted((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)) };
+    }
+    case "quadTourRoute/delete":
+      return { ...state, quadTourRoutes: state.quadTourRoutes.filter((r) => r.id !== action.id) };
+    case "quadTourAccessory/upsert": {
+      const rest = state.quadTourAccessories.filter((a) => a.id !== action.accessory.id);
+      return { ...state, quadTourAccessories: [...rest, action.accessory].toSorted((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)) };
+    }
+    case "quadTourAccessory/delete":
+      return { ...state, quadTourAccessories: state.quadTourAccessories.filter((a) => a.id !== action.id) };
     case "quadSettings":
       return { ...state, quadSettings: action.settings };
     case "staff/add":
@@ -392,6 +408,22 @@ function useAdminReducer(initial: AdminData) {
       deleteQuadType: (id: string) => {
         dispatch({ type: "quadType/delete", id });
         return report(actions.deleteQuadType(id));
+      },
+      saveQuadTourRoute: (route: QuadTourRoute) => {
+        dispatch({ type: "quadTourRoute/upsert", route });
+        return report(actions.saveQuadTourRoute(route));
+      },
+      deleteQuadTourRoute: (id: string) => {
+        dispatch({ type: "quadTourRoute/delete", id });
+        return report(actions.deleteQuadTourRoute(id));
+      },
+      saveQuadTourAccessory: (accessory: QuadTourAccessory) => {
+        dispatch({ type: "quadTourAccessory/upsert", accessory });
+        return report(actions.saveQuadTourAccessory(accessory));
+      },
+      deleteQuadTourAccessory: (id: string) => {
+        dispatch({ type: "quadTourAccessory/delete", id });
+        return report(actions.deleteQuadTourAccessory(id));
       },
       updateQuadSettings: (settings: QuadSettings) => {
         dispatch({ type: "quadSettings", settings });

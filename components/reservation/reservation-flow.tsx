@@ -300,9 +300,11 @@ export function ReservationFlow({
 
   if (outcome) {
     return (
-      <div className="space-y-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
-        {header}
+      // On a service page the flow sits inside the booking panel, which already has its own padding.
+      <div className={activity ? undefined : "space-y-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24"}>
+        {activity ? null : header}
         <ReservationDone
+          compact={Boolean(activity)}
           lines={lines}
           outcome={outcome}
           payOnSite={payOnSite}

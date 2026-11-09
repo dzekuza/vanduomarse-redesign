@@ -3,6 +3,8 @@ import type { PlanLine } from "@/lib/reservation";
 import type { Outcome } from "./submit-reservation";
 
 interface ReservationDoneProps {
+  /** Inside a narrow booking panel: tighter padding and rows that wrap instead of squeezing the text. */
+  compact?: boolean;
   lines: PlanLine[];
   outcome: Outcome;
   payOnSite: boolean;
@@ -12,18 +14,19 @@ interface ReservationDoneProps {
 }
 
 /** After submit: a reference per request, or what was sent and what still needs another try. */
-export function ReservationDone({ lines, outcome, payOnSite, busy, onRetry, onReset }: ReservationDoneProps) {
+export function ReservationDone({ compact, lines, outcome, payOnSite, busy, onRetry, onReset }: ReservationDoneProps) {
   const { sent, error } = outcome;
   const pending = lines.some((l) => !sent[l.id]);
+  const pad = compact ? "px-4" : "px-6";
   return (
     <div className="border border-line bg-foam/15">
-      <div className="border-b border-dashed border-ink px-6 py-4">
+      <div className={`border-b border-dashed border-ink ${pad} py-4`}>
         <p className="font-display text-figure font-bold uppercase">{pending ? "Dar ne viskas išsiųsta" : "Gavom. Susisieksim."}</p>
       </div>
-      <ul className="divide-y divide-line px-6">
+      <ul className={`divide-y divide-line ${pad}`}>
         {lines.map((l) => (
-          <li key={l.id} className="flex items-baseline justify-between gap-4 py-4">
-            <span className="min-w-0">
+          <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 py-4">
+            <span className="min-w-0 flex-1 basis-40">
               <span className="block font-normal">{l.title}</span>
               <span className="block text-sm text-copy">{l.detail}</span>
               <span className="block text-sm text-copy">{l.schedule}</span>
@@ -36,14 +39,14 @@ export function ReservationDone({ lines, outcome, payOnSite, busy, onRetry, onRe
           </li>
         ))}
       </ul>
-      <p className="border-t border-dashed border-ink px-6 py-4 text-sm text-copy">
+      <p className={`border-t border-dashed border-ink ${pad} py-4 text-sm text-copy`}>
         {pending
           ? `Išsiųstos užklausos jau pas mus, pakartojus jos nesiunčiamos antrą kartą. Reikia pagalbos? Skambink ${MAIN_CONTACT.phone}.`
           : payOnSite
             ? "Užklausas gavome. Patvirtinsime telefonu arba el. paštu. Atsiskaitysi vietoje grynais; kol kas vietos dar nėra garantuotos."
             : "Užklausas gavome. Patvirtinsime telefonu arba el. paštu; kol kas vietos dar nėra garantuotos ir mokėti nereikia."}
       </p>
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-ink px-6 py-4">
+      <div className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-ink ${pad} py-3`}>
         {pending ? (
           <button type="button" onClick={onRetry} disabled={busy} className="inline-flex min-h-11 items-center border-b border-current text-sm font-bold disabled:opacity-50">
             {busy ? "Siunčiama..." : "Bandyti dar kartą"}
