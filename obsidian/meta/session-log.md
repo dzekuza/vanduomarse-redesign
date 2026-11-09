@@ -1,3 +1,11 @@
+## 2026-11-09 — Klientai: owner-only "Rolė" tab to make a customer an admin (ADR-0048)
+
+- **Why:** The owner asked for a tab on `/admin/klientai/[id]` to set a customer as admin or assign a permissions role.
+- **Changed:** New `components/admin/klientai/customer-role-tab.tsx` and an owner-gated tab in `customer-page.tsx`. A customer is linked to a staff login by email; existing login → change role / switch off, none → create login with a role and show the temporary password once. Fast-forwarded local `main` to `origin/main` first (it was 8 commits behind and lacked the Klientai page).
+- **Status:** `eslint` clean; `tsc` shows no errors in the new files (5 pre-existing typed-route errors in `app/admin/(panel)/{klientai,apyrankes}` pages, from stale generated route types). Uncommitted, not browser-checked.
+- **Next:** Browser pass as owner on a customer with and without an email / matching login at 375 / 768 / 1024 px; commit.
+- **Docs:** `decisions-log.md` (ADR-0048), `changelog.md`, `status.md`, `components/common.md`, `routing.md`, this entry.
+
 ## 2026-11-08 — Instruktorius: bracelet check-in/out scanning page (ADR-0045)
 
 - **Why:** The owner wants an instructor-focused admin screen: scan a rider's bracelet and see their name, photo, surname, phone and how long they've currently been out on the water. Asked them directly what "session duration" should mean (a real check-in/out timer, remaining time on a timed plan, or no timer) — they chose the check-in/out timer, since nothing in the schema tracked that at all.
