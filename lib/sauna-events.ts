@@ -14,6 +14,7 @@ export interface SaunaEventData {
   key: string;
   title: string;
   host: string;
+  venue?: string;
   /** Named attendant, when the event has one in its location label. */
   hostName?: string;
   /** yyyy-mm-dd */
@@ -34,6 +35,11 @@ export interface SaunaEvent extends Omit<SaunaEventData, "date"> {
 }
 
 export const toSaunaEvent = (e: SaunaEventData): SaunaEvent => ({ ...e, date: parseDay(e.date) });
+
+export function saunaSessionHref(id: string, page: "pirtis" | "rezervacija" = "pirtis"): string {
+  const session = `seansas=${encodeURIComponent(id)}`;
+  return page === "pirtis" ? `/pirtis?${session}#rezervuoti` : `/rezervacija?veikla=pirtis&${session}`;
+}
 
 /** Sessions in the listing window that still have at least one spot. */
 export function openEventCount(events: readonly { spotsLeft: number }[]): number {

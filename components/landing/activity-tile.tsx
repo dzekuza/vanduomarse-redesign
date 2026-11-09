@@ -4,25 +4,24 @@ import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
 import { SERVICES, type ActivityCard } from "./content";
-import { useLanding } from "./landing-provider";
 
-/** Cards that book on `/rezervacija` (opening that activity's tab); the rest open their details dialog. */
-const RESERVE_HREF: Partial<Record<ActivityCard["id"], string>> = {
-  sauna: "/rezervacija?veikla=pirtis",
-  ciongo: "/rezervacija?veikla=keturraciai",
-  cabins: "/rezervacija?veikla=nakvyne",
+const ACTIVITY_HREF: Record<ActivityCard["id"], string> = {
+  sauna: "/pirtis",
+  ciongo: "/keturraciu-nuoma",
+  cabins: "/nakvyne",
+  wake: "/vandenlentes",
+  party: "/sventes",
+  food: "/restoranas",
 };
 
 const TILE_CLASS = "group block w-full min-w-0 text-left transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-99";
 
-/** One activity card; bookable ones go to the reservation page, the others open their details dialog. */
+/** One activity card, linking to its public service page. */
 export function ActivityTile({ card }: { card: ActivityCard }) {
-  const { openService } = useLanding();
   const service = SERVICES[card.id];
 
-  const href = RESERVE_HREF[card.id];
-  const content = (
-    <>
+  return (
+    <Link href={ACTIVITY_HREF[card.id]} className={TILE_CLASS}>
       <span className="relative block h-88 overflow-hidden bg-lake-soft md:h-80 lg:h-96">
         <Image
           src={service.photo}
@@ -38,23 +37,13 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
           <ArrowUpRightIcon size={28} weight="light" />
         </span>
       </span>
-      <span className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 border-b border-line py-4 md:py-5">
+      <span className="grid grid-cols-[minmax(min-content,1fr)_minmax(0,max-content)] items-end gap-2 border-b border-line py-4 md:py-5">
         <span className="col-span-2 block text-micro whitespace-nowrap">{card.num}</span>
         <span className="min-w-0 text-heading font-bold tracking-tighter md:text-tile">{card.title}</span>
         <span className="min-w-0 text-right text-xs leading-snug text-copy">
           {card.note.map((line) => <span key={line} className="block">{line}</span>)}
         </span>
       </span>
-    </>
-  );
-
-  return href ? (
-    <Link href={href} className={TILE_CLASS}>
-      {content}
     </Link>
-  ) : (
-    <button type="button" onClick={() => openService(card.id)} className={TILE_CLASS}>
-      {content}
-    </button>
   );
 }

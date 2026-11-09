@@ -39,6 +39,7 @@ export const PARK_ADDRESS = {
 } as const;
 
 const restaurant = CONTACTS.find((c) => c.name === "Skoniai Marse") ?? MAIN_CONTACT;
+const SAUNA_COVER = { src: "/landing/pirtis-02.webp", alt: "Pirties panoraminiai langai su vaizdu į ežerą ir lankytojus terasoje" };
 
 export const SERVICES: Record<ServiceId, Service> = {
   sauna: {
@@ -48,8 +49,8 @@ export const SERVICES: Record<ServiceId, Service> = {
     glyph: "≈",
     label: "01 / SUSITINKAM GARUOSE",
     title: "IŠJUNK DIENĄ.\nĮJUNK GARĄ.",
-    photo: "/landing/sauna.webp",
-    alt: "Vanduo Marse pirties interjeras",
+    photo: SAUNA_COVER.src,
+    alt: SAUNA_COVER.alt,
     description:
       "Pirtis prie vandens. Ramus vakaras sau ir saviems. Rinkis bendrą seansą arba pasiteirauk apie privačią pirtį.",
     facts: [
@@ -116,7 +117,7 @@ export const SERVICES: Record<ServiceId, Service> = {
       "Namelių užimtumą, apgyvendinimą ir kainą matai pagal datą.",
     ],
     priceNote: "Kainą ir laisvus namelius matysi pasirinkęs datą.",
-    contact: "Miegas Marse",
+    contact: "Vanduo Marse",
   },
   wake: {
     id: "wake",
@@ -178,11 +179,11 @@ export interface ActivityCard {
 }
 
 export const ACTIVITY_CARDS: ActivityCard[] = [
-  { id: "sauna", categories: ["rest"], alt: "Marso pirtis su dideliais langais į vandenį", tag: "MALKINĖ PIRTIS IR SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Malkinė – iki 25 asm.", "Sauna – iki 20 asm."] },
-  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Vienu keturračiu", "galima dviese."] },
+  { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Sauna · iki 20 asm.", "Malkinė dar įrengiama."] },
+  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Vienu keturračiu", "galima važiuoti dviese."] },
   { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "KUPOLAS · RESTORANAS · TERASA", num: "03 / ŠVĘSK", title: "ŠVENTĖS MARSE.", note: ["Vestuvės, gimtadieniai,", "įmonių renginiai."] },
   { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Nameliai", "prie vandens."] },
-  { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKE", note: ["Plaukimai –", "sezono metu."] },
+  { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKEBOARD", note: ["Wake treniruotės", "Kaune sezono metu."] },
   { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "RESTORANAS · MAITINIMAS", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Geras maistas", "kiekvienai progai."] },
 ];
 
@@ -219,7 +220,7 @@ export const FAQ_ITEMS = [
 export const GALLERY_SLIDES = [
   { src: "/landing/aerial.webp", alt: "Vanduo Marse parkas iš drono: ežeras, sala, nameliai ir kupolas", caption: "01 / VISAS PARKAS" },
   { src: "/landing/wake-dusk.webp", alt: "Vandenlentininkas šuolyje vakaro šviesoje", caption: "02 / VANDENLENTĖS" },
-  { src: "/landing/sauna.webp", alt: "Suomiška pirtis su vaizdu į vandenį", caption: "03 / SUOMIŠKA PIRTIS" },
+  { ...SAUNA_COVER, caption: "03 / SUOMIŠKA PIRTIS" },
   { src: "/landing/cabins.webp", alt: "Nameliai prie vandens ir lėtas rytas", caption: "04 / NAMELIAI" },
 ] as const;
 
@@ -228,11 +229,14 @@ export interface ServicePhoto {
   alt: string;
 }
 
-/** Photos shown in an activity's drawer carousel; the first is the one on its card. Add more files to `public/landing/` and list them here. */
+/** Public activity galleries. Each collection starts with the activity card cover. */
 export const SERVICE_GALLERY: Record<ServiceId, ServicePhoto[]> = {
   sauna: [
-    { src: "/landing/sauna.webp", alt: SERVICES.sauna.alt },
-    { src: "/landing/aerial.webp", alt: "Parkas iš oro: pirtis prie ežero" },
+    SAUNA_COVER,
+    { src: "/landing/pirtis-01.webp", alt: "Apšviesta Vanduo Marse pirtis vakare" },
+    { src: "/landing/pirtis-03.webp", alt: "Pirties gultai ir krosnis prie lango į ežerą" },
+    { src: "/landing/pirtis-04.webp", alt: "Širdelė ant aprasojusio pirties stiklo" },
+    { src: "/landing/pirtis-05.webp", alt: "Įkaitę pirties krosnies akmenys" },
   ],
   ciongo: [
     { src: "/landing/ciongo.webp", alt: SERVICES.ciongo.alt },

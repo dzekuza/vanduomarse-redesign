@@ -2,13 +2,12 @@ import { ArrowDownIcon, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr"
 import Image from "next/image";
 import Link from "next/link";
 import { StarMark } from "@/components/star-mark";
-import { telHref } from "@/lib/contacts";
+import { RESERVATION_PHONE, telHref } from "@/lib/contacts";
 import { PARK_ADDRESS } from "./content";
 import { HeroOrbits } from "./hero-orbits";
 
 /** Load sequence: each block fades up in turn (see delays); skipped under reduced motion. */
 const ENTER = "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700 motion-safe:ease-out-strong motion-safe:fill-mode-both";
-const HERO_PHONE = "+370 640 57504";
 
 /** Dark hero: grid, cut photo, the "Užsuk į Marsą" headline and the planner sticker. */
 export function LandingHero() {
@@ -40,7 +39,7 @@ export function LandingHero() {
 
       <div className={`absolute inset-x-gutter bottom-39 z-4 md:flex md:items-end md:justify-between lg:bottom-hero-actions ${ENTER} motion-safe:slide-in-from-bottom-4 motion-safe:delay-350`}>
         <p className="max-w-105 text-xs leading-loose md:text-sm">
-          Vandenlenčių ir pramogų parkas – vos 20 min. nuo Kauno centro. Švenčių erdvės, pirtys, keturračiai, maistas ir nakvynė.
+          Laisvalaikio parkas vos 20 min. nuo Kauno centro. Švenčių erdvės, pirtys, keturračiai, maistas ir nakvynė.
         </p>
         <Link href="#kryptys" className="group/cta mt-4 inline-flex min-h-11 transition-opacity duration-150 active:opacity-70 items-center gap-6 border-b border-current py-2.5 text-xs font-bold md:mr-5 md:mt-0">
           Ką gali rezervuoti?
@@ -67,8 +66,8 @@ export function LandingHero() {
 
       <div className={`absolute inset-x-gutter bottom-6 z-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 pt-3 text-micro md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:pt-1 ${ENTER} motion-safe:delay-700`}>
         <address className="col-start-1 row-start-1 not-italic md:whitespace-nowrap">{PARK_ADDRESS.compact}</address>
-        <a href={telHref(HERO_PHONE)} className="col-start-1 row-start-2 inline-flex min-h-11 items-center justify-self-start whitespace-nowrap hover:underline md:col-start-2 md:row-start-1 md:justify-self-center">
-          {HERO_PHONE}
+        <a href={telHref(RESERVATION_PHONE)} className="col-start-1 row-start-2 inline-flex min-h-11 items-center justify-self-start whitespace-nowrap hover:underline md:col-start-2 md:row-start-1 md:justify-self-center">
+          {RESERVATION_PHONE}
         </a>
         <Link href="#kryptys" className="col-start-2 row-span-2 row-start-1 inline-flex min-h-11 items-center justify-self-end gap-1 whitespace-nowrap hover:underline md:col-start-3 md:row-span-1">
           Leiskis žemyn

@@ -22,12 +22,13 @@ updated: 2026-11-05
 | `/netrukus` | Netrukus - Vanduo Marse | yes | noindex, nofollow; served with 503 + `Retry-After` while gated |
 | `/renginiai` | Renginiai Marse | yes | — |
 | `/skaiciuokle` | Renginio kainos skaičiuoklė - Vanduo Marse | yes | — |
+| Public activity pages | Service-specific title and description with natural Lithuanian locality terms | yes | Activity cover |
 | `/admin/*` | "%s · Vanduo Marse valdymas" | — | noindex, nofollow |
 
 ## Gaps
 
-- No Open Graph images; no JSON-LD (LocalBusiness / Event would fit).
-- No canonical URLs yet; `vanduomarse-redesign.vercel.app` still serves a duplicate copy (kept for the WordPress plugin updater, ADR-0014).
+- The activity pages use a canonical path without booking parameters and an Open Graph cover. Other public routes still lack route-specific Open Graph images or canonicals. The Vercel hostname also serves the site for the WordPress plugin updater (ADR-0014).
+- No JSON-LD yet.
 
 ## Icons (2026-11-05)
 
@@ -38,7 +39,7 @@ updated: 2026-11-05
 
 - `SITE_URL` in `lib/site.ts`: env `SITE_URL`, default `https://www.vanduomarse.lt` (the apex 308-redirects to www). Root layout `metadataBase` uses it.
 - `app/robots.ts`: allow `/`, disallow `/admin`, `/paskyra`, `/embed`, `/api`, `/rezervacija/mokejimas`; points at the sitemap.
-- `app/sitemap.ts`: the public pages (`/`, `/rezervacija`, `/renginiai`, `/keturraciai`, `/kuponai`, `/skaiciuokle`). Add new public routes here. `/apie-marsa` was removed 2026-11-05.
+- `app/sitemap.ts` includes the public service routes from the content allowlist. The noindex quad design preview `/keturraciai` stays out.
 
 ## Related
 

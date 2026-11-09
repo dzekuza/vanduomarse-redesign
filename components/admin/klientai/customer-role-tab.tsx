@@ -19,7 +19,7 @@ const OWNER_ACCESS_LABEL = "Pilna prieiga";
 /**
  * `/admin/klientai/[id]` → Rolė (owners only): turn a customer into a staff login,
  * or change the role of the login that already uses their email. A rider has no
- * auth link of its own, so the staff row is found by matching email (ADR-0048).
+ * auth link of its own, so the staff row is found by matching email (ADR-0051).
  */
 export function CustomerRoleTab({ rider }: { rider: Rider }) {
   const { staff, roles } = useAdmin();

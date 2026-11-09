@@ -317,8 +317,8 @@ export function rowSelected(row: SessionRow, plan: PirtisPlan): boolean {
   return row.mode === "private" && plan.program.id === row.programId;
 }
 
-export function pickForRow(row: SessionRow, plan: PirtisPlan, data: SaunaPageData, startHour: number | null): SaunaPick {
-  return { ...pickFromPlan(plan, data), programId: row.programId, eventId: row.eventId, children: 0, startHour };
+export function pickForRow(row: SessionRow, pick: SaunaPick, startHour: number | null): SaunaPick {
+  return { ...pick, programId: row.programId, eventId: row.eventId, children: 0, startHour };
 }
 
 /** The pick that produced a plan, so a card can change one field of it. */

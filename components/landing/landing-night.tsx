@@ -13,23 +13,11 @@ export function LandingNight() {
       <div className="relative flex h-full flex-col px-gutter py-8 md:py-12">
         <SectionKicker left="02 / ŠVENTĖS IR RENGINIAI" right="PRIVAČIOMS IR ĮMONIŲ ŠVENTĖMS" />
         <Reveal className="mt-19 md:mt-16.5">
-        <h2 id="night-title" className="text-jumbo-sm font-bold md:text-jumbo">
-          ČIA NAKTIS
-          <br />
-          <span className="text-rust">
-            NESAKO
-            <br />
-            „TYLIAU“.
-          </span>
-        </h2>
+          <h2 id="night-title" className="text-jumbo-sm font-bold md:text-jumbo">NAKTYS</h2>
         </Reveal>
         <Reveal className="mt-auto md:flex md:items-end md:justify-between md:gap-8 delay-150">
-          <p className="text-xs leading-loose md:leading-loose">
-            Gimtadienis, vestuvės ar įmonės šventė.
-            <br />
-            Marse muzikos laikrodis nestabdo.
-            <br />
-            Švęskit iki ryto savų žmonių kompanijoj.
+          <p className="max-w-xl text-xs leading-loose">
+            Mūsų neriboja garsas, tad Jūsų gimtadienis, vestuvės ar įmonės šventė čia gali skambėti garsiai. Švęskit iki ryto savų žmonių rate.
           </p>
           <Cta tone="cream" href="/skaiciuokle" className="mt-6 max-w-full md:mt-0">
             Skaičiuoti šventės kainą

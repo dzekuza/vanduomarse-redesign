@@ -13,9 +13,10 @@ export const metadata: Metadata = {
 };
 
 /** One request for the whole visit: day and group first, then any mix of sauna, stay and quads. */
-export default async function ReservationPage({ searchParams }: { searchParams: Promise<{ veikla?: string }> }) {
-  const { veikla } = await searchParams;
-  const initialTab = ACTIVITY_ORDER.find((id) => id === veikla);
+export default async function ReservationPage({ searchParams }: { searchParams: Promise<{ veikla?: string; seansas?: string | string[] }> }) {
+  const { veikla, seansas } = await searchParams;
+  const sessionId = Array.isArray(seansas) ? seansas[0] : seansas;
+  const initialTab = sessionId ? "pirtis" : ACTIVITY_ORDER.find((id) => id === veikla);
   const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
   const [sauna, cabin, quads, customer] = await Promise.all([
     getSaunaPageData(availabilityWindow),
@@ -33,6 +34,7 @@ export default async function ReservationPage({ searchParams }: { searchParams: 
           header={header}
           data={{ sauna, cabin, quads }}
           initialTab={initialTab}
+          initialDay={sauna.events.find((event) => event.key === sessionId)?.date}
           payments={paymentsEnabled()}
           initialCustomer={customer}
         />

@@ -10,12 +10,35 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0048 — Klientai "Rolė" tab: a customer becomes admin through a staff login matched by email, no new table
+## ADR-0051 — Klientai "Rolė" tab: a customer becomes admin through a staff login matched by email, no new table
 
 - **Status:** Accepted 2026-11-09. No migration, no new server action: pure UI over `createStaff`, `setStaffRole` and `setStaffActive` (`app/admin/staff-actions.ts`).
 - **Context:** The owner wanted to open a customer in `/admin/klientai/[id]` and make them an admin or give them a permissions role. `riders` (customers) and `staff` (admin logins, keyed by `auth.users.id`) are unrelated tables; a rider has no auth link, only an optional `email`.
 - **Decision:** `CustomerPage` gets an owner-only "Rolė" tab (`customer-role-tab.tsx`; staff management is owner-only in the actions and in RLS, so the tab is hidden for everyone else). The rider is tied to a login by case-insensitive email match against `staff.email`. Match found: role select (Savininkas is labelled "administratorius"), active switch, the role's page badges; self cannot be changed. No match: pick a role and create the login (display name = "Vardas Pavardė", the rider's email, temporary password shown once via `CredentialsPanel`). A rider without an email is told to add one in Profilis first.
 - **Consequences:** The link is the email, not a foreign key: changing a rider's email on Profilis detaches the tab from the login, and an email that already has an auth account without a staff row makes `createStaff` return its "jau turi paskyrą" error (remove it in Supabase Authentication, or use another email). Password reset and removal stay in Darbuotojai (linked from the tab). A real `riders.user_id` link would be a separate ADR. The email is unverified (`/registracija` accepts any address), so the tab shows the login's name with a "confirm it is the same person" warning; it can't grant access by itself, since only owners see it and every action is owner-gated server-side.
+
+## ADR-0050 — Service galleries and booking panels share the first screen
+
+- **Status** Accepted 2026-11-07.
+- **Context** The owner requested the reference tour layout on every service page, with a photo rail, reservation panel, availability calendar and visible reviews.
+- **Decision** Keep the service shell on the server. The shared hero shows the photo rail alongside the sticky booking or contact panel from `lg`. The page gallery opens an uncropped carousel. Sauna and stay reuse the scoped checkout. The stay panel uses a compact date field. The quad-only client provider shares the selected date between the calendar and the route-first tour sidebar. The schedule reads the active fleet and occupied counts from the existing public quad availability reader.
+- **Consequences** The counts describe the Vanduo Marse fleet per hour. The provider has no supplier inventory feed. Review cards use attributed summaries of public park and activity reviews.
+- **Update 2026-11-08** The route-first sidebar shows day and start availability. A valid plan can prepare an email draft with the tour details for the park to confirm. The link opens the visitor’s email client. It creates no database reservation or payment. The standalone and multi-activity preview flows remain governed by ADR-0033.
+- **Sauna update 2026-11-08** `/pirtis` uses a 2:1 hero from `lg` and a compact booking panel for choosing a published session or private hire before the date. Private venues and packages use the active sauna programs and start availability. The existing `pirtis-marse` venue is the Finnish sauna and keeps its active private programs and shared session occupancy. The public reader corrects the seeded venue name and wood-fired copy. Staff customisations and booking configuration stay in Supabase. The planned wood-fired sauna is shown as under construction and cannot be selected. The inline picker reuses the reservation month calendar, and the final selection enters the existing ReservationFlow checkout. The schedule browses published sessions independently so visitors can inspect other dates without changing their plan. Its session links open the existing dialog, which adds tickets for the chosen session and date.
+
+## ADR-0049 — Public activity pages use a shared layout and scoped booking
+
+- **Status** Accepted 2026-11-07.
+- **Context** Each activity needs a discoverable public page with practical details and the appropriate reservation or inquiry action.
+- **Decision** An allowlisted top-level route renders a shared service layout with activity copy, original gallery assets, canonical metadata and Open Graph images. Sauna and stay use the existing reservation flow in single-activity mode. The sauna schedule uses the same published session IDs as ADR-0048 and can open the dialog on `/pirtis` itself. The quad sidebar reuses the isolated preview from ADR-0033. Event spaces use the calculator prices and inquiry path. Restaurant and wakeboarding provide direct contact for details that have no current catalogue.
+- **Consequences** The sitemap and homepage link to the public pages. The quad preview remains separate from real booking. Reviews link to the park’s Google Maps listing. Uploaded sauna photos automatically appear in the gallery.
+
+## ADR-0048 — Share public sauna sessions through the reservation URL
+
+- **Status** Accepted 2026-11-07.
+- **Context** Visitors need a link that opens the details of one published sauna session and lets them select their tickets.
+- **Decision** Use the existing event ID in the `seansas` parameter on `/rezervacija`. A direct request uses the event’s date as the initial selection. Opening the dialog on the page uses browser history so the active plan and quantity drafts stay in memory.
+- **Consequences** The dialog uses the public sauna data and the same quantity, pricing and availability as the card. Adding a session uses the existing plan and checkout flow. Expired or unknown links show that the session is unavailable.
 
 ---
 

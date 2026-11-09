@@ -46,19 +46,11 @@ export function FooterBar({ topHref }: { topHref: string }) {
 
 const CONTACT_LINK = "inline-flex min-h-11 text-xs transition-colors duration-150 ease-out-strong hover:text-rust";
 
-/** One contact: a hairline on top, the name (a link when it has a site), then its email and phone stacked. */
-function ContactItem({ contact: c }: { contact: Contact }) {
+/** One contact with its name, email and phone stacked under a hairline. */
+function ContactItem({ contact: c, title = c.name }: { contact: Contact; title?: string }) {
   return (
     <li className="border-t border-line pt-4">
-      <p className="text-sm font-bold">
-        {c.href ? (
-          <a href={c.href} target="_blank" rel="noopener" className="transition-colors duration-150 ease-out-strong hover:text-rust">
-            {c.name}
-          </a>
-        ) : (
-          c.name
-        )}
-      </p>
+      <p className="text-sm font-bold">{title}</p>
       <div className="flex flex-col items-start">
         <a href={`mailto:${c.email}`} className={`${CONTACT_LINK} items-end pb-1`}>
           {c.email}
@@ -79,7 +71,7 @@ export function SiteFooter() {
         <SectionKicker left="KONTAKTAI" right="VISI MARSO SEKTORIAI" />
         <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {CONTACTS.map((c) => (
-            <ContactItem key={c.name} contact={c} />
+            <ContactItem key={c.name} contact={c} title={c === MAIN_CONTACT ? "Vanduo Marse ir renginiai" : undefined} />
           ))}
         </ul>
       </Reveal>

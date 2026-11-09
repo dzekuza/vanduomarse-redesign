@@ -1,9 +1,9 @@
 "use client"
 
 import { CalendarBlankIcon } from "@phosphor-icons/react"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { cn } from "cn"
-import { CalendarGrid } from "@/components/ui/calendar-grid"
+import { CalendarGrid, type CalendarDayDetails } from "@/components/ui/calendar-grid"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { todayKey } from "@/lib/sauna"
 
@@ -18,6 +18,8 @@ interface DatePickerProps {
   invalid?: boolean
   describedBy?: string
   className?: string
+  dayDetails?: (key: string) => CalendarDayDetails | undefined
+  calendarFooter?: ReactNode
 }
 
 const longDate = (key: string) => {
@@ -26,7 +28,7 @@ const longDate = (key: string) => {
 }
 
 /** Date field that opens a month calendar; the value stays a plain yyyy-mm-dd string, like `<input type="date">`. */
-export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasirink datą", invalid, describedBy, className }: DatePickerProps) {
+export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasirink datą", invalid, describedBy, className, dayDetails, calendarFooter }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const today = todayKey()
   const todayOff = Boolean((min && today < min) || (max && today > max))
@@ -53,7 +55,8 @@ export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasir
         </button>
       </PopoverTrigger>
       <PopoverContent>
-        <CalendarGrid value={value} min={min} max={max} onSelect={pick} />
+        <CalendarGrid value={value} min={min} max={max} onSelect={pick} dayDetails={dayDetails} />
+        {calendarFooter ? <div className="mt-2 border-t border-line pt-3">{calendarFooter}</div> : null}
         <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-xs font-bold">
           <button type="button" disabled={todayOff} onClick={() => pick(today)} className="min-h-11 px-2 transition-opacity duration-150 enabled:hover:underline disabled:opacity-30">
             Šiandien

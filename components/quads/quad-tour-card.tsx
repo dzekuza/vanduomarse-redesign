@@ -38,9 +38,9 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
   }
 
   return (
-    <div>
+    <div className="@container">
       <OptionGroupLabel>Trasos · dizaino peržiūra</OptionGroupLabel>
-      <div className="grid items-start gap-3 lg:grid-cols-3">
+      <div className="grid items-start gap-3 lg:@2xl:grid-cols-3">
         {QUAD_PREVIEW_ROUTES.map((route) => (
           <RouteCard
             key={route.id}

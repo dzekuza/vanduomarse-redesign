@@ -4,7 +4,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { DayIcon } from "@/components/booking/day-picker";
 import { dateKey, nextDays } from "@/lib/sauna";
-import { canSelectDate, DayCell, rangePart, type DateRangeSelection } from "./day-cell";
+import { canSelectDate, DayCell, rangePart, type DateRangeSelection, type ReservationDayDetails } from "./day-cell";
 
 interface MonthCalendarProps {
   /** The dates open for booking, shared with the strip. */
@@ -12,9 +12,11 @@ interface MonthCalendarProps {
   selected: Date | null;
   onSelect: (date: Date) => void;
   icons?: (date: Date) => DayIcon[];
+  dayDetails?: (date: Date) => ReservationDayDetails | undefined;
   allowFutureDates?: boolean;
   range?: DateRangeSelection;
   reserveIconSpace?: boolean;
+  compact?: boolean;
   month: Date;
   onMonthChange: (month: Date) => void;
 }
@@ -35,7 +37,7 @@ function keyboardDate(date: Date, key: string): Date | undefined {
 }
 
 /** A month grid of the same day cells; days that can't be booked are greyed out. */
-export function MonthCalendar({ days, selected, onSelect, icons, allowFutureDates, range, reserveIconSpace, month, onMonthChange }: MonthCalendarProps) {
+export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, allowFutureDates, range, reserveIconSpace, compact, month, onMonthChange }: MonthCalendarProps) {
   const grid = useRef<HTMLDivElement>(null);
   const moveFocus = useRef(false);
   const [focusedKey, setFocusedKey] = useState<string>();
@@ -83,7 +85,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, allowFutureDate
   }
 
   return (
-    <div className="border border-line bg-foam/15 px-1 py-4 sm:p-5">
+    <div className={`border border-line bg-foam/15 px-1 py-4 ${compact ? "" : "sm:p-5"}`}>
       <div role="group" aria-label="Mėnesio navigacija" className="mb-3 flex items-center justify-between">
         <button type="button" aria-label="Ankstesnis mėnuo" disabled={month <= first} onClick={() => shift(-1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
           <CaretLeftIcon size={18} aria-hidden />
@@ -95,7 +97,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, allowFutureDate
       {!allowFutureDates && bookingEnd && monthEnd > bookingEnd ? (
         <p className="mb-3 text-xs text-copy">{reserveIconSpace ? "Atvykti" : "Rezervuoti"} galima iki {BOOKING_DATE_LABEL.format(bookingEnd)} imtinai.</p>
       ) : null}
-      <div ref={grid} role="group" aria-label="Mėnesio dienos" onKeyDown={navigateDays} className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
+      <div ref={grid} role="group" aria-label="Mėnesio dienos" onKeyDown={navigateDays} className={`grid grid-cols-7 gap-0.5 ${compact ? "" : "sm:gap-1.5"}`}>
         {HEADINGS.map((h) => (
           <span key={h} aria-hidden className="pb-1 text-center text-micro uppercase text-copy">
             {h}
@@ -105,17 +107,20 @@ export function MonthCalendar({ days, selected, onSelect, icons, allowFutureDate
           if (!date) return <span key={`blank-${i}`} aria-hidden />;
           const key = dateKey(date);
           const disabled = unavailable(key);
+          const showDetails = !disabled && (!departure || key <= departure.start);
           return (
             <DayCell
               key={key}
               fluid
+              compact={compact}
               date={date}
               active={key === selectedKey}
               rangePart={rangePart(key, range)}
               isToday={key === today}
               disabled={disabled}
               tabIndex={key === tabStop ? 0 : -1}
-              icons={disabled || (departure && key > departure.start) ? undefined : icons?.(date)}
+              icons={showDetails ? icons?.(date) : undefined}
+              details={showDetails ? dayDetails?.(date) : undefined}
               reserveIconSpace={reserveIconSpace}
               onSelect={(date) => {
                 setFocusedKey(key);

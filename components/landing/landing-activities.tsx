@@ -13,7 +13,7 @@ export function LandingActivities() {
           <span className="text-rust">IR POILSIS</span>
         </h2>
         <p className="mt-6 text-xs leading-loose text-copy md:mt-0 md:mb-2">
-          Nuo pirties vakaro iki vestuvių ar įmonės šventės. Pramogos, maistas ir nakvynė tavo kompanijai.
+          Nuo wakeboard treniruočių ar pirties seanso iki vestuvių ar įmonės šventės. Pramogos, maistas ir nakvynė tavo kompanijai.
         </p>
       </div>
       </Reveal>

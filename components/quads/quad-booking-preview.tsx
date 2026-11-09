@@ -14,7 +14,7 @@ import { quadPreviewPlan, quadPreviewStarts, type QuadPreviewPick } from "./quad
 import { QuadTourCard } from "./quad-tour-card";
 
 /** Explicitly isolated visual preview. Supplier prices never reach the booking actions. */
-export function QuadBookingPreview({ data }: { data: QuadPageData }) {
+export function QuadBookingPreview({ data, inline = false }: { data: QuadPageData; inline?: boolean }) {
   const days = useMemo(() => nextDays(data.today, RESERVATION_DAYS), [data.today]);
   const [date, setDate] = useState(days[0]);
   const [pick, setPick] = useState<QuadPreviewPick | null>(null);
@@ -40,14 +40,14 @@ export function QuadBookingPreview({ data }: { data: QuadPageData }) {
     busy: false,
     onRemove: () => setPick(null),
   };
-  const continueAction = { disabled: !plan?.ok, onClick: () => setReview(true) };
+  const continueAction = { label: inline ? "Peržiūrėti planą" : undefined, disabled: !plan?.ok, onClick: () => setReview(true) };
 
   return (
     <>
-      <div id="trasos" className="scroll-mt-32 grid gap-10 lg:grid-cols-3 lg:gap-12">
-        <div className="min-w-0 space-y-8 lg:col-span-2">
+      <div id="trasos" className={inline ? "grid gap-5 pb-5" : "scroll-mt-32 grid gap-10 lg:grid-cols-3 lg:gap-12"}>
+        <div className={inline ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
           <section aria-label="Pasirink turo dieną" className="space-y-3">
-            <h2 className="text-heading font-bold">Kada susitinkam?</h2>
+            {inline ? null : <h2 className="text-heading font-bold">Kada susitinkam?</h2>}
             <WhenStep
               days={days}
               date={date}
@@ -63,9 +63,9 @@ export function QuadBookingPreview({ data }: { data: QuadPageData }) {
           </section>
           <QuadTourCard key={day} data={data} when={when} busy={[]} pick={pick} onChange={setPick} />
         </div>
-        <PlanPanel activity="keturraciai" continueAction={continueAction} {...details} />
+        <PlanPanel activity="keturraciai" inline={inline} continueAction={continueAction} {...details} />
       </div>
-      <MobilePlanDock activity="keturraciai" whenLabel={plan?.line.title ?? "Pasirink dieną ir turą"} continueAction={continueAction} {...details} />
+      {inline ? null : <MobilePlanDock activity="keturraciai" whenLabel={plan?.line.title ?? "Pasirink dieną ir turą"} continueAction={continueAction} {...details} />}
       <QuadPreviewReview open={review} onClose={() => setReview(false)} lines={lines} total={details.total} />
     </>
   );

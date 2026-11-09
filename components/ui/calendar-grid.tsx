@@ -1,12 +1,13 @@
 "use client"
 
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { cn } from "cn"
 import { todayKey } from "@/lib/sauna"
 
 /** Monday-first Lithuanian weekday heads. */
 const WEEKDAYS = ["Pr", "An", "Tr", "Kt", "Pn", "Št", "Sk"]
+const DAY_LABEL = new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "long", day: "numeric" })
 
 const pad = (n: number) => String(n).padStart(2, "0")
 const toKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -26,6 +27,11 @@ const addMonths = (key: string, n: number) => {
   return toKey(d)
 }
 
+export interface CalendarDayDetails {
+  label: string
+  indicator: ReactNode
+}
+
 interface CalendarGridProps {
   /** yyyy-mm-dd, or "" for none. */
   value: string
@@ -33,6 +39,8 @@ interface CalendarGridProps {
   /** Earliest / latest selectable day (yyyy-mm-dd). */
   min?: string
   max?: string
+  /** Optional indicator and its spoken description for a selectable day. */
+  dayDetails?: (key: string) => CalendarDayDetails | undefined
 }
 
 /**
@@ -40,7 +48,7 @@ interface CalendarGridProps {
  * filled. Arrow keys move by day/week, Home/End to the week's ends, PageUp/Down
  * by month. Days outside min/max are disabled.
  */
-export function CalendarGrid({ value, onSelect, min, max }: CalendarGridProps) {
+export function CalendarGrid({ value, onSelect, min, max, dayDetails }: CalendarGridProps) {
   const today = todayKey()
   const start = value || (min && min > today ? min : today)
   const [view, setView] = useState(`${start.slice(0, 7)}-01`)
@@ -168,31 +176,40 @@ export function CalendarGrid({ value, onSelect, min, max }: CalendarGridProps) {
             {d}
           </span>
         ))}
-        {days.map((k, i) =>
-          k === null ? (
-            <span key={`b${i}`} />
-          ) : (
+        {days.map((k, i) => {
+          if (k === null) return <span key={`b${i}`} />
+          const disabled = off(k)
+          const details = disabled ? undefined : dayDetails?.(k)
+          const dayNumber = Number(k.slice(8))
+          const todayMark = k === today && k !== value && "font-bold underline decoration-rust decoration-2 underline-offset-4"
+          return (
             <button
               key={k}
               type="button"
               role="gridcell"
               data-date={k}
-              disabled={off(k)}
+              disabled={disabled}
               aria-selected={k === value}
               aria-current={k === today ? "date" : undefined}
+              aria-label={details ? `${DAY_LABEL.format(parse(k))} ${details.label}` : undefined}
               tabIndex={k === roving ? 0 : -1}
               onClick={() => onSelect(k)}
               className={cn(
                 "grid size-11 place-items-center text-sm tabular-nums transition-[color,background-color,scale] duration-150 ease-out-strong focus-visible:outline-3 focus-visible:outline-water motion-safe:enabled:active:scale-95",
                 k === value ? "bg-ink font-bold text-dust" : "enabled:hover:bg-ink/10",
-                k === today && k !== value && "font-bold underline decoration-rust decoration-2 underline-offset-4",
-                off(k) && "text-ink/30"
+                details ? "content-center gap-0.5" : todayMark,
+                disabled && "text-ink/30"
               )}
             >
-              {Number(k.slice(8))}
+              {details ? (
+                <>
+                  <span className={cn("leading-none", todayMark)}>{dayNumber}</span>
+                  <span aria-hidden className="grid place-items-center leading-none">{details.indicator}</span>
+                </>
+              ) : dayNumber}
             </button>
           )
-        )}
+        })}
       </div>
     </div>
   )

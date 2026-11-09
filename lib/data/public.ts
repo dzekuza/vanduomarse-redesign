@@ -7,7 +7,7 @@ import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types"
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
 import { EVENTS_WINDOW_DAYS, type ParkEventData } from "@/lib/park-events";
 import { todayKey, vilniusHour } from "@/lib/sauna";
-import { EVENT_WINDOW_DAYS } from "@/lib/sauna-events";
+import { EVENT_WINDOW_DAYS, saunaSessionHref } from "@/lib/sauna-events";
 import type { Tables } from "@/lib/supabase/database.types";
 import { supabaseEnv } from "@/lib/supabase/env";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -104,17 +104,30 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
     nowHour: vilniusHour(now),
     saunas: must(saunas, "Saunas").map((r) => {
       const sauna = toSauna(r, r.sauna_upsell_links, url);
-      return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
+      const upsellIds = sauna.upsellIds.filter((id) => offered.has(id));
+      if (sauna.id !== "pirtis-marse") return { ...sauna, upsellIds };
+      // The existing reservation venue is the Finnish sauna. Correct only the seeded display copy.
+      return {
+        ...sauna,
+        upsellIds,
+        name: sauna.name === "Pirtis Marse" ? "Suomiška sauna" : sauna.name,
+        description: sauna.description === "Malkomis kūrenama pirtis prie pat ežero kranto."
+          ? "Suomiška sauna prie ežero su panoraminiais langais."
+          : sauna.description,
+        features: sauna.features.filter((feature) => feature !== "Kūrenama malkomis"),
+      };
     }),
     upsells: activeUpsells,
     programs: must(programs, "Sauna programs").map(toSaunaProgram),
     takenBySauna,
     events: events.map((e) => {
-      const host = e.place.split(" · ")[1]?.trim();
+      const [venue, attendant] = e.place.split(" · ");
+      const host = attendant?.trim();
       return {
         key: e.id,
         title: e.title,
         host: host ?? e.place,
+        venue: venue.trim(),
         hostName: host && !/^(atvira grupė|su pirtininku|be pirtininko)$/i.test(host) ? host : undefined,
         date: e.date,
         time: toHHMM(e.start_time),
@@ -183,7 +196,7 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
     spotsLeft: spotsLeft(e),
     cta:
       e.category === "pirtis" && e.capacity !== null
-        ? { label: "Pirkti bilietą", href: "/rezervacija?veikla=pirtis" }
+        ? { label: "Pirkti bilietą", href: saunaSessionHref(e.id) }
         : e.category === "keturratis" && e.capacity !== null
           ? { label: "Registruotis į žygį", href: "/rezervacija?veikla=keturraciai" }
           : { label: "Registruotis" },

@@ -14,7 +14,9 @@ updated: 2026-11-07
 
 ## Current focus
 
-**Klientai "Rolė" tab (2026-11-09, ADR-0048): built, uncommitted, not browser-checked.** Owner-only tab on `/admin/klientai/[id]` to make a customer an admin (Savininkas) or give them a permissions role; the customer is matched to a staff login by email, or a login is created with a one-time temporary password. Needs a browser pass as owner (customer with/without email, with/without an existing login) at 375 / 768 / 1024 px.
+**Klientai "Rolė" tab (2026-11-09, ADR-0051): merged (PR #16), not browser-checked.** Owner-only tab on `/admin/klientai/[id]` to make a customer an admin (Savininkas) or give them a permissions role; the customer is matched to a staff login by email, or a login is created with a one-time temporary password. Needs a browser pass as owner (customer with/without email, with/without an existing login) at 375 / 768 / 1024 px.
+
+**Service pages merged (2026-11-09): reviewed, builds clean, not browser-checked.** The `codex/service-pages-and-site-feedback` branch (public `/pirtis` and other activity pages via `app/[service]/page.tsx`) was reviewed and merged. Six owner follow-ups are listed in the top `session-log.md` entry: coupon single-use copy vs partial balances, hard-coded quad prices on `/keturraciu-nuoma`, the new `RESERVATION_PHONE`, the in-code sauna rename, unverified reviews, and the removed Miegas/Boardsports contacts.
 
 **Price unit moved inside the input; a few more row titles bumped to Medium (2026-11-09): built, uncommitted.** From two more screenshots (Renginiai table, Kainodara's Erdvės price rows): new `UnitAmountInput` (`components/admin/unit-amount-input.tsx`) puts the unit text (€, €/asm., min. sąsk. €, …) inside the amount field itself instead of as a separate line under the label, used by `PriceGroupForm` and `SaunaRatesFields`. Also caught a few more `font-normal` title spots the first sweep missed: `EventsView`'s event/ticket row titles, and the customer-name line atop `BookingSheet`/`InquirySheet`/`CouponSheet`/`RentalSheet`. `tsc`, full-repo `eslint` and `next build` clean. **Not yet re-screenshotted.**
 

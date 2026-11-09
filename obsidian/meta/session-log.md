@@ -1,10 +1,18 @@
-## 2026-11-09 — Klientai: owner-only "Rolė" tab to make a customer an admin (ADR-0048)
+## 2026-11-09 — Klientai: owner-only "Rolė" tab to make a customer an admin (ADR-0051)
 
 - **Why:** The owner asked for a tab on `/admin/klientai/[id]` to set a customer as admin or assign a permissions role.
 - **Changed:** New `components/admin/klientai/customer-role-tab.tsx` and an owner-gated tab in `customer-page.tsx`. A customer is linked to a staff login by email; existing login → change role / switch off, none → create login with a role and show the temporary password once. Fast-forwarded local `main` to `origin/main` first (it was 8 commits behind and lacked the Klientai page).
 - **Status:** `eslint` clean; `tsc` shows no errors in the new files (5 pre-existing typed-route errors in `app/admin/(panel)/{klientai,apyrankes}` pages, from stale generated route types). Uncommitted, not browser-checked.
 - **Next:** Browser pass as owner on a customer with and without an email / matching login at 375 / 768 / 1024 px; commit.
-- **Docs:** `decisions-log.md` (ADR-0048), `changelog.md`, `status.md`, `components/common.md`, `routing.md`, this entry.
+- **Docs:** `decisions-log.md` (ADR-0051), `changelog.md`, `status.md`, `components/common.md`, `routing.md`, this entry.
+
+## 2026-11-09 — Reviewed and merged the service-pages branch (`codex/service-pages-and-site-feedback`)
+
+- **Why:** A contributor's branch added public activity pages (`/pirtis`, `/keturraciu-nuoma`, `/nakvyne`, `/restoranas`, `/vandenlentes`, event pages) through a dynamic `app/[service]/page.tsx`; the owner asked for it to be reviewed and merged.
+- **Reviewed:** `tsc --noEmit`, full `eslint --max-warnings 0` and `pnpm build` clean. Diff scanned for inline styles, hex, arbitrary Tailwind values, `any` and hard-coded prices: none. Not browser-checked at 375 / 768 / 1024 px.
+- **Follow-ups for the owner (content / policy, not code defects):** (1) `/kuponai` copy now says a paper coupon is used in one go, while the app and admin still support partial balances (`coupon_balance`); (2) `/keturraciu-nuoma` shows tour prices from `QUAD_PREVIEW_ROUTES` (59 / 79 / 105 EUR), a component constant, not the `quad_types` rows in Supabase (rule 5); (3) a new `RESERVATION_PHONE` (+370 640 57504) now shows in the hero and reservation summary; (4) `getSaunaPageData` renames the seeded sauna to "Suomiška sauna" and drops "Kūrenama malkomis" in code instead of editing the Supabase row; (5) `service-reviews.tsx` carries paraphrased third-party reviews with reviewer names and source links that nobody here verified; (6) the Miegas Marse and Boardsports contacts were removed from `CONTACTS` (cabins now use the main Vanduo Marse contact).
+- **Next:** Decide on the six follow-ups; browser pass on the new pages.
+- **Docs:** this entry, `status.md`; the branch already updated `changelog.md`, `decisions-log.md`, `routing.md`, `common.md`.
 
 ## 2026-11-08 — Instruktorius: bracelet check-in/out scanning page (ADR-0045)
 
