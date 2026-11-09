@@ -40,9 +40,8 @@ export const SERVICE_PAGES = {
     title: "Keturračių nuoma ir turai prie Kauno",
     summary: "Mini, Midi ir Maxi išvykos keturračiais. Apžiūrėk „Vanduo Marse“ ir „Ciongo“ turų pasiūlymą bei palygink trasas.",
     description: "Trumpesnė trasa tinka pirmai pažinčiai su keturračiu, ilgesnė skirta tiems, kurie nori daugiau laiko miške ir bekelėje. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Dėl išvykos iš Vanduo Marse susitark su komanda.",
+    // The routes and the group minimum come from the database: see quad-service-facts.ts.
     facts: [
-      { label: "Trasos", value: "Mini, Midi ir Maxi" },
-      { label: "Grupė", value: "Turui reikia bent 3 keturračių." },
       { label: "Apranga", value: "Rinkis judėti patogią aprangą pagal oro sąlygas." },
       { label: "Partneris", value: "Ciongo" },
     ],

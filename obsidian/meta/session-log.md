@@ -1,3 +1,19 @@
+## 2026-11-10 — Hourly quad rental on the quad page
+
+- **Why:** The owner has the "Nuoma" (hourly rental) fleet in admin Parkas but the public quad page offered only the guided tours.
+- **Changed:** `QuadServiceBooking` gets a Turas / Nuoma mode switch; new `components/quads/quad-hourly-controls.tsx`; `ReservationFlow` passes `picks.keturraciai` and keeps tour and rental exclusive (`onQuadPick`, start reset on a new day); `service-pricing.tsx` and `quad-service-facts.ts` list the hourly prices and limits from the rows; panel intro text made neutral. No database change: the hourly RPCs and `planQuads` already existed.
+- **Status:** `tsc`/`eslint` clean. On live data in the browser: prices and facts show 30 / 45 EUR per hour; 2 quads x 1 h = 60 EUR; the checkout dialog shows "Mokėti 60 €" (disabled until a contact is verified); switching back to a tour clears the rental. No booking or payment was made. Branch `feat/quad-tour-products`.
+- **Next:** `/rezervacija`'s Keturračiai tab still shows only tour cards (no hourly rental there); say if it should get the same switch. Hourly rentals are filed as a "Keturračiai" payment line, like tours.
+- **Docs:** `components/common.md`, `changelog.md`, `status.md`, this entry.
+
+## 2026-11-10 — Payable quad tours, live database (ADR-0053)
+
+- **Why:** The owner chose to put the quad tour products in the database so tours can be booked and paid like the sauna (the quad dialog was a mailto preview with constant prices), then asked to fix the padding of the booking-confirmed screen.
+- **Changed:** Live database: `quad_tour_routes`, `quad_tour_accessories`, `quad_settings.tour_cancellation_note`, `quad_rentals.tour_route_id` / `tour_accessories`, RPC `create_quad_tour_rental` (migration `20261109200000`, applied with `supabase db query --linked` after three aborted-transaction dry runs; seeded with the old constants). Code: data layer, `quadTourRental` request pipeline, `quad-tour-plan.ts`, `ReservationFlow` `tourPick`, `QuadServiceBooking` on `/keturraciu-nuoma`, pricing and facts from rows, admin cards, mailto preview removed, receipt padding fix. Branch `feat/quad-tour-products`, 4 commits, not pushed.
+- **Status:** `tsc`, `eslint`, `next build` clean. Browser-checked on localhost against live data up to the checkout dialog (Midi x 3 = 237 EUR, discount code, "Mokėti 237 €", disabled until a contact is verified). No payment or booking was made. Admin cards not browser-checked.
+- **Next:** Push and open a PR. Check the admin cards and one real paid test booking in a Stripe test setup. The pre-existing branches (`/pirtis` live-data, event dialog, quad calendar, font warning) are still unpushed; this branch carries the `ServiceDateField` rename from the quad calendar branch. The `/keturraciai` design page still has its own "Dizaino peržiūra" title.
+- **Docs:** `decisions-log.md` (ADR-0053), `changelog.md`, `status.md`, `components/common.md`, this entry.
+
 ## 2026-11-09 — Klientai: owner-only "Rolė" tab to make a customer an admin (ADR-0051)
 
 - **Why:** The owner asked for a tab on `/admin/klientai/[id]` to set a customer as admin or assign a permissions role.

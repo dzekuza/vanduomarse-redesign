@@ -1,7 +1,7 @@
 import { isPermissionId } from "@/lib/admin/permissions";
 import type { CouponProduct } from "@/lib/coupons";
 import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
-import type { QuadSettings, QuadType } from "@/lib/quads";
+import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -268,7 +268,29 @@ export function toQuadType(r: Tables<"quad_types">): QuadType {
 }
 
 export function toQuadSettings(r: Tables<"quad_settings">): QuadSettings {
-  return { openHour: r.open_hour, closeHour: r.close_hour, maxHours: r.max_hours, deposit: r.deposit, minAge: r.min_age, rules: r.rules };
+  return { openHour: r.open_hour, closeHour: r.close_hour, maxHours: r.max_hours, deposit: r.deposit, minAge: r.min_age, rules: r.rules, tourCancellationNote: r.tour_cancellation_note };
+}
+
+export function toQuadTourRoute(r: Tables<"quad_tour_routes">): QuadTourRoute {
+  return {
+    id: r.id,
+    name: r.name,
+    kilometres: r.kilometres,
+    hours: r.hours,
+    durationLabel: r.duration_label,
+    price: r.price,
+    minUnits: r.min_units,
+    description: r.description,
+    longDescription: r.long_description,
+    photo: r.photo,
+    badge: r.badge,
+    active: r.active,
+    sortOrder: r.sort_order,
+  };
+}
+
+export function toQuadTourAccessory(r: Tables<"quad_tour_accessories">): QuadTourAccessory {
+  return { id: r.id, name: r.name, description: r.description, price: r.price, active: r.active, sortOrder: r.sort_order };
 }
 
 export function toQuadRental(r: QuadRentalRow): QuadRental {

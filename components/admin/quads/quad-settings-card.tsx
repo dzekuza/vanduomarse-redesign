@@ -22,6 +22,7 @@ const schema = z
     minAge: int(10, 99),
     deposit: z.string().trim().regex(/^\d+(\.\d{1,2})?$/, "Įveskite sumą, pvz. 50 arba 0."),
     rules: z.string().trim().max(800, "Daugiausia 800 simbolių."),
+    tourCancellationNote: z.string().trim().max(200, "Daugiausia 200 simbolių."),
   })
   .refine((v) => Number(v.closeHour) > Number(v.openHour), { message: "Uždarymas turi būti vėliau nei atidarymas.", path: ["closeHour"] });
 type Values = z.infer<typeof schema>;
@@ -38,6 +39,7 @@ export function QuadSettingsCard() {
       minAge: String(s.minAge),
       deposit: String(s.deposit),
       rules: s.rules,
+      tourCancellationNote: s.tourCancellationNote,
     },
   });
   const err = formState.errors;
@@ -50,6 +52,7 @@ export function QuadSettingsCard() {
       minAge: Number(v.minAge),
       deposit: Number(v.deposit),
       rules: v.rules,
+      tourCancellationNote: v.tourCancellationNote,
     });
     toast.success("Nustatymai išsaugoti");
   });
@@ -81,6 +84,11 @@ export function QuadSettingsCard() {
             <Label htmlFor="qs-rules">Taisyklės (rodomos puslapyje)</Label>
             <Textarea id="qs-rules" rows={5} aria-invalid={!!err.rules} {...register("rules")} />
             {err.rules ? <p className="text-xs text-destructive">{err.rules.message}</p> : <p className="text-xs text-muted-foreground">Tuščia = skiltis nerodoma.</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qs-tourCancellationNote">Turo atšaukimo sąlyga</Label>
+            <Input id="qs-tourCancellationNote" aria-invalid={!!err.tourCancellationNote} className="min-h-11" {...register("tourCancellationNote")} />
+            {err.tourCancellationNote ? <p className="text-xs text-destructive">{err.tourCancellationNote.message}</p> : <p className="text-xs text-muted-foreground">Rodoma prie turo rezervacijos. Tuščia = nerodoma.</p>}
           </div>
           <Button type="submit" disabled={!formState.isDirty} className="min-h-11">
             Išsaugoti

@@ -29,7 +29,6 @@ interface ReservationAccountDialogProps {
   onCheckingCode: (checking: boolean) => void;
   payments: boolean;
   payOnSite: boolean;
-  preview: boolean;
   ready: boolean;
   busy: boolean;
   redirecting: boolean;
@@ -37,7 +36,7 @@ interface ReservationAccountDialogProps {
 }
 
 /** Contact verification and final reservation stay in one popup above the selected plan. */
-export function ReservationAccountDialog({ open, onClose, onReturnToPlan, customer, onCustomer, lines, total, discount, discountAmount, onDiscount, checkingCode, onCheckingCode, payments, payOnSite, preview, ready, busy, redirecting, onSubmit }: ReservationAccountDialogProps) {
+export function ReservationAccountDialog({ open, onClose, onReturnToPlan, customer, onCustomer, lines, total, discount, discountAmount, onDiscount, checkingCode, onCheckingCode, payments, payOnSite, ready, busy, redirecting, onSubmit }: ReservationAccountDialogProps) {
   const returnFocus = useRef<HTMLElement | null>(null);
   const contactForm = useRef<HTMLFormElement>(null);
   const payTotal = Math.round((total - discountAmount) * 100) / 100;
@@ -78,13 +77,13 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
           <section aria-label="Tavo planas" className="space-y-3">
             <p className="text-micro uppercase text-copy">02 / Tavo planas</p>
             <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
-            {preview ? null : <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />}
+            <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
           </section>
-          <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} preview={preview} />
+          <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
             <button type="button" disabled={busy} onClick={dismiss} className="inline-flex min-h-11 items-center text-xs font-bold underline underline-offset-4 disabled:opacity-50">Keisti planą</button>
             <ArrowButton type="submit" disabled={!ready || busy || checkingCode}>
-              {redirecting ? "Nukreipiame į mokėjimą..." : busy ? "Siunčiama..." : preview ? "Baigti peržiūrą" : payments && !payOnSite && payTotal > 0 ? `Mokėti ${payTotal} €` : "Rezervuoti"}
+              {redirecting ? "Nukreipiame į mokėjimą..." : busy ? "Siunčiama..." : payments && !payOnSite && payTotal > 0 ? `Mokėti ${payTotal} €` : "Rezervuoti"}
             </ArrowButton>
           </div>
         </form>

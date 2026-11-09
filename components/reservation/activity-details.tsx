@@ -1,15 +1,16 @@
 import { CABIN_SIZES, CAMPER_MAX_GUESTS, ROOM_TYPES } from "@/lib/cabin";
 import { Cta } from "@/components/cta";
 import { QuadInformation } from "@/components/quads/quad-information";
-import { QUAD_PREVIEW_ACCESSORIES, QUAD_PREVIEW_ROUTES } from "@/components/quads/quad-preview-content";
 import type { ActivityId, ReservationData } from "@/lib/reservation";
 
 /** Dialog introduction, using the same price catalogues as the activity controls. */
-export function activityBlurb(id: ActivityId): string {
+export function activityBlurb(id: ActivityId, data: ReservationData): string {
   if (id === "pirtis") return "Prisijunk prie pirties seanso arba rezervuok privačią pirtį savo grupei.";
   if (id === "nakvyne") return `Nameliai 2 ar 4 asmenims ir kemperių aikštelė su elektra. Nuo ${CABIN_SIZES[0].pricePerNight} € / naktį.`;
-  const from = Math.min(...QUAD_PREVIEW_ROUTES.map((route) => route.price));
-  return `Mini, Midi arba Maxi. Nuo ${from} € už keturratį. Vienam ar dviem kaina ta pati.`;
+  const routes = data.quads.tourRoutes;
+  if (routes.length === 0) return "Keturračių turai su gidu ir nuoma valandomis.";
+  const from = Math.min(...routes.map((route) => route.price));
+  return `${routes.map((route) => route.name).join(", ")}. Nuo ${from} € už keturratį. Vienam ar dviem kaina ta pati.`;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -81,15 +82,15 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
 
   return (
     <div className="space-y-6">
-      <Cta tone="dark" small href="/keturraciai">Mini, Midi, Maxi. Trasų peržiūra</Cta>
+      <Cta tone="dark" small href="/keturraciu-nuoma">Visi turai ir rezervacija</Cta>
       <Section title="Turai">
         <ul className="space-y-3">
-          {QUAD_PREVIEW_ROUTES.map((route) => (
+          {data.quads.tourRoutes.map((route) => (
             <Item key={route.id} title={`${route.name} turas`} text={`${route.kilometres} km · ${route.hours} val. ${route.description}`} meta={`${route.price} € / keturračiui`} />
           ))}
         </ul>
       </Section>
-      <QuadInformation accessories={QUAD_PREVIEW_ACCESSORIES} />
+      <QuadInformation accessories={data.quads.tourAccessories} />
     </div>
   );
 }

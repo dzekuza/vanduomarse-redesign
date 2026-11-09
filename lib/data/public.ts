@@ -1,6 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
-import { toCouponProduct, toHHMM, toQuadSettings, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
+import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
 import { CABIN_SIZES, MAX_STAY_NIGHTS, cabinStayType, type CabinAvailability } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
@@ -222,7 +222,7 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
   const today = todayKey(now);
   const last = addDays(today, availabilityWindow ? availabilityWindow.days - 1 : QUAD_DAYS);
 
-  const [types, settings, taken, tours] = await Promise.all([
+  const [types, settings, taken, tours, routes, accessories] = await Promise.all([
     supabase.from("quad_types").select("*").eq("active", true).order("sort_order"),
     supabase.from("quad_settings").select("*").single(),
     readAvailabilityRows(
@@ -241,6 +241,9 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
       .lte("date", addDays(today, TOUR_DAYS - 1))
       .order("date")
       .order("start_time"),
+    // RLS limits anon to active rows.
+    supabase.from("quad_tour_routes").select("*").eq("active", true).order("sort_order").order("id"),
+    supabase.from("quad_tour_accessories").select("*").eq("active", true).order("sort_order").order("id"),
   ]);
 
   const takenMap: QuadTaken = {};
@@ -252,6 +255,8 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
     types: must(types, "Quad types").map(toQuadType),
     settings: toQuadSettings(must(settings, "Quad settings")),
     taken: takenMap,
+    tourRoutes: must(routes, "Quad tour routes").map(toQuadTourRoute),
+    tourAccessories: must(accessories, "Quad tour accessories").map(toQuadTourAccessory),
     tours: must(tours, "Quad tours").map((e) => ({
       key: e.id,
       title: e.title,

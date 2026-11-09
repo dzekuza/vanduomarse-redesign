@@ -4,13 +4,11 @@ import { useFormContext } from "react-hook-form";
 import type { AccountValues } from "./account-step";
 
 /** Submission details and live server errors beside the final account controls. */
-export function ReservationSubmitDetails({ payments, payOnSite, preview }: { payments: boolean; payOnSite: boolean; preview: boolean }) {
+export function ReservationSubmitDetails({ payments, payOnSite }: { payments: boolean; payOnSite: boolean }) {
   const { formState } = useFormContext<AccountValues>();
   return (
     <div className="space-y-3 text-sm text-copy">
-      <p>{preview
-        ? "Keturračių turas kol kas yra dizaino peržiūra. Baigus peržiūrą rezervacija nepateikiama ir mokėti nereikia."
-        : payOnSite
+      <p>{payOnSite
           ? "Atsiskaitysi vietoje grynais. Mokėti internetu nereikia. Užklausą patvirtinsime telefonu arba el. paštu."
         : payments
           ? "Apmokėjimas saugus, per Stripe. Kortelės duomenų mes nematome. Vietas laikome 30 min., kol mokate. Apmokėjus užklausas patvirtinsime telefonu arba el. paštu."

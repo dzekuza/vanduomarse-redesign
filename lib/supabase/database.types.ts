@@ -851,6 +851,8 @@ export type Database = {
           start_hour: number
           status: Database["public"]["Enums"]["booking_status"]
           total: number
+          tour_accessories: Json
+          tour_route_id: string | null
           units: number
           updated_at: string
           user_id: string | null
@@ -876,6 +878,8 @@ export type Database = {
           start_hour: number
           status?: Database["public"]["Enums"]["booking_status"]
           total: number
+          tour_accessories?: Json
+          tour_route_id?: string | null
           units: number
           updated_at?: string
           user_id?: string | null
@@ -901,6 +905,8 @@ export type Database = {
           start_hour?: number
           status?: Database["public"]["Enums"]["booking_status"]
           total?: number
+          tour_accessories?: Json
+          tour_route_id?: string | null
           units?: number
           updated_at?: string
           user_id?: string | null
@@ -934,6 +940,13 @@ export type Database = {
             referencedRelation: "riders"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quad_rentals_tour_route_id_fkey"
+            columns: ["tour_route_id"]
+            isOneToOne: false
+            referencedRelation: "quad_tour_routes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quad_settings: {
@@ -945,6 +958,7 @@ export type Database = {
           min_age: number
           open_hour: number
           rules: string
+          tour_cancellation_note: string
           updated_at: string
         }
         Insert: {
@@ -955,6 +969,7 @@ export type Database = {
           min_age: number
           open_hour: number
           rules?: string
+          tour_cancellation_note?: string
           updated_at?: string
         }
         Update: {
@@ -965,6 +980,94 @@ export type Database = {
           min_age?: number
           open_hour?: number
           rules?: string
+          tour_cancellation_note?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quad_tour_accessories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          id: string
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id: string
+          name: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quad_tour_routes: {
+        Row: {
+          active: boolean
+          badge: string | null
+          created_at: string
+          description: string
+          duration_label: string
+          hours: number
+          id: string
+          kilometres: number
+          long_description: string
+          min_units: number
+          name: string
+          photo: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          badge?: string | null
+          created_at?: string
+          description?: string
+          duration_label?: string
+          hours: number
+          id: string
+          kilometres: number
+          long_description?: string
+          min_units?: number
+          name: string
+          photo?: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          badge?: string | null
+          created_at?: string
+          description?: string
+          duration_label?: string
+          hours?: number
+          id?: string
+          kilometres?: number
+          long_description?: string
+          min_units?: number
+          name?: string
+          photo?: string
+          price?: number
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -1877,6 +1980,26 @@ export type Database = {
           total: number
         }[]
       }
+      create_quad_tour_rental: {
+        Args: {
+          p_accessories: Json
+          p_date: string
+          p_discount_code?: string
+          p_email?: string
+          p_name: string
+          p_note?: string
+          p_phone?: string
+          p_route_id: string
+          p_start_hour: number
+          p_units: number
+        }
+        Returns: {
+          code_discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
       create_sauna_booking:
         | {
             Args: {
@@ -2295,4 +2418,3 @@ export const Constants = {
     },
   },
 } as const
-

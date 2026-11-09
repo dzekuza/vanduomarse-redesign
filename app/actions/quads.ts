@@ -2,7 +2,7 @@
 
 import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
-import { mixedQuadRentalSchema, quadRentalSchema, tourTicketSchema, type MixedQuadRentalInput, type QuadRentalInput, type TourTicketInput } from "@/lib/quad-schema";
+import { mixedQuadRentalSchema, quadRentalSchema, quadTourRentalSchema, tourTicketSchema, type MixedQuadRentalInput, type QuadRentalInput, type QuadTourRentalInput, type TourTicketInput } from "@/lib/quad-schema";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { requester } from "@/lib/request-identity";
 import { hourLabel } from "@/lib/quads";
@@ -30,6 +30,8 @@ const BY_HINT: Record<string, string> = {
   quad_units: "Netinkamas keturračių tipų arba vienetų skaičius.",
   quad_riders: "Per daug važiuotojų pasirinktam keturračių skaičiui.",
   quad_full: "Šiuo laiku tiek keturračių nebėra. Pasirinkite kitą laiką.",
+  quad_tour_unavailable: "Šio turo šiuo metu nebeturime. Atnaujinkite puslapį.",
+  quad_gear: "Netinkama papildoma įranga. Atnaujinkite puslapį.",
   discount_invalid: "Nuolaidos kodas negalioja šiai paslaugai arba datai.",
   discount_used_up: "Šis nuolaidos kodas jau išnaudotas.",
   tour_unavailable: "Šis žygis nebeprieinamas. Atnaujinkite puslapį.",
@@ -109,6 +111,33 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   if (error) return dbFail(error);
   const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
   if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
+  return { data: { reference: data[0].reference, total: data[0].total } };
+}
+
+export async function createQuadTourRental(input: QuadTourRentalInput): Promise<ActionResult<RequestReceipt>> {
+  const parsed = quadTourRentalSchema.safeParse(input);
+  if (!parsed.success) return fail("Patikrinkite užklausos duomenis.", "invalid");
+  const v = parsed.data;
+  if (v.website) return { data: { reference: "KT-0000", total: 0 } };
+  const who = await requester(v);
+  if (!who) return UNVERIFIED;
+  const { supabase, phone, email, notifyEmail } = who;
+
+  // The database prices the tour from its route and gear rows and takes the quads from the fleet.
+  const { data, error } = await supabase.rpc("create_quad_tour_rental", {
+    p_route_id: v.routeId,
+    p_date: v.date,
+    p_start_hour: v.startHour,
+    p_units: v.units,
+    p_accessories: v.accessories.map((g) => ({ id: g.id, units: g.units })),
+    p_name: v.customerName,
+    p_email: email,
+    p_phone: phone ?? undefined,
+    p_note: v.note || undefined,
+    p_discount_code: v.discountCode || undefined,
+  });
+  if (error) return dbFail(error);
+  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${v.units} vnt.`]));
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

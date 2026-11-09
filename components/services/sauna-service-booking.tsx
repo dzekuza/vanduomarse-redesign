@@ -9,7 +9,7 @@ import { closeSessionInfo, SessionInfoLink } from "@/components/reservation/sess
 import type { SaunaPageData } from "@/lib/data/public-types";
 import { MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
 import { dateKey } from "@/lib/sauna";
-import { SaunaServiceDate } from "./sauna-service-date";
+import { ServiceDateField } from "./service-date-field";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
 import { SaunaServiceTime } from "./sauna-service-time";
 
@@ -96,7 +96,7 @@ export function SaunaServiceBooking({
           }}
         />
       ) : null}
-      <SaunaServiceDate date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={onDate}
+      <ServiceDateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={onDate}
         icons={(day) => {
           const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
           return [{ Icon: WavesIcon, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];

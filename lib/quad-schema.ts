@@ -64,6 +64,27 @@ export const mixedQuadRentalSchema = quadRentalDetails
   });
 export type MixedQuadRentalInput = z.infer<typeof mixedQuadRentalSchema>;
 
+const tourGear = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  units: z.number().int().min(1).max(MAX_QUAD_RENTAL_UNITS * 2),
+});
+
+/** A Mini / Midi / Maxi tour for N quads; the route, gear and prices are database rows, validated again by `create_quad_tour_rental`. */
+export const quadTourRentalSchema = contactFields
+  .extend({
+    routeId: z.string().regex(/^[a-z0-9-]+$/).max(60),
+    date: z.iso.date(),
+    startHour: z.number().int().min(0).max(23),
+    units: z.number().int().min(1).max(MAX_QUAD_RENTAL_UNITS),
+    accessories: z.array(tourGear).max(10),
+    note: z.string().trim().max(300),
+  })
+  .refine(needsContact, contactError)
+  .refine(({ accessories }) => new Set(accessories.map((g) => g.id)).size === accessories.length, {
+    path: ["accessories"], message: "Kiekvieną priedą nurodykite vieną kartą.",
+  });
+export type QuadTourRentalInput = z.infer<typeof quadTourRentalSchema>;
+
 /** Guided tour ticket request, validated again by the `createTourTicket` action. */
 export const tourTicketSchema = contactFields.extend({ eventId: z.uuid(), people: z.number().int().min(1).max(20) }).refine(needsContact, contactError);
 export type TourTicketInput = z.infer<typeof tourTicketSchema>;

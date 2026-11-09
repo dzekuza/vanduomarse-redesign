@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
+import { useState } from "react";
 import { Cta } from "@/components/cta";
 import { DatePicker } from "@/components/reservation/date-picker";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,12 +14,12 @@ const DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "l
 
 interface QuadScheduleProps {
   data: QuadPageData;
-  day: string;
-  onDayChange: (day: string) => void;
 }
 
-export function QuadSchedule({ data, day, onDayChange }: QuadScheduleProps) {
+/** Free quads per hour for a browsed day; the date here is independent of the booking form. */
+export function QuadSchedule({ data }: QuadScheduleProps) {
   const { today, nowHour, types, settings, taken } = data;
+  const [day, setDay] = useState(today);
   const days = nextDays(today, RESERVATION_DAYS);
   const selected = days.find((candidate) => dateKey(candidate) === day) ?? days[0];
   const selectedDay = dateKey(selected);
@@ -37,7 +38,7 @@ export function QuadSchedule({ data, day, onDayChange }: QuadScheduleProps) {
       <DatePicker
         days={days}
         selected={selected}
-        onSelect={(date) => onDayChange(dateKey(date))}
+        onSelect={(date) => setDay(dateKey(date))}
         initialView="calendar"
         icons={(date) => {
           const key = dateKey(date);

@@ -3,7 +3,7 @@ import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/l
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
-import type { QuadSettings, QuadType } from "@/lib/quads";
+import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
@@ -321,6 +321,9 @@ export interface AdminData {
   discountCodes: DiscountCode[];
   quadTypes: QuadType[];
   quadSettings: QuadSettings;
+  /** Mini / Midi / Maxi, all of them (inactive too) for staff with `keturraciai`. */
+  quadTourRoutes: QuadTourRoute[];
+  quadTourAccessories: QuadTourAccessory[];
   quadRentals: QuadRental[];
   tourTickets: TourTicket[];
   /** Seat requests for public sauna sessions and other limited events (not quad tours). */
