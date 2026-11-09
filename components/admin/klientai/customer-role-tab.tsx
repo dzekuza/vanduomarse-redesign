@@ -48,9 +48,14 @@ function ExistingLogin({ memberId, roles }: { memberId: string; roles: StaffRole
         <CardTitle className="flex flex-wrap items-center gap-2 text-item">
           Turi administravimo prieigą {self ? <Badge variant="outline">Jūs</Badge> : null}
         </CardTitle>
-        <CardDescription>Prisijungimo el. paštas: {member.email}</CardDescription>
+        <CardDescription>
+          Darbuotojas: {member.name} · {member.email}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+          Susieta tik pagal el. paštą, kuris nepatvirtintas. Prieš keisdami rolę įsitikinkite, kad tai tas pats žmogus.
+        </p>
         <div className="space-y-1.5">
           <Label htmlFor="customer-role">Rolė</Label>
           <RoleSelect
