@@ -25,8 +25,6 @@ const INQUIRY_TONE: Record<InquiryStatus, Tone> = {
   nauja: "pending",
   susisiekta: "new",
   pasiulymas: "new",
-  laimeta: "confirmed",
-  prarasta: "closed",
 };
 
 const COUPON_TONE: Record<CouponStatus, Tone> = {

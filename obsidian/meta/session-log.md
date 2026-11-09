@@ -7,6 +7,49 @@
 - **Next:** Assign the `instruktorius` permission to a role (Darbuotojai), then a browser pass: scan in, scan out, confirm the live list and duration tick correctly, at 375/768/1024 px.
 - **Docs:** `decisions-log.md` (ADR-0045), `changelog.md`, `status.md`, `components/common.md`, `hooks.md`, `database.md`, this entry.
 
+## 2026-11-09 — Unit moved inside the price input; a couple more row titles bumped to Medium
+
+- **Why:** Two more screenshots — Renginiai's table still had `font-normal` event/ticket titles the earlier admin sweep missed; separately, the owner asked for the unit text ("min. sąsk. €" etc.) to sit inside the amount field, before the number, instead of as its own line under the label.
+- **Changed:** New `UnitAmountInput` (`components/admin/unit-amount-input.tsx`): a bordered box styled like the shared `Input`, with the unit as a muted prefix and a borderless native `<input>` (right-aligned, `tabular-nums`) inside it. Replaces the separate `<p>{item.unit}</p>` line in `PriceGroupForm` (Kainodara) and `SaunaRatesFields` (Pirtis rates) — the latter still passes `type="number"` through for RHF's `valueAsNumber`. Also bumped `EventsView`'s event/ticket row titles and the customer-name line in `BookingSheet`/`InquirySheet`/`CouponSheet`/`RentalSheet` from `font-normal` to `font-medium`, following the same pattern as the earlier sweep.
+- **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. Not yet re-screenshotted.
+- **Next:** Confirm the unit text doesn't crowd the number for the longest units ("€/asm./naktis", "min. sąsk. €") at narrow widths; the box is `min-w-28` but not capped, so it should grow instead of truncate — worth a phone-width check.
+- **Docs:** `changelog.md`, `components/common.md`, `status.md`, this entry.
+
+## 2026-11-09 — Removed the unused "laimeta"/"prarasta" inquiry statuses, enum and all (ADR-0047)
+
+- **Why:** From a screenshot of `/admin/uzklausos`, the owner asked to remove the "Laimėta"/"Prarasta" filter chips.
+- **Checked first:** `inquiry_status` is a real Postgres enum, not a UI-only label set, and `InquirySheet`'s status-change dropdown reads from the exact same `INQUIRY_STATUS` record as the filter chips — so a code-only chip removal would've left both statuses still settable from the dropdown, just unreachable afterward from the filter bar. Queried live data (`select status, count(*) from public.inquiries group by status`): every row was `nauja`, zero used either value. Asked the owner to confirm before touching live schema; approved.
+- **Changed:** Migration `20261109150000_drop_inquiry_won_lost.sql` (guarded `do $$ if not exists $$`, idempotent) applied to the live "Vanduo" project — standard Postgres enum-narrowing swap (rename old type, create new 3-value one, cast the column, drop the old type). Narrowed `InquiryStatus` (`lib/admin/types.ts`), `INQUIRY_STATUS` (`lib/admin/labels.ts`), `INQUIRY_TONE` (`status-badge.tsx`), and `setInquiryStatus`'s literal union + `z.enum` (`app/admin/actions.ts`) to match. Regenerated `database.types.ts` (reapplied the `create_inquiry.p_date` nullable hand-edit, per the established convention). Security advisor: no new findings.
+- **Also:** `supabase/seed.sql` had two demo inquiries seeded as `laimeta`/`prarasta` — would've broken `supabase db reset` locally once the enum no longer has those values. Changed to `pasiulymas`/`susisiekta`, the closest remaining statuses to the rows' own notes.
+- **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. Not yet browser-checked.
+- **Next:** Confirm in a browser that `/admin/uzklausos` now shows only Visos/Nauja/Susisiekta/Pasiūlymas and the status dropdown in `InquirySheet` matches.
+- **Docs:** `decisions-log.md` (ADR-0047), `changelog.md`, `database.md`, `status.md`, this entry.
+
+## 2026-11-09 — Swept admin for the same flat-title weight gap, now that Medium exists
+
+- **Why:** Two more screenshots (Pirtis Programos, Kainodara Erdvės/Maitinimas) showed the exact same pattern as the Kalendorius tab fix: a bold `CardTitle` ("Programos"/"Erdvės") sitting above a column of plain-regular item rows, with no step in between.
+- **Changed:** Every `text-sm font-normal` row-title spot found with a repo-wide grep (~19 files in `components/admin/`) became `font-medium` — `PriceGroupForm`/`SaunaRatesFields` rate labels, `ProgramsCard`/`SaunasCard`/`UpsellsCard`/`SaunaUpsellsField`/`QuadTypesCard`/`CouponProductsCard`/`PlansTab` item names, `Overview`'s row titles/KPI label/section heading, `CustomerPage` activity rows, `RiderDocumentsTab` file names, three fieldset legends and three sheet subsection headers. Left genuinely secondary text (muted prices, dates, counts) untouched — only spots functioning as a row/item's own title moved.
+- **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. Not yet re-screenshotted.
+- **Next:** Confirm in a browser that these read better now; `ride-plan-picker.tsx`'s muted price span was deliberately left alone (it's meta, not a title) — worth a second look if it still reads flat next to the new weight elsewhere.
+- **Docs:** `changelog.md`, `status.md`, this entry.
+
+## 2026-11-09 — Termina Medium/SemiBold: the admin UI was missing two font weights, not broken
+
+- **Found:** From a screenshot of the new Kalendorius tab, the owner said the UI looked flat — "missing medium weight font / semibold". Checked `app/layout.tsx`: `localFont` only registered `Termina-Regular.otf` (400) and `Termina-Bold.otf` (700); `design-system.md` and `globals.css` both documented this as deliberate ("Termina ships Regular + Bold only"). So `font-medium`/`font-semibold` utility classes anywhere in the codebase were just resolving to the nearest of two weights, not a real third/fourth face.
+- **Fixed:** Asked the owner whether they had the actual font files; they pointed at `~/Desktop/termina/`, which has the full family (Thin through Black) licensed. Copied `Termina-Medium.otf` and `Termina-Demi.otf` (renamed `Termina-SemiBold.otf`) into `app/fonts/`, added them to `localFont`'s `src` array as weights 500/600. Corrected the now-stale "Regular + Bold only" comments in `design-system.md` and `globals.css` (the `.theme-marse` h1–h6 forced-bold rule stays — that's a brand choice, independent of which weights are loaded). Applied `font-medium` to `StaysStrip`/`QuadsStrip`'s resource labels so the exact cards in the owner's screenshot get a real middle step between the date and the bold count.
+- **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. Not yet re-screenshotted.
+- **Next:** Confirm in a browser that the new weight actually reads better; consider where else in admin (card titles, table headers, nav labels) a semibold step would help now that it's a real option — not done yet, scoped this pass to what was asked and the one screenshotted spot.
+- **Docs:** `changelog.md`, `design-system.md`, `status.md`, this entry.
+
+## 2026-11-09 — Pirtis/Namukai/Keturračiai as expandable sidebar domains (ADR-0046)
+
+- **Why:** Right after ADR-0044's flattening, the owner said the admin still wasn't clear about where a resource's calendar vs. settings vs. customers lived, and sketched a sitemap. Used `/plan` to confirm the approach before building: nested/expandable sidebar (not tabs, not a relabel), keep the single shared Rezervacijos calendar from ADR-0044, Valdymas = each resource's existing settings page.
+- **Changed:** `admin-nav.ts`'s `ADMIN_NAV` is now `(AdminNavItem | AdminNavDomain)[]`. Pirtis and Namukai each expand to "Kalendorius" (both → `/admin/rezervacijos?view=kalendorius`) and "Valdymas" (`/admin/pirtis`, `/admin/kainos`); Keturračiai expands to "Nuoma / Žygiai" (`/admin/keturraciai`) and "Valdymas" (`/admin/keturraciai?tab=parkas` — `QuadsView` now reads `?tab=`). New `flattenNav` (mobile flat list), `isActiveHref` (path-only match, since children carry `?view=`/`?tab=` queries `usePathname()` never includes), `activeNavItem` now also returns the containing domain id. `AppSidebar` renders a domain as `Collapsible` + `SidebarMenuSub` (new `components/ui/collapsible.tsx`, hand-added — no network CLI step here). `KlientaiView`'s activity chips sync to `?activity=`; `SaunaView`/`QuadsView`/`PricingView` each got a "Žr. klientus →" link.
+- **Coordination:** `admin-nav.ts`, `lib/admin/permissions.ts` and `database.types.ts` were being edited concurrently by ADR-0045's Instruktorius work in the same session — re-read all three fresh before editing; no collision, but ADR number bumped to 0046 since 0045 was already claimed.
+- **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. Not yet browser-checked — `localhost:3001` has been returning `HTTP 431` (stale dev cookies) for this entire session; asked the owner to clear site data for `localhost` and retry.
+- **Next:** Staff browser pass at 375/768/1024 px (see `status.md` → In progress), then commit.
+- **Docs:** `decisions-log.md` (ADR-0046), `changelog.md`, `routing.md`, `components/common.md`, `components/ui.md`, `status.md`, this entry.
+
 ## 2026-11-07 — Admin IA flattening: sidebar regroup, Apžvalga pending count, Klientai/Apyrankės merge, Rezervacijos/Užimtumas merge (ADR-0044)
 
 - **Why:** The owner said the admin sidebar and page logic felt hard to navigate, gave a concrete punch list, and asked for it in order of risk.

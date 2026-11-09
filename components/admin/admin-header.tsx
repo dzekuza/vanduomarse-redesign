@@ -15,7 +15,7 @@ import { hasPermission } from "@/lib/admin/permissions";
 
 /** Sticky, translucent top bar: section breadcrumb, theme switch, new-booking shortcut. */
 export function AdminHeader() {
-  const section = activeNavItem(usePathname());
+  const section = activeNavItem(usePathname()).item;
   const { me } = useAdmin();
   const isHome = section.href === "/admin";
 

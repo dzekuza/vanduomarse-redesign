@@ -69,7 +69,7 @@ export function EventsView() {
                   <p className="text-xs text-muted-foreground">{e.time}</p>
                 </TableCell>
                 <TableCell className="max-w-40 sm:max-w-none">
-                  <p className="truncate font-normal">{e.title}</p>
+                  <p className="truncate font-medium">{e.title}</p>
                   <p className="truncate text-xs text-muted-foreground">{e.place}</p>
                   {!e.published ? <Badge variant="outline" className="mt-1 sm:hidden">Paslėptas</Badge> : null}
                 </TableCell>
@@ -130,7 +130,7 @@ export function EventsView() {
           {tickets.map((t) => (
             <Card key={t.id} className="h-full gap-3 p-5">
               <div className="flex items-start justify-between gap-3">
-                <p className="font-normal">{t.eventTitle}</p>
+                <p className="font-medium">{t.eventTitle}</p>
                 <div className="flex flex-wrap justify-end gap-1">
                   <BookingStatusBadge status={t.status} />
                   <PaymentBadge payment={t.payment} />

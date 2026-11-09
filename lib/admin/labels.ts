@@ -32,8 +32,6 @@ export const INQUIRY_STATUS: Record<InquiryStatus, string> = {
   nauja: "Nauja",
   susisiekta: "Susisiekta",
   pasiulymas: "Pasiūlymas",
-  laimeta: "Laimėta",
-  prarasta: "Prarasta",
 };
 
 export const INQUIRY_SOURCE: Record<InquirySource, string> = {

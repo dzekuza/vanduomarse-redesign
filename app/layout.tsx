@@ -13,11 +13,15 @@ const bigShoulders = Big_Shoulders({
   adjustFontFallback: false,
 });
 
-// Termina, the live vanduomarse.lt face (licensed): Bold for headings, Regular for text.
+// Termina, the live vanduomarse.lt face (licensed): Bold for headings, Regular for
+// body text, Medium/SemiBold for UI emphasis (admin card titles, row labels) that
+// needs more weight than Regular without the full heft of Bold.
 const termina = localFont({
   variable: "--font-termina",
   src: [
     { path: "./fonts/Termina-Regular.otf", weight: "400", style: "normal" },
+    { path: "./fonts/Termina-Medium.otf", weight: "500", style: "normal" },
+    { path: "./fonts/Termina-SemiBold.otf", weight: "600", style: "normal" },
     { path: "./fonts/Termina-Bold.otf", weight: "700", style: "normal" },
   ],
 });

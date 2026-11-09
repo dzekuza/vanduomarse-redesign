@@ -25,6 +25,9 @@ export function SaunaView() {
       <SaunasCard />
       <ProgramsCard />
       <UpsellsCard />
+      <Link href="/admin/klientai" className="text-sm underline underline-offset-4 hover:text-rust">
+        Žr. klientus →
+      </Link>
     </AdminPage>
   );
 }

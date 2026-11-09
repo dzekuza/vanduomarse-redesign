@@ -2134,12 +2134,7 @@ export type Database = {
         | "sventes"
         | "keturratis"
       inquiry_source: "skaiciuokle" | "renginys" | "kontaktai"
-      inquiry_status:
-        | "nauja"
-        | "susisiekta"
-        | "pasiulymas"
-        | "laimeta"
-        | "prarasta"
+      inquiry_status: "nauja" | "susisiekta" | "pasiulymas"
       price_group:
         | "Erdvės"
         | "Maitinimas"
@@ -2294,15 +2289,10 @@ export const Constants = {
         "keturratis",
       ],
       inquiry_source: ["skaiciuokle", "renginys", "kontaktai"],
-      inquiry_status: [
-        "nauja",
-        "susisiekta",
-        "pasiulymas",
-        "laimeta",
-        "prarasta",
-      ],
+      inquiry_status: ["nauja", "susisiekta", "pasiulymas"],
       price_group: ["Erdvės", "Maitinimas", "Paslaugos", "Pramogos", "Nakvynė"],
       upsell_unit: ["rezervacijai", "asmeniui", "vienetui", "valandai"],
     },
   },
 } as const
+

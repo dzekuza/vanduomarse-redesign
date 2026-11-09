@@ -13,7 +13,7 @@ export function StatCard({ label, value, hint, icon: Icon }: StatCardProps) {
   return (
     <Card className="gap-2">
       <CardHeader className="flex flex-row items-start justify-between gap-2">
-        <CardTitle className="text-sm font-normal text-muted-foreground">{label}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
         <Icon size={20} className="shrink-0 text-rust" />
       </CardHeader>
       <CardContent>

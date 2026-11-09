@@ -16,10 +16,10 @@ export function StaysStrip({ days }: { days: string[] }) {
         const pct = Math.min(100, Math.round((cabins / CABIN_COUNT) * 100));
         return (
           <div key={day} className="border bg-card p-3">
-            <p className="text-xs font-normal">{formatDay(day)}</p>
-            <p className="mt-2 text-sm">
+            <p className="text-xs font-normal text-muted-foreground">{formatDay(day)}</p>
+            <p className="mt-2 text-sm font-medium">
               Nameliai <span className="font-display font-bold">{cabins}</span>
-              <span className="text-muted-foreground"> / {CABIN_COUNT}</span>
+              <span className="font-normal text-muted-foreground"> / {CABIN_COUNT}</span>
             </p>
             <progress
               value={pct}
@@ -27,7 +27,7 @@ export function StaysStrip({ days }: { days: string[] }) {
               aria-label={`Namelių užimtumas ${pct}%`}
               className="mt-1 block h-1.5 w-full appearance-none [&::-moz-progress-bar]:bg-ink [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-ink"
             />
-            <p className="mt-2 text-xs text-muted-foreground">Kemperiai: {campers}</p>
+            <p className="mt-2 text-xs font-medium text-muted-foreground">Kemperiai: {campers}</p>
           </div>
         );
       })}

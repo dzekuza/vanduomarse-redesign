@@ -70,7 +70,7 @@ export function InquirySheet({ inquiry, onOpenChange }: InquirySheetProps) {
               <blockquote className="border-l-2 border-rust pl-3 text-sm">{inquiry.message}</blockquote>
 
               <div className="space-y-1 border-t pt-4 text-sm">
-                <p className="font-normal">{inquiry.customer.name}</p>
+                <p className="font-medium">{inquiry.customer.name}</p>
                 <a href={`mailto:${inquiry.customer.email}?subject=${encodeURIComponent(`Dėl užklausos: ${inquiry.eventType}`)}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
                   <EnvelopeSimpleIcon size={18} /> {inquiry.customer.email}
                 </a>
@@ -80,7 +80,7 @@ export function InquirySheet({ inquiry, onOpenChange }: InquirySheetProps) {
               </div>
 
               <div className="space-y-3 border-t pt-4">
-                <p className="text-sm font-normal">Pastabos</p>
+                <p className="text-sm font-medium">Pastabos</p>
                 {inquiry.notes.length === 0 ? <p className="text-sm text-muted-foreground">Pastabų dar nėra.</p> : null}
                 <ul className="space-y-2">
                   {inquiry.notes.map((n) => (

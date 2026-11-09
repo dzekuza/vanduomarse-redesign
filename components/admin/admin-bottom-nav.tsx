@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AdminMoreSheet } from "./admin-more-sheet";
-import { activeNavItem, NEW_BOOKING_HREF, visibleNav, type AdminNavItem } from "./admin-nav";
+import { flattenNav, isActiveHref, NEW_BOOKING_HREF, type AdminNavItem } from "./admin-nav";
 import { useAdmin } from "./admin-store";
 import { useNavCounts } from "./use-nav-counts";
 import { hasPermission } from "@/lib/admin/permissions";
@@ -60,22 +60,22 @@ function TabContent({ icon: Icon, label, current, count }: TabProps) {
  * tabs, a centre "new booking" button and "Daugiau" for the other sections.
  */
 export function AdminBottomNav() {
-  const active = activeNavItem(usePathname());
+  const pathname = usePathname();
   const counts = useNavCounts();
   const { me } = useAdmin();
-  const nav = visibleNav(me);
+  const nav = flattenNav(me);
   const primary = nav.filter((i) => i.primary);
   const more = nav.filter((i) => !i.primary);
   const canBook = hasPermission(me, "rezervacijos");
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = more.some((i) => i.href === active.href);
+  const moreActive = more.some((i) => isActiveHref(pathname, i.href));
   const moreCount = more.reduce((sum, i) => sum + (i.badge ? counts[i.badge] : 0), 0);
   const tone = (current: boolean) => (current ? "text-sidebar-foreground" : "text-sidebar-foreground/60");
 
   const tab = (item: AdminNavItem) => {
-    const current = item.href === active.href;
+    const current = isActiveHref(pathname, item.href);
     return (
-      <Link key={item.href} href={item.href} aria-current={current ? "page" : undefined} className={cn(TAB, tone(current))}>
+      <Link key={`${item.href}|${item.label}`} href={item.href} aria-current={current ? "page" : undefined} className={cn(TAB, tone(current))}>
         <TabContent icon={item.icon} label={item.label} current={current} count={item.badge ? counts[item.badge] : 0} />
       </Link>
     );
@@ -106,7 +106,7 @@ export function AdminBottomNav() {
         </nav>
       </div>
 
-      <AdminMoreSheet open={moreOpen} onOpenChange={setMoreOpen} items={more} activeHref={active.href} counts={counts} />
+      <AdminMoreSheet open={moreOpen} onOpenChange={setMoreOpen} items={more} pathname={pathname} counts={counts} />
     </>
   );
 }

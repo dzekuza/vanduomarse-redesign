@@ -1,5 +1,22 @@
 import type { Icon } from "@phosphor-icons/react";
-import { AddressBookIcon, CalendarCheckIcon, ChartPieSliceIcon, ConfettiIcon, EnvelopeSimpleIcon, FireIcon, GiftIcon, LifebuoyIcon, MotorcycleIcon, PercentIcon, ScanIcon, TagIcon, UsersThreeIcon } from "@phosphor-icons/react";
+import {
+  AddressBookIcon,
+  CalendarCheckIcon,
+  ChartPieSliceIcon,
+  ClipboardTextIcon,
+  ConfettiIcon,
+  EnvelopeSimpleIcon,
+  FireIcon,
+  GearSixIcon,
+  GiftIcon,
+  HouseIcon,
+  LifebuoyIcon,
+  MotorcycleIcon,
+  PercentIcon,
+  ScanIcon,
+  TagIcon,
+  UsersThreeIcon,
+} from "@phosphor-icons/react";
 import { hasPermission, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
 
 export type AdminNavGroup = "apzvalga" | "pardavimai" | "klientai" | "turinys" | "nustatymai";
@@ -27,14 +44,69 @@ export interface AdminNavItem {
 }
 
 /**
- * Užimtumas is now the Rezervacijos page's "Kalendorius" tab (no row of its
- * own); Naudotojai is now the Klientai page (no row of its own). Nuolaidos
- * sits next to Kuponai — both are sales-side money/voucher tools.
+ * A sidebar row that expands into its own pages instead of being one itself.
+ * Pirtis, Namukai and Keturračiai each split into a shared booking calendar
+ * (Kalendorius) and that resource's own settings (Valdymas), per the owner's
+ * sitemap (ADR-0045). `id` is a local key for expand/collapse state, not a
+ * route; the row is visible only while at least one child is.
  */
-export const ADMIN_NAV: AdminNavItem[] = [
+export interface AdminNavDomain {
+  id: string;
+  label: string;
+  icon: Icon;
+  group: AdminNavGroup;
+  children: AdminNavItem[];
+}
+
+export type AdminNavEntry = AdminNavItem | AdminNavDomain;
+
+export const isDomain = (entry: AdminNavEntry): entry is AdminNavDomain => "children" in entry;
+
+/**
+ * Pirtis's and Namukai's Kalendorius both point at the same shared
+ * Rezervacijos calendar (sauna + cabins + quads together, ADR-0044) — there
+ * is deliberately no separate per-resource grid (ADR-0045).
+ */
+export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin", label: "Apžvalga", icon: ChartPieSliceIcon, group: "apzvalga", permission: "apzvalga", badge: "pendingAll", primary: true },
-  { href: "/admin/rezervacijos", label: "Rezervacijos", icon: CalendarCheckIcon, group: "pardavimai", permission: "rezervacijos", badge: "pendingBookings", primary: true },
-  { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
+  {
+    id: "pirtis",
+    label: "Pirtis",
+    icon: FireIcon,
+    group: "pardavimai",
+    children: [
+      {
+        href: "/admin/rezervacijos?view=kalendorius",
+        label: "Kalendorius",
+        icon: CalendarCheckIcon,
+        group: "pardavimai",
+        permission: "rezervacijos",
+        badge: "pendingBookings",
+        primary: true,
+      },
+      { href: "/admin/pirtis", label: "Valdymas", icon: GearSixIcon, group: "pardavimai", permission: "pirtis" },
+    ],
+  },
+  {
+    id: "namukai",
+    label: "Namukai",
+    icon: HouseIcon,
+    group: "pardavimai",
+    children: [
+      { href: "/admin/rezervacijos?view=kalendorius", label: "Kalendorius", icon: CalendarCheckIcon, group: "pardavimai", permission: "rezervacijos" },
+      { href: "/admin/kainos", label: "Valdymas", icon: GearSixIcon, group: "pardavimai", permission: "kainos" },
+    ],
+  },
+  {
+    id: "keturraciai",
+    label: "Keturračiai",
+    icon: MotorcycleIcon,
+    group: "pardavimai",
+    children: [
+      { href: "/admin/keturraciai", label: "Nuoma / Žygiai", icon: ClipboardTextIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
+      { href: "/admin/keturraciai?tab=parkas", label: "Valdymas", icon: GearSixIcon, group: "pardavimai", permission: "keturraciai" },
+    ],
+  },
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "pardavimai", permission: "kuponai", badge: "pendingCoupons" },
   { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "pardavimai", permission: "nuolaidos" },
   { href: "/admin/apyrankes", label: "Apyrankės", icon: ScanIcon, group: "pardavimai", permission: "apyrankes" },
@@ -42,7 +114,6 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, group: "pardavimai", permission: "uzklausos", badge: "newInquiries" },
   { href: "/admin/klientai", label: "Klientai", icon: AddressBookIcon, group: "klientai", permission: "klientai", primary: true },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
-  { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "nustatymai", permission: "pirtis" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },
   { href: STAFF_HREF, label: "Darbuotojai", icon: UsersThreeIcon, group: "nustatymai", permission: "owner" },
 ];
@@ -53,9 +124,38 @@ export const NEW_BOOKING_HREF = "/admin/rezervacijos?nauja=1";
 /** Whether this person's role opens the item. */
 export const canOpen = (item: AdminNavItem, access: StaffAccess) => (item.permission === "owner" ? access.isOwner : hasPermission(access, item.permission));
 
-/** The menu for one person: only the pages their role allows. */
-export const visibleNav = (access: StaffAccess) => ADMIN_NAV.filter((item) => canOpen(item, access));
+/** The sidebar tree for one person: a domain keeps only the children their role opens, and drops out entirely with none left. */
+export function visibleNav(access: StaffAccess): AdminNavEntry[] {
+  return ADMIN_NAV.flatMap<AdminNavEntry>((entry) => {
+    if (!isDomain(entry)) return canOpen(entry, access) ? [entry] : [];
+    const children = entry.children.filter((child) => canOpen(child, access));
+    return children.length ? [{ ...entry, children }] : [];
+  });
+}
 
-export function activeNavItem(pathname: string): AdminNavItem {
-  return [...ADMIN_NAV].reverse().find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`)) ?? ADMIN_NAV[0];
+/** The same menu flattened for mobile (bottom tab bar, "Daugiau" sheet) — no room for a tree there. */
+export function flattenNav(access: StaffAccess): AdminNavItem[] {
+  return ADMIN_NAV.flatMap((entry) => (isDomain(entry) ? entry.children : [entry])).filter((item) => canOpen(item, access));
+}
+
+const hrefPath = (href: string) => href.split("?")[0];
+
+/** Path-only match — a child's href can carry a `?view=`/`?tab=` query the current pathname never includes. */
+export const isActiveHref = (pathname: string, href: string) => {
+  const path = hrefPath(href);
+  return pathname === path || pathname.startsWith(`${path}/`);
+};
+
+/** The current leaf (for the breadcrumb) and, if it's a domain's child, that domain's id — so the sidebar can auto-expand it. */
+export function activeNavItem(pathname: string): { item: AdminNavItem; domainId: string | null } {
+  for (const entry of ADMIN_NAV) {
+    if (isDomain(entry)) {
+      const child = entry.children.find((c) => isActiveHref(pathname, c.href));
+      if (child) return { item: child, domainId: entry.id };
+    } else if (isActiveHref(pathname, entry.href)) {
+      return { item: entry, domainId: null };
+    }
+  }
+  const first = ADMIN_NAV[0];
+  return isDomain(first) ? { item: first.children[0], domainId: first.id } : { item: first, domainId: null };
 }

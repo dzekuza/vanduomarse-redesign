@@ -1,16 +1,17 @@
 "use client";
 
-import { ArrowSquareOutIcon, KeyIcon, SignOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, CaretDownIcon, KeyIcon, SignOutIcon } from "@phosphor-icons/react";
 import { signOut } from "@/app/admin/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ADMIN_NAV_GROUPS, activeNavItem, visibleNav } from "./admin-nav";
+import { ADMIN_NAV_GROUPS, activeNavItem, isActiveHref, isDomain, visibleNav, type AdminNavDomain } from "./admin-nav";
 import { useAdmin } from "./admin-store";
 import { ChangePasswordDialog } from "./change-password-dialog";
 import { StaffAvatar } from "./staff-avatar";
 import { useNavCounts } from "./use-nav-counts";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +24,9 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 
 /* Coral marker on the active row; shadcn already handles the active fill. */
@@ -31,11 +35,15 @@ const ACTIVE_MARKER =
 
 /** Desktop admin navigation: grouped sections, live counts, staff footer. */
 export function AppSidebar({ staffName }: { staffName: string }) {
-  const active = activeNavItem(usePathname());
+  const pathname = usePathname();
+  const active = activeNavItem(pathname);
   const counts = useNavCounts();
   const { me } = useAdmin();
   const nav = visibleNav(me);
   const [passwordOpen, setPasswordOpen] = useState(false);
+  /** Explicit open/closed per domain; falls back to "open if it holds the active route" until toggled. */
+  const [openDomains, setOpenDomains] = useState<Record<string, boolean>>({});
+  const domainOpen = (domain: AdminNavDomain) => openDomains[domain.id] ?? domain.id === active.domainId;
 
   return (
     <Sidebar collapsible="icon">
@@ -50,31 +58,79 @@ export function AppSidebar({ staffName }: { staffName: string }) {
       </SidebarHeader>
 
       <SidebarContent>
-        {ADMIN_NAV_GROUPS.filter((group) => nav.some((item) => item.group === group.id)).map((group) => (
+        {ADMIN_NAV_GROUPS.filter((group) => nav.some((entry) => entry.group === group.id)).map((group) => (
           <SidebarGroup key={group.id}>
             {group.label ? <SidebarGroupLabel className="text-sidebar-foreground/50">{group.label}</SidebarGroupLabel> : null}
             <SidebarGroupContent>
               <SidebarMenu>
-                {nav.filter((item) => item.group === group.id).map((item) => {
-                  const Icon = item.icon;
-                  const current = item.href === active.href;
-                  const count = item.badge ? counts[item.badge] : 0;
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={current} tooltip={item.label} size="lg" className={ACTIVE_MARKER}>
-                        <Link href={item.href} aria-current={current ? "page" : undefined}>
-                          <Icon size={20} weight={current ? "fill" : "regular"} />
-                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                      {count > 0 ? (
-                        <SidebarMenuBadge className="bg-sidebar-primary text-sidebar-primary-foreground peer-data-active/menu-button:text-sidebar-primary-foreground">
-                          {count}
-                        </SidebarMenuBadge>
-                      ) : null}
-                    </SidebarMenuItem>
-                  );
-                })}
+                {nav
+                  .filter((entry) => entry.group === group.id)
+                  .map((entry) => {
+                    if (isDomain(entry)) {
+                      const Icon = entry.icon;
+                      const open = domainOpen(entry);
+                      const current = entry.children.some((c) => isActiveHref(pathname, c.href));
+                      const count = entry.children.reduce((sum, c) => sum + (c.badge ? counts[c.badge] : 0), 0);
+                      return (
+                        <Collapsible key={entry.id} open={open} onOpenChange={(o) => setOpenDomains((s) => ({ ...s, [entry.id]: o }))} className="group/collapsible">
+                          <SidebarMenuItem>
+                            <CollapsibleTrigger asChild>
+                              <SidebarMenuButton isActive={current} tooltip={entry.label} size="lg" className={ACTIVE_MARKER}>
+                                <Icon size={20} weight={current ? "fill" : "regular"} />
+                                <span className="group-data-[collapsible=icon]:hidden">{entry.label}</span>
+                                <CaretDownIcon
+                                  size={14}
+                                  className="ml-auto shrink-0 transition-transform group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
+                                />
+                              </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                            {count > 0 ? (
+                              <SidebarMenuBadge className="right-7 bg-sidebar-primary text-sidebar-primary-foreground peer-data-active/menu-button:text-sidebar-primary-foreground">
+                                {count}
+                              </SidebarMenuBadge>
+                            ) : null}
+                            <CollapsibleContent>
+                              <SidebarMenuSub>
+                                {entry.children.map((child) => {
+                                  const ChildIcon = child.icon;
+                                  const childCurrent = isActiveHref(pathname, child.href);
+                                  return (
+                                    <SidebarMenuSubItem key={`${child.href}|${child.label}`}>
+                                      <SidebarMenuSubButton asChild isActive={childCurrent}>
+                                        <Link href={child.href} aria-current={childCurrent ? "page" : undefined}>
+                                          <ChildIcon size={16} weight={childCurrent ? "fill" : "regular"} />
+                                          <span>{child.label}</span>
+                                        </Link>
+                                      </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                  );
+                                })}
+                              </SidebarMenuSub>
+                            </CollapsibleContent>
+                          </SidebarMenuItem>
+                        </Collapsible>
+                      );
+                    }
+
+                    const Icon = entry.icon;
+                    const current = isActiveHref(pathname, entry.href);
+                    const count = entry.badge ? counts[entry.badge] : 0;
+                    return (
+                      <SidebarMenuItem key={entry.href}>
+                        <SidebarMenuButton asChild isActive={current} tooltip={entry.label} size="lg" className={ACTIVE_MARKER}>
+                          <Link href={entry.href} aria-current={current ? "page" : undefined}>
+                            <Icon size={20} weight={current ? "fill" : "regular"} />
+                            <span className="group-data-[collapsible=icon]:hidden">{entry.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {count > 0 ? (
+                          <SidebarMenuBadge className="bg-sidebar-primary text-sidebar-primary-foreground peer-data-active/menu-button:text-sidebar-primary-foreground">
+                            {count}
+                          </SidebarMenuBadge>
+                        ) : null}
+                      </SidebarMenuItem>
+                    );
+                  })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

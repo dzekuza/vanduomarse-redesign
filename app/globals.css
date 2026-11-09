@@ -548,7 +548,7 @@ html {
   html {
     @apply font-sans;
   }
-  /* Termina ships Regular + Bold only: headings bold, everything else regular. */
+  /* Brand rule, independent of which Termina weight is loaded: native headings stay bold. */
   .theme-marse :is(h1, h2, h3, h4, h5, h6) {
     font-weight: 700;
   }

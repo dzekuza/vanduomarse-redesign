@@ -17,10 +17,10 @@ export function QuadsStrip({ days }: { days: string[] }) {
         const pct = fleet ? Math.min(100, Math.round((rented / fleet) * 100)) : 0;
         return (
           <div key={day} className="border bg-card p-3">
-            <p className="text-xs font-normal">{formatDay(day)}</p>
-            <p className="mt-2 text-sm">
+            <p className="text-xs font-normal text-muted-foreground">{formatDay(day)}</p>
+            <p className="mt-2 text-sm font-medium">
               Keturračiai <span className="font-display font-bold">{rented}</span>
-              <span className="text-muted-foreground"> / {fleet}</span>
+              <span className="font-normal text-muted-foreground"> / {fleet}</span>
             </p>
             <progress
               value={pct}

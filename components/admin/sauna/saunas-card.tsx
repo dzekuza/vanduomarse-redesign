@@ -39,7 +39,7 @@ export function SaunasCard() {
                 {s.photos[0] ? <Image src={s.photos[0].url} alt="" fill sizes="56px" className="object-cover" /> : <FireIcon size={22} />}
               </span>
               <span className="min-w-0">
-                <span className={`block truncate text-sm font-normal ${s.active ? "" : "text-muted-foreground"}`}>
+                <span className={`block truncate text-sm font-medium ${s.active ? "" : "text-muted-foreground"}`}>
                   {s.name}
                   {s.active ? null : " (paslėpta)"}
                 </span>

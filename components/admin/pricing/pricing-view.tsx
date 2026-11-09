@@ -21,7 +21,10 @@ export function PricingView() {
           <Link href="/admin/pirtis" className="underline underline-offset-4 hover:text-rust">
             skiltyje „Pirtis“
           </Link>
-          .
+          .{" "}
+          <Link href="/admin/klientai?activity=namukai" className="underline underline-offset-4 hover:text-rust">
+            Žr. namukų klientus →
+          </Link>
         </p>
       </div>
       <div className="grid items-start gap-4 xl:grid-cols-2">

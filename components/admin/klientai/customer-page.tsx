@@ -154,7 +154,7 @@ function ActivityTab({ riderId }: { riderId: string }) {
       {rows.map((r) => (
         <li key={r.id} className="flex items-center justify-between gap-3 py-3 first:pt-0">
           <div className="min-w-0">
-            <p className="truncate text-sm font-normal">{r.label}</p>
+            <p className="truncate text-sm font-medium">{r.label}</p>
             <p className="truncate text-xs text-muted-foreground">
               {r.detail} · {formatDateTime(r.at)}
             </p>

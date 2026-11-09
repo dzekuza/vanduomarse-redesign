@@ -239,10 +239,10 @@ export async function toggleBlock(saunaId: string, date: string, hour: number, r
 
 /* ---------------- inquiries ---------------- */
 
-export async function setInquiryStatus(id: string, status: "nauja" | "susisiekta" | "pasiulymas" | "laimeta" | "prarasta"): Promise<ActionResult> {
+export async function setInquiryStatus(id: string, status: "nauja" | "susisiekta" | "pasiulymas"): Promise<ActionResult> {
   const ctx = await staffClient("uzklausos");
   if (!ctx.ok) return ctx.error;
-  const parsed = z.object({ id: z.uuid(), status: z.enum(["nauja", "susisiekta", "pasiulymas", "laimeta", "prarasta"]) }).safeParse({ id, status });
+  const parsed = z.object({ id: z.uuid(), status: z.enum(["nauja", "susisiekta", "pasiulymas"]) }).safeParse({ id, status });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("inquiries").update({ status }).eq("id", id);
   return error ? dbError(error) : done(null);

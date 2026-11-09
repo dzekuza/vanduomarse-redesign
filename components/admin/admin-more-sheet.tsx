@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
 import { signOut } from "@/app/admin/actions";
-import type { AdminNavItem } from "./admin-nav";
+import { isActiveHref, type AdminNavItem } from "./admin-nav";
 import { useAdminTheme } from "./admin-theme";
 import { ChangePasswordDialog } from "./change-password-dialog";
 import type { useNavCounts } from "./use-nav-counts";
@@ -55,12 +55,12 @@ interface AdminMoreSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: AdminNavItem[];
-  activeHref: string;
+  pathname: string;
   counts: ReturnType<typeof useNavCounts>;
 }
 
 /** Bottom sheet behind the tab bar's "Daugiau": the remaining sections plus account actions. */
-export function AdminMoreSheet({ open, onOpenChange, items, activeHref, counts }: AdminMoreSheetProps) {
+export function AdminMoreSheet({ open, onOpenChange, items, pathname, counts }: AdminMoreSheetProps) {
   const { theme, toggleTheme } = useAdminTheme();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const close = () => onOpenChange(false);
@@ -75,10 +75,10 @@ export function AdminMoreSheet({ open, onOpenChange, items, activeHref, counts }
         <ul className="grid grid-cols-2 gap-2 px-4 sm:grid-cols-4">
           {items.map((item, index) => (
             <MoreTile
-              key={item.href}
+              key={`${item.href}|${item.label}`}
               item={item}
               index={index}
-              current={item.href === activeHref}
+              current={isActiveHref(pathname, item.href)}
               count={item.badge ? counts[item.badge] : 0}
               onNavigate={close}
             />

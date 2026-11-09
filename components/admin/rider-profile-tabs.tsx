@@ -200,7 +200,7 @@ export function RiderDocumentsTab({ riderId }: { riderId: string }) {
             <li key={d.id} className="flex items-center gap-3 py-3 first:pt-0">
               <FileIcon size={20} className="shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-normal">{d.fileName}</p>
+                <p className="truncate text-sm font-medium">{d.fileName}</p>
                 <p className="text-xs text-muted-foreground">{formatDateTime(d.uploadedAt)}</p>
               </div>
               <Button

@@ -52,7 +52,7 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
               ))}
             </dl>
             <div className="mx-4 space-y-2 border-t pt-4 text-sm">
-              <p className="font-normal">{booking.customer.name}</p>
+              <p className="font-medium">{booking.customer.name}</p>
               {booking.customer.email ? (
                 <a href={`mailto:${booking.customer.email}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
                   <EnvelopeSimpleIcon size={18} /> {booking.customer.email}

@@ -2,6 +2,7 @@
 
 import { AddressBookIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
@@ -23,12 +24,20 @@ const ACTIVITY_FILTERS = [
 ] as const;
 type ActivityFilter = (typeof ACTIVITY_FILTERS)[number]["id"];
 
+const isActivityFilter = (value: string): value is ActivityFilter => (ACTIVITY_FILTERS as readonly { id: string }[]).some((f) => f.id === value);
+
 /** `/admin/klientai`: every customer (riders, incl. bulk-imported Grabby contacts). Search, paginate, open a profile. ADR-0042 */
 export function KlientaiView() {
   const { riders, riderCards, purchases, bookings, quadRentals, eventTickets, coupons, bindRiderCard } = useAdmin();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [activityFilters, setActivityFilters] = useState<ActivityFilter[]>([]);
+  // Pre-filtered from a domain page's "Žr. klientus" link (`?activity=`, ADR-0045), comma-separated for more than one.
+  const [activityFilters, setActivityFilters] = useState<ActivityFilter[]>(() =>
+    (searchParams.get("activity")?.split(",") ?? []).filter(isActivityFilter),
+  );
   const [rebinding, setRebinding] = useState<Rider | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -40,8 +49,14 @@ export function KlientaiView() {
   }, [purchases, bookings, quadRentals]);
 
   function toggleActivityFilter(id: ActivityFilter) {
-    setActivityFilters((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
+    const next = activityFilters.includes(id) ? activityFilters.filter((f) => f !== id) : [...activityFilters, id];
+    setActivityFilters(next);
     setPage(1);
+    const params = new URLSearchParams(searchParams);
+    if (next.length) params.set("activity", next.join(","));
+    else params.delete("activity");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
   const lastActivity = useMemo(() => {

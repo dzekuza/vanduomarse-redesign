@@ -18,7 +18,7 @@ export function BookingExtrasFields({ upsells, quantities, onChange, partySize, 
   if (!active.length) return null;
   return (
     <fieldset className="space-y-1 sm:col-span-2">
-      <legend className="mb-1 text-sm font-normal">Papildomai</legend>
+      <legend className="mb-1 text-sm font-medium">Papildomai</legend>
       {active.map((u) => {
         const qty = quantities[u.id] ?? 0;
         const max = upsellMax(u, partySize);

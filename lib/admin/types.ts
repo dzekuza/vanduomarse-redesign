@@ -78,7 +78,7 @@ export interface Block {
   reason: string;
 }
 
-export type InquiryStatus = "nauja" | "susisiekta" | "pasiulymas" | "laimeta" | "prarasta";
+export type InquiryStatus = "nauja" | "susisiekta" | "pasiulymas";
 export type InquirySource = "skaiciuokle" | "renginys" | "kontaktai";
 
 export interface Inquiry {

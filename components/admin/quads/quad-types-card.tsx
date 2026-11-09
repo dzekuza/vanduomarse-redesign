@@ -39,7 +39,7 @@ export function QuadTypesCard() {
         {quadTypes.map((t) => (
           <div key={t.id} className="flex items-center gap-3 py-3 first:pt-0">
             <div className="min-w-0 flex-1">
-              <p className={`truncate text-sm font-normal ${t.active ? "" : "text-muted-foreground line-through"}`}>{t.name}</p>
+              <p className={`truncate text-sm font-medium ${t.active ? "" : "text-muted-foreground line-through"}`}>{t.name}</p>
               <p className="truncate text-xs text-muted-foreground">
                 {t.units} vnt. · {t.seats === 1 ? "1 vieta" : `${t.seats} vietos`}
               </p>

@@ -20,6 +20,7 @@ files are listed in the last column; re-running `shadcn add` would overwrite the
 | Button | `components/ui/button.tsx` | `variant`, `size`, `asChild` | sizes raised: default h-11, sm h-10, lg h-12, icon 44/40/48 |
 | Card | `components/ui/card.tsx` | Header/Title/Description/Content/Footer | — |
 | ContextMenu | `components/ui/context-menu.tsx` | Radix context menu parts (same API shape as `DropdownMenu`) | added for the Užimtumas calendar grid (right-click a cell) |
+| Collapsible | `components/ui/collapsible.tsx` | `Collapsible`/`CollapsibleTrigger`/`CollapsibleContent`, thin Radix wrapper (same shape as `ContextMenu`'s) | added for `AppSidebar`'s expandable domain rows (Pirtis/Namukai/Keturračiai, ADR-0046) |
 | Dialog | `components/ui/dialog.tsx` | controlled `open` | header and footer `sticky` (offset by the content padding) so long forms keep title and actions in view; footer buttons in one row on phones (equal width), right-aligned from `sm`; close button sticks in the header; `DialogContent` takes `overlayClassName` (home page: dark blurred scrim) |
 | Drawer | `components/ui/drawer.tsx` | shadcn Drawer on `vaul`: `direction` (right / bottom), `DrawerContent` takes `overlayClassName` | square, `bg-popover`; handle shows for bottom; vaul's transition is switched off under reduced motion. Home page activity drawer; floating margins and `--initial-transform` set by the caller |
 | DropdownMenu | `components/ui/dropdown-menu.tsx` | Radix menu parts | — |

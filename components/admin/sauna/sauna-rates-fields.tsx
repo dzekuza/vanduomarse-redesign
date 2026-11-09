@@ -3,7 +3,7 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { RatesValues } from "./rates-schema";
 import type { SaunaValues } from "./sauna-schema";
-import { Input } from "@/components/ui/input";
+import { UnitAmountInput } from "../unit-amount-input";
 
 type Field = { name: keyof RatesValues; label: string; unit: string };
 
@@ -37,17 +37,15 @@ export function SaunaRatesFields({ register, errors }: SaunaRatesFieldsProps) {
         return (
           <div key={f.name} className="grid grid-cols-[1fr_auto] items-center gap-3 py-3 first:pt-0">
             <div className="min-w-0">
-              <label htmlFor={`rate-${f.name}`} className="text-sm font-normal">
+              <label htmlFor={`rate-${f.name}`} className="text-sm font-medium">
                 {f.label}
               </label>
-              <p className="text-xs text-muted-foreground">{f.unit}</p>
               {err ? <p className="text-xs text-destructive">{err}</p> : null}
             </div>
-            <Input
+            <UnitAmountInput
               id={`rate-${f.name}`}
               type="number"
-              inputMode="decimal"
-              className="w-24 text-right tabular-nums"
+              unit={f.unit}
               aria-invalid={!!err}
               {...register(`rates.${f.name}`, { valueAsNumber: true })}
             />

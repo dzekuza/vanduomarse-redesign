@@ -122,7 +122,7 @@ One recipe across the home page and every inner page.
 primary aubergine `#382e38`, background blush paper `#fbf3ef`, cards
 `#fffaf7`, secondary/accent blush `#f1d8ce`, ring coral `#ed5257`,
 destructive `#c73a3f`, borders aubergine at 18%, `--radius: 0rem` (square,
-like the site). `font-sans` / `font-heading` map to Termina (`app/fonts/`, `next/font/local`, Regular 400 + Bold 700 only: headings bold, text regular; `font-medium` renders Regular and `font-semibold` renders Bold). Utilities:
+like the site). `font-sans` / `font-heading` map to Termina (`app/fonts/`, `next/font/local`, four real weights: Regular 400, Medium 500, SemiBold 600, Bold 700 — `font-medium`/`font-semibold` render their own faces now, not a Regular/Bold stand-in; `.theme-marse` still forces every native `h1`–`h6` to 700 for the brand look regardless of weight utilities nearby). Utilities:
 `bg-hatch` (diagonal stripes for closed slots).
 
 ## Scoped themes

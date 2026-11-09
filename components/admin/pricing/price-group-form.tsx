@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
+import { UnitAmountInput } from "../unit-amount-input";
 import type { PriceGroup, PriceItem } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,16 +52,15 @@ export function PriceGroupForm({ group, items }: { group: PriceGroup; items: Pri
           {items.map((item, i) => (
             <div key={item.id} className="grid grid-cols-[1fr_auto] items-center gap-3 py-3 first:pt-0 sm:gap-4">
               <div className="min-w-0">
-                <label htmlFor={`${item.id}-value`} className="text-sm font-normal">
+                <label htmlFor={`${item.id}-value`} className="text-sm font-medium">
                   {item.label}
                 </label>
-                <p className="text-xs text-muted-foreground">{item.unit}</p>
                 {errors?.[i]?.value || errors?.[i]?.max ? (
                   <p className="text-xs text-destructive">{errors?.[i]?.value?.message ?? errors?.[i]?.max?.message}</p>
                 ) : null}
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <Input id={`${item.id}-value`} inputMode="decimal" className="w-20 text-right tabular-nums sm:w-24" aria-invalid={!!errors?.[i]?.value} {...register(`items.${i}.value`)} />
+                <UnitAmountInput id={`${item.id}-value`} unit={item.unit} aria-invalid={!!errors?.[i]?.value} {...register(`items.${i}.value`)} />
                 {item.max !== undefined ? (
                   <>
                     <span className="text-muted-foreground">–</span>
