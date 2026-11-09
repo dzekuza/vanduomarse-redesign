@@ -12,17 +12,21 @@ interface BookingHeaderProps {
   intro?: string;
 }
 
+export function BookingBreadcrumb({ crumb }: { crumb: string }) {
+  return (
+    <nav aria-label="Naršymo kelias" className="flex items-center gap-3 text-micro text-copy">
+      <Link href="/" className="hover:text-rust">Marsas</Link>
+      <span aria-hidden>/</span>
+      <span aria-current="page">{crumb}</span>
+    </nav>
+  );
+}
+
 /** Light page header of the booking-style pages (reservation, calculator): breadcrumb, kicker, big title, intro. */
 export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingHeaderProps) {
   return (
     <header className="space-y-6">
-      <nav aria-label="Naršymo kelias" className="flex items-center gap-3 text-micro text-copy">
-        <Link href="/" className="hover:text-rust">
-          Marsas
-        </Link>
-        <span aria-hidden>/</span>
-        <span aria-current="page">{crumb}</span>
-      </nav>
+      <BookingBreadcrumb crumb={crumb} />
       {kicker ? (
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-micro uppercase">
           <p className="flex items-center gap-2.5">

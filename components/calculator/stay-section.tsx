@@ -19,7 +19,7 @@ export function SaunaAndQuadCards({ calc: { input, set, guests } }: { calc: Even
     <>
       <CalculatorQuantityCard
         title="Pirtis"
-        description={`Privati malkomis kūrenama pirtis prie ežero jūsų svečiams, nuo ${minSaunaHours} val.`}
+        description={`Privati suomiška sauna prie ežero jūsų svečiams, nuo ${minSaunaHours} val.`}
         price={`Nuo ${sessionPrice(minSaunaHours, guests).toLocaleString("lt-LT")} €`}
         label="Valandos"
         value={input.saunaHours}
@@ -71,7 +71,7 @@ function CabinOptions({ calc: { input, set, setCabinUnits } }: { calc: EventCalc
               key={id}
               eyebrow={label}
               title={name}
-              price={`${pricePerNight} € / naktį`}
+              price={`${pricePerNight} € už namelį per naktį`}
               label="Kiekis"
               value={input.cabinUnits[id]}
               max={count}
@@ -79,6 +79,7 @@ function CabinOptions({ calc: { input, set, setCabinUnits } }: { calc: EventCalc
             />
           ))}
         </div>
+        <p className="mt-3 text-xs text-copy">Jei planuoji apsistoti 3 naktims ar ilgiau, susisiek dėl individualaus pasiūlymo.</p>
       </div>
     </div>
   );

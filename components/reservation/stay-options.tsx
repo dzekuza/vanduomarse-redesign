@@ -24,9 +24,9 @@ export function StayOptions({ plan, datesSelected, included, onChange, onRemove 
 
   return (
     <>
-      <div>
+      <div className="@container">
         <OptionGroupLabel>Tipas</OptionGroupLabel>
-        <div className="grid gap-3 lg:grid-cols-3">
+        <div className="grid gap-3 lg:@2xl:grid-cols-3">
           {STAY_TYPES.map((type) => {
             const selected = included && type === selectedType;
             const camper = type === "kemperis";

@@ -6,8 +6,8 @@ import type { ActivityId, ReservationData } from "@/lib/reservation";
 export function activityPhotos(id: ActivityId, data?: ReservationData): ServicePhoto[] {
   const photos = id === "pirtis"
     ? [
-      ...(data?.sauna.saunas.flatMap((sauna) => sauna.photos.map((photo) => ({ src: photo.url, alt: sauna.name }))) ?? []),
       ...SERVICE_GALLERY.sauna,
+      ...(data?.sauna.saunas.flatMap((sauna) => sauna.photos.map((photo) => ({ src: photo.url, alt: sauna.name }))) ?? []),
     ]
     : id === "nakvyne" ? SERVICE_GALLERY.cabins : QUAD_PREVIEW_GALLERY;
   return Array.from(new Map(photos.map((photo) => [photo.src, photo])).values());

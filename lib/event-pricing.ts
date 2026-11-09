@@ -74,7 +74,7 @@ export const SPACES: Space[] = [
   {
     id: "kupolas-svente",
     label: "Kupolas: šventė",
-    blurb: "Šildomas kupolas, scena, garso ir šviesos pajungimai, DJ vieta.",
+    blurb: "Šildomas kupolas su scena ir vieta didžėjui.",
     maxGuests: 250,
     includedTime: "Šventinis vakaras",
     rent: () => 700,
@@ -85,7 +85,7 @@ export const SPACES: Space[] = [
   {
     id: "kupolas-seminaras",
     label: "Kupolas: seminaras",
-    blurb: "Konferencinis išdėstymas, ekranas, įgarsinimas. I–V, 9:00–15:00.",
+    blurb: "Konferencinis išdėstymas. I–V, 9:00–15:00.",
     maxGuests: 250,
     includedTime: "Iki 6 val.",
     rent: (day) => (day === "weekday" ? 363 : null),

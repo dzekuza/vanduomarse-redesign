@@ -11,6 +11,11 @@ export interface QuadPreviewPick {
   accessories?: Record<string, number>;
 }
 
+export interface QuadPreviewSlot {
+  hour: number;
+  free: number;
+}
+
 export const QUAD_PREVIEW_MAX_ACCESSORIES = MAX_QUAD_RENTAL_UNITS * 2;
 
 export interface QuadPreviewAccessoryItem {
@@ -45,20 +50,26 @@ export function quadPreviewAccessories(accessories?: Record<string, number>): { 
   };
 }
 
-/** Per-type inventory is held for the full route, then combined into one preview quantity. */
-export function quadPreviewStarts(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []): { hour: number; free: number }[] {
+/** Future starts with per-type inventory held for the full route, including full slots. */
+export function quadPreviewSlots(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []): QuadPreviewSlot[] {
   const { settings, types, taken, today, nowHour } = data;
   if (day < today || !Number.isInteger(hours) || hours < 1 || hours > settings.maxHours) return [];
   const past = pastHourOn(day, today, nowHour);
-  return Array.from({ length: Math.max(0, settings.closeHour - settings.openHour - hours + 1) }, (_, index) => {
-    const hour = settings.openHour + index;
+  const first = Math.max(settings.openHour, past + 1);
+  const fleet = types.filter(({ active }) => active);
+  return Array.from({ length: Math.max(0, settings.closeHour - first - hours + 1) }, (_, index) => {
+    const hour = first + index;
     const occupied = Array.from({ length: hours }, (_, offset) => hour + offset);
-    const free = hour <= past || occupied.some((part) => busy.includes(part)) ? 0 : Math.min(
+    const free = occupied.some((part) => busy.includes(part)) ? 0 : Math.min(
       MAX_QUAD_RENTAL_UNITS,
-      types.filter((type) => type.active).reduce((sum, type) => sum + Math.min(...occupied.map((part) => freeAt(type, taken, day, part))), 0),
+      fleet.reduce((sum, type) => sum + Math.min(...occupied.map((part) => freeAt(type, taken, day, part))), 0),
     );
     return { hour, free };
-  }).filter(({ free }) => free > 0);
+  });
+}
+
+export function quadPreviewStarts(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []) {
+  return quadPreviewSlots(data, day, hours, busy).filter(({ free }) => free > 0);
 }
 
 /** Supplier preview totals stay separate from actual reservation request prices. */

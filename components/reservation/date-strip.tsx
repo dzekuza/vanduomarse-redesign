@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { DayIcon } from "@/components/booking/day-picker";
 import { dateKey } from "@/lib/sauna";
-import { canSelectDate, DayCell, rangePart, type DateRangeSelection } from "./day-cell";
+import { canSelectDate, DayCell, rangePart, type DateRangeSelection, type ReservationDayDetails } from "./day-cell";
 
 const MONTH_LABEL = new Intl.DateTimeFormat("lt-LT", { month: "long" });
 
@@ -12,11 +12,13 @@ interface DateStripProps {
   selected: Date | null;
   onSelect: (date: Date) => void;
   icons?: (date: Date) => DayIcon[];
+  dayDetails?: (date: Date) => ReservationDayDetails | undefined;
   range?: DateRangeSelection;
   reserveIconSpace?: boolean;
+  compact?: boolean;
 }
 
-export function DateStrip({ days, selected, onSelect, icons, range, reserveIconSpace }: DateStripProps) {
+export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, reserveIconSpace, compact }: DateStripProps) {
   const stripRef = useRef<HTMLDivElement>(null);
   const last = days.at(-1);
   const lastKey = last && dateKey(last);
@@ -63,13 +65,14 @@ export function DateStrip({ days, selected, onSelect, icons, range, reserveIconS
         const label = MONTH_LABEL.format(dates[0]);
         return (
           <div key={key} role="group" aria-label={label} className="shrink-0">
-            <p aria-hidden className="sticky left-0 mb-3 flex h-12 w-fit items-center whitespace-nowrap text-micro font-bold uppercase text-copy">
+            <p aria-hidden className={`sticky left-0 flex w-fit items-center whitespace-nowrap text-micro font-bold uppercase text-copy ${compact ? "mb-2 h-6" : "mb-3 h-12"}`}>
               {label}
             </p>
             <div className="flex gap-1.5 sm:gap-2">
               {dates.map((date) => {
                 const day = dateKey(date);
                 const arrivalAvailable = !lastKey || day <= lastKey;
+                const showDetails = arrivalAvailable && (!range?.selectingEnd || day <= range.start);
                 return (
                   <DayCell
                     key={day}
@@ -78,8 +81,10 @@ export function DateStrip({ days, selected, onSelect, icons, range, reserveIconS
                     rangePart={rangePart(day, range)}
                     isToday={date === today}
                     disabled={!canSelectDate(day, arrivalAvailable, range)}
-                    icons={!arrivalAvailable || (range?.selectingEnd && day > range.start) ? undefined : icons?.(date)}
+                    icons={showDetails ? icons?.(date) : undefined}
+                    details={showDetails ? dayDetails?.(date) : undefined}
                     reserveIconSpace={reserveIconSpace}
+                    compact={compact}
                     onSelect={onSelect}
                   />
                 );

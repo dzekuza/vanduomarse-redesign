@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import type { SaunaPageData } from "@/lib/data/public-types";
-import { pickForRow, pickFromPlan, rowSelected, sessionRows, type PirtisPlan, type SaunaPick, type When } from "@/lib/reservation";
+import { MAX_PEOPLE, pickForRow, pickFromPlan, rowSelected, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow, type When } from "@/lib/reservation";
 import { matchesSaunaFilter, SaunaFilters, type SaunaFilter } from "./sauna-filters";
 import { SaunaHourlyOptions } from "./sauna-hourly-options";
+import { SaunaSessionDialog } from "./sauna-session-dialog";
+import { closeSessionInfo } from "./session-info-link";
 import { SessionList } from "./session-list";
 
 interface SaunaOptionsProps {
@@ -16,19 +18,43 @@ interface SaunaOptionsProps {
   included: boolean;
   /** Hours the quads hold in the plan: seansai overlapping them are blocked. */
   busy: readonly number[];
+  sessionId: string | null;
+  onSessionSelectedFocus?: () => void;
+  onSessionDay: (day: string) => void;
   onChange: (pick: SaunaPick) => void;
   onPeople: (people: number) => void;
   onRemove: () => void;
 }
 
 /** The day's scheduled sessions and private programs, followed by options for the selected sauna. */
-export function SaunaOptions({ plan, data, when, included, busy, onChange, onPeople, onRemove }: SaunaOptionsProps) {
+export function SaunaOptions({ plan, data, when, included, busy, sessionId, onSessionDay, onSessionSelectedFocus, onChange, onPeople, onRemove }: SaunaOptionsProps) {
   const [filter, setFilter] = useState<SaunaFilter>("all");
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const pick = pickFromPlan(plan, data);
   const rows = sessionRows(data, when.day, busy);
   const visibleRows = rows.filter((row) => matchesSaunaFilter(row, filter));
-  const selected = (row: (typeof rows)[number]) => included && rowSelected(row, plan);
+  const selected = (row: SessionRow) => included && rowSelected(row, plan);
   const showSelection = included && (filter === "all" || visibleRows.some(selected));
+  const event = sessionId ? data.events.find((item) => item.key === sessionId) : undefined;
+  const session = event && (event.date === when.day ? rows : sessionRows(data, event.date))
+    .find((row) => row.eventId === event.key);
+
+  function quantity(row: SessionRow) {
+    const max = Math.max(1, Math.min(MAX_PEOPLE, row.maxPeople));
+    return {
+      max,
+      value: selected(row) ? when.people : Math.min(quantities[row.key] ?? when.people, max),
+      onChange: (people: number) => {
+        if (selected(row)) onPeople(people);
+        else setQuantities((current) => ({ ...current, [row.key]: people }));
+      },
+    };
+  }
+
+  function select(row: SessionRow, people: number, startHour: number | null) {
+    onChange(pickForRow(row, pick, startHour));
+    onPeople(people);
+  }
 
   return (
     <>
@@ -39,14 +65,24 @@ export function SaunaOptions({ plan, data, when, included, busy, onChange, onPeo
         emptyMessage={filter === "all"
           ? "Šią dieną laisvų pirties laikų nėra. Pasirink kitą dieną."
           : "Šią dieną pagal šį filtrą pasirinkimų nėra. Pasirink kitą filtrą arba dieną."}
-        people={when.people}
         selected={selected}
         selectedStart={plan.mode === "private" ? plan.startHour : null}
-        onPeople={onPeople}
+        quantity={quantity}
         onRemove={onRemove}
-        onSelect={(row, people, startHour) => {
-          onChange(pickForRow(row, plan, data, startHour));
-          onPeople(people);
+        onSelect={select}
+      />
+      <SaunaSessionDialog
+        open={Boolean(sessionId)}
+        details={event && session ? { event, row: session, quantity: quantity(session), selected: selected(session) } : undefined}
+        onClose={closeSessionInfo}
+        onSelectedFocus={onSessionSelectedFocus}
+        onSelect={() => {
+          if (!session || !event || session.blocked) return;
+          if (!selected(session)) {
+            onSessionDay(event.date);
+            select(session, quantity(session).value, null);
+          }
+          closeSessionInfo();
         }}
       />
       {showSelection && plan.mode === "session" && plan.program?.pricing === "family" ? (

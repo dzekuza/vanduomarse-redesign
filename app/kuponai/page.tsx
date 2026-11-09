@@ -21,7 +21,7 @@ export default async function CouponsPage() {
             <BookingHeader
               crumb="Dovanų kuponai"
               title={["Padovanok dieną", "ant vandens"]}
-              intro={`Kuponą galima išleisti plaukimui, pirčiai ar nakvynei. Galioja ${COUPON_VALID_MONTHS} mėn. nuo apmokėjimo, likutį galima panaudoti dalimis.`}
+              intro={`Popierinį kuponą gali panaudoti vienu kartu plaukimui, pirčiai ar nakvynei. Jis galioja ${COUPON_VALID_MONTHS} mėn. nuo apmokėjimo. Didesnei dovanai rinkis kelis mažesnės vertės kuponus.`}
             />
           }
         />

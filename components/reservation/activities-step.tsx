@@ -11,6 +11,9 @@ interface ActivitiesStepProps {
   when: When;
   /** The activity chosen in the tab row above the form. */
   tab: ActivityId;
+  sessionId: string | null;
+  onSessionSelectedFocus?: () => void;
+  onSessionDay: (day: string) => void;
   picks: Picks;
   plans: Plans;
   stayNights: number | null;
@@ -38,7 +41,7 @@ function quadNotice(plan: QuadPlan): string {
 /**
  * The chosen tab's activity. Stay types and rates are visible before date selection.
  */
-export function ActivitiesStep({ data, when, tab, picks, plans, stayNights, onRemove, onPick, onPeople, previewQuad, quadPreviewHours, onQuadPreview }: ActivitiesStepProps) {
+export function ActivitiesStep({ data, when, tab, sessionId, onSessionDay, onSessionSelectedFocus, picks, plans, stayNights, onRemove, onPick, onPeople, previewQuad, quadPreviewHours, onQuadPreview }: ActivitiesStepProps) {
   const included = picks[tab] !== undefined;
   // Not in the plan yet: preview the activity with its defaults so the choices can be shown.
   let shown = plans;
@@ -60,7 +63,19 @@ export function ActivitiesStep({ data, when, tab, picks, plans, stayNights, onRe
     <div className="space-y-8">
       {notice ? <p role="status" className="text-sm text-rust-ink">{notice}</p> : null}
       {tab === "pirtis" && pirtis ? (
-        <SaunaOptions plan={pirtis} data={data.sauna} when={when} included={included} busy={[...planHours(plans.keturraciai), ...quadPreviewHours]} onChange={(p) => onPick({ ...picks, pirtis: p })} onPeople={onPeople} onRemove={() => onRemove("pirtis")} />
+        <SaunaOptions
+          plan={pirtis}
+          data={data.sauna}
+          when={when}
+          included={included}
+          busy={[...planHours(plans.keturraciai), ...quadPreviewHours]}
+          sessionId={sessionId}
+          onSessionDay={onSessionDay}
+          onSessionSelectedFocus={onSessionSelectedFocus}
+          onChange={(p) => onPick({ ...picks, pirtis: p })}
+          onPeople={onPeople}
+          onRemove={() => onRemove("pirtis")}
+        />
       ) : null}
       {tab === "keturraciai" ? (
         <QuadTourCard
