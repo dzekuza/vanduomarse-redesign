@@ -1,3 +1,11 @@
+## 2026-11-09 — Klientai: owner-only "Rolė" tab to make a customer an admin (ADR-0051)
+
+- **Why:** The owner asked for a tab on `/admin/klientai/[id]` to set a customer as admin or assign a permissions role.
+- **Changed:** New `components/admin/klientai/customer-role-tab.tsx` and an owner-gated tab in `customer-page.tsx`. A customer is linked to a staff login by email; existing login → change role / switch off, none → create login with a role and show the temporary password once. Fast-forwarded local `main` to `origin/main` first (it was 8 commits behind and lacked the Klientai page).
+- **Status:** `eslint` clean; `tsc` shows no errors in the new files (5 pre-existing typed-route errors in `app/admin/(panel)/{klientai,apyrankes}` pages, from stale generated route types). Uncommitted, not browser-checked.
+- **Next:** Browser pass as owner on a customer with and without an email / matching login at 375 / 768 / 1024 px; commit.
+- **Docs:** `decisions-log.md` (ADR-0051), `changelog.md`, `status.md`, `components/common.md`, `routing.md`, this entry.
+
 ## 2026-11-09 — Reviewed and merged the service-pages branch (`codex/service-pages-and-site-feedback`)
 
 - **Why:** A contributor's branch added public activity pages (`/pirtis`, `/keturraciu-nuoma`, `/nakvyne`, `/restoranas`, `/vandenlentes`, event pages) through a dynamic `app/[service]/page.tsx`; the owner asked for it to be reviewed and merged.

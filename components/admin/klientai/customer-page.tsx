@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
+import { CustomerRoleTab } from "./customer-role-tab";
 import { useAdmin } from "../admin-store";
 import { RiderCommentsTab, RiderDocumentsTab, RiderProfileTab } from "../rider-profile-tabs";
 import { PlanBadge } from "../apyrankes/plan-badge";
@@ -22,7 +23,7 @@ type ActivityRow = { id: string; at: string; label: string; detail: string; amou
 
 /** `/admin/klientai/[id]`: one customer — profile, a unified activity timeline, documents, comments. ADR-0042 */
 export function CustomerPage({ id }: { id: string }) {
-  const { riders } = useAdmin();
+  const { riders, me } = useAdmin();
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const rider = riders.find((r) => r.id === id);
@@ -64,6 +65,11 @@ export function CustomerPage({ id }: { id: string }) {
           <TabsTrigger value="komentarai" className="min-h-11 shrink-0">
             Komentarai
           </TabsTrigger>
+          {me.isOwner ? (
+            <TabsTrigger value="role" className="min-h-11 shrink-0">
+              Rolė
+            </TabsTrigger>
+          ) : null}
         </TabsList>
         <TabsContent value="profilis" className="mt-4">
           <RiderProfileTab rider={rider} />
@@ -77,6 +83,11 @@ export function CustomerPage({ id }: { id: string }) {
         <TabsContent value="komentarai" className="mt-4">
           <RiderCommentsTab riderId={rider.id} />
         </TabsContent>
+        {me.isOwner ? (
+          <TabsContent value="role" className="mt-4">
+            <CustomerRoleTab rider={rider} />
+          </TabsContent>
+        ) : null}
       </Tabs>
 
       <div className="border-t pt-4">
