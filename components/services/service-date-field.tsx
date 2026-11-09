@@ -6,7 +6,7 @@ import type { DayIcon } from "@/components/booking/day-picker";
 import { DatePicker } from "@/components/reservation/date-picker";
 import { longDateLabel } from "@/lib/sauna";
 
-interface SaunaServiceDateProps {
+interface ServiceDateFieldProps {
   date: Date | null;
   days: Date[];
   disabled: boolean;
@@ -16,8 +16,8 @@ interface SaunaServiceDateProps {
   onSelect: (date: Date) => void;
 }
 
-/** Expand the shared calendar within the booking panel. */
-export function SaunaServiceDate({ date, days, disabled, open, icons, onOpenChange, onSelect }: SaunaServiceDateProps) {
+/** The date field of a service booking panel: expands the shared calendar in place (sauna and quads). */
+export function ServiceDateField({ date, days, disabled, open, icons, onOpenChange, onSelect }: ServiceDateFieldProps) {
   const button = useRef<HTMLButtonElement>(null);
   const calendarId = useId();
 

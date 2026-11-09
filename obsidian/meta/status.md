@@ -14,7 +14,7 @@ updated: 2026-11-07
 
 ## Current focus
 
-**Payable quad tours (2026-11-09, ADR-0053): step 1 done and LIVE; steps 2-5 in progress on branch `feat/quad-tour-products`.** Live database now has `quad_tour_routes` / `quad_tour_accessories` / `create_quad_tour_rental` (applied with `supabase db query --linked`; never `db push`). Still to do: public data layer, request pipeline (`quadTourRental`), the quad checkout dialog replacing the mailto preview, an admin screen for routes and gear, then the confirmation-screen padding fix. Until then the site still reads the constants.
+**Payable quad tours (2026-11-09, ADR-0053): steps 1-3 done on branch `feat/quad-tour-products` (database part is LIVE; code committed locally, not pushed).** The quad tour flow now books and pays through the shared checkout dialog; browser-checked to the dialog, never submitted (the local `.env.local` has the live Stripe key). Live database now has `quad_tour_routes` / `quad_tour_accessories` / `create_quad_tour_rental` (applied with `supabase db query --linked`; never `db push`). Still to do: an admin screen for routes and gear (prices are editable only in SQL until then), then the confirmation-screen padding fix.
 
 **Klientai "Rolė" tab (2026-11-09, ADR-0051): merged (PR #16), not browser-checked.** Owner-only tab on `/admin/klientai/[id]` to make a customer an admin (Savininkas) or give them a permissions role; the customer is matched to a staff login by email, or a login is created with a one-time temporary password. Needs a browser pass as owner (customer with/without email, with/without an existing login) at 375 / 768 / 1024 px.
 

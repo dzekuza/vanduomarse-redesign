@@ -4,10 +4,10 @@ import Image from "next/image";
 import { Cta } from "@/components/cta";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { QUAD_PREVIEW_MIN_UNITS, type QuadPreviewRoute } from "./quad-preview-content";
+import type { QuadTourRoute } from "@/lib/quads";
 
 /** Route details reuse the activity dialog, without expanding or changing the booking cards. */
-export function QuadRouteDialog({ route }: { route: QuadPreviewRoute }) {
+export function QuadRouteDialog({ route }: { route: QuadTourRoute }) {
   const title = `${route.name} turas`;
 
   return (
@@ -19,7 +19,7 @@ export function QuadRouteDialog({ route }: { route: QuadPreviewRoute }) {
       </DialogTrigger>
       <DialogContent showCloseButton={false} className="flex max-h-9/10 flex-col gap-0 overflow-hidden rounded-none border-line bg-popover p-0 text-ink sm:max-w-xl">
         <div className="relative h-44 shrink-0 bg-dust-soft md:h-60">
-          <Image src={route.photo} alt={`${title}: trasos akimirka`} fill sizes="(min-width: 640px) 576px, 100vw" className="object-cover" />
+          {route.photo ? <Image src={route.photo} alt={`${title}: trasos akimirka`} fill sizes="(min-width: 640px) 576px, 100vw" className="object-cover" /> : null}
           <DialogPhotoClose />
         </div>
         <div className="min-h-0 space-y-6 overflow-y-auto p-6">
@@ -48,7 +48,7 @@ export function QuadRouteDialog({ route }: { route: QuadPreviewRoute }) {
           <section className="space-y-3">
             <h3 className="text-item font-bold">Prieš išvykstant</h3>
             <p className="text-xs leading-relaxed text-copy">Kaina už keturratį, su PVM. Vienam ar dviem kaina ta pati.</p>
-            <p className="text-xs leading-relaxed text-copy">Turui reikia bent {QUAD_PREVIEW_MIN_UNITS} keturračių. Maršrutą rodo gidas.</p>
+            <p className="text-xs leading-relaxed text-copy">Turui reikia bent {route.minUnits} keturračių. Maršrutą rodo gidas.</p>
           </section>
           <DialogClose asChild>
             <Cta tone="dark" small className="w-full">Grįžti prie trasų</Cta>

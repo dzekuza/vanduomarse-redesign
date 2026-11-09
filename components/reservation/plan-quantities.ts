@@ -7,6 +7,8 @@ interface PlanQuantity {
   id: string;
   label: string;
   value: number;
+  /** Defaults to 1; a quad tour needs its route's minimum. */
+  min?: number;
   max: number;
   onChange: (value: number) => void;
 }

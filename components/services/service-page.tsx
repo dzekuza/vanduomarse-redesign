@@ -7,10 +7,11 @@ import { PARK_ADDRESS, SERVICE_GALLERY, SERVICES, type ServicePhoto } from "@/co
 import { LandingAccordion } from "@/components/landing/landing-accordion";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { CONTACTS, MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
-import type { SaunaPageData } from "@/lib/data/public-types";
+import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
 import { CELEBRATION_LINKS } from "./celebration-content";
 import { QuadServiceHelp } from "./quad-service-help";
+import { quadFacts } from "./quad-service-facts";
 import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "./service-content";
 import { ServicePhotoMosaic } from "./service-photo-mosaic";
 import { ServicePricing } from "./service-pricing";
@@ -36,11 +37,12 @@ function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; childr
   );
 }
 
-export function ServicePage({ slug, booking, schedule, sauna, photos, wake }: {
+export function ServicePage({ slug, booking, schedule, sauna, quads, photos, wake }: {
   slug: ServiceSlug;
   booking?: ReactNode;
   schedule?: ReactNode;
   sauna?: SaunaPageData;
+  quads?: QuadPageData;
   photos?: ServicePhoto[];
   wake?: ParkEventData[];
 }) {
@@ -48,6 +50,8 @@ export function ServicePage({ slug, booking, schedule, sauna, photos, wake }: {
   const gallery = photos ?? SERVICE_GALLERY[copy.service];
   const contact = CONTACTS.find(({ name }) => name === SERVICES[copy.service].contact) ?? MAIN_CONTACT;
   const isCelebration = copy.service === "party";
+  // The routes and the group minimum come from the database rows, not from copy.
+  const facts = slug === "keturraciu-nuoma" && quads ? [...quadFacts(quads), ...copy.facts] : copy.facts;
   const bookingTitle = booking ? "Rezervuoti" : isCelebration ? "Gauk šventės pasiūlymą"
     : slug === "restoranas" ? "Rezervuok staliuką" : "Sužinok plaukimo laikus";
 
@@ -94,7 +98,7 @@ export function ServicePage({ slug, booking, schedule, sauna, photos, wake }: {
             </Section>
             <Section id="informacija">
               <dl className="grid gap-2 lg:grid-cols-2">
-                {copy.facts.map(({ label, value }) => (
+                {facts.map(({ label, value }) => (
                   <div key={label} className="space-y-2 border border-line bg-card p-4">
                     <dt className="text-xs font-bold">{label}</dt>
                     <dd className="text-xs leading-relaxed text-copy">{value}</dd>
@@ -106,7 +110,7 @@ export function ServicePage({ slug, booking, schedule, sauna, photos, wake }: {
                 {slug === "pirtis" ? <a href={`mailto:${contact.email}`} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Susisiekti dėl pirties</a> : null}
               </div>
             </Section>
-            <Section id="kainos"><ServicePricing slug={slug} sauna={sauna} /></Section>
+            <Section id="kainos"><ServicePricing slug={slug} sauna={sauna} quads={quads} /></Section>
             <Section id="galerija"><ServicePhotoMosaic photos={gallery} label={`${copy.label}: galerija`} /></Section>
             <Section id="tvarkarastis">{schedule ?? <ServiceSchedule wake={wake} note={copy.availabilityNote} hasCalendar={Boolean(booking)} />}</Section>
             <Section id="atsiliepimai"><ServiceReviews service={copy.service} /></Section>

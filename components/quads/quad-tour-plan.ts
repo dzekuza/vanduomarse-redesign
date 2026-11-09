@@ -1,24 +1,24 @@
 import type { QuadPageData } from "@/lib/data/public-types";
-import { freeAt, hourLabel, MAX_QUAD_RENTAL_UNITS } from "@/lib/quads";
+import { freeAt, hourLabel, MAX_QUAD_RENTAL_UNITS, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
 import type { PlanLine, When } from "@/lib/reservation";
 import { hoursLabel, longDateLabel, nextDays, pastHourOn } from "@/lib/sauna";
-import { QUAD_PREVIEW_ACCESSORIES, QUAD_PREVIEW_MIN_UNITS, QUAD_PREVIEW_ROUTES } from "./quad-preview-content";
 
-export interface QuadPreviewPick {
+/** A chosen tour: route, start, quads and gear quantities by accessory id. */
+export interface QuadTourPick {
   routeId: string;
   startHour: number;
   units: number;
   accessories?: Record<string, number>;
 }
 
-export interface QuadPreviewSlot {
+export interface QuadTourSlot {
   hour: number;
   free: number;
 }
 
-export const QUAD_PREVIEW_MAX_ACCESSORIES = MAX_QUAD_RENTAL_UNITS * 2;
+export const QUAD_TOUR_MAX_ACCESSORIES = MAX_QUAD_RENTAL_UNITS * 2;
 
-export interface QuadPreviewAccessoryItem {
+export interface QuadTourAccessoryItem {
   id: string;
   name: string;
   units: number;
@@ -26,17 +26,17 @@ export interface QuadPreviewAccessoryItem {
   total: number;
 }
 
-/** Optional gear uses only the preview catalogue and never changes real request prices. */
-export function quadPreviewAccessories(accessories?: Record<string, number>): { items: QuadPreviewAccessoryItem[]; total: number; ok: boolean; count: number } {
-  const items: QuadPreviewAccessoryItem[] = [];
+/** Gear priced from the catalogue the database serves; `create_quad_tour_rental` prices it again. */
+export function quadTourAccessories(catalogue: readonly QuadTourAccessory[], accessories?: Record<string, number>): { items: QuadTourAccessoryItem[]; total: number; ok: boolean; count: number } {
+  const items: QuadTourAccessoryItem[] = [];
   if (accessories === undefined) return { items, total: 0, ok: true, count: 0 };
   if (!accessories || typeof accessories !== "object" || Array.isArray(accessories)) return { items, total: 0, ok: false, count: 0 };
 
   let ok = true;
   for (const [id, units] of Object.entries(accessories)) {
-    const accessory = QUAD_PREVIEW_ACCESSORIES.find((entry) => entry.id === id);
+    const accessory = catalogue.find((entry) => entry.id === id);
     if (!accessory && units === 0) continue;
-    if (!accessory || !Number.isInteger(units) || units < 0 || units > QUAD_PREVIEW_MAX_ACCESSORIES) {
+    if (!accessory || !Number.isInteger(units) || units < 0 || units > QUAD_TOUR_MAX_ACCESSORIES) {
       ok = false;
       continue;
     }
@@ -51,9 +51,9 @@ export function quadPreviewAccessories(accessories?: Record<string, number>): { 
 }
 
 /** Future starts with per-type inventory held for the full route, including full slots. */
-export function quadPreviewSlots(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []): QuadPreviewSlot[] {
+export function quadTourSlots(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []): QuadTourSlot[] {
   const { settings, types, taken, today, nowHour } = data;
-  if (day < today || !Number.isInteger(hours) || hours < 1 || hours > settings.maxHours) return [];
+  if (day < today || !Number.isInteger(hours) || hours < 1) return [];
   const past = pastHourOn(day, today, nowHour);
   const first = Math.max(settings.openHour, past + 1);
   const fleet = types.filter(({ active }) => active);
@@ -68,19 +68,20 @@ export function quadPreviewSlots(data: QuadPageData, day: string, hours: number,
   });
 }
 
-export function quadPreviewStarts(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []) {
-  return quadPreviewSlots(data, day, hours, busy).filter(({ free }) => free > 0);
+/** Starts of a route that still have at least its minimum number of quads. */
+export function quadTourStarts(data: QuadPageData, day: string, route: QuadTourRoute, busy: readonly number[] = []) {
+  return quadTourSlots(data, day, route.hours, busy).filter(({ free }) => free >= route.minUnits);
 }
 
-/** Supplier preview totals stay separate from actual reservation request prices. */
-export function quadPreviewPlan(data: QuadPageData, when: When, pick: QuadPreviewPick | null, busy: readonly number[] = []): { line: PlanLine; ok: boolean; hours: number[]; maxUnits: number } | null {
-  const route = QUAD_PREVIEW_ROUTES.find(({ id }) => id === pick?.routeId);
+/** The plan line of a chosen tour. The database prices the request again when it is filed. */
+export function quadTourPlan(data: QuadPageData, when: When, pick: QuadTourPick | null, busy: readonly number[] = []): { line: PlanLine; ok: boolean; hours: number[]; maxUnits: number; route: QuadTourRoute } | null {
+  const route = data.tourRoutes.find(({ id }) => id === pick?.routeId);
   if (!pick || !route) return null;
-  const start = quadPreviewStarts(data, when.day, route.hours, busy).find(({ hour }) => hour === pick.startHour);
+  const start = quadTourStarts(data, when.day, route, busy).find(({ hour }) => hour === pick.startHour);
   const maxUnits = start?.free ?? 0;
   const validUnits = Number.isInteger(pick.units) && pick.units >= 1 && pick.units <= MAX_QUAD_RENTAL_UNITS;
-  const accessories = quadPreviewAccessories(pick.accessories);
-  const ok = validUnits && pick.units >= QUAD_PREVIEW_MIN_UNITS && pick.units <= maxUnits && accessories.ok;
+  const accessories = quadTourAccessories(data.tourAccessories, pick.accessories);
+  const ok = validUnits && pick.units >= route.minUnits && pick.units <= maxUnits && accessories.ok;
   const time = Number.isInteger(pick.startHour) && pick.startHour >= 0 && pick.startHour + route.hours <= 24
     ? `${hourLabel(pick.startHour)}-${hourLabel(pick.startHour + route.hours)}`
     : "Pasirink laiką";
@@ -95,5 +96,11 @@ export function quadPreviewPlan(data: QuadPageData, when: When, pick: QuadPrevie
     ok,
     hours: ok ? Array.from({ length: route.hours }, (_, offset) => pick.startHour + offset) : [],
     maxUnits,
+    route,
   };
+}
+
+/** The gear of a pick as the request wants it: only the items with a quantity. */
+export function quadTourGear(accessories?: Record<string, number>): { id: string; units: number }[] {
+  return Object.entries(accessories ?? {}).flatMap(([id, units]) => (units > 0 ? [{ id, units }] : []));
 }

@@ -7,8 +7,8 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
-import { QuadPreviewComplete } from "@/components/quads/quad-preview-complete";
-import { quadPreviewPlan, type QuadPreviewPick } from "@/components/quads/quad-preview-plan";
+import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
+import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking } from "@/components/services/sauna-service-booking";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
@@ -72,7 +72,7 @@ export function ReservationFlow({
   initialTab?: ActivityId;
   initialDay?: string;
   /** On a service page the booking is limited to that activity. */
-  activity?: "pirtis" | "nakvyne";
+  activity?: "pirtis" | "nakvyne" | "keturraciai";
   /** Pay at submit through Stripe Checkout; off when Stripe is not configured. */
   payments: boolean;
   /** Already signed in (a returning customer); otherwise the account step asks for a code. */
@@ -90,13 +90,13 @@ export function ReservationFlow({
   const sessionId = useSearchParams().get("seansas");
   const tab = activity ?? (sessionId && offer.pirtis ? "pirtis" : selectedTab);
   const [date, setDate] = useState(() => days.find((candidate) => dateKey(candidate) === initialDay) ?? days[0]);
-  const [saunaDayChosen, setSaunaDayChosen] = useState(() => days.some((candidate) => dateKey(candidate) === initialDay));
+  const [dayChosen, setDayChosen] = useState(() => days.some((candidate) => dateKey(candidate) === initialDay));
   const [draftNights, setDraftNights] = useState(1);
   const [stayDatePhase, setStayDatePhase] = useState<StayDatePhase>("idle");
   const [people, setPeople] = useState(1);
   const [picks, setPicks] = useState<Picks>({});
-  const [previewQuad, setPreviewQuad] = useState<QuadPreviewPick | null>(null);
-  const [previewComplete, setPreviewComplete] = useState(false);
+  /** A Mini / Midi / Maxi tour; it takes the quad activity's place in the plan and is filed as a tour request. */
+  const [tourPick, setTourPick] = useState<QuadTourPick | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   /** Stripe accepted the payment: the browser is on its way to Checkout. */
   const [redirecting, setRedirecting] = useState(false);
@@ -116,12 +116,11 @@ export function ReservationFlow({
   const showStayDates = picks.nakvyne !== undefined || (step === 0 && tab === "nakvyne");
   const when: When = { day, people };
   const plans = planAll(picks, data, when);
-  const quadTour = quadPreviewPlan(data.quads, when, previewQuad, planHours(plans.pirtis));
+  const quadTour = quadTourPlan(data.quads, when, tourPick, planHours(plans.pirtis));
   const lines = describePlans(plans, when);
   if (quadTour) lines.unshift(quadTour.line);
   const total = totalOf(lines);
-  // A quad preview books nothing, so no code applies to it.
-  const discount = previewQuad ? null : appliedDiscount;
+  const discount = appliedDiscount;
   // Preview only: each request's database function prices the code again.
   const discountAmount = discount
     ? Math.round(lines.reduce((sum, line) => sum + (isDiscountService(line.id) ? discountFor(discount, line.id, line.price) : 0), 0) * 100) / 100
@@ -140,8 +139,8 @@ export function ReservationFlow({
       on: free[id],
     }));
   };
-  const inPlan = tabs.filter((id) => picks[id] !== undefined || (id === "keturraciai" && previewQuad !== null));
-  const selectionReady = previewQuad === null
+  const inPlan = tabs.filter((id) => picks[id] !== undefined || (id === "keturraciai" && tourPick !== null));
+  const selectionReady = tourPick === null
     ? bookable(plans)
     : Boolean(quadTour?.ok && (chosen(plans).length === 0 || bookable(plans)));
   const ready = selectionReady && customer !== null;
@@ -149,7 +148,7 @@ export function ReservationFlow({
 
   function selectDate(next: Date) {
     if (busy) return;
-    if (dateKey(next) !== day) setPreviewQuad(null);
+    if (dateKey(next) !== day) setTourPick(null);
     setStep(0);
     setDate(next);
   }
@@ -166,7 +165,7 @@ export function ReservationFlow({
     setStep(0);
     const key = dateKey(next);
     if (stayDatePhase !== "selectingEnd" || key <= day) {
-      if (key !== day) setPreviewQuad(null);
+      if (key !== day) setTourPick(null);
       setDate(next);
       updateStayNights(1);
       setStayDatePhase("selectingEnd");
@@ -180,9 +179,9 @@ export function ReservationFlow({
   }
 
   function removeActivity(id: ActivityId) {
-    if (id === "keturraciai" && previewQuad) {
+    if (id === "keturraciai" && tourPick) {
       if (busy) return;
-      setPreviewQuad(null);
+      setTourPick(null);
       setStep(0);
       return;
     }
@@ -213,16 +212,17 @@ export function ReservationFlow({
       .find((row) => row.mode === "private" && row.programId === privateSauna.program.id)?.startHours ?? []
     : [];
   const quantities = planQuantities(plans, data, when, editPicks, editPeople);
-  if (previewQuad && quadTour && quadTour.maxUnits > 0) {
+  if (tourPick && quadTour && quadTour.maxUnits > 0) {
     quantities.keturraciai = [{
       id: "tour",
       label: "Keturračių kiekis",
-      value: previewQuad.units,
+      value: tourPick.units,
+      min: quadTour.route.minUnits,
       max: quadTour.maxUnits,
       onChange: (units) => {
         if (busy) return;
         setStep(0);
-        setPreviewQuad((current) => current ? { ...current, units } : current);
+        setTourPick((current) => current ? { ...current, units } : current);
       },
     }];
   }
@@ -254,10 +254,6 @@ export function ReservationFlow({
       setStep(1);
       return;
     }
-    if (previewQuad) {
-      setPreviewComplete(true);
-      return;
-    }
     void saveCustomerName(customerName).catch(() => null);
     // The server files every request for the signed-in account (its confirmed phone and email, read
     // from the session); the contact below only has to pass the same schemas as the other forms.
@@ -269,7 +265,7 @@ export function ReservationFlow({
         customerEmail: customer.email ?? "",
         viaAccount: true,
       };
-      const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount);
+      const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount, tourPick);
       // The code stopped holding (used up, expired) part-way: drop it so "Bandyti dar kartą" files the rest without it.
       if (DISCOUNT_HINTS.has(result.error?.code ?? "")) setDiscount(null);
       setOutcome(result);
@@ -277,7 +273,7 @@ export function ReservationFlow({
     }
     // Pay at submit: the server files every request and opens Checkout, or files nothing.
     form.clearErrors("root");
-    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code }, requests: requestsFor(plans, when) });
+    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code }, requests: requestsFor(plans, when, tourPick) });
     if ("error" in result) {
       if (DISCOUNT_HINTS.has(result.error.code ?? "")) {
         // The code stopped holding between the check and the payment (used up, expired): ask again.
@@ -300,18 +296,6 @@ export function ReservationFlow({
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step === LAST && ready && !busy) void submit();
-  }
-
-  if (previewComplete) {
-    return (
-      <div className="space-y-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
-        {header}
-        <QuadPreviewComplete lines={lines} total={total} onReset={() => {
-          setPreviewComplete(false);
-          setStep(0);
-        }} />
-      </div>
-    );
   }
 
   if (outcome) {
@@ -351,7 +335,7 @@ export function ReservationFlow({
       }} noValidate className={activity ? undefined : "px-gutter pt-10 pb-16 md:pt-14 md:pb-24"}>
         <div className={activity ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
           <div className={activity ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
-            {activity === "pirtis" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
+            {activity === "pirtis" || activity === "keturraciai" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
             {activity ? null : <ActivityTabs
               ids={tabs}
               active={tab}
@@ -366,7 +350,7 @@ export function ReservationFlow({
             {activity === "pirtis" ? <SaunaServiceBooking
               data={data.sauna}
               days={days}
-              date={saunaDayChosen ? date : null}
+              date={dayChosen ? date : null}
               plan={plans.pirtis}
               pick={picks.pirtis ?? defaultPick("pirtis", data)}
               people={people}
@@ -374,7 +358,7 @@ export function ReservationFlow({
               sessionId={sessionId}
               onDate={(next) => {
                 if (busy) return;
-                setSaunaDayChosen(true);
+                setDayChosen(true);
                 if (dateKey(next) !== day) removeActivity("pirtis");
                 selectDate(next);
               }}
@@ -385,6 +369,22 @@ export function ReservationFlow({
               onPeople={editPeople}
               onRemove={() => removeActivity("pirtis")}
               onSelectedFocus={() => inlinePlan.current?.focus()}
+            /> : activity === "keturraciai" ? <QuadServiceBooking
+              data={data.quads}
+              days={days}
+              date={dayChosen ? date : null}
+              pick={tourPick}
+              busy={busy}
+              onDate={(next) => {
+                if (busy) return;
+                setDayChosen(true);
+                selectDate(next);
+              }}
+              onPick={(next) => {
+                if (busy) return;
+                setStep(0);
+                setTourPick(next);
+              }}
             /> : <>
               <WhenStep
                 days={days}
@@ -410,12 +410,12 @@ export function ReservationFlow({
                 picks={picks}
                 plans={plans}
                 stayNights={stayEnd ? stayNights : null}
-                previewQuad={previewQuad}
-                quadPreviewHours={quadTour?.hours ?? []}
-                onQuadPreview={(next) => {
+                tourPick={tourPick}
+                tourHours={quadTour?.hours ?? []}
+                onTourPick={(next) => {
                   if (busy) return;
                   setStep(0);
-                  setPreviewQuad(next);
+                  setTourPick(next);
                   if (next) setPicks((current) => {
                     const remaining = { ...current };
                     delete remaining.keturraciai;
@@ -450,7 +450,6 @@ export function ReservationFlow({
         onCheckingCode={onCheckingCode}
         payments={payments}
         payOnSite={payOnSite}
-        preview={previewQuad !== null}
         ready={ready}
         busy={busy}
         redirecting={redirecting}

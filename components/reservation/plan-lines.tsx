@@ -106,7 +106,7 @@ export function PlanLines({ lines, quantities, saunaTime, busy, onRemove }: Plan
                     </div>
                   ) : null}
                   {editing ? fields?.map((field) => (
-                    <Stepper key={field.id} label={field.label} value={field.value} onChange={field.onChange} min={1} max={field.max} editable compact />
+                    <Stepper key={field.id} label={field.label} value={field.value} onChange={field.onChange} min={field.min ?? 1} max={field.max} editable compact />
                   )) : null}
                 </fieldset>
               ) : null}

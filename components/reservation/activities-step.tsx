@@ -1,7 +1,7 @@
 "use client";
 
 import { QuadTourCard } from "@/components/quads/quad-tour-card";
-import type { QuadPreviewPick } from "@/components/quads/quad-preview-plan";
+import type { QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaOptions } from "./sauna-options";
 import { StayOptions } from "./stay-options";
 import { defaultPick, planAll, planHours, planStay, type ActivityId, type PirtisPlan, type Picks, type Plans, type QuadPlan, type ReservationData, type When } from "@/lib/reservation";
@@ -21,9 +21,10 @@ interface ActivitiesStepProps {
   onRemove: (id: ActivityId) => void;
   onPick: (picks: Picks) => void;
   onPeople: (people: number) => void;
-  previewQuad: QuadPreviewPick | null;
-  quadPreviewHours: readonly number[];
-  onQuadPreview: (pick: QuadPreviewPick | null) => void;
+  tourPick: QuadTourPick | null;
+  /** Hours the chosen tour holds, so the sauna cannot be booked over them. */
+  tourHours: readonly number[];
+  onTourPick: (pick: QuadTourPick | null) => void;
 }
 
 function pirtisNotice(plan: PirtisPlan): string {
@@ -41,7 +42,7 @@ function quadNotice(plan: QuadPlan): string {
 /**
  * The chosen tab's activity. Stay types and rates are visible before date selection.
  */
-export function ActivitiesStep({ data, when, tab, sessionId, onSessionDay, onSessionSelectedFocus, picks, plans, stayNights, onRemove, onPick, onPeople, previewQuad, quadPreviewHours, onQuadPreview }: ActivitiesStepProps) {
+export function ActivitiesStep({ data, when, tab, sessionId, onSessionDay, onSessionSelectedFocus, picks, plans, stayNights, onRemove, onPick, onPeople, tourPick, tourHours, onTourPick }: ActivitiesStepProps) {
   const included = picks[tab] !== undefined;
   // Not in the plan yet: preview the activity with its defaults so the choices can be shown.
   let shown = plans;
@@ -68,7 +69,7 @@ export function ActivitiesStep({ data, when, tab, sessionId, onSessionDay, onSes
           data={data.sauna}
           when={when}
           included={included}
-          busy={[...planHours(plans.keturraciai), ...quadPreviewHours]}
+          busy={[...planHours(plans.keturraciai), ...tourHours]}
           sessionId={sessionId}
           onSessionDay={onSessionDay}
           onSessionSelectedFocus={onSessionSelectedFocus}
@@ -83,8 +84,8 @@ export function ActivitiesStep({ data, when, tab, sessionId, onSessionDay, onSes
           data={data.quads}
           when={when}
           busy={planHours(plans.pirtis)}
-          pick={previewQuad}
-          onChange={onQuadPreview}
+          pick={tourPick}
+          onChange={onTourPick}
         />
       ) : null}
       {tab === "nakvyne" && nakvyne ? (

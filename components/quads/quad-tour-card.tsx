@@ -6,11 +6,10 @@ import { Cta } from "@/components/cta";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { QuadPageData } from "@/lib/data/public-types";
-import { hourLabel } from "@/lib/quads";
+import { hourLabel, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
 import type { When } from "@/lib/reservation";
 import { hoursLabel } from "@/lib/sauna";
-import { QUAD_PREVIEW_MIN_UNITS, QUAD_PREVIEW_ROUTES, type QuadPreviewRoute } from "./quad-preview-content";
-import { quadPreviewAccessories, quadPreviewStarts, type QuadPreviewPick } from "./quad-preview-plan";
+import { quadTourAccessories, quadTourStarts, type QuadTourPick } from "./quad-tour-plan";
 import { QuadRouteDialog } from "./quad-route-dialog";
 import { QuadAccessories } from "./quad-accessories";
 
@@ -18,8 +17,8 @@ interface QuadTourCardProps {
   data: QuadPageData;
   when: When;
   busy: readonly number[];
-  pick: QuadPreviewPick | null;
-  onChange: (pick: QuadPreviewPick | null) => void;
+  pick: QuadTourPick | null;
+  onChange: (pick: QuadTourPick | null) => void;
 }
 
 interface DraftPick {
@@ -32,22 +31,23 @@ interface DraftPick {
 export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardProps) {
   const [drafts, setDrafts] = useState<Record<string, DraftPick>>({});
 
-  function choose(next: QuadPreviewPick | null) {
+  function choose(next: QuadTourPick | null) {
     if (pick) setDrafts((current) => ({ ...current, [pick.routeId]: { startHour: pick.startHour, units: pick.units, accessories: pick.accessories } }));
     onChange(next);
   }
 
   return (
     <div className="@container">
-      <OptionGroupLabel>Trasos · dizaino peržiūra</OptionGroupLabel>
+      <OptionGroupLabel>Trasos</OptionGroupLabel>
       <div className="grid items-start gap-3 lg:@2xl:grid-cols-3">
-        {QUAD_PREVIEW_ROUTES.map((route) => (
+        {data.tourRoutes.map((route) => (
           <RouteCard
             key={route.id}
             route={route}
-            starts={quadPreviewStarts(data, when.day, route.hours, busy).filter(({ free }) => free >= QUAD_PREVIEW_MIN_UNITS)}
+            catalogue={data.tourAccessories}
+            starts={quadTourStarts(data, when.day, route, busy)}
             selected={pick?.routeId === route.id}
-            choice={pick?.routeId === route.id ? pick : drafts[route.id] ?? { startHour: null, units: 1 }}
+            choice={pick?.routeId === route.id ? pick : drafts[route.id] ?? { startHour: null, units: route.minUnits }}
             onDraft={(next) => {
               setDrafts((current) => ({ ...current, [route.id]: next }));
               if (pick?.routeId === route.id && next.startHour !== null) onChange({ routeId: route.id, ...next, startHour: next.startHour });
@@ -60,17 +60,18 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
   );
 }
 
-function RouteCard({ route, starts, selected, choice, onDraft, onChoose }: {
-  route: QuadPreviewRoute;
+function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoose }: {
+  route: QuadTourRoute;
+  catalogue: readonly QuadTourAccessory[];
   starts: { hour: number; free: number }[];
   selected: boolean;
   choice: DraftPick;
   onDraft: (next: DraftPick) => void;
-  onChoose: (next: QuadPreviewPick | null) => void;
+  onChoose: (next: QuadTourPick | null) => void;
 }) {
   const title = `${route.name} turas`;
   const slot = starts.find(({ hour }) => hour === choice.startHour);
-  const ready = Boolean(slot && choice.units >= QUAD_PREVIEW_MIN_UNITS && choice.units <= slot.free && quadPreviewAccessories(choice.accessories).ok);
+  const ready = Boolean(slot && choice.units >= route.minUnits && choice.units <= slot.free && quadTourAccessories(catalogue, choice.accessories).ok);
   const copy = selected ? "text-dust/80" : "text-copy";
   const line = selected ? "border-line-on-ink" : "border-line";
 
@@ -95,10 +96,10 @@ function RouteCard({ route, starts, selected, choice, onDraft, onChoose }: {
         {slot ? (
           <>
             <div className="space-y-2">
-              <Stepper label={`Kiekis: ${route.name}`} value={choice.units} min={1} max={slot.free} onChange={(units) => onDraft({ ...choice, units })} editable compact />
-              <p className={`text-xs ${copy}`}>Bent {QUAD_PREVIEW_MIN_UNITS} keturračiai.</p>
+              <Stepper label={`Kiekis: ${route.name}`} value={choice.units} min={route.minUnits} max={slot.free} onChange={(units) => onDraft({ ...choice, units })} editable compact />
+              <p className={`text-xs ${copy}`}>Bent {route.minUnits} keturračiai.</p>
             </div>
-            <QuadAccessories title={title} selected={selected} quantities={choice.accessories ?? {}} onChange={(accessories) => onDraft({ ...choice, accessories })} />
+            <QuadAccessories catalogue={catalogue} title={title} selected={selected} quantities={choice.accessories ?? {}} onChange={(accessories) => onDraft({ ...choice, accessories })} />
           </>
         ) : null}
         {starts.length === 0 || (selected && !ready) ? (

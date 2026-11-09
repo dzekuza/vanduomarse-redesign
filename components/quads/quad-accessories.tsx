@@ -1,19 +1,22 @@
 "use client";
 
 import { Stepper } from "@/components/booking/stepper";
-import { QUAD_PREVIEW_ACCESSORIES } from "./quad-preview-content";
-import { QUAD_PREVIEW_MAX_ACCESSORIES, quadPreviewAccessories } from "./quad-preview-plan";
+import type { QuadTourAccessory } from "@/lib/quads";
+import { QUAD_TOUR_MAX_ACCESSORIES, quadTourAccessories } from "./quad-tour-plan";
 
 interface QuadAccessoriesProps {
+  /** The gear the database offers with a tour. */
+  catalogue: readonly QuadTourAccessory[];
   title: string;
   selected: boolean;
   quantities: Record<string, number>;
   onChange: (quantities: Record<string, number>) => void;
 }
 
-/** Expanded optional gear shares the route draft and never creates a real booking. */
-export function QuadAccessories({ title, selected, quantities, onChange }: QuadAccessoriesProps) {
-  const accessories = quadPreviewAccessories(quantities);
+/** Optional gear of a tour; priced from the database and filed with the tour request. */
+export function QuadAccessories({ catalogue, title, selected, quantities, onChange }: QuadAccessoriesProps) {
+  if (catalogue.length === 0) return null;
+  const accessories = quadTourAccessories(catalogue, quantities);
   const copy = selected ? "text-dust/80" : "text-copy";
   const line = selected ? "border-line-on-ink" : "border-line";
 
@@ -24,13 +27,13 @@ export function QuadAccessories({ title, selected, quantities, onChange }: QuadA
         <p className={`text-xs leading-relaxed ${copy}`}>Vienu keturračiu gali važiuoti 2 asmenys. Priedų kiekį pasirink kiekvienam važiuojančiajam.</p>
       </div>
       <div className="space-y-4">
-        {QUAD_PREVIEW_ACCESSORIES.map((accessory) => (
+        {catalogue.map((accessory) => (
           <Stepper
             key={accessory.id}
             label={`${accessory.name} (${accessory.price} € / vnt.)`}
             value={quantities[accessory.id] ?? 0}
             min={0}
-            max={QUAD_PREVIEW_MAX_ACCESSORIES}
+            max={QUAD_TOUR_MAX_ACCESSORIES}
             onChange={(units) => onChange({ ...quantities, [accessory.id]: units })}
             editable
             compact
