@@ -14,6 +14,8 @@ updated: 2026-11-07
 
 ## Current focus
 
+**Payable quad tours (2026-11-09, ADR-0053): step 1 done and LIVE; steps 2-5 in progress on branch `feat/quad-tour-products`.** Live database now has `quad_tour_routes` / `quad_tour_accessories` / `create_quad_tour_rental` (applied with `supabase db query --linked`; never `db push`). Still to do: public data layer, request pipeline (`quadTourRental`), the quad checkout dialog replacing the mailto preview, an admin screen for routes and gear, then the confirmation-screen padding fix. Until then the site still reads the constants.
+
 **Klientai "Rolė" tab (2026-11-09, ADR-0051): merged (PR #16), not browser-checked.** Owner-only tab on `/admin/klientai/[id]` to make a customer an admin (Savininkas) or give them a permissions role; the customer is matched to a staff login by email, or a login is created with a one-time temporary password. Needs a browser pass as owner (customer with/without email, with/without an existing login) at 375 / 768 / 1024 px.
 
 **Service pages merged (2026-11-09): reviewed, builds clean, not browser-checked.** The `codex/service-pages-and-site-feedback` branch (public `/pirtis` and other activity pages via `app/[service]/page.tsx`) was reviewed and merged. Six owner follow-ups are listed in the top `session-log.md` entry: coupon single-use copy vs partial balances, hard-coded quad prices on `/keturraciu-nuoma`, the new `RESERVATION_PHONE`, the in-code sauna rename, unverified reviews, and the removed Miegas/Boardsports contacts.
