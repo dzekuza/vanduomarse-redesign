@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { GALLERY_SLIDES } from "./content";
 
 const CONTROL =
-  "grid size-12 place-items-center rounded-full border border-line-on-ink text-dust transition-[color,background-color,border-color,scale] duration-150 ease-out-strong hover:border-rust hover:bg-rust hover:text-ink motion-safe:active:scale-95 max-md:size-11";
+  "grid size-12 place-items-center rounded-full border border-line-on-ink text-dust transition-[color,background-color,border-color,scale] duration-150 ease-out-strong hover:border-rust hover:bg-rust hover:text-on-rust motion-safe:active:scale-95 max-md:size-11";
 
 /** Snap-scrolling photo strip with prev/next buttons and a 0X / 04 counter. */
 export function MomentsGallery() {

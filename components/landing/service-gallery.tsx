@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { ServicePhoto } from "./content";
 
 const ARROW =
-  "grid size-11 place-items-center rounded-full bg-dust text-ink transition-[scale,background-color] duration-150 ease-out-strong hover:bg-rust motion-safe:active:scale-95";
+  "grid size-11 place-items-center rounded-full bg-dust text-ink transition-[scale,background-color] duration-150 ease-out-strong hover:bg-rust hover:text-on-rust motion-safe:active:scale-95";
 
 /**
  * Snap-scrolling activity photos with arrows, plus thumbnails on the service hero. `data-vaul-no-drag` keeps a sideways

@@ -33,7 +33,7 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
         <span className="absolute top-3.5 right-3.5 bg-dust px-2.5 py-2 text-micro text-ink md:top-5 md:right-5">
           {card.tag}
         </span>
-        <span aria-hidden className="absolute right-4 bottom-4 grid size-12 place-items-center bg-dust text-ink transition-[background-color,rotate] duration-200 ease-out-strong group-hover:bg-rust motion-safe:group-hover:rotate-45">
+        <span aria-hidden className="absolute right-4 bottom-4 grid size-12 place-items-center bg-dust text-ink transition-[background-color,rotate] duration-200 ease-out-strong group-hover:bg-rust group-hover:text-on-rust motion-safe:group-hover:rotate-45">
           <ArrowUpRightIcon size={28} weight="light" />
         </span>
       </span>

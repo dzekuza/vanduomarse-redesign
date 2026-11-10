@@ -70,6 +70,7 @@ export function embedThemeCss(theme: EmbedTheme): string | null {
   // A recoloured tab gets a hover in its own family, not the page's --dust-soft.
   const tab = theme.colors.find(([token]) => token === "--tab");
   if (tab) decls.push(`--tab-hover:color-mix(in srgb,${tab[1]} 85%,white)`);
+  // design-check-ignore-next-line font-family: embed font comes from a validated query param set by the widget owner
   if (theme.font) decls.push(`font-family:"${theme.font}",system-ui,sans-serif`);
   if (theme.heading) decls.push(`--display-face:"${theme.heading}"`);
   if (theme.headingCase) decls.push(`--display-case:${theme.headingCase}`);

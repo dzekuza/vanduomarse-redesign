@@ -66,7 +66,7 @@ export function QuadServiceBooking({ data, days, date, pick, busy, onDate, onPic
                 route?.id === choice.id ? "border-ink bg-ink text-dust" : "border-line bg-dust hover:border-ink",
               )}
             >
-              {choice.badge ? <span aria-hidden className="absolute -top-2 right-1 bg-rust px-1.5 py-0.5 text-micro font-bold text-ink">TOP</span> : null}
+              {choice.badge ? <span aria-hidden className="absolute -top-2 right-1 bg-rust px-1.5 py-0.5 text-micro font-bold text-on-rust">TOP</span> : null}
               <span className="font-bold">{choice.name} turas</span>
               <span>{choice.price} €</span>
             </button>

@@ -51,7 +51,7 @@ export function LandingHero() {
         <Link
           href="/rezervacija"
           aria-label="Rezervuok laiką Marse"
-          className="@container grid size-30 rotate-12 place-items-center rounded-full border border-ink bg-rust text-center font-bold text-ink ring-7 ring-rust motion-safe:transition-[rotate,scale] motion-safe:duration-150 motion-safe:ease-out-strong motion-safe:hover:rotate-0 motion-safe:active:scale-95 md:size-32 lg:size-41"
+          className="@container grid size-30 rotate-12 place-items-center rounded-full border border-ink bg-rust text-center font-bold text-on-rust ring-7 ring-rust motion-safe:transition-[rotate,scale] motion-safe:duration-150 motion-safe:ease-out-strong motion-safe:hover:rotate-0 motion-safe:active:scale-95 md:size-32 lg:size-41"
         >
           <span className="grid justify-items-center gap-hero-sticker-gap text-hero-sticker whitespace-nowrap">
             <span>

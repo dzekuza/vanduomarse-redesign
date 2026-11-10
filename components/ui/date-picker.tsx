@@ -46,7 +46,7 @@ export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasir
           data-invalid={invalid || undefined}
           aria-describedby={describedBy}
           className={cn(
-            "flex h-11 w-full items-center justify-between gap-3 border border-input bg-transparent px-3 text-left text-sm outline-none transition-[border-color,box-shadow,scale] duration-150 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-invalid:border-destructive data-invalid:ring-3 data-invalid:ring-destructive/20 motion-safe:active:scale-[0.99]",
+            "flex h-11 w-full items-center justify-between gap-3 border border-input bg-transparent px-3 text-left text-sm outline-none transition-[border-color,box-shadow,scale] duration-150 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring data-invalid:border-destructive data-invalid:ring-3 data-invalid:ring-destructive/20 motion-safe:active:scale-[0.99]",
             className
           )}
         >

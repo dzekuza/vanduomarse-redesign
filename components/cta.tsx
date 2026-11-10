@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 type Tone = "coral" | "cream" | "dark";
 
 const TONE: Record<Tone, string> = {
-  coral: "bg-rust text-ink hover:bg-dust",
+  coral: "bg-rust text-on-rust hover:bg-dust",
   cream: "bg-dust text-ink hover:bg-foam",
   dark: "bg-ink text-dust hover:bg-lake-soft",
 };

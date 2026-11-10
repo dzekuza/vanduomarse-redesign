@@ -64,7 +64,7 @@ export function RiderSelect({ value, onChange, label = "Naudotojas" }: RiderSele
       <PopoverTrigger
         aria-label={label}
         disabled={riders.length === 0}
-        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-expanded:border-ring"
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-expanded:border-ring"
       >
         <span className={cn("truncate", !selected && "text-muted-foreground")}>{selected ? `${selected.name} ${selected.surname}` : "Pasirinkite naudotoją"}</span>
         <CaretUpDownIcon size={16} className="shrink-0 text-muted-foreground" />

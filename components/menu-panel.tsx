@@ -23,7 +23,7 @@ export function MenuPanel({ items, secondary, secondaryTitle, onNavigate }: Menu
   return (
     <div
       id="menu-panel"
-      className="fixed inset-0 z-15 overflow-auto bg-rust px-gutter pt-29 pb-12 text-ink motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-250 motion-safe:ease-out-strong md:pt-36"
+      className="fixed inset-0 z-15 overflow-auto bg-rust px-gutter pt-29 pb-12 text-on-rust motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-250 motion-safe:ease-out-strong md:pt-36"
     >
       <nav aria-label="Mobilus meniu">
         {items.map((l, i) => (

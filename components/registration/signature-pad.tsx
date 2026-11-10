@@ -43,6 +43,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(fu
     if (!ctx || !p) return;
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
+    // design-check-ignore-next-line color-value: canvas 2D strokeStyle needs a literal colour; pen ink on a white signature panel
     ctx.strokeStyle = "#1a1a1a";
     ctx.lineTo(p.x, p.y);
     ctx.stroke();

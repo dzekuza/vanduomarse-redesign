@@ -16,6 +16,8 @@
   --copy: color-mix(in srgb, var(--ink) 72%, var(--dust));
   --foam: #f5f1e8;
   --signal: #f2b705;
+  /* Text on coral buttons: ink on coral is 3.68:1, this deep aubergine is 5.2:1 (DESIGN.md). */
+  --on-rust: var(--raw-aubergine-deep);
   /* Bright brand teal: focus accents and the live status dot on the home page. */
   --water: var(--raw-teal);
   --line: rgba(17, 32, 31, 0.14);
@@ -45,7 +47,8 @@
   --destructive: #c73a3f;
   --border: rgba(56, 46, 56, 0.18);
   --input: rgba(56, 46, 56, 0.28);
-  --ring: #ed5257;
+  /* Focus ring on light surfaces: coral-ink, 5.1:1 on blush (coral was 2.6:1). Dark admin keeps coral below. */
+  --ring: var(--raw-coral-ink);
   --chart-1: #382e38;
   --chart-2: #ed5257;
   --chart-3: #e2b38c;
@@ -82,6 +85,7 @@
   --color-rust: var(--rust);
   --color-rust-soft: var(--rust-soft);
   --color-rust-ink: var(--raw-coral-ink);
+  --color-on-rust: var(--on-rust);
   --color-lake: var(--lake);
   --color-lake-soft: var(--lake-soft);
   --color-dust: var(--dust);
@@ -262,13 +266,13 @@ html {
 /* Display face. Deliberately not an @theme font key: Tailwind would inline it
    and collapse the fallback, so a scope like `theme-marse` could not swap it. */
 @utility font-display {
-  font-family: var(--display-face, var(--font-big-shoulders)), sans-serif;
+  font-family: var(--display-face, var(--font-termina)), sans-serif;
   font-stretch: var(--display-stretch, 100%);
   text-transform: var(--display-case, none);
   letter-spacing: var(--display-tracking, -0.01em);
 }
 
-/* Giant condensed wordmark (Big Shoulders Black, uppercase). `wordmark-fit` makes
+/* Giant wordmark (Termina Bold, uppercase; used by the coming-soon page). `wordmark-fit` makes
    the parent a size container so `wordmark-size` can scale the type to its
    width: two stacked lines on phones, one line from md. */
 @utility wordmark-fit {
@@ -276,18 +280,18 @@ html {
 }
 
 @utility font-wordmark {
-  font-family: var(--font-big-shoulders), sans-serif;
-  font-weight: 900;
-  line-height: 0.82;
+  font-family: var(--font-termina), sans-serif;
+  font-weight: 700;
+  line-height: 0.9;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 @utility wordmark-size {
-  font-size: 30cqw;
+  font-size: 18cqw;
 
   @media (min-width: 48rem) {
-    font-size: 16cqw;
+    font-size: 10cqw;
     white-space: nowrap;
   }
 }
