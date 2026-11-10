@@ -1,4 +1,5 @@
 import type { DiscountCode } from "@/lib/discount-codes";
+import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
@@ -148,6 +149,16 @@ export interface StaffMember {
   roleId: string;
   active: boolean;
   createdAt: string;
+}
+
+/** A phone number that receives staff SMS, and the topics it is texted about. Owners only. */
+export interface NotificationRecipient {
+  id: string;
+  name: string;
+  /** E.164, e.g. +37061234567. */
+  phone: string;
+  topics: NotificationTopic[];
+  active: boolean;
 }
 
 /** An hourly quad rental request or booking. */
@@ -338,6 +349,8 @@ export interface AdminData {
   roles: StaffRole[];
   /** Empty unless `me` is an owner. */
   staff: StaffMember[];
+  /** Empty unless `me` is an owner (or before the notification_recipients migration). */
+  notificationRecipients: NotificationRecipient[];
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];

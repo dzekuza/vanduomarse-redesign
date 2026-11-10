@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer } from "react
 import { toast } from "sonner";
 import * as actions from "@/app/admin/actions";
 import * as discountActions from "@/app/admin/discount-actions";
+import * as notificationActions from "@/app/admin/notification-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
@@ -11,6 +12,7 @@ import type { RiderProfileInput } from "@/app/admin/actions";
 import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
+import type { NotificationRecipientInput } from "@/lib/notification-recipient-schema";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { SaunaValues } from "./sauna/sauna-schema";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -47,6 +49,8 @@ type Action =
   | { type: "couponProduct/delete"; id: string }
   | { type: "discountCode/active"; id: string; active: boolean }
   | { type: "discountCode/delete"; id: string }
+  | { type: "notificationRecipient/active"; id: string; active: boolean }
+  | { type: "notificationRecipient/delete"; id: string }
   | { type: "rental/status"; id: string; status: BookingStatus }
   | { type: "rental/add"; rental: QuadRental }
   | { type: "ticket/status"; id: string; status: BookingStatus }
@@ -168,6 +172,10 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, discountCodes: state.discountCodes.map((d) => (d.id === action.id ? { ...d, active: action.active } : d)) };
     case "discountCode/delete":
       return { ...state, discountCodes: state.discountCodes.filter((d) => d.id !== action.id) };
+    case "notificationRecipient/active":
+      return { ...state, notificationRecipients: state.notificationRecipients.map((n) => (n.id === action.id ? { ...n, active: action.active } : n)) };
+    case "notificationRecipient/delete":
+      return { ...state, notificationRecipients: state.notificationRecipients.filter((n) => n.id !== action.id) };
     case "rental/status":
       return { ...state, quadRentals: state.quadRentals.map((r) => (r.id === action.id ? { ...r, status: action.status } : r)) };
     case "rental/add":
@@ -377,6 +385,18 @@ function useAdminReducer(initial: AdminData) {
       deleteDiscountCode: async (id: string) => {
         const result = await report(discountActions.deleteDiscountCode(id));
         if ("data" in result) dispatch({ type: "discountCode/delete", id });
+        return result;
+      },
+      /** Not optimistic: the id comes from the database and a repeated number is refused. */
+      saveNotificationRecipient: (input: NotificationRecipientInput) => report(notificationActions.saveNotificationRecipient(input)),
+      setNotificationRecipientActive: async (id: string, active: boolean) => {
+        const result = await report(notificationActions.setNotificationRecipientActive(id, active));
+        if ("data" in result) dispatch({ type: "notificationRecipient/active", id, active });
+        return result;
+      },
+      deleteNotificationRecipient: async (id: string) => {
+        const result = await report(notificationActions.deleteNotificationRecipient(id));
+        if ("data" in result) dispatch({ type: "notificationRecipient/delete", id });
         return result;
       },
       /** Not optimistic: the code and expiry come from the database. */

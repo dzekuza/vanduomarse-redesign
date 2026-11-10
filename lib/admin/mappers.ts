@@ -6,7 +6,8 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
-import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
+import { isNotificationTopic } from "@/lib/notification-topics";
+import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -345,4 +346,8 @@ export function toStaffRole(r: Tables<"staff_roles">): StaffRole {
 
 export function toStaffMember(r: Tables<"staff">): StaffMember {
   return { userId: r.user_id, name: r.display_name, email: r.email, roleId: r.role_id, active: r.active, createdAt: r.created_at };
+}
+
+export function toNotificationRecipient(r: Tables<"notification_recipients">): NotificationRecipient {
+  return { id: r.id, name: r.name, phone: r.phone, topics: r.topics.filter(isNotificationTopic), active: r.active };
 }

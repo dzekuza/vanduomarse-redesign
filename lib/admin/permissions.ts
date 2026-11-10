@@ -32,6 +32,9 @@ export const isPermissionId = (value: string): value is PermissionId => (PERMISS
 /** Where owners manage staff and roles. */
 export const STAFF_HREF = "/admin/darbuotojai";
 
+/** Where owners choose which phone numbers get staff SMS. Owner-only, like staff management. */
+export const NOTIFICATIONS_HREF = "/admin/pranesimai";
+
 /** The signed-in staff member and what they may open. */
 export interface StaffAccess {
   userId: string;

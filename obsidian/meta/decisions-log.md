@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0056 — Staff SMS recipients are an owner-managed list with topics, not one env var
+
+- **Status:** Accepted 2026-11-10. Migration `20261110140000_notification_recipients.sql` applied by the owner and verified on the live project.
+- **Context:** Every staff SMS (new request, paid, double payment) went to the single `STAFF_NOTIFY_PHONE`. The owner wanted several numbers, each getting only some of it (bookings, payments, everything), edited in the admin.
+- **Decision:** Table `notification_recipients` (name, E.164 `phone` unique, `topics text[]` of `visi` / `rezervacijos` / `uzklausos` / `mokejimai`, `active`), RLS owner-only (`private.is_owner()`), no new page permission: like staff management it is not something a role is granted (ADR-0012 keeps page-permission policies for page data). `/admin/pranesimai` (owner-only, sidebar "Pranešimai" under Nustatymai) edits it through `useAdmin()` and `app/admin/notification-actions.ts`. The server reads numbers through `staff_notify_phones(p_topic)` (security definer, service role only, per the `createAdminClient` rule that it never queries tables directly); `lib/sms/staff-recipients.ts` `sendStaffSms(topic, body)` texts each. A new request is `rezervacijos` for pirtis / nakvyne / keturraciai and `uzklausos` for `kita`; paid, payment-to-check and double payments are `mokejimai`. `visi` is stored as itself so it also covers topics added later.
+- **Fallback:** The function returns null when no active recipient exists, and any lookup error also falls back: `STAFF_NOTIFY_PHONE` still gets everything. So an unapplied migration or an empty list changes nothing, and once one active recipient exists only the list is used (a person with no matching topic gets nothing).
+- **Consequences:** Staff email is unchanged (still `STAFF_INBOX` / `STAFF_NOTIFY_EMAIL`). Customer SMS is unaffected. Topics are a fixed list in `lib/notification-topics.ts` and the table's check constraint; a new topic needs both plus the call site.
+
+---
+
 ## ADR-0055 — Quad tours are sold on dated departures (events pointing at a tour type)
 
 - **Status:** Accepted 2026-11-10. Migration `20261110120000_quad_tour_departures.sql` tested inside a rolled-back transaction on the live project (booking 3 quads = 177 EUR and sold = 3; a second booking beyond capacity is refused; cancelling resets sold), then applied to the live database by the owner. Verified afterwards: both columns, the constraint, the trigger, the three `keturraciai` policies and the function exist; the function is executable by anon/authenticated and the trigger function is not; `database.types.ts` regenerated (with the known `create_inquiry.p_date` edit). `tsc`/`eslint` clean; /keturraciu-nuoma and /rezervacija return 200; the booking flow itself is not browser-checked.

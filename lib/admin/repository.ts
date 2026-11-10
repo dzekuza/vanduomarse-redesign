@@ -1,7 +1,7 @@
 import "server-only";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toPaymentInfo, toPriceItem, toQuadTourAccessory, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -42,6 +42,20 @@ async function readQuadRentals(supabase: ServerSupabase) {
   return result.error?.code === "PGRST200"
     ? supabase.from("quad_rentals").select("*").order("date").order("start_hour")
     : result;
+}
+
+/**
+ * Staff SMS recipients, owners only. Optional like discount codes: before the migration is applied the
+ * table is missing and the screen shows an empty list (staff alerts then keep using STAFF_NOTIFY_PHONE).
+ */
+async function readNotificationRecipients(supabase: ServerSupabase, me: StaffAccess) {
+  if (!me.isOwner) return [];
+  const { data, error } = await supabase.from("notification_recipients").select("*").order("created_at");
+  if (error) {
+    console.error("Admin data: notification recipients", error.message);
+    return [];
+  }
+  return data.map(toNotificationRecipient);
 }
 
 /**
@@ -162,6 +176,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     roles: roles.data!.map(toStaffRole),
     // RLS already hides other people's rows from non-owners; this keeps the payload explicit.
     staff: me.isOwner ? staff.data!.map(toStaffMember) : [],
+    notificationRecipients: await readNotificationRecipients(supabase, me),
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),

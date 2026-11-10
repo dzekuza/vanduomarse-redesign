@@ -1,6 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 import {
   AddressBookIcon,
+  BellRingingIcon,
   CalendarBlankIcon,
   ChartPieSliceIcon,
   ConfettiIcon,
@@ -15,7 +16,7 @@ import {
   TagIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
-import { hasPermission, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
+import { hasPermission, NOTIFICATIONS_HREF, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
 
 export type AdminNavGroup = "apzvalga" | "pardavimai" | "klientai" | "turinys" | "nustatymai";
 
@@ -88,6 +89,7 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },
   { href: STAFF_HREF, label: "Darbuotojai", icon: UsersThreeIcon, group: "nustatymai", permission: "owner" },
+  { href: NOTIFICATIONS_HREF, label: "Pranešimai", icon: BellRingingIcon, group: "nustatymai", permission: "owner" },
 ];
 
 /** Where the "new booking" shortcuts (header button, tab bar +) lead. */

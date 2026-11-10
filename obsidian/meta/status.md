@@ -10,9 +10,11 @@ updated: 2026-11-07
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-09
+**Last updated:** 2026-11-10
 
 ## Current focus
+
+**Staff SMS recipients (2026-11-10, ADR-0056): built on `main`, uncommitted, not browser-checked; migration `20261110140000_notification_recipients.sql` applied by the owner and verified on the live DB (RLS on, anon cannot execute `staff_notify_phones`, service role can).** `/admin/pranesimai` (owner-only) manages phone numbers and their topics; staff SMS use them and fall back to `STAFF_NOTIFY_PHONE` until the list has an active number. Next: browser-check at 375 / 768 / 1024 px, send one test booking.
 
 **Quad tour departures (2026-11-10, ADR-0055): migration applied to the live DB and verified, types regenerated; code built on `main`, uncommitted, not browser-checked.** The storefront offers no tour dates until departures are added per tour type in the Turai tab. Next: add departures, browser-check /keturraciu-nuoma, /rezervacija and the admin, one Stripe test booking.
 

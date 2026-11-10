@@ -1,3 +1,10 @@
+## 2026-11-10 — Staff SMS recipients page (ADR-0056)
+
+- **Why:** Owner wanted to set which phone numbers get which notifications (bookings, everything, etc.) from the admin.
+- **Changed:** Migration `20261110140000_notification_recipients.sql`, `lib/sms/staff-recipients.ts` + `notify.ts` / `lib/notify.ts` (topic per message), `app/admin/notification-actions.ts`, utils catalog rows, store + repository + mapper, `components/admin/notifications/`, `/admin/pranesimai`, sidebar row.
+- **Status:** `tsc`/`eslint` clean; migration applied and verified, not browser-checked. Uncommitted on `main`.
+- **Next:** Browser pass, one test booking to see the SMS routing.
+
 ## 2026-11-10 — Styled calendar in admin date fields
 
 - **Why:** The Data field showed the browser's native calendar popup.

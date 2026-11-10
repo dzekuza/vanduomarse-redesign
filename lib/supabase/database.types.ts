@@ -674,6 +674,36 @@ export type Database = {
           },
         ]
       }
+      notification_recipients: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          topics: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          phone: string
+          topics?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          phone?: string
+          topics?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -2262,6 +2292,7 @@ export type Database = {
           stripe_session_id: string
         }[]
       }
+      staff_notify_phones: { Args: { p_topic: string }; Returns: string[] }
       stay_occupancy: {
         Args: { p_from: string; p_to: string }
         Returns: {

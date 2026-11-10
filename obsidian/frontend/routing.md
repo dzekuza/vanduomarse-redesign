@@ -51,6 +51,7 @@ Every new route: add a row below, set `title` and `description` ([[seo-metadata]
 | `/admin/klientai/[id]` | `CustomerPage` (`components/admin/klientai/customer-page.tsx`), own page like `/admin/apyrankes/[id]`: Profilis, Veikla (a unified timeline of purchases/bookings/quad rentals/event tickets/coupons), Dokumentai, Komentarai. Profile/documents/comments tabs are the shared `RiderProfileTab`/`RiderDocumentsTab`/`RiderCommentsTab` from `components/admin/rider-profile-tabs.tsx`, also used by `/admin/apyrankes/[id]` | `klientai` permission Owners also get a Rolė tab (make the customer an admin / assign a role, ADR-0051). |
 | `/admin/instruktorius` | `InstruktoriusView` (`components/admin/instruktorius/`): scan a bracelet to check a rider in/out of the water (`scanRiderSession`), plus a live "Šiuo metu vandenyje" list of everyone currently out (ADR-0045). Not yet browser-checked | `instruktorius` permission |
 | `/admin/darbuotojai` | `StaffView` (tabs Darbuotojai / Rolės). Owner-only: `requirePermission("owner")` | stable |
+| `/admin/pranesimai` | `NotificationsView` (`components/admin/notifications/`): staff SMS recipients, each with topics; owner-only: `requirePermission("owner")` (ADR-0056) | built, not browser-checked |
 | `/admin/prisijungti` | `AuthCard` + `LoginForm` (outside the panel group) | stable |
 
 

@@ -1,6 +1,8 @@
 import "server-only";
 import { MAIN_CONTACT } from "@/lib/contacts";
 import { formatHour } from "@/lib/sauna";
+import type { MessageTopic } from "@/lib/notification-topics";
+import { sendStaffSms } from "./staff-recipients";
 import { sendSms } from "./twilio";
 
 /**
@@ -43,9 +45,9 @@ export const notifyOutcome = (phone: string | null | undefined, reference: strin
       : `Vanduo Marse: ${reference}${what(summary)} atsaukta. Klausimai: ${MAIN_CONTACT.phone}`,
   );
 
-/** Heads-up for staff when a request lands; needs STAFF_NOTIFY_PHONE. */
-export const notifyStaff = (reference: string | undefined, summary: string) =>
-  sendSms(process.env.STAFF_NOTIFY_PHONE, `Nauja uzklausa${ref(reference)}: ${summary}. Zr. /admin`);
+/** Heads-up for staff when a request lands; goes to the numbers subscribed to `topic` (/admin/pranesimai). */
+export const notifyStaff = (topic: MessageTopic, reference: string | undefined, summary: string) =>
+  sendStaffSms(topic, `Nauja uzklausa${ref(reference)}: ${summary}. Zr. /admin`);
 
 const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amount.toFixed(2));
 
@@ -55,11 +57,11 @@ export const notifyPaid = (phone: string | null | undefined, references: string[
 
 /** A reservation was paid twice (two Checkout Sessions): staff refund the extra payment in Stripe. */
 export const notifyStaffDuplicate = (references: string[], amount: number) =>
-  sendSms(process.env.STAFF_NOTIFY_PHONE, `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
+  sendStaffSms("mokejimai", `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
 
 /** Heads-up for staff when a reservation is paid; `review` flags a payment that needs a manual look (late or odd amount). */
 export const notifyStaffPaid = (references: string[], amount: number, review: boolean) =>
-  sendSms(
-    process.env.STAFF_NOTIFY_PHONE,
+  sendStaffSms(
+    "mokejimai",
     `${review ? "PATIKRINTI APMOKEJIMA" : "Nauja apmoketa uzklausa"} ${references.join(", ")}: ${eur(amount)} EUR. Zr. /admin`,
   );

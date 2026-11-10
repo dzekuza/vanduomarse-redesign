@@ -49,7 +49,7 @@ export const notifyRequestFiled = (
         : notifyReceived(contact.phone, reference, summary)
       : Promise.resolve(false),
     emailReceived(contact.email, reference, summary),
-    notifyStaff(reference, summary),
+    notifyStaff(service === "kita" ? "uzklausos" : "rezervacijos", reference, summary),
     emailStaffNew(service, reference, summary),
   );
 
