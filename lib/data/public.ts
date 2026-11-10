@@ -136,6 +136,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         capacity: e.capacity ?? 0,
         spotsLeft: spotsLeft(e) ?? 0,
         blurb: e.blurb,
+        description: e.description ?? undefined,
         programId: e.program_id,
       };
     }),

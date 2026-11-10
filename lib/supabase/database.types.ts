@@ -510,6 +510,7 @@ export type Database = {
           category: Database["public"]["Enums"]["event_category"]
           created_at: string
           date: string
+          description: string | null
           duration_minutes: number | null
           id: string
           place: string
@@ -528,6 +529,7 @@ export type Database = {
           category: Database["public"]["Enums"]["event_category"]
           created_at?: string
           date: string
+          description?: string | null
           duration_minutes?: number | null
           id?: string
           place: string
@@ -546,6 +548,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["event_category"]
           created_at?: string
           date?: string
+          description?: string | null
           duration_minutes?: number | null
           id?: string
           place?: string

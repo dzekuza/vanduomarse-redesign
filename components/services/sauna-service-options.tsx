@@ -30,9 +30,14 @@ export function saunaServiceVenues(data: SaunaPageData): SaunaServiceVenue[] {
     programs: data.programs.filter((program) => program.active && program.kind === "private" && program.saunaId === id),
   }));
   const matches = (pattern: RegExp) => ({ id, label }: SaunaServiceVenue) => pattern.test(slugify(id)) || pattern.test(slugify(label));
-  if (!venues.some(matches(FINNISH_SAUNA))) venues.push({ id: "suomiska-sauna", label: "Suomiška sauna", maxParty: 20, programs: [] });
-  if (!venues.some(matches(WOOD_SAUNA))) venues.unshift({ id: "malkine-pirtis", label: "Malkinė pirtis", maxParty: 25, programs: [], comingSoon: true });
-  return venues;
+  const finnish = venues.find(({ id }) => id === "pirtis-marse") ?? venues.find(matches(FINNISH_SAUNA));
+  const isWood = matches(WOOD_SAUNA);
+  const wood = venues.find((venue) => venue !== finnish && isWood(venue));
+  return [
+    finnish ?? { id: "suomiska-sauna", label: "Suomiška sauna", maxParty: 20, programs: [] },
+    wood ?? { id: "malkine-pirtis", label: "Malkinė pirtis", maxParty: 25, programs: [], comingSoon: true },
+    ...venues.filter((venue) => venue !== finnish && venue !== wood),
+  ];
 }
 
 interface SaunaServicePrivateOptionsProps {
@@ -58,10 +63,10 @@ export function SaunaServicePrivateOptions({ venues, venueId, programId, onVenue
         </legend>
         <div className="grid grid-cols-2 gap-2">
           {venues.map(({ id, label, programs, maxParty, comingSoon }) => (
-            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={CHOICE}>
+            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={comingSoon ? `${CHOICE} border-dashed bg-ink/5 text-copy` : CHOICE}>
               <span className="font-bold">{label}</span>
               <span className={id === venueId ? "text-dust/80" : "text-copy"}>Iki {maxParty} žmonių</span>
-              {comingSoon ? <span className="text-copy">Dar įrengiama</span>
+              {comingSoon ? <span className="font-medium text-copy">Netrukus atsidarys</span>
                 : !programs.length ? <span className={id === venueId ? "text-dust/80" : "text-copy"}>Pagal užklausą</span> : null}
             </FilterChip>
           ))}

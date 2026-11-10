@@ -27,6 +27,7 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
   const title = useRef<HTMLHeadingElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const confirmed = useRef(false);
+  const description = details?.event.description?.trim() || details?.row.description;
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
@@ -70,11 +71,11 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
                 </div>
               ))}
             </dl>
-            {details.row.description || details.row.host ? (
+            {description || details.row.host ? (
               <section className="space-y-2 border border-line p-4">
                 <h3 className="text-micro font-bold uppercase">Apie seansą</h3>
                 {details.row.host ? <p className="text-xs font-bold">Pirtininkas · {details.row.host}</p> : null}
-                {details.row.description ? <p className="text-xs leading-relaxed whitespace-pre-line text-copy">{details.row.description}</p> : null}
+                {description ? <p className="text-xs leading-relaxed whitespace-pre-line text-copy">{description}</p> : null}
               </section>
             ) : null}
             <div className="space-y-3 border-t border-line pt-4">

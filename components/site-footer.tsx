@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { SectionKicker } from "@/components/section-kicker";
 import { StarMark } from "@/components/star-mark";
-import { CONTACTS, MAIN_CONTACT, telHref, type Contact } from "@/lib/contacts";
+import { FOOTER_CONTACTS, MAIN_CONTACT, telHref, type Contact } from "@/lib/contacts";
 
 const INSTAGRAM_URL = "https://www.instagram.com/vanduo_marse/";
 const LINK = "inline-flex min-h-11 items-center";
@@ -47,10 +47,10 @@ export function FooterBar({ topHref }: { topHref: string }) {
 const CONTACT_LINK = "inline-flex min-h-11 text-xs transition-colors duration-150 ease-out-strong hover:text-rust";
 
 /** One contact with its name, email and phone stacked under a hairline. */
-function ContactItem({ contact: c, title = c.name }: { contact: Contact; title?: string }) {
+function ContactItem({ contact: c }: { contact: Contact }) {
   return (
     <li className="border-t border-line pt-4">
-      <p className="text-sm font-bold">{title}</p>
+      <p className="text-sm font-bold">{c.name}</p>
       <div className="flex flex-col items-start">
         <a href={`mailto:${c.email}`} className={`${CONTACT_LINK} items-end pb-1`}>
           {c.email}
@@ -70,8 +70,8 @@ export function SiteFooter() {
       <Reveal>
         <SectionKicker left="KONTAKTAI" right="VISI MARSO SEKTORIAI" />
         <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-          {CONTACTS.map((c) => (
-            <ContactItem key={c.name} contact={c} title={c === MAIN_CONTACT ? "Vanduo Marse ir renginiai" : undefined} />
+          {FOOTER_CONTACTS.map((c) => (
+            <ContactItem key={c.name} contact={c} />
           ))}
         </ul>
       </Reveal>

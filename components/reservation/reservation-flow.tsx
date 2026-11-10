@@ -7,9 +7,11 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
+import { QUAD_PREVIEW_MIN_UNITS, QUAD_PREVIEW_ROUTES } from "@/components/quads/quad-preview-content";
 import { QuadPreviewComplete } from "@/components/quads/quad-preview-complete";
-import { quadPreviewPlan, type QuadPreviewPick } from "@/components/quads/quad-preview-plan";
+import { quadPreviewPlan, quadPreviewStarts, type QuadPreviewPick } from "@/components/quads/quad-preview-plan";
 import { SaunaServiceBooking } from "@/components/services/sauna-service-booking";
+import { StayServiceBooking } from "@/components/services/stay-service-booking";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
@@ -115,7 +117,11 @@ export function ReservationFlow({
   const stayEnd = stayDatePhase !== "idle" ? stayDates[stayNights] : null;
   const showStayDates = picks.nakvyne !== undefined || (step === 0 && tab === "nakvyne");
   const when: When = { day, people };
-  const plans = planAll(picks, data, when);
+  const calculatedPlans = planAll(picks, data, when);
+  const stayDraft = calculatedPlans.nakvyne;
+  const plans = activity === "nakvyne" && (!stayEnd || !stayDraft?.ok)
+    ? { ...calculatedPlans, nakvyne: undefined }
+    : calculatedPlans;
   const quadTour = quadPreviewPlan(data.quads, when, previewQuad, planHours(plans.pirtis));
   const lines = describePlans(plans, when);
   if (quadTour) lines.unshift(quadTour.line);
@@ -131,12 +137,17 @@ export function ReservationFlow({
   const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
   const datesLabel = checkoutLabel ? `${dateLabel} iki ${checkoutLabel}` : dateLabel;
   const whenLabel = tracksPeople ? `${datesLabel}, ${people} žm.` : datesLabel;
-  /** Sauna, quad and stay icons under each day, lit when something is still free. */
+  /** Availability for each offered activity on this day. */
   const dayIcons = (d: Date): DayIcon[] => {
-    const free = dayAvailability(data, dateKey(d), people, stayEnd ? stayNights : 1);
+    const key = dateKey(d);
+    const free = dayAvailability(data, key, people, stayEnd ? stayNights : 1);
+    if (free.keturraciai && offer.keturraciai) {
+      free.keturraciai = QUAD_PREVIEW_ROUTES.some(({ hours }) =>
+        quadPreviewStarts(data.quads, key, hours).some(({ free }) => free >= QUAD_PREVIEW_MIN_UNITS));
+    }
     return tabs.map((id) => ({
       Icon: ACTIVITY_ICON[id],
-      label: `${ACTIVITY_TITLE[id]} ${free[id] ? "laisva" : "užimta"}`,
+      label: `${ACTIVITY_TITLE[id]}. ${free[id] ? "Yra laisvų vietų" : "Laisvų vietų ar laikų nėra"}`,
       on: free[id],
     }));
   };
@@ -385,13 +396,23 @@ export function ReservationFlow({
               onPeople={editPeople}
               onRemove={() => removeActivity("pirtis")}
               onSelectedFocus={() => inlinePlan.current?.focus()}
+            /> : activity === "nakvyne" ? <StayServiceBooking
+              data={data.cabin}
+              days={days}
+              date={stayEnd ? date : null}
+              range={{ end: stayEnd, selectingEnd: stayDatePhase === "selectingEnd", lastEnd: stayDates[MAX_STAY_NIGHTS] }}
+              nights={stayNights}
+              draft={stayDraft}
+              busy={busy}
+              onDate={selectStayDate}
+              onPick={(nakvyne) => editPicks((current) => ({ ...current, nakvyne }))}
             /> : <>
               <WhenStep
                 days={days}
                 date={date}
                 onDate={selectDate}
                 icons={dayIcons}
-                compact={Boolean(activity)}
+                unavailableOnly
                 stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
               />
               <ActivitiesStep
@@ -399,7 +420,6 @@ export function ReservationFlow({
                 when={when}
                 tab={tab}
                 sessionId={sessionId}
-                onSessionSelectedFocus={activity ? () => inlinePlan.current?.focus() : undefined}
                 onSessionDay={(key) => {
                   const next = days.find((candidate) => dateKey(candidate) === key);
                   if (next && !busy) {

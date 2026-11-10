@@ -87,6 +87,7 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     durationMinutes: r.duration_minutes ?? undefined,
     place: r.place,
     blurb: r.blurb,
+    description: r.description ?? undefined,
     price: r.price,
     capacity: r.capacity,
     sold: r.sold,

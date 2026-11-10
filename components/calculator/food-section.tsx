@@ -1,9 +1,11 @@
 "use client";
 
+import { useId, useState } from "react";
 import { ChoiceTile } from "@/components/booking/choice-tile";
 import { Stepper } from "@/components/booking/stepper";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney, type CateringId } from "@/lib/event-pricing";
+import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { BUFFET_OPTIONS, CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney, type CateringId } from "@/lib/event-pricing";
+import { CalculatorOptionCard } from "./calculator-option-card";
 import { OptionToggle } from "./option-toggle";
 import type { EventCalculatorState } from "./use-event-calculator";
 
@@ -11,34 +13,55 @@ interface FoodSectionProps {
   calc: EventCalculatorState;
 }
 
-const BUFFET_OPTIONS = CATERING.filter(({ id }) => id.startsWith("bufetas-"));
 const OTHER_OPTIONS = CATERING.filter(({ id }) => !id.startsWith("bufetas-"));
 
 export function CateringSection({ calc: { input, set } }: FoodSectionProps) {
+  const sliderId = useId();
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const selectedIndex = BUFFET_OPTIONS.findIndex(({ id }) => id === input.catering);
+  const selected = selectedIndex >= 0;
+  const index = selected ? selectedIndex : previewIndex;
+  const buffet = BUFFET_OPTIONS[index];
+  const packageLabel = `${index + 1} paketas`;
   const select = (id: CateringId) => set("catering", input.catering === id ? null : id);
 
   return (
     <div className="space-y-4">
-      <fieldset className="min-w-0">
-        <legend className="mb-2 text-sm font-bold">{BUFFET_OPTIONS[0].label}</legend>
-        <div className="flex flex-wrap gap-2">
-          {BUFFET_OPTIONS.map(({ id, hint }) => {
-            const active = input.catering === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => select(id)}
-                className={`min-h-11 flex-1 basis-32 border px-2 py-2 text-xs font-bold ${active ? "border-ink bg-ink text-dust" : "border-line hover:border-ink"}`}
-              >
-                {hint}
-              </button>
-            );
-          })}
+      <CalculatorOptionCard
+        title={buffet.label}
+        price={`${buffet.perAdult} € / asm.`}
+        selected={selected}
+        onToggle={() => {
+          setPreviewIndex(index);
+          select(buffet.id);
+        }}
+      >
+        <div>
+          <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam suaugusiajam</label>
+          <input
+            id={sliderId}
+            type="range"
+            min={0}
+            max={BUFFET_OPTIONS.length - 1}
+            step={1}
+            value={index}
+            aria-valuetext={`${packageLabel}, ${buffet.perAdult} eurų vienam asmeniui, ${buffet.hotDishes} karštieji patiekalai`}
+            onChange={(event) => {
+              const nextIndex = event.currentTarget.valueAsNumber;
+              setPreviewIndex(nextIndex);
+              if (selected) set("catering", BUFFET_OPTIONS[nextIndex].id);
+            }}
+            className={`block h-11 w-full cursor-pointer ${selected ? "accent-dust" : "accent-ink"}`}
+          />
+          <div aria-hidden className="flex justify-between text-xs">
+            {BUFFET_OPTIONS.map(({ id, perAdult }, position) => (
+              <span key={id} className={index === position ? "font-bold" : selected ? "text-dust/80" : "text-copy"}>{perAdult} €</span>
+            ))}
+          </div>
         </div>
-        <p className="mt-2 text-xs text-copy">Vaikams iki 3 m. švediškas stalas nemokamas. Vaikams 3–10 m. taikoma 50 % nuolaida.</p>
-      </fieldset>
+        <p className="text-sm"><span className="font-bold">{packageLabel}</span> · {buffet.hotDishes} karštieji patiekalai</p>
+      </CalculatorOptionCard>
+      <p className="text-xs text-copy">Vaikams iki 3 m. švediškas stalas nemokamas. Vaikams 3–10 m. taikoma 50 % nuolaida.</p>
       <div className="flex flex-wrap gap-2 [&>*]:flex-1 [&>*]:basis-32">
         {OTHER_OPTIONS.map(({ id, label, hint }) => (
           <ChoiceTile key={id} primary={label} secondary={hint} active={input.catering === id} onClick={() => select(id)} />
@@ -78,7 +101,7 @@ export function HospitalitySection({ calc: { input, set } }: FoodSectionProps) {
   );
 }
 
-const FOOD_TABS = [
+const FOOD_SECTIONS = [
   { id: "maitinimas", label: "Maitinimas", Section: CateringSection },
   { id: "gerimai", label: "Gėrimai", Section: DrinksSection },
   { id: "aptarnavimas", label: "Aptarnavimas", Section: HospitalitySection },
@@ -86,23 +109,13 @@ const FOOD_TABS = [
 
 export function FoodSection({ calc }: FoodSectionProps) {
   return (
-    <Tabs defaultValue={FOOD_TABS[0].id} className="gap-4">
-      <TabsList aria-label="Maisto pasirinkimai" className="grid w-full grid-cols-3 divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto">
-        {FOOD_TABS.map(({ id, label }) => (
-          <TabsTrigger
-            key={id}
-            value={id}
-            className="h-full min-h-11 min-w-0 rounded-none px-1 py-2 text-xs wrap-break-word whitespace-normal text-ink data-active:bg-ink data-active:text-dust"
-          >
-            {label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {FOOD_TABS.map(({ id, Section }) => (
-        <TabsContent key={id} value={id}>
+    <div className="space-y-8">
+      {FOOD_SECTIONS.map(({ id, label, Section }) => (
+        <section key={id} aria-label={label}>
+          <OptionGroupLabel>{label}</OptionGroupLabel>
           <Section calc={calc} />
-        </TabsContent>
+        </section>
       ))}
-    </Tabs>
+    </div>
   );
 }

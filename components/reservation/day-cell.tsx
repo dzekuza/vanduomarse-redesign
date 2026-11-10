@@ -8,6 +8,9 @@ export interface ReservationDayDetails {
   label: string;
   available: boolean;
   indicator?: ReactNode;
+  opensDialog?: boolean;
+  /** Interactive controls are rendered alongside, never inside, the date button. */
+  actions?: ReactNode;
 }
 
 export interface DateRangeSelection {
@@ -59,6 +62,7 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
   const endpoint = rangePart === "arrival" ? "Atvykimas" : rangePart === "departure" ? "Išvykimas" : undefined;
   const selected = active || Boolean(endpoint);
   const compactMonth = compact && fluid;
+  const hasActions = !disabled && Boolean(details?.actions);
   const appearance = selected
     ? "border-ink bg-ink text-dust"
     : rangePart === "between"
@@ -68,7 +72,7 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
         : anyFree
           ? "border-line text-ink hover:border-rust"
           : "border-line text-ink/45 hover:border-line";
-  return (
+  const button = (
     <button
       type="button"
       onClick={() => onSelect(date)}
@@ -78,9 +82,10 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
       aria-pressed={selected}
       aria-label={endpoint ? `${endpoint}, ${longDateLabel(date)}` : longDateLabel(date)}
       aria-describedby={details ? descriptionId : undefined}
+      aria-haspopup={details?.opensDialog ? "dialog" : undefined}
       className={`relative flex min-h-11 flex-col items-center border text-sm transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${compact ? "justify-center gap-0.5 py-1" : "gap-1 py-2.5 sm:py-3"} ${
         fluid ? "w-full" : compact ? "w-12 shrink-0" : "w-14 shrink-0 sm:w-16"
-      } ${appearance} ${disabled ? "cursor-not-allowed" : ""}${details ? " group/day min-w-0" : ""}`}
+      } ${hasActions ? "peer/day border-transparent" : appearance} ${disabled ? "cursor-not-allowed" : ""}${details ? " group/day min-w-0" : ""}`}
     >
       {isToday && !disabled ? <span aria-hidden className={`absolute rounded-full bg-rust ${compactMonth ? "right-0.5 top-0.5 size-1" : "right-1.5 top-1.5 size-1.5"}`} /> : null}
       {!compactMonth ? <span className="text-micro">{weekdayLabel(date)}</span> : null}
@@ -94,11 +99,17 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
             </span>
           ))}
         </span>
-      ) : reserveIconSpace ? <span aria-hidden className="h-3" /> : null}
+      ) : reserveIconSpace && !details?.indicator ? <span aria-hidden className="h-3" /> : null}
       {!disabled && details?.indicator ? (
         <span aria-hidden className="block w-full min-w-0 px-0.5">{details.indicator}</span>
       ) : null}
       {details ? <span id={descriptionId} className="sr-only">{details.label}</span> : null}
     </button>
   );
+  return hasActions ? (
+    <div className={`min-w-0 border ${appearance}`}>
+      {button}
+      <div className="text-ink peer-aria-pressed/day:text-dust">{details?.actions}</div>
+    </div>
+  ) : button;
 }

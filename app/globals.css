@@ -107,6 +107,8 @@
   --color-status-confirmed: var(--status-confirmed);
   --color-status-new: var(--status-new);
   --color-status-done: var(--status-done);
+  --color-availability-open: var(--raw-availability-green);
+  --color-availability-low-ink: var(--raw-availability-amber-ink);
   --shadow-float: var(--shadow-float);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
@@ -299,6 +301,8 @@ html {
   --raw-coral: #ed5257;
   /* Coral darkened until small text on blush reaches 4.5:1 (the bright coral is ~2.7:1). */
   --raw-coral-ink: #a8282d;
+  --raw-availability-green: oklch(0.47 0.14 145);
+  --raw-availability-amber-ink: oklch(0.46 0.10 75);
   --raw-tan: #e2b38c;
   /* Deep teal from the brand badge; readable on blush, unlike its bright #00b2b5. */
   --raw-teal-deep: #015059;

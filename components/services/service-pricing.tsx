@@ -6,10 +6,10 @@ import { QUAD_PREVIEW_ROUTES } from "@/components/quads/quad-preview-content";
 import type { ServiceSlug } from "./service-content";
 
 function prices(slug: ServiceSlug, sauna?: SaunaPageData) {
-  if (slug === "pirtis") return sauna?.programs.map((program) => ({
+  if (slug === "pirtis") return sauna?.programs.filter(({ kind }) => kind === "private").map((program) => ({
     label: program.name,
     price: programPriceLine(program),
-    note: program.kind === "private" && program.capacity
+    note: program.capacity
       ? `Iki ${program.capacity} žmonių. ${program.description}`
       : program.description,
   })) ?? [];

@@ -40,6 +40,7 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 
 | `--raw-teal-slate` `#2f545b` | primitive | sampled from the booking design | `.theme-reservation` maps `--lake-soft` to slate teal, uses 19% ink for `--line` and `--input`, and uses a 16% white wash for `--card` |
 | `--raw-coral-ink` `#a8282d` | primitive | coral darkened to 5:1 on blush | `text-rust-ink`: small coral text (notices, errors); never use `text-rust` below ~24 px |
+| `availability-open` / `text-availability-low-ink` | binding | `--raw-availability-green` / `--raw-availability-amber-ink` | Sauna calendar numbers use green for three or more seats, amber for one or two, and `text-rust-ink` for zero, against a cream surface. Matching dots use `bg-availability-open`, `bg-signal` and `bg-rust` |
 | `--water` | semantic | `--raw-teal` `#00b2b5` | `bg-water` / `ring-water`: live status dot, focus outline on the home page |
 | `--spacing-gutter` | primitive | `clamp(1.375rem, 4.2vw, 5rem)` | `px-gutter`: side padding of every home section |
 | `text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`, `-micro` (+ `-sm` phone steps) | primitive | fluid sizes with line height + tracking | home page display type (`@theme` in `globals.css`); use `text-x-sm md:text-x` |

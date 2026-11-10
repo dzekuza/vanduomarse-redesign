@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { eventDurationMinutes } from "@/components/admin/events/event-schema";
+import { eventDescription, eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-schema";
 import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRiderSession, toRidePlan } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RiderSession, RidePlan } from "@/lib/admin/types";
@@ -268,6 +268,7 @@ const eventInput = z.object({
   durationMinutes: eventDurationMinutes.optional(),
   place: z.string().trim().min(2).max(80),
   blurb: z.string().trim().max(240),
+  description: eventDescription.optional(),
   price: z.number().min(0).nullable(),
   capacity: z.number().int().min(0).nullable(),
   published: z.boolean(),
@@ -289,6 +290,7 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     duration_minutes: e.durationMinutes ?? null,
     place: e.place,
     blurb: e.blurb,
+    ...(e.description !== undefined ? { description: e.description || null } : {}),
     price: e.price,
     capacity: e.capacity,
     published: e.published,

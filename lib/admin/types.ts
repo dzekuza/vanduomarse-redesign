@@ -107,6 +107,7 @@ export interface ManagedEvent {
   durationMinutes?: number;
   place: string;
   blurb: string;
+  description?: string;
   /** null = free entry */
   price: number | null;
   /** null = no ticket limit */

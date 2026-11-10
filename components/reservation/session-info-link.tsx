@@ -4,6 +4,12 @@ import type { MouseEvent, ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { saunaSessionHref } from "@/lib/sauna-events";
 
+export function openSessionInfo(id: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("seansas", id);
+  window.history.pushState(null, "", url);
+}
+
 export function closeSessionInfo() {
   const url = new URL(window.location.href);
   url.searchParams.delete("seansas");
@@ -20,9 +26,7 @@ export function SessionInfoLink({ id, children, className }: {
   function open(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.defaultPrevented) return;
     event.preventDefault();
-    const url = new URL(window.location.href);
-    url.searchParams.set("seansas", id);
-    window.history.pushState(null, "", url);
+    openSessionInfo(id);
   }
 
   return <a href={href} aria-haspopup="dialog" onClick={open} className={className}>{children}</a>;

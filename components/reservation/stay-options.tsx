@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
-import { CABIN_SIZES, MAX_STAY_UNITS, roomLabel, roomPrice, type StayUnitType } from "@/lib/cabin";
+import { MAX_STAY_UNITS, STAY_TYPES, roomLabel, roomPrice } from "@/lib/cabin";
 import type { StayPick, StayPlan } from "@/lib/reservation";
 import { OptionGroupLabel } from "./option-card";
 
@@ -14,8 +14,6 @@ interface StayOptionsProps {
   onChange: (pick: StayPick) => void;
   onRemove: () => void;
 }
-
-const STAY_TYPES: StayUnitType[] = [...CABIN_SIZES.map(({ id }) => id), "kemperis"];
 
 /** One unit type for the chosen dates, with a count independent of the activity group size. */
 export function StayOptions({ plan, datesSelected, included, onChange, onRemove }: StayOptionsProps) {

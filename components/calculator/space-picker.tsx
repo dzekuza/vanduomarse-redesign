@@ -1,6 +1,8 @@
 "use client";
 
-import { SPACES, type DayType, type SpaceId } from "@/lib/event-pricing";
+import { SPACES, formatMoney, type DayType, type SpaceId } from "@/lib/event-pricing";
+import { cn } from "@/lib/utils";
+import { SpaceDetailsDialog } from "./space-details-dialog";
 
 interface SpacePickerProps {
   selected: SpaceId | null;
@@ -10,7 +12,7 @@ interface SpacePickerProps {
   onSelect: (id: SpaceId) => void;
 }
 
-/** Venue cards with capacity and price for the chosen day; too-small spaces are disabled. */
+/** Venue cards with capacity and pricing. Details remain accessible regardless of capacity. */
 export function SpacePicker({ selected, day, guests, onSelect }: SpacePickerProps) {
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
@@ -20,40 +22,46 @@ export function SpacePicker({ selected, day, guests, onSelect }: SpacePickerProp
         const rent = rents.length ? Math.min(...rents) : null;
         const min = s.minSpend(day ?? "weekend", guests);
         const tooSmall = guests > s.maxGuests;
-        const active = s.id === selected;
+        const active = !tooSmall && s.id === selected;
         const detailColor = active ? "text-dust/75" : tooSmall ? "" : "text-copy";
+        const rentLabel = rent === null ? null : rent === 0 ? "Be nuomos mokesčio" : `${day ? "" : "nuo "}${formatMoney({ min: rent, max: rent })}`;
         const price = tooSmall
           ? `Iki ${s.maxGuests} asm.`
           : rent === null
             ? "Netaikoma"
             : rent > 0
-              ? `${day ? "" : "nuo "}${rent.toLocaleString("lt-LT")} €`
+              ? rentLabel
               : `Min. sąskaita ${min} €`;
         return (
-          <button
+          <div
             key={s.id}
-            type="button"
-            aria-pressed={active}
-            disabled={tooSmall}
-            onClick={() => onSelect(s.id)}
-            className={`flex flex-col gap-1.5 border p-5 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-99 ${
-              tooSmall
-                ? "cursor-not-allowed border-line text-ink/35"
-                : active
-                  ? "border-ink bg-ink text-dust"
-                  : "border-line text-ink hover:border-ink"
-            }`}
+            className={cn(
+              "flex flex-col border transition-colors duration-150 ease-out-strong",
+              active ? "border-ink bg-ink text-dust" : "border-line text-ink",
+              !tooSmall && "hover:border-ink",
+            )}
           >
-            <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <span className="text-item font-bold">{s.label}</span>
-              <span className="shrink-0 text-xs font-bold">{price}</span>
-            </span>
-            <span className={`text-xs leading-relaxed ${detailColor}`}>{s.blurb}</span>
-            <span className={`text-xs ${detailColor}`}>
-              Iki {s.maxGuests} asm. · {s.includedTime}
-              {rent !== null && rent > 0 && min > 0 ? ` · min. sąskaita ${min} €` : ""}
-            </span>
-          </button>
+            <button
+              type="button"
+              aria-pressed={s.id === selected}
+              disabled={tooSmall}
+              onClick={() => onSelect(s.id)}
+              className="flex min-h-11 flex-1 flex-col gap-1.5 p-5 pb-2 text-left transition-transform duration-150 ease-out-strong motion-safe:active:scale-99 disabled:cursor-not-allowed disabled:text-ink/35"
+            >
+              <span className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <span className="text-item font-bold">{s.label}</span>
+                <span className="shrink-0 text-xs font-bold">{price}</span>
+              </span>
+              <span className={cn("text-xs leading-relaxed", detailColor)}>{s.blurb}</span>
+              <span className={cn("text-xs", detailColor)}>
+                Iki {s.maxGuests} asm. · {s.includedTime}
+                {rent !== null && rent > 0 && min > 0 ? ` · min. sąskaita ${min} €` : ""}
+              </span>
+            </button>
+            <div className="px-5 pb-2">
+              <SpaceDetailsDialog space={s} rentLabel={rentLabel} minimumSpend={min} />
+            </div>
+          </div>
         );
       })}
     </div>

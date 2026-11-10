@@ -9,6 +9,7 @@ import { ServiceGallery } from "@/components/landing/service-gallery";
 import { CONTACTS, MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
 import type { SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
+import { cn } from "@/lib/utils";
 import { CELEBRATION_LINKS } from "./celebration-content";
 import { QuadServiceHelp } from "./quad-service-help";
 import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "./service-content";
@@ -57,9 +58,9 @@ export function ServicePage({ slug, booking, schedule, sauna, photos, wake }: {
         <BookingBreadcrumb crumb={copy.label} />
         <div className="grid items-start gap-y-8 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-12">
           <header className="min-w-0 space-y-5 lg:col-span-8 lg:col-start-1 lg:row-start-1">
-            <ServiceGallery photos={gallery} variant="hero" wideHero={slug === "pirtis"} label={`${copy.label}: nuotraukos`} />
+            <ServiceGallery photos={gallery} variant="hero" label={`${copy.label}: nuotraukos`} />
             <h1 className="text-total font-bold tracking-tighter uppercase sm:text-title">{copy.title}</h1>
-            <p className="max-w-2xl text-sm leading-loose text-copy">{copy.summary}</p>
+            <p className={cn("text-sm leading-loose text-copy", slug !== "pirtis" && "max-w-2xl")}>{copy.summary}</p>
             <nav aria-label="Puslapio skiltys" className="flex flex-wrap gap-2">
               {SECTIONS.map(({ id, label }) => (
                 <Link key={id} href={`#${id}`} className="inline-flex min-h-11 items-center border border-line px-3 text-xs hover:border-ink hover:bg-foam">{label}</Link>

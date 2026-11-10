@@ -45,6 +45,7 @@ export function roomLabel(id: RoomTypeId, size: CabinSize): string {
 export const cabinStayType = (size: CabinSize) => `namelis-${size}`;
 
 export type StayUnitType = CabinSize | "kemperis";
+export const STAY_TYPES: readonly StayUnitType[] = [...CABIN_SIZES.map(({ id }) => id), "kemperis"];
 
 /** Free units per night and type from `stay_occupancy()`, with no entry for unlimited camper stock. */
 export type CabinAvailability = Record<string, Partial<Record<StayUnitType, number>>>;

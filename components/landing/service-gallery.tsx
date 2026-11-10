@@ -13,12 +13,11 @@ const ARROW =
  * Snap-scrolling activity photos with arrows, plus thumbnails on the service hero. `data-vaul-no-drag` keeps a sideways
  * swipe here from closing the drawer.
  */
-export function ServiceGallery({ photos, variant = "default", label = "Veiklos nuotraukos", initialIndex = 0, wideHero = false }: {
+export function ServiceGallery({ photos, variant = "default", label = "Veiklos nuotraukos", initialIndex = 0 }: {
   photos: ServicePhoto[];
   variant?: "default" | "panel" | "hero" | "lightbox";
   label?: string;
   initialIndex?: number;
-  wideHero?: boolean;
 }) {
   const track = useRef<HTMLDivElement>(null);
   const thumbnails = useRef<HTMLDivElement>(null);
@@ -75,9 +74,9 @@ export function ServiceGallery({ photos, variant = "default", label = "Veiklos n
       <div data-vaul-no-drag className={cn("relative", {
         "aspect-video max-h-48 w-full bg-dust-soft": variant === "panel",
         "h-44 md:h-60": variant === "default",
-        "aspect-4/3 min-w-0 bg-dust-soft lg:col-span-7": hero,
+        "aspect-4/3 min-w-0 bg-dust-soft lg:col-span-7 lg:aspect-2/1": hero,
         "h-72 bg-ink sm:h-100 lg:h-124": variant === "lightbox",
-      }, hero && wideHero && "lg:aspect-2/1")}>
+      })}>
         <div
           ref={track}
           role="region"

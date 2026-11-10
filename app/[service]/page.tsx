@@ -7,6 +7,7 @@ import { QuadServiceSchedule, QuadServiceSidebar, QuadServiceTools } from "@/com
 import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
 import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
 import { ServicePage } from "@/components/services/service-page";
+import { StayServiceSchedule } from "@/components/services/stay-service-schedule";
 import { getCustomer } from "@/lib/customer";
 import { getCabinPageData, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
@@ -20,13 +21,14 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
-  const { title, summary, service: id } = SERVICE_PAGES[service];
+  const { title, summary, metaDescription, service: id }: ServicePageCopy = SERVICE_PAGES[service];
   const path = `/${service}`;
+  const description = metaDescription ?? summary;
   return {
     title: `${title} | Vanduo Marse`,
-    description: summary,
+    description,
     alternates: { canonical: path },
-    openGraph: { title, description: summary, url: path, images: [{ url: SERVICES[id].photo, alt: SERVICES[id].alt }] },
+    openGraph: { title, description, url: path, images: [{ url: SERVICES[id].photo, alt: SERVICES[id].alt }] },
   };
 }
 
@@ -63,7 +65,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
         sauna={activity === "pirtis" ? sauna : undefined}
         photos={photos}
         booking={<ReservationFlow activity={activity} header={null} data={data} initialDay={saunaDay} payments={paymentsEnabled()} initialCustomer={customer} />}
-        schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : undefined}
+        schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : <StayServiceSchedule data={cabin} />}
       />
     );
   }

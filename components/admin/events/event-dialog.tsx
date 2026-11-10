@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
-import { eventSchema, type EventFormValues } from "./event-schema";
+import { EVENT_DESCRIPTION_MAX, eventSchema, type EventFormValues } from "./event-schema";
 import { EVENT_CATEGORIES, type EventCategory } from "@/lib/park-events";
 import type { ManagedEvent } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ function toValues(e?: ManagedEvent): EventFormValues {
     price: e?.price == null ? "" : String(e.price),
     capacity: e?.capacity == null ? "" : String(e.capacity),
     blurb: e?.blurb ?? "",
+    description: e?.description ?? "",
     published: e?.published ?? false,
     programId: e?.programId ?? "",
   };
@@ -61,6 +62,7 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
       durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : event?.durationMinutes,
       place: v.place,
       blurb: v.blurb,
+      description: v.category === "pirtis" && (v.description || event?.description) ? v.description : undefined,
       price: program ? program.price : v.price === "" ? null : Number(v.price),
       capacity: v.capacity === "" ? null : Number(v.capacity),
       sold: event?.sold ?? 0,
@@ -151,7 +153,17 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
           ) : null}
           {field("price", "Kaina, €", <Input id="price" inputMode="decimal" placeholder={program ? `Pagal programą: ${program.price} €` : "Nemokamai"} disabled={!!program} aria-invalid={!!err.price} {...register("price")} />)}
           {field("capacity", "Vietų skaičius", <Input id="capacity" inputMode="numeric" placeholder="Neribota" aria-invalid={!!err.capacity} {...register("capacity")} />)}
-          <div className="sm:col-span-2">{field("blurb", "Aprašymas", <Textarea id="blurb" rows={3} aria-invalid={!!err.blurb} {...register("blurb")} />)}</div>
+          <div className="sm:col-span-2">{field("blurb", category === "pirtis" ? "Trumpas aprašymas" : "Aprašymas", <Textarea id="blurb" rows={3} aria-invalid={!!err.blurb} {...register("blurb")} />)}</div>
+          {category === "pirtis" ? (
+            <div className="sm:col-span-2">
+              {field(
+                "description",
+                "Išsamus seanso aprašymas (nebūtina)",
+                <Textarea id="description" rows={6} maxLength={EVENT_DESCRIPTION_MAX} aria-describedby="description-hint" aria-invalid={!!err.description} {...register("description")} />,
+                "Rodomas atidarius seanso informaciją.",
+              )}
+            </div>
+          ) : null}
           <Controller
             control={control}
             name="published"

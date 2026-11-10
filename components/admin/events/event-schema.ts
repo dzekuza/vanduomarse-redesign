@@ -8,6 +8,8 @@ const optionalAmount = z
 
 /** The event column is a PostgreSQL smallint. */
 export const eventDurationMinutes = z.number().int().positive().max(32_767);
+export const EVENT_DESCRIPTION_MAX = 5000;
+export const eventDescription = z.string().trim().max(EVENT_DESCRIPTION_MAX, "Aprašymas per ilgas.");
 
 /** Form values are strings (inputs); converted to a ManagedEvent on submit. */
 export const eventSchema = z.object({
@@ -20,6 +22,7 @@ export const eventSchema = z.object({
   price: optionalAmount,
   capacity: optionalAmount,
   blurb: z.string().trim().min(10, "Aprašymas per trumpas.").max(240),
+  description: eventDescription,
   published: z.boolean(),
   /** Sauna program id, or "" for none. */
   programId: z.string(),

@@ -1,11 +1,12 @@
 "use client";
 
-import { CalendarBlankIcon, ClockCounterClockwiseIcon, MapTrifoldIcon } from "@phosphor-icons/react";
+import { MapTrifoldIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useId, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import { Cta } from "@/components/cta";
-import { DatePicker } from "@/components/ui/date-picker";
+import { QuadServiceNotices } from "@/components/services/quad-service-help";
+import { ServiceDateField } from "@/components/services/service-date-field";
 import { MAIN_CONTACT } from "@/lib/contacts";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { RESERVATION_DAYS } from "@/lib/reservation";
@@ -26,9 +27,10 @@ interface QuadServiceBookingProps {
 
 /** Route-first planning for the service page. This uses the preview catalogue only. */
 export function QuadServiceBooking({ data, day, onDayChange }: QuadServiceBookingProps) {
-  const dateId = useId();
   const [route, setRoute] = useState<QuadPreviewRoute>();
-  const lastDay = dateKey(nextDays(data.today, RESERVATION_DAYS)[RESERVATION_DAYS - 1]);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const days = useMemo(() => nextDays(data.today, RESERVATION_DAYS), [data.today]);
+  const selected = days.find((date) => dateKey(date) === day) ?? null;
 
   return (
     <div className="space-y-5">
@@ -59,35 +61,33 @@ export function QuadServiceBooking({ data, day, onDayChange }: QuadServiceBookin
           <Link href="#kainos" className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Daugiau apie trasas</Link>
         )}
       </fieldset>
-      <fieldset disabled={!route} className="space-y-2 disabled:opacity-50">
-        <label htmlFor={dateId} className="flex items-center gap-2 text-sm font-bold">
-          <CalendarBlankIcon size={18} aria-hidden /> Data
-        </label>
-        <DatePicker
-          id={dateId}
-          value={day ?? ""}
-          onChange={onDayChange}
-          min={data.today}
-          max={lastDay}
-          dayDetails={route ? (key) => {
-            const free = Math.max(0, ...quadPreviewSlots(data, key, route.hours).map((slot) => slot.free));
-            const available = free >= QUAD_PREVIEW_MIN_UNITS;
-            return {
-              label: `Daugiausia laisvų keturračių: ${free}. ${available ? "Yra rezervuojamų laikų." : "Rezervuojamų laikų nėra."}`,
-              indicator: <span className="inline-flex items-center gap-1 text-micro leading-none"><QuadAvailabilityDot available={available} />{free}</span>,
-            };
-          } : undefined}
-          calendarFooter={
-            <div className="space-y-1 border-t border-line pt-2 text-xs text-copy">
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                <span className="inline-flex items-center gap-1.5"><QuadAvailabilityDot available /> Yra laikų</span>
-                <span className="inline-flex items-center gap-1.5"><QuadAvailabilityDot available={false} /> Laikų nėra</span>
-              </div>
-              <p>Skaičius rodo, kiek daugiausia keturračių laisva vienam turo laikui.</p>
+      <ServiceDateField
+        date={selected}
+        days={days}
+        disabled={!route}
+        open={calendarOpen}
+        onOpenChange={setCalendarOpen}
+        onSelect={(date) => onDayChange(dateKey(date))}
+        onClear={() => onDayChange("")}
+        dayDetails={route ? (date) => {
+          const free = Math.max(0, ...quadPreviewSlots(data, dateKey(date), route.hours).map((slot) => slot.free));
+          const available = free >= QUAD_PREVIEW_MIN_UNITS;
+          return {
+            label: `Daugiausia laisvų keturračių: ${free}. ${available ? "Yra rezervuojamų laikų." : "Rezervuojamų laikų nėra."}`,
+            available,
+            indicator: <span className="inline-flex items-center gap-1 text-micro leading-none text-ink group-aria-pressed/day:text-dust"><QuadAvailabilityDot available={available} />{free}</span>,
+          };
+        } : undefined}
+        footer={
+          <div className="space-y-1 text-xs text-copy">
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <span className="inline-flex items-center gap-1.5"><QuadAvailabilityDot available /> Yra laikų</span>
+              <span className="inline-flex items-center gap-1.5"><QuadAvailabilityDot available={false} /> Laikų nėra</span>
             </div>
-          }
-        />
-      </fieldset>
+            <p>Skaičius rodo, kiek daugiausia keturračių laisva vienam turo laikui.</p>
+          </div>
+        }
+      />
       <QuadServiceBookingTime key={`${route?.id ?? ""}:${day ?? ""}`} data={data} day={day} route={route} />
     </div>
   );
@@ -124,19 +124,14 @@ function QuadServiceBookingTime({ data, day, route }: { data: QuadPageData; day:
           <QuadAccessories title={`${route.name} turas`} selected={false} quantities={accessories} onChange={setAccessories} />
         </div>
       ) : null}
-      <div className="space-y-3 border-t border-line pt-4">
-        {plan ? (
-          <p aria-live="polite" className="flex items-baseline justify-between gap-3">
-            <span className="text-xs text-copy">Preliminari kaina su PVM</span>
-            <strong className="text-figure">{plan.line.price} €</strong>
-          </p>
-        ) : null}
-        <p className="flex items-start gap-3 text-xs text-copy">
-          <ClockCounterClockwiseIcon size={18} aria-hidden className="shrink-0" />
-          <span>Nemokamas atšaukimas likus bent 48 val. iki turo.</span>
+      {plan ? (
+        <p aria-live="polite" className="flex items-baseline justify-between gap-3 border-t border-line pt-4">
+          <span className="text-xs text-copy">Preliminari kaina su PVM</span>
+          <strong className="text-figure">{plan.line.price} €</strong>
         </p>
-        {plan?.ok ? <Cta ref={reserveButton} tone="dark" small className="w-full" onClick={() => setReview(true)}>Rezervuoti</Cta> : null}
-      </div>
+      ) : null}
+      <QuadServiceNotices />
+      {plan?.ok ? <Cta ref={reserveButton} tone="dark" small className="w-full" onClick={() => setReview(true)}>Rezervuoti</Cta> : null}
       <QuadPreviewReview
         open={review && Boolean(inquiryHref)}
         onClose={() => setReview(false)}

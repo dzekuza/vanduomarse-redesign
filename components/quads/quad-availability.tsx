@@ -23,13 +23,14 @@ export function QuadTimeField({ slots, duration, selected, onSelect }: {
   onSelect: (slot: QuadPreviewSlot) => void;
 }) {
   const timeId = useId();
+  const disabled = slots.length === 0;
 
   return (
     <div className="space-y-2">
-      <label htmlFor={timeId} className="flex items-center gap-2 text-sm font-bold">
+      <label htmlFor={timeId} data-disabled={disabled || undefined} className="flex items-center gap-2 text-sm font-bold data-disabled:opacity-50">
         <ClockIcon size={18} aria-hidden /> Laikas
       </label>
-      <Select disabled={slots.length === 0} value={selected ? String(selected.hour) : ""} onValueChange={(value) => {
+      <Select disabled={disabled} value={selected ? String(selected.hour) : ""} onValueChange={(value) => {
         const slot = slots.find(({ hour }) => String(hour) === value);
         if (slot && slot.free >= QUAD_PREVIEW_MIN_UNITS) onSelect(slot);
       }}>

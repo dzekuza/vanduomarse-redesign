@@ -39,7 +39,7 @@ export function LandingHero() {
 
       <div className={`absolute inset-x-gutter bottom-39 z-4 md:flex md:items-end md:justify-between lg:bottom-hero-actions ${ENTER} motion-safe:slide-in-from-bottom-4 motion-safe:delay-350`}>
         <p className="max-w-105 text-xs leading-loose md:text-sm">
-          Laisvalaikio parkas vos 20 min. nuo Kauno centro. Švenčių erdvės, pirtys, keturračiai, maistas ir nakvynė.
+          Laisvalaikio ir pramogų parkas vos 20 min. nuo Kauno centro. Švenčių erdvės, pirtys, keturračiai, maistas ir nakvynė.
         </p>
         <Link href="#kryptys" className="group/cta mt-4 inline-flex min-h-11 transition-opacity duration-150 active:opacity-70 items-center gap-6 border-b border-current py-2.5 text-xs font-bold md:mr-5 md:mt-0">
           Ką gali rezervuoti?

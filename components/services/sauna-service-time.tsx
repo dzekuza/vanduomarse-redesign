@@ -5,6 +5,7 @@ import { useId } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SessionRow } from "@/lib/reservation";
 import { formatHour } from "@/lib/sauna";
+import { AvailabilityCount } from "./availability-count";
 
 interface TimeOption {
   row: SessionRow;
@@ -29,11 +30,12 @@ export function SaunaServiceTime({ rows, value, busy, dateSelected, onSelect }: 
     : [{ row, value: row.key, label: `${row.time} · ${row.title}`, hour: null }]);
   const selected = options.find((option) => option.value === value);
   const hasFreeTime = options.some(({ row }) => !row.blocked);
+  const disabled = busy || !dateSelected || options.length === 0;
 
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="flex items-center gap-2 text-sm font-bold"><ClockIcon size={18} aria-hidden /> Laikas</label>
-      <Select value={selected?.value ?? ""} disabled={busy || options.length === 0} onValueChange={(next) => {
+      <label htmlFor={id} data-disabled={disabled || undefined} className="flex items-center gap-2 text-sm font-bold data-disabled:opacity-50"><ClockIcon size={18} aria-hidden /> Laikas</label>
+      <Select value={selected?.value ?? ""} disabled={disabled} onValueChange={(next) => {
         const option = options.find((item) => item.value === next);
         if (option && !option.row.blocked) onSelect(option.row, option.hour);
       }}>
@@ -48,7 +50,7 @@ export function SaunaServiceTime({ rows, value, busy, dateSelected, onSelect }: 
                   <span className="font-bold">{row.title}</span>
                   <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs">
                     <span className="text-copy">{row.time}</span>
-                    <span className={row.blocked ? "font-bold text-rust-ink" : "font-bold"}>Laisvų vietų · {row.maxPeople}</span>
+                    <span>Laisvų vietų · <AvailabilityCount free={row.maxPeople} capacity={row.capacity} /></span>
                   </span>
                 </span>
               ) : label}
