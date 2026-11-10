@@ -79,7 +79,7 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
       : "mb-4 flex items-center justify-between gap-2";
 
   return (
-    <div onPointerOver={selection?.selectingEnd ? previewDeparture : undefined} onPointerLeave={selection?.selectingEnd ? () => setPreview(undefined) : undefined} className="relative">
+    <div data-view={compact ? undefined : view} onPointerOver={selection?.selectingEnd ? previewDeparture : undefined} onPointerLeave={selection?.selectingEnd ? () => setPreview(undefined) : undefined} className="relative">
       <div className={controlsClass}>
         {view === "calendar" && calendarMonth && (
           <p aria-live="polite" className="text-micro font-bold uppercase text-copy">

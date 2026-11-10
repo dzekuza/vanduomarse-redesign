@@ -6,6 +6,7 @@ import type { DayIcon } from "@/components/booking/day-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { DatePicker } from "./date-picker";
+import type { ReservationDayDetails } from "./day-cell";
 
 export type StayDatePhase = "idle" | "selectingEnd" | "complete";
 
@@ -16,6 +17,8 @@ interface WhenStepProps {
   compact?: boolean;
   /** Availability icons under each day. */
   icons: (date: Date) => DayIcon[];
+  /** Extra per-day marks, e.g. where scheduled sessions or tours are. */
+  dayDetails?: (date: Date) => ReservationDayDetails | undefined;
   stay?: {
     phase: StayDatePhase;
     end: Date | null;
@@ -27,7 +30,7 @@ interface WhenStepProps {
 const STAY_DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { day: "numeric", month: "long" });
 
 /** Select the activity day or the arrival and departure of a stay. */
-export function WhenStep({ days, date, onDate, icons, stay, compact }: WhenStepProps) {
+export function WhenStep({ days, date, onDate, icons, dayDetails, stay, compact }: WhenStepProps) {
   const dateId = useId();
   const [open, setOpen] = useState(false);
   const selected = stay?.phase === "idle" ? null : date;
@@ -42,6 +45,7 @@ export function WhenStep({ days, date, onDate, icons, stay, compact }: WhenStepP
         if (!stay || (stay.phase === "selectingEnd" && next > date)) setOpen(false);
       } : select}
       icons={icons}
+      dayDetails={dayDetails}
       initialView={compact ? "calendar" : undefined}
       range={stay ? { end: stay.end, selectingEnd: stay.phase === "selectingEnd", lastEnd: stay.lastEnd } : undefined}
     />

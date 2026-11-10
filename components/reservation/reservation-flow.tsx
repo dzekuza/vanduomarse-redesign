@@ -47,6 +47,7 @@ import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
 import { ReservationAccountDialog } from "./reservation-account-dialog";
 import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
+import type { ReservationDayDetails } from "./day-cell";
 import { WhenStep, type StayDatePhase } from "./when-step";
 
 /** Selection, then verified contact and final submission inside the dialog. */
@@ -138,6 +139,26 @@ export function ReservationFlow({
       label: `${ACTIVITY_TITLE[id]} ${free[id] ? "laisva" : "užimta"}`,
       on: free[id],
     }));
+  };
+  /** Where scheduled things are: a count of the sauna sessions (Pirtis tab) or tour departures (Keturračiai tab) on a day. */
+  const eventDetails = (d: Date): ReservationDayDetails | undefined => {
+    const key = dateKey(d);
+    const count = tab === "pirtis" ? data.sauna.events.filter((e) => e.date === key).length : tab === "keturraciai" ? data.quads.departures.filter((x) => x.date === key).length : 0;
+    if (tab === "nakvyne") return undefined;
+    const available = dayIcons(d).some(({ on }) => on);
+    // An empty marker keeps every day the same height, with or without sessions.
+    if (count === 0) return { label: "", available, indicator: <span className="block h-3" /> };
+    const noun = tab === "pirtis" ? (count === 1 ? "seansas" : count < 10 ? "seansai" : "seansų") : count === 1 ? "turas" : count < 10 ? "turai" : "turų";
+    return {
+      label: `${count} ${noun}`,
+      available,
+      indicator: (
+        <span className="flex items-center justify-center gap-1 text-micro font-bold text-rust-ink group-aria-pressed/day:text-dust">
+          <span aria-hidden className="size-1.5 rounded-full bg-rust" />
+          {count}
+        </span>
+      ),
+    };
   };
   const inPlan = tabs.filter((id) => picks[id] !== undefined || (id === "keturraciai" && tourPick !== null));
   const selectionReady = tourPick === null
@@ -397,46 +418,52 @@ export function ReservationFlow({
                 });
               }}
             /> : <>
-              <WhenStep
-                days={days}
-                date={date}
-                onDate={selectDate}
-                icons={dayIcons}
-                compact={Boolean(activity)}
-                stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
-              />
-              <ActivitiesStep
-                data={data}
-                when={when}
-                tab={tab}
-                sessionId={sessionId}
-                onSessionSelectedFocus={activity ? () => inlinePlan.current?.focus() : undefined}
-                onSessionDay={(key) => {
-                  const next = days.find((candidate) => dateKey(candidate) === key);
-                  if (next && !busy) {
-                    setTab("pirtis");
-                    selectDate(next);
-                  }
-                }}
-                picks={picks}
-                plans={plans}
-                stayNights={stayEnd ? stayNights : null}
-                tourPick={tourPick}
-                tourHours={quadTour?.hours ?? []}
-                onTourPick={(next) => {
-                  if (busy) return;
-                  setStep(0);
-                  setTourPick(next);
-                  if (next) setPicks((current) => {
-                    const remaining = { ...current };
-                    delete remaining.keturraciai;
-                    return remaining;
-                  });
-                }}
-                onRemove={removeActivity}
-                onPick={editPicks}
-                onPeople={editPeople}
-              />
+              {/* With the month calendar open and room to spare, the day's results sit beside it instead of below. */}
+              <div className="@container">
+                <div className="grid gap-8 has-[[data-view=calendar]]:@4xl:grid-cols-[3fr_2fr] has-[[data-view=calendar]]:@4xl:items-start">
+                  <WhenStep
+                    days={days}
+                    date={date}
+                    onDate={selectDate}
+                    icons={dayIcons}
+                    dayDetails={eventDetails}
+                    compact={Boolean(activity)}
+                    stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
+                  />
+                  <ActivitiesStep
+                    data={data}
+                    when={when}
+                    tab={tab}
+                    sessionId={sessionId}
+                    onSessionSelectedFocus={activity ? () => inlinePlan.current?.focus() : undefined}
+                    onSessionDay={(key) => {
+                      const next = days.find((candidate) => dateKey(candidate) === key);
+                      if (next && !busy) {
+                        setTab("pirtis");
+                        selectDate(next);
+                      }
+                    }}
+                    picks={picks}
+                    plans={plans}
+                    stayNights={stayEnd ? stayNights : null}
+                    tourPick={tourPick}
+                    tourHours={quadTour?.hours ?? []}
+                    onTourPick={(next) => {
+                      if (busy) return;
+                      setStep(0);
+                      setTourPick(next);
+                      if (next) setPicks((current) => {
+                        const remaining = { ...current };
+                        delete remaining.keturraciai;
+                        return remaining;
+                      });
+                    }}
+                    onRemove={removeActivity}
+                    onPick={editPicks}
+                    onPeople={editPeople}
+                  />
+                </div>
+              </div>
             </>}
           </div>
           <PlanPanel ref={activity ? inlinePlan : undefined} activity={tab} photos={photos} inline={Boolean(activity)} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />

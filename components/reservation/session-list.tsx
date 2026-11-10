@@ -118,9 +118,9 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
         <span className="max-w-56 text-item font-bold sm:text-figure">{row.rate}</span>
         {blocked && <span className="text-xs text-copy">Nepasiekiama</span>}
         {(selected || !blocked) && (
-          <div className="ml-auto flex max-w-full flex-wrap items-end justify-end gap-2">
+          <div className="flex w-full max-w-full flex-wrap items-end gap-2">
             {!blocked && quantity ? (
-              <div className="text-left"><Stepper label="Kiekis" {...quantity} min={1} editable compact /></div>
+              <div className="text-left"><Stepper label="Kiekis" {...quantity} min={1} editable compact hideLabel /></div>
             ) : null}
             <button
               type="button"
@@ -130,7 +130,7 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
               className={ctaClass({
                 tone: active ? "cream" : "dark",
                 small: true,
-                className: `inline-flex items-center disabled:pointer-events-none disabled:opacity-50 ${isPrivate ? "" : "max-sm:gap-2"}`,
+                className: `inline-flex h-11 flex-1 items-center py-0 disabled:pointer-events-none disabled:opacity-50 ${isPrivate ? "" : "max-sm:gap-2"}`,
               })}
             >
               {action}

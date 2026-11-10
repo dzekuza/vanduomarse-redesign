@@ -14,7 +14,7 @@ updated: 2026-11-07
 
 ## Current focus
 
-**Quad tour departures (2026-11-10, ADR-0055): migration applied to the live DB and verified, types regenerated; code built on `main`, uncommitted, not browser-checked.** The storefront offers no tour dates until departures are added per tour type in the Turai tab. Next: add departures, browser-check /keturraciu-nuoma, /rezervacija and the admin, one Stripe test booking.
+**Pending: apply `20261110130000_quad_tour_departures_hardening.sql` (security follow-up, tested, not applied; blocks booking a tour outside a departure).** **Quad tour departures (2026-11-10, ADR-0055): migration applied to the live DB and verified, types regenerated; code built on `main`, uncommitted, not browser-checked.** The storefront offers no tour dates until departures are added per tour type in the Turai tab. Next: add departures, browser-check /keturraciu-nuoma, /rezervacija and the admin, one Stripe test booking.
 
 **/pirtis Tipas from admin saunas (2026-11-10): built on `main`, uncommitted, not clicked through.** The booking widget lists the active saunas plus a sessions chip instead of hard-coded types.
 

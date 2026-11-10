@@ -16,7 +16,8 @@ import {
   type StayUnitType,
 } from "@/lib/cabin";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "@/lib/data/public-types";
-import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, freeAt, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
+import { quadTourStarts } from "@/components/quads/quad-tour-plan";
+import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
 import {
   formatHour,
   hoursLabel,
@@ -407,14 +408,8 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
     return sauna && Math.min(program.capacity ?? 0, sauna.rates.maxParty) > 0
       && privateStarts(program, sauna, data.sauna, day).length > 0;
   });
-  const { settings, types, taken } = data.quads;
-  let keturraciai = false;
-  for (let h = Math.max(settings.openHour, past + 1); h < settings.closeHour; h++) {
-    if (types.some((type) => freeAt(type, taken, day, h) > 0)) {
-      keturraciai = true;
-      break;
-    }
-  }
+  // Tours are sold on scheduled departures only, so a day is open when a route has one with enough free quads.
+  const keturraciai = data.quads.tourRoutes.some((route) => quadTourStarts(data.quads, day, route).length > 0);
   const checkIn = nextDays(day, 1)[0];
   const hasStay = (type: StayUnitType) => freeStayUnits(data.cabin.availability, checkIn, nights, type) > 0;
   const nakvyne = hasStay("kemperis") || CABIN_SIZES.some(({ id }) => hasStay(id));

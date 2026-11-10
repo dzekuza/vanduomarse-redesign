@@ -11,6 +11,7 @@ export function Stepper({
   label,
   editable = false,
   compact = false,
+  hideLabel = false,
 }: {
   value: number;
   onChange: (next: number) => void;
@@ -19,6 +20,8 @@ export function Stepper({
   label: string;
   editable?: boolean;
   compact?: boolean;
+  /** Keep the label for screen readers only (the field is obvious from context). */
+  hideLabel?: boolean;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const current = draft ? Math.max(min, Math.min(max, Number(draft))) : value;
@@ -31,7 +34,7 @@ export function Stepper({
 
   return (
     <div className={compact ? "grid w-fit gap-1" : "flex min-h-15 items-center justify-between gap-3 border border-line py-2 pl-4 pr-2"}>
-      <span className={compact ? "text-micro uppercase" : "min-w-0 text-sm leading-snug text-ink"}>{label}</span>
+      <span className={hideLabel ? "sr-only" : compact ? "text-micro uppercase" : "min-w-0 text-sm leading-snug text-ink"}>{label}</span>
       <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
