@@ -7,7 +7,8 @@
     "build": "pnpm build:wp-plugin && next build",
     "build:wp-plugin": "node --experimental-strip-types scripts/build-wp-plugin.mts",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "design:check": "node tools/zero-slop-design/zsd.mjs lint DESIGN.md && node tools/zero-slop-design/zsd.mjs check-code DESIGN.md --config design-check.config.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

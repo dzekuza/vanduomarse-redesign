@@ -1,0 +1,19 @@
+{
+  "root": ".",
+  "known": "design-check.known.json",
+  "ignore": [
+    "app/globals.css",
+    "lib/supabase/database.types.ts",
+    "tools/**",
+    "supabase/**",
+    "wordpress/**",
+    "obsidian/**",
+    "public/**",
+    "scripts/**",
+    ".claude/**",
+    ".codex/**",
+    ".playwright-mcp/**"
+  ],
+  "ignoreDirectories": [".next", "node_modules", ".claude", ".codex", ".playwright-mcp"],
+  "extensions": [".ts", ".tsx", ".css"]
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "design": "DESIGN.md",
+  "defects": [
+    {
+      "rule": "dimension-value",
+      "file": "components/ui/button.tsx",
+      "text": "rounded-[min(var(--radius-md),10px)]",
+      "count": 2
+    },
+    {
+      "rule": "dimension-value",
+      "file": "components/ui/button.tsx",
+      "text": "rounded-[min(var(--radius-md),12px)]",
+      "count": 2
+    },
+    {
+      "rule": "dimension-value",
+      "file": "components/ui/button.tsx",
+      "text": "text-[0.8rem]",
+      "count": 1
+    },
+    {
+      "rule": "dimension-value",
+      "file": "components/ui/select.tsx",
+      "text": "rounded-[min(var(--radius-md),10px)]",
+      "count": 1
+    },
+    {
+      "rule": "dimension-value",
+      "file": "components/ui/tooltip.tsx",
+      "text": "rounded-[2px]",
+      "count": 1
+    }
+  ]
+}
