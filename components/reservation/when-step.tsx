@@ -15,8 +15,8 @@ interface WhenStepProps {
   date: Date;
   onDate: (date: Date) => void;
   compact?: boolean;
-  /** Availability icons under each day. */
-  icons: (date: Date) => DayIcon[];
+  /** Availability icons under each day (not used by /rezervacija, which marks days through `dayDetails`). */
+  icons?: (date: Date) => DayIcon[];
   /** Extra per-day marks, e.g. where scheduled sessions or tours are. */
   dayDetails?: (date: Date) => ReservationDayDetails | undefined;
   stay?: {

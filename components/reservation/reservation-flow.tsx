@@ -34,10 +34,8 @@ import {
   type When,
 } from "@/lib/reservation";
 import { dateKey, longDateLabel, nextDays } from "@/lib/sauna";
-import type { DayIcon } from "@/components/booking/day-picker";
 import type { AccountValues } from "./account-step";
 import { ActivitiesStep } from "./activities-step";
-import { ACTIVITY_ICON } from "./activity-icons";
 import { ActivityAbout } from "./activity-about";
 import { ActivityTabs } from "./activity-tabs";
 import { activityPhotos } from "./activity-photos";
@@ -131,26 +129,21 @@ export function ReservationFlow({
   const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
   const datesLabel = checkoutLabel ? `${dateLabel} iki ${checkoutLabel}` : dateLabel;
   const whenLabel = tracksPeople ? `${datesLabel}, ${people} žm.` : datesLabel;
-  /** Sauna, quad and stay icons under each day, lit when something is still free. */
-  const dayIcons = (d: Date): DayIcon[] => {
-    const free = dayAvailability(data, dateKey(d), people, stayEnd ? stayNights : 1);
-    return tabs.map((id) => ({
-      Icon: ACTIVITY_ICON[id],
-      label: `${ACTIVITY_TITLE[id]} ${free[id] ? "laisva" : "užimta"}`,
-      on: free[id],
-    }));
-  };
-  /** Where scheduled things are: a count of the sauna sessions (Pirtis tab) or tour departures (Keturračiai tab) on a day. */
-  const eventDetails = (d: Date): ReservationDayDetails | undefined => {
+  /**
+   * Per-day marks for the active tab: whether it is still free (faded days are not) and, for the sauna and quads,
+   * how many scheduled sessions or tour departures there are.
+   */
+  const dayDetails = (d: Date): ReservationDayDetails => {
     const key = dateKey(d);
-    const count = tab === "pirtis" ? data.sauna.events.filter((e) => e.date === key).length : tab === "keturraciai" ? data.quads.departures.filter((x) => x.date === key).length : 0;
-    if (tab === "nakvyne") return undefined;
-    const available = dayIcons(d).some(({ on }) => on);
+    const available = dayAvailability(data, key, people, stayEnd ? stayNights : 1)[tab];
+    const status = `${ACTIVITY_TITLE[tab]} ${available ? "laisva" : "užimta"}`;
+    if (tab === "nakvyne") return { label: status, available };
+    const count = tab === "pirtis" ? data.sauna.events.filter((e) => e.date === key).length : data.quads.departures.filter((x) => x.date === key).length;
     // An empty marker keeps every day the same height, with or without sessions.
-    if (count === 0) return { label: "", available, indicator: <span className="block h-3" /> };
+    if (count === 0) return { label: status, available, indicator: <span className="block h-3" /> };
     const noun = tab === "pirtis" ? (count === 1 ? "seansas" : count < 10 ? "seansai" : "seansų") : count === 1 ? "turas" : count < 10 ? "turai" : "turų";
     return {
-      label: `${count} ${noun}`,
+      label: `${status}, ${count} ${noun}`,
       available,
       indicator: (
         <span className="flex items-center justify-center gap-1 text-micro font-bold text-rust-ink group-aria-pressed/day:text-dust">
@@ -425,8 +418,7 @@ export function ReservationFlow({
                     days={days}
                     date={date}
                     onDate={selectDate}
-                    icons={dayIcons}
-                    dayDetails={eventDetails}
+                    dayDetails={dayDetails}
                     compact={Boolean(activity)}
                     stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
                   />
