@@ -1,5 +1,6 @@
 "use client";
 
+import { InfoIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
@@ -71,12 +72,18 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
   return (
     <article
       aria-label={`${row.title}, ${row.time}`}
-      className={`grid gap-x-5 gap-y-4 border p-5 transition-colors duration-150 ease-out-strong lg:@xl:items-center ${
+      className={`relative grid gap-x-5 gap-y-4 border p-5 transition-colors duration-150 ease-out-strong lg:@xl:items-center ${
         isPrivate ? "lg:@xl:grid-cols-[minmax(0,1fr)_auto_auto]" : "lg:@xl:grid-cols-[minmax(0,1fr)_auto]"
       } ${
         active ? "border-ink bg-ink text-dust" : "border-line bg-card"
       } ${blocked ? "text-copy" : ""}`}
     >
+      {eventId ? (
+        <SessionInfoLink id={eventId} className="absolute top-2 right-2 flex size-11 items-center justify-center transition-opacity duration-150 hover:opacity-70">
+          <InfoIcon size={22} aria-hidden />
+          <span className="sr-only">Daugiau informacijos: {row.title}</span>
+        </SessionInfoLink>
+      ) : null}
       <span className="min-w-0">
         <span className="flex flex-wrap items-center gap-2">
           <span className={`inline-block border px-2 py-0.5 text-micro uppercase ${line}`}>{row.label}</span>
@@ -86,14 +93,6 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
         {row.host ? <span className={`mt-1 block text-xs font-bold ${copy}`}>Pirtininkas · {row.host}</span> : null}
         {row.description ? <span className={`mt-1 block max-w-xl text-xs leading-relaxed ${copy}`}>{row.description}</span> : null}
         <span className={`mt-2 block text-xs ${!active && (blocked || row.mode === "session") ? "text-rust-ink" : copy}`}>{row.seats}</span>
-        {eventId ? (
-          <SessionInfoLink
-            id={eventId}
-            className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust"
-          >
-            Daugiau informacijos
-          </SessionInfoLink>
-        ) : null}
       </span>
       {isPrivate && !blocked ? (
         <div className={`flex border-t pt-3 lg:@xl:border-0 lg:@xl:pt-0 ${line}`}>
@@ -114,7 +113,7 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
           </div>
         </div>
       ) : null}
-      <div className={`flex flex-wrap items-end justify-between gap-3 border-t pt-4 lg:@xl:flex-col lg:@xl:items-end lg:@xl:border-0 lg:@xl:pt-0 lg:@xl:text-right ${isPrivate ? "lg:@xl:col-start-3" : ""} ${line}`}>
+      <div className={`flex flex-wrap items-end justify-between gap-3 border-t pt-4 lg:@xl:flex-col lg:@xl:items-end lg:@xl:border-0 ${eventId ? "lg:@xl:pt-8" : "lg:@xl:pt-0"} lg:@xl:text-right ${isPrivate ? "lg:@xl:col-start-3" : ""} ${line}`}>
         <span className="max-w-56 text-item font-bold sm:text-figure">{row.rate}</span>
         {blocked && <span className="text-xs text-copy">Nepasiekiama</span>}
         {(selected || !blocked) && (

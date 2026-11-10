@@ -1,21 +1,28 @@
 "use client";
 
+import { InfoIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import { Cta } from "@/components/cta";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { QuadTourRoute } from "@/lib/quads";
 
-/** Route details reuse the activity dialog, without expanding or changing the booking cards. */
-export function QuadRouteDialog({ route }: { route: QuadTourRoute }) {
+/** Route details reuse the activity dialog, without expanding or changing the booking cards. `icon` renders just an info button (for a card corner) instead of the text link. */
+export function QuadRouteDialog({ route, variant = "link", className }: { route: QuadTourRoute; variant?: "link" | "icon"; className?: string }) {
   const title = `${route.name} turas`;
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button type="button" aria-label={`Daugiau apie trasą: ${title}`} className="flex min-h-11 items-center text-left text-xs underline underline-offset-4 transition-opacity duration-150 hover:opacity-70">
-          Daugiau apie trasą
-        </button>
+        {variant === "icon" ? (
+          <button type="button" aria-label={`Daugiau apie trasą: ${title}`} className={`flex size-11 items-center justify-center transition-opacity duration-150 hover:opacity-70 ${className ?? ""}`}>
+            <InfoIcon size={22} aria-hidden />
+          </button>
+        ) : (
+          <button type="button" aria-label={`Daugiau apie trasą: ${title}`} className="flex min-h-11 items-center text-left text-xs underline underline-offset-4 transition-opacity duration-150 hover:opacity-70">
+            Daugiau apie trasą
+          </button>
+        )}
       </DialogTrigger>
       <DialogContent showCloseButton={false} className="flex max-h-9/10 flex-col gap-0 overflow-hidden rounded-none border-line bg-popover p-0 text-ink sm:max-w-xl">
         <div className="relative h-44 shrink-0 bg-dust-soft md:h-60">

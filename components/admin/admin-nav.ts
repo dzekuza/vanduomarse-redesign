@@ -10,6 +10,7 @@ import {
   LifebuoyIcon,
   MotorcycleIcon,
   PercentIcon,
+  PersonSimpleSnowboardIcon,
   ScanIcon,
   TagIcon,
   UsersThreeIcon,
@@ -22,7 +23,7 @@ export type AdminNavGroup = "apzvalga" | "pardavimai" | "klientai" | "turinys" |
 export const ADMIN_NAV_GROUPS: { id: AdminNavGroup; label: string | null }[] = [
   { id: "apzvalga", label: null },
   { id: "pardavimai", label: "Pardavimai" },
-  { id: "klientai", label: "Klientai" },
+  { id: "klientai", label: null },
   { id: "turinys", label: "Turinys" },
   { id: "nustatymai", label: "Nustatymai" },
 ];
@@ -60,10 +61,10 @@ export type AdminNavEntry = AdminNavItem | AdminNavDomain;
 export const isDomain = (entry: AdminNavEntry): entry is AdminNavDomain => "children" in entry;
 
 /**
- * Plain links, no dropdowns: Kalendorius (all bookings and events), then each
+ * Mostly plain links: Kalendorius (all bookings and events), then each
  * resource's own page. Cabins are managed under Kainodara (`/admin/kainos`), so
- * there is no separate Namukai row. `AdminNavDomain` support stays for any
- * future grouped row.
+ * there is no separate Namukai row. The one dropdown is Vandenlentės, which holds
+ * the wristband and instructor pages (`AdminNavDomain`).
  */
 export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin", label: "Apžvalga", icon: ChartPieSliceIcon, group: "apzvalga", permission: "apzvalga", badge: "pendingAll", primary: true },
@@ -72,8 +73,16 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "pardavimai", permission: "kuponai", badge: "pendingCoupons" },
   { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "pardavimai", permission: "nuolaidos" },
-  { href: "/admin/apyrankes", label: "Apyrankės", icon: ScanIcon, group: "pardavimai", permission: "apyrankes" },
-  { href: "/admin/instruktorius", label: "Instruktorius", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
+  {
+    id: "vandenlentes",
+    label: "Vandenlentės",
+    icon: PersonSimpleSnowboardIcon,
+    group: "pardavimai",
+    children: [
+      { href: "/admin/apyrankes", label: "Apyrankės", icon: ScanIcon, group: "pardavimai", permission: "apyrankes" },
+      { href: "/admin/instruktorius", label: "Instruktorius", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
+    ],
+  },
   { href: "/admin/uzklausos", label: "Užklausos", icon: EnvelopeSimpleIcon, group: "pardavimai", permission: "uzklausos", badge: "newInquiries" },
   { href: "/admin/klientai", label: "Klientai", icon: AddressBookIcon, group: "klientai", permission: "klientai", primary: true },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },

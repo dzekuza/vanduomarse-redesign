@@ -36,11 +36,18 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
     onChange(next);
   }
 
+  // Only routes with a departure on this day are offered; a route already in the plan stays so it can be removed.
+  const routes = data.tourRoutes.filter((route) => pick?.routeId === route.id || quadTourStarts(data, when.day, route, busy).length > 0);
+
+  if (routes.length === 0) {
+    return <p role="status" className="text-sm text-copy">Šią dieną turų nėra. Pasirink kitą datą.</p>;
+  }
+
   return (
     <div className="@container">
       <OptionGroupLabel>Trasos</OptionGroupLabel>
       <div className="grid items-start gap-3 lg:@2xl:grid-cols-3">
-        {data.tourRoutes.map((route) => (
+        {routes.map((route) => (
           <RouteCard
             key={route.id}
             route={route}
@@ -74,17 +81,16 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
   const slot = starts.find(({ hour }) => hour === choice.startHour);
   const ready = Boolean(slot && choice.units >= route.minUnits && choice.units <= slot.free && quadTourAccessories(catalogue, choice.accessories).ok);
   const copy = selected ? "text-dust/80" : "text-copy";
-  const line = selected ? "border-line-on-ink" : "border-line";
 
   return (
-    <article aria-label={title} className={`flex min-w-0 flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
+    <article aria-label={title} className={`relative flex min-w-0 flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
       <header className="space-y-2">
         <p className={`text-micro uppercase ${copy}`}>{route.kilometres} km · {hoursLabel(route.hours)}</p>
         <h3 className="text-item font-bold">{title}</h3>
         <p className="text-xs font-bold">{route.price} € / keturračiui</p>
       </header>
-      <QuadRouteDialog route={route} />
-      <div className={`mt-auto space-y-4 border-t pt-3 ${line}`}>
+      <QuadRouteDialog route={route} variant="icon" className="absolute top-2 right-2" />
+      <div className="mt-auto space-y-4">
         <div className="space-y-2">
           <p className={`text-micro uppercase ${copy}`}>Pradžios laikas</p>
           <Select value={slot ? String(choice.startHour) : ""} onValueChange={(value) => onDraft({ ...choice, startHour: Number(value) })} disabled={starts.length === 0}>
