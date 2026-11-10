@@ -34,9 +34,10 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-coral` `#ed5257` | primitive | sampled from vanduomarse.lt | Shared public accent for `--rust` and `--rust-soft`, including booking pages |
 | `--raw-tan` `#e2b38c` | primitive | sampled from vanduomarse.lt | `theme-marse` secondary (maps to `--lake`) |
 | `--raw-teal-deep` `#015059` | primitive | brand badge SVG | `theme-marse` `--lake-soft` accent |
+| `--on-rust` | semantic | `--raw-aubergine-deep` `#171317` | `text-on-rust`: every text on a coral (`bg-rust`) surface: `Cta` coral tone, menu panel, ticker, hero sticker, all-in band, TOP badge and the coral hover states; 5.2:1 on coral. Exception: the booking-tabs count badge still uses `text-foam` |
 | `--tile-radius` `1.25rem` | primitive | first landing redesign (ADR-0009) | `rounded-tile`: used only by the home page activity drawer (floating panel); the rest of the 2026-11 look is square with cut corners (`--radius: 0`) |
 | `--tab` / `--tab-active` / `--tab-active-foreground` / `--tab-hover` | semantic | `--dust` / `--ink` / `--foam` / `--dust-soft` (widget: 85% of the custom tab colour), declared in `:root` and `.theme-marse` | `bg-tab`, `bg-tab-active`, `text-tab-active-foreground`, `hover:bg-tab-hover` in `BookingTabs`; separate so WordPress widgets can recolour tabs apart from the page (ADR-0015) |
-| `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Big Shoulders by default; Termina uppercase (100% stretch) in `theme-marse` | read by the `font-display` utility |
+| `--display-face` / `--display-stretch` / `--display-case` / `--display-tracking` | semantic | Termina (uppercase, 100% stretch in `theme-marse`; Termina fallback elsewhere) | read by the `font-display` utility |
 
 | `--raw-teal-slate` `#2f545b` | primitive | sampled from the booking design | `.theme-reservation` maps `--lake-soft` to slate teal, uses 19% ink for `--line` and `--input`, and uses a 16% white wash for `--card` |
 | `--raw-coral-ink` `#a8282d` | primitive | coral darkened to 5:1 on blush | `text-rust-ink`: small coral text (notices, errors); never use `text-rust` below ~24 px |
@@ -56,7 +57,7 @@ One recipe across the home page and every inner page.
 
 - **Palette:** ink (aubergine) bands and text, dust (blush) page, rust (coral) for the second headline line, CTAs, stars and highlights, `lake-soft` (deep teal) as the third surface (location block, hover on dark CTAs), `lake` (tan) for accents on teal, `water` (bright teal) only as status dot / focus.
 - **Light public surfaces:** `bg-dust` uses `#eed9ce`. Use `text-copy` for supporting text such as booking breadcrumbs and intros, calculator and reservation hints, and FAQ answers. Use the existing accent and status tokens for their distinct roles, including accents on dark brand surfaces.
-- **Type:** Termina only (body included; Work Sans was removed 2026-11-04, Big Shoulders stays only for the non-themed `font-display` fallback). Titles are **bold uppercase** with tight negative tracking and set from the fluid steps (`text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`) with `-sm` phone twins. Body copy is `text-xs`/`text-sm` with `leading-loose`; labels are `text-micro` (11 px, +0.07em).
+- **Type:** Termina only (body included; Work Sans was removed 2026-11-04, Big Shoulders was removed 2026-11-10, ADR-0057). Titles are **bold uppercase** with tight negative tracking and set from the fluid steps (`text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`) with `-sm` phone twins. Body copy is `text-xs`/`text-sm` with `leading-loose`; labels are `text-micro` (11 px, +0.07em).
 - **Shapes:** square everywhere; the only curves are the circular sticker and the **cut corners** (`rounded-tl-cut`, `rounded-br-cut`) on a few photos. Hairlines are `border-line` (or `border-dust/30` on ink).
 - **Page anatomy:** `SiteHeader` on ink → ink band (`LandingHero` uses a background grid, `PageIntro` uses a grid and orbit lines) → dust content → `FooterWord` + `FooterBar` footer. Use `PageIntro` for dark page introductions.
 - **Forms and cards:** outlined `border-ink` cards on `bg-foam` / `bg-card`, a bottom bar with the total and the primary button. Primary action = dark `Cta` (`ArrowButton`); the home page and header use the coral tone. Choice chips and tiles press to `scale-97`.
@@ -89,7 +90,7 @@ One recipe across the home page and every inner page.
 - Public page art utilities: `clip-hero-narrow/-wide`, `bg-grid-hero`, `orbit-round`, `text-outline`, `scrollbar-none`, `animate-marquee`, `animate-spin-slow`.
 
 - `font-wordmark` + `wordmark-size` + `wordmark-fit` — the giant "VANDUO MARSE"
-  (Big Shoulders 900, uppercase, `line-height .82`). `wordmark-fit` makes the
+  (Termina Bold, uppercase, `line-height .9`). `wordmark-fit` makes the
   parent a size container; `wordmark-size` is `30cqw` (two stacked lines) and
   `16cqw` from `md` (one line, `nowrap`). If the text or font changes, re-measure:
   the single line is ~6.2 em wide. `font-wordmark` alone is for oversized
@@ -122,7 +123,7 @@ One recipe across the home page and every inner page.
 `:root` also defines the shadcn tokens (`--background`, `--primary`,
 `--border`, `--ring`, `--sidebar*`, `--chart-*`, …) mapped to the brand:
 primary aubergine `#382e38`, background blush paper `#fbf3ef`, cards
-`#fffaf7`, secondary/accent blush `#f1d8ce`, ring coral `#ed5257`,
+`#fffaf7`, secondary/accent blush `#f1d8ce`, ring coral-ink `#a8282d` (full opacity; the dark admin keeps coral),
 destructive `#c73a3f`, borders aubergine at 18%, `--radius: 0rem` (square,
 like the site). `font-sans` / `font-heading` map to Termina (`app/fonts/`, `next/font/local`, four real weights: Regular 400, Medium 500, SemiBold 600, Bold 700 — `font-medium`/`font-semibold` render their own faces now, not a Regular/Bold stand-in; `.theme-marse` still forces every native `h1`–`h6` to 700 for the brand look regardless of weight utilities nearby). Utilities:
 `bg-hatch` (diagonal stripes for closed slots).
@@ -154,6 +155,6 @@ straight to a semantic token with a literal value.
 
 ## Weights and borders
 
-- Termina ships 400 and 700: use `font-normal` / `font-bold` only (never `font-medium` / `font-semibold`).
+- Termina ships four weights (400, 500, 600, 700, `app/fonts/`). Headings and actions are `font-bold`, text is `font-normal`; `font-medium` / `font-semibold` are allowed for UI emphasis (admin card titles, row labels).
 - Hairlines: `border-line` on light surfaces, `border-line-on-ink` on ink bands; no `border-ink/NN` or `border-dust/NN` (the coral menu panel and accordion dividers are the exceptions).
 - shadcn `Button`, `CardTitle`, `DialogTitle`, `SheetTitle`, `DrawerTitle`, tabs triggers and table heads are `font-bold` (headings and actions bold, text regular), so admin matches the public site.

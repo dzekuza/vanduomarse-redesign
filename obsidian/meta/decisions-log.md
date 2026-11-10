@@ -1,12 +1,20 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-07
+updated: 2026-11-10
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0057 — Termina is the only font; Big Shoulders is removed
+
+- **Context:** `app/layout.tsx` loaded Big Shoulders from Google Fonts only as the non-themed `font-display` fallback and for the `Wordmark`. Next logged "Failed to find font override values" on every compile, and `theme-marse` already mapped the display face to Termina.
+- **Decision:** Remove the Big Shoulders import and variable. `font-display` falls back to `--font-termina`; `font-wordmark` uses Termina Bold (sizes 18cqw / 10cqw from `md`, since Termina is wider).
+- **Consequences:** One font family, no Google Fonts request, no warning. The coming-soon wordmark changed look and needs a visual check.
 
 ---
 

@@ -1,3 +1,66 @@
+## 2026-11-10 — Big Shoulders removed
+
+- **Why:** Dev log warned about Big Shoulders on every compile and the user does not use it.
+- **Changed:** `app/layout.tsx`, `app/globals.css` (`font-display`, `font-wordmark`), DESIGN.md, design-system, brief, common catalog, ADR-0057, changelog, status.
+- **Status:** `tsc`/`eslint`/`design:check` clean; wordmark size is an estimate.
+- **Next:** Check the `/netrukus` wordmark at 375 and 1280 px; restart `pnpm dev`.
+
+## 2026-11-10 — Coral-ink focus ring
+
+- **Why:** Full-opacity coral was still 2.6:1 on blush.
+- **Changed:** `--ring` -> `--raw-coral-ink` in `app/globals.css`; DESIGN.md focus colours; design-system, changelog, status.
+- **Status:** lint/check clean; not browser-checked; ink-band focus unmeasured.
+- **Next:** Check focus on the ink header and menu, and keyboard order.
+
+## 2026-11-10 — Full-opacity focus rings
+
+- **Why:** User chose full opacity for focus.
+- **Changed:** `ring-ring/50` and destructive focus tints replaced by full-opacity rings across `components/ui/` and two admin inputs; DESIGN.md focus-opacity 1.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; coral on blush still 2.6:1.
+- **Next:** Decide a darker focus colour; browser check.
+
+## 2026-11-10 — Enforce, export and accessibility checks
+
+- **Why:** Run the remaining zero-slop-design skills.
+- **Changed:** `tools/zero-slop-design/`, `design-check.config.json`, `design-check.known.json`, `design:check` script, 3 exception comments, DESIGN.md notes; contrast figure corrected to 5.2:1.
+- **Status:** `check-code` 0 errors; `tsc` clean; export blocked by lint warnings; accessibility partly measured.
+- **Next:** Decide CI wiring and the focus-ring contrast; keyboard and zoom pass in a browser.
+
+## 2026-11-10 — Design drift check
+
+- **Why:** `review-design-drift` on `/` at 1280 px.
+- **Changed:** `DESIGN.md` band text (`surface`); changelog, status.
+- **Status:** 6/8 values matched; the stale dev-server CSS hid the `text-on-rust` change; lint re-run clean.
+- **Next:** Restart `pnpm dev`, re-measure coral surfaces, check 375/768/1024 px and states.
+
+## 2026-11-10 — Dark text on all coral surfaces
+
+- **Why:** User approved extending `text-on-rust` beyond the Cta.
+- **Changed:** Menu panel, ticker, hero sticker, all-in band, TOP badge, four coral hover states (10 files in `components/`); DESIGN.md, design-system note, changelog, status.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted on `main`.
+- **Next:** Browser pass; decide the booking-tabs count badge (`text-foam` on coral).
+
+## 2026-11-10 — Coral Cta dark text
+
+- **Why:** Aligned the code with the DESIGN.md decision (ink on coral failed 4.5:1).
+- **Changed:** `--on-rust` token + `text-on-rust` binding in `app/globals.css`; `components/cta.tsx` coral tone; `DESIGN.md`, design-system token table, changelog, status.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted on `main`.
+- **Next:** Browser-check coral buttons; decide the other coral surfaces.
+
+## 2026-11-10 — DESIGN.md review and corrections
+
+- **Why:** `review-design-md` found 13 defects and 4 open decisions; the user asked me to decide and proceed.
+- **Changed:** `DESIGN.md` (tokens, states, source values), `design-brief.md` (decisions), `design-system.md` weights note, changelog, status.
+- **Status:** Docs only. Lint valid, 0 errors. Not marked `reviewed`.
+- **Next:** Align `components/cta.tsx` with the dark-text decision, then run `review-design-drift`.
+
+## 2026-11-10 — Design brief and DESIGN.md (zero-slop-design plugin)
+
+- **Why:** Installed the zero-slop-design plugin and recorded the design intent in files agents can read.
+- **Changed:** New `obsidian/frontend/design-brief.md` and root `DESIGN.md` (tokens from `app/globals.css`, admin dark mode as a mode); changelog entry.
+- **Status:** Docs only. `zsd lint` valid, 0 errors. Not reviewed (`review.status: draft`).
+- **Next:** Decide coral button text colour (3.68:1 today), correct the stale font-weight note in `design-system.md`, run `review-design-md`.
+
 ## 2026-11-10 — Staff SMS recipients page (ADR-0056)
 
 - **Why:** Owner wanted to set which phone numbers get which notifications (bookings, everything, etc.) from the admin.
