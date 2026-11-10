@@ -123,11 +123,9 @@ export async function createQuadTourRental(input: QuadTourRentalInput): Promise<
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
 
-  // The database prices the tour from its route and gear rows and takes the quads from the fleet.
-  const { data, error } = await supabase.rpc("create_quad_tour_rental", {
-    p_route_id: v.routeId,
-    p_date: v.date,
-    p_start_hour: v.startHour,
+  // The database takes date and start from the departure, prices the tour from its route and gear rows and takes the quads from the fleet.
+  const { data, error } = await supabase.rpc("create_quad_tour_departure_rental", {
+    p_event_id: v.eventId,
     p_units: v.units,
     p_accessories: v.accessories.map((g) => ({ id: g.id, units: g.units })),
     p_name: v.customerName,

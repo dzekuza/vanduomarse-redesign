@@ -31,9 +31,9 @@ interface SaunaServiceBookingProps {
 
 type Mode = SessionRow["mode"];
 
-const TYPES: { id: Mode; title: string }[] = [
-  { id: "private", title: "Privati pirtis" },
-  { id: "session", title: "Pirties seansas" },
+const TYPES: { id: Mode; title: string; hint: string }[] = [
+  { id: "private", title: "Privati pirtis", hint: "Visa pirtis jūsų grupei" },
+  { id: "session", title: "Pirties seansas", hint: "Vieta bendrame seanse" },
 ];
 
 /** Type, date and time lead into the existing reservation plan. */
@@ -42,16 +42,17 @@ export function SaunaServiceBooking({
 }: SaunaServiceBookingProps) {
   const [mode, setMode] = useState<Mode | null>(() => sessionId ? "session" : null);
   const [venueId, setVenueId] = useState<string>();
-  const [programId, setProgramId] = useState<string>();
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [dialogQuantity, setDialogQuantity] = useState<{ eventId: string; people: number }>();
   const venues = saunaServiceVenues(data);
-  const canPickDate = mode === "session" || (mode === "private" && Boolean(programId));
+  const hasSessions = data.events.length > 0 || data.programs.some((program) => program.active && program.kind === "session");
+  const venue = venues.find(({ id }) => id === venueId);
+  const canPickDate = mode === "session" || (mode === "private" && Boolean(venue?.programs.length));
   const rowsFor = (day: string) => sessionRows(data, day).filter((row) =>
-    mode === "session" ? row.mode === "session" : row.mode === "private" && row.programId === programId);
+    mode === "session" ? row.mode === "session" : row.mode === "private" && venue?.programs.some(({ id }) => id === row.programId));
   const rows = date && canPickDate ? rowsFor(dateKey(date)) : [];
   const selectedRow = rows.find((row) => row.mode === "session" && row.eventId === pick.eventId);
-  const time = plan?.mode === "private" && plan.startHour !== null ? String(plan.startHour) : selectedRow?.key;
+  const time = plan?.mode === "private" && plan.startHour !== null ? `${plan.program.id}:${plan.startHour}` : selectedRow?.key;
   const event = data.events.find(({ key }) => key === sessionId);
   const eventDate = event && days.find((day) => dateKey(day) === event.date);
   const dialogRow = event && eventDate && sessionRows(data, event.date).find(({ eventId }) => eventId === event.key);
@@ -68,30 +69,25 @@ export function SaunaServiceBooking({
       <fieldset disabled={busy}>
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold"><WavesIcon size={18} aria-hidden /> Tipas</legend>
         <div className="grid grid-cols-2 gap-2">
-          {TYPES.map(({ id, title }) => (
+          {TYPES.filter(({ id }) => id === "private" || hasSessions).map(({ id, title, hint }) => (
             <FilterChip key={id} active={mode === id} onClick={() => {
               if (mode === id) return;
               setMode(id);
               setCalendarOpen(false);
               onRemove();
-            }} className="min-w-0 justify-center px-2 py-2 text-center font-bold">
-              {title}
+            }} className="min-h-16 min-w-0 flex-col items-center justify-center gap-1 px-2 py-2 text-center">
+              <span className="font-bold">{title}</span>
+              <span className={mode === id ? "text-dust/80" : "text-copy"}>{hint}</span>
             </FilterChip>
           ))}
         </div>
       </fieldset>
       {mode === "private" ? (
-        <SaunaServicePrivateOptions venues={venues} venueId={venueId} programId={programId} disabled={busy}
+        <SaunaServicePrivateOptions venues={venues} venueId={venueId} disabled={busy}
           onVenue={(id) => {
             if (id === venueId) return;
             setVenueId(id);
-            setProgramId(undefined);
             setCalendarOpen(false);
-            onRemove();
-          }}
-          onProgram={(id) => {
-            if (id === programId) return;
-            setProgramId(id);
             onRemove();
           }}
         />

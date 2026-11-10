@@ -520,6 +520,7 @@ export type Database = {
           start_time: string
           template_id: string | null
           title: string
+          tour_route_id: string | null
           updated_at: string
         }
         Insert: {
@@ -538,6 +539,7 @@ export type Database = {
           start_time: string
           template_id?: string | null
           title: string
+          tour_route_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -556,6 +558,7 @@ export type Database = {
           start_time?: string
           template_id?: string | null
           title?: string
+          tour_route_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -571,6 +574,13 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "sauna_event_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_tour_route_id_fkey"
+            columns: ["tour_route_id"]
+            isOneToOne: false
+            referencedRelation: "quad_tour_routes"
             referencedColumns: ["id"]
           },
         ]
@@ -852,6 +862,7 @@ export type Database = {
           status: Database["public"]["Enums"]["booking_status"]
           total: number
           tour_accessories: Json
+          tour_event_id: string | null
           tour_route_id: string | null
           units: number
           updated_at: string
@@ -879,6 +890,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["booking_status"]
           total: number
           tour_accessories?: Json
+          tour_event_id?: string | null
           tour_route_id?: string | null
           units: number
           updated_at?: string
@@ -906,6 +918,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["booking_status"]
           total?: number
           tour_accessories?: Json
+          tour_event_id?: string | null
           tour_route_id?: string | null
           units?: number
           updated_at?: string
@@ -938,6 +951,13 @@ export type Database = {
             columns: ["rider_id"]
             isOneToOne: false
             referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quad_rentals_tour_event_id_fkey"
+            columns: ["tour_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
             referencedColumns: ["id"]
           },
           {
@@ -1971,6 +1991,24 @@ export type Database = {
           p_riders: number
           p_start_hour: number
           p_type_id: string
+          p_units: number
+        }
+        Returns: {
+          code_discount: number
+          id: string
+          reference: string
+          total: number
+        }[]
+      }
+      create_quad_tour_departure_rental: {
+        Args: {
+          p_accessories: Json
+          p_discount_code?: string
+          p_email?: string
+          p_event_id: string
+          p_name: string
+          p_note?: string
+          p_phone?: string
           p_units: number
         }
         Returns: {

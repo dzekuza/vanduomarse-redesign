@@ -272,10 +272,14 @@ const eventInput = z.object({
   capacity: z.number().int().min(0).nullable(),
   published: z.boolean(),
   programId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
+  tourRouteId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
 });
 
+/** Events are managed with `renginiai`; staff with only `keturraciai` manage the quad tour departures (RLS limits them to category keturratis). */
+const EVENT_STAFF = ["renginiai", "keturraciai"] as const;
+
 export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
-  const ctx = await staffClient("renginiai");
+  const ctx = await staffClient(EVENT_STAFF);
   if (!ctx.ok) return ctx.error;
   const parsed = eventInput.safeParse(event);
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
@@ -293,12 +297,13 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     capacity: e.capacity,
     published: e.published,
     program_id: e.programId ?? null,
+    tour_route_id: e.category === "keturratis" ? (e.tourRouteId ?? null) : null,
   });
   return error ? dbError(error) : done(null);
 }
 
 export async function deleteEvent(id: string): Promise<ActionResult> {
-  const ctx = await staffClient("renginiai");
+  const ctx = await staffClient(EVENT_STAFF);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("events").delete().eq("id", id);
@@ -307,7 +312,7 @@ export async function deleteEvent(id: string): Promise<ActionResult> {
 }
 
 export async function setEventPublished(id: string, published: boolean): Promise<ActionResult> {
-  const ctx = await staffClient("renginiai");
+  const ctx = await staffClient(EVENT_STAFF);
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("events").update({ published }).eq("id", id);

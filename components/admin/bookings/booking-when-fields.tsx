@@ -5,6 +5,7 @@ import { FormField } from "../form-field";
 import type { NewBookingValues } from "./new-booking-schema";
 import { SaunaSelect } from "../sauna/sauna-select";
 import { formatHour } from "@/lib/sauna";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -60,7 +61,21 @@ export function BookingWhenFields({
         </FormField>
       ) : null}
       <FormField id="nb-date" label="Data" error={errors.date?.message}>
-        <Input id="nb-date" type="date" aria-invalid={!!errors.date} {...register("date", { onChange: onDateChange })} />
+        <Controller
+          control={control}
+          name="date"
+          render={({ field }) => (
+            <DatePicker
+              id="nb-date"
+              value={field.value}
+              invalid={!!errors.date}
+              onChange={(v) => {
+                field.onChange(v);
+                onDateChange();
+              }}
+            />
+          )}
+        />
       </FormField>
       <FormField id="nb-guests" label="Žmonių" error={errors.guests?.message} hint={`Daugiausia ${maxGuests}`}>
         <Input id="nb-guests" inputMode="numeric" aria-invalid={!!errors.guests} {...register("guests")} />

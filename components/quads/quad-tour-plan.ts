@@ -3,9 +3,11 @@ import { freeAt, hourLabel, MAX_QUAD_RENTAL_UNITS, type QuadTourAccessory, type 
 import type { PlanLine, When } from "@/lib/reservation";
 import { hoursLabel, longDateLabel, nextDays, pastHourOn } from "@/lib/sauna";
 
-/** A chosen tour: route, start, quads and gear quantities by accessory id. */
+/** A chosen tour: route, the dated departure (an event), its start, quads and gear quantities by accessory id. */
 export interface QuadTourPick {
   routeId: string;
+  /** The departure the booking joins. */
+  eventId: string;
   startHour: number;
   units: number;
   accessories?: Record<string, number>;
@@ -14,6 +16,8 @@ export interface QuadTourPick {
 export interface QuadTourSlot {
   hour: number;
   free: number;
+  /** Set for a departure: the event a booking at this start joins. */
+  eventId?: string;
 }
 
 export const QUAD_TOUR_MAX_ACCESSORIES = MAX_QUAD_RENTAL_UNITS * 2;
@@ -68,16 +72,31 @@ export function quadTourSlots(data: QuadPageData, day: string, hours: number, bu
   });
 }
 
-/** Starts of a route that still have at least its minimum number of quads. */
+/**
+ * The route's scheduled departures on a day. A tour is only sold on these: each shows the quads that can
+ * still join, capped by the departure's own capacity and by the free fleet for the whole route.
+ */
+export function quadTourDepartureSlots(data: QuadPageData, day: string, route: QuadTourRoute, busy: readonly number[] = []): QuadTourSlot[] {
+  const fleet = quadTourSlots(data, day, route.hours, busy);
+  return data.departures
+    .filter((departure) => departure.routeId === route.id && departure.date === day)
+    .flatMap((departure) => {
+      const slot = fleet.find(({ hour }) => hour === departure.hour);
+      return slot ? [{ hour: departure.hour, free: Math.min(slot.free, departure.spotsLeft ?? slot.free), eventId: departure.id }] : [];
+    })
+    .toSorted((a, b) => a.hour - b.hour);
+}
+
+/** Departures of a route that still have at least its minimum number of quads. */
 export function quadTourStarts(data: QuadPageData, day: string, route: QuadTourRoute, busy: readonly number[] = []) {
-  return quadTourSlots(data, day, route.hours, busy).filter(({ free }) => free >= route.minUnits);
+  return quadTourDepartureSlots(data, day, route, busy).filter(({ free }) => free >= route.minUnits);
 }
 
 /** The plan line of a chosen tour. The database prices the request again when it is filed. */
 export function quadTourPlan(data: QuadPageData, when: When, pick: QuadTourPick | null, busy: readonly number[] = []): { line: PlanLine; ok: boolean; hours: number[]; maxUnits: number; route: QuadTourRoute } | null {
   const route = data.tourRoutes.find(({ id }) => id === pick?.routeId);
   if (!pick || !route) return null;
-  const start = quadTourStarts(data, when.day, route, busy).find(({ hour }) => hour === pick.startHour);
+  const start = quadTourStarts(data, when.day, route, busy).find(({ eventId }) => eventId === pick.eventId);
   const maxUnits = start?.free ?? 0;
   const validUnits = Number.isInteger(pick.units) && pick.units >= 1 && pick.units <= MAX_QUAD_RENTAL_UNITS;
   const accessories = quadTourAccessories(data.tourAccessories, pick.accessories);

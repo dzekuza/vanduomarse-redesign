@@ -1,3 +1,192 @@
+## 2026-11-10 — Styled calendar in admin date fields
+
+- **Why:** The Data field showed the browser's native calendar popup.
+- **Changed:** `DatePicker` in `event-dialog.tsx`, `tour-departure-dialog.tsx`, `booking-when-fields.tsx`.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check the popup inside a dialog (z-index/scroll) and that picking a date in the new-booking form still resets the slot.
+
+## 2026-11-10 — Session dialog: no category, sauna select
+
+- **Why:** Owner asked to remove Kategorija when editing a seansas and make Vieta a sauna select.
+- **Changed:** `event-dialog.tsx` (`lockCategory` for any preset, `place` select from `saunas`, attendant suffix kept).
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check an existing session ("Pirtis Marse · su pirtininku") saves unchanged; extract session fields if the dialog grows.
+
+## 2026-11-10 — Quad tours on dated departures (ADR-0055)
+
+- **Why:** The owner wants tour types in Keturračiai with dated events under each, and the storefront to sell only those dates (like sauna sessions).
+- **Changed:** Migration file + hand-edited types; mappers, `saveEvent`, public data (`departures`), `quad-tour-plan` (`quadTourDepartureSlots`, `eventId` on the pick), schema/action/submit, `QuadServiceBooking` / `QuadTourCard` / `QuadTimeField`; admin `TourDepartureDialog`, Turai tab layout, `ToursTab` rentals, `TourRoutesCard` wording; calendar entries and `EventSheet`.
+- **Status:** `tsc`/`eslint` clean; migration tested in a rolled-back transaction, then applied by the owner and verified (columns, trigger, policies, function grants); types regenerated; pages return 200. Not browser-checked.
+- **Next:** Add departures per type in the Turai tab; browser pass on /keturraciu-nuoma, /rezervacija (Keturračiai tab) and the admin; one paid test booking in Stripe test mode.
+
+## 2026-11-10 — No Vieta field when adding a tour
+
+- **Why:** Owner asked to remove the Vieta field from the new-tour form.
+- **Changed:** `event-dialog.tsx`: field hidden for a new keturratis event; default place "Vanduo Marse".
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** none.
+
+## 2026-11-10 — Kalendorius: distinct type colours
+
+- **Why:** Pirtis (coral) and Renginiai (softened coral) looked alike on the owner's screenshot.
+- **Changed:** new `--calendar-pink`; `KIND_BG` / `KIND_CARD`; thick left border on `EntryCard`.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check the four colours side by side, including dark mode; the teal seat dot on every card may also add noise.
+
+## 2026-11-10 — Kalendorius card tints made visible
+
+- **Why:** The owner described the wanted look (light red bg + red border; light dark bg + dark border; light brown bg + brown border); the first tints were too faint.
+- **Changed:** `KIND_CARD` opacities; new `--calendar-brown` token in `globals.css`.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Eyeball the tints in light and dark mode; tune opacities if needed.
+
+## 2026-11-10 — Kalendorius cards tinted
+
+- **Why:** Owner wanted light-coloured card backgrounds with a border matching the type dot.
+- **Changed:** `KIND_CARD` map and `EntryCard` classes.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check contrast of the tints in dark mode.
+
+## 2026-11-10 — Kalendorius type colours
+
+- **Why:** Owner chose Pirtis red, Apgyvendinimas dark, Keturračiai light brown, Renginiai pink.
+- **Changed:** `KIND_BG` in `kind-dot.tsx` (only Keturračiai and Renginiai moved).
+- **Status:** `tsc` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check the pink reads as pink on the blush page; adjust the opacity if not.
+
+## 2026-11-10 — Kalendorius: Nameliai -> Apgyvendinimas
+
+- **Why:** The owner asked for the rename.
+- **Changed:** chip label in `calendar-entries.ts` and the page description.
+- **Status:** `tsc` clean; uncommitted on `main`.
+- **Next:** none.
+
+## 2026-11-10 — Kalendorius filters merged
+
+- **Why:** Seansai, Kemperiai and Turai chips duplicated Pirtis, Nameliai and Keturračiai.
+- **Changed:** `calendar-entries.ts` (kinds reduced to four, bookings/events mapped into them), `kind-dot.tsx`, description text.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** none specific.
+
+## 2026-11-10 — Pridėti turą on the quads admin
+
+- **Why:** Tours were created in Renginiai; the owner wants them on the quads page, like seansai for the sauna.
+- **Changed:** `quads-view.tsx` (button + dialog + tour list), new `category-events-list.tsx` (shared with `SaunaSessionsList`), `event-dialog.tsx` copy map, `tours-tab.tsx`. No schema change.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Browser check: add, edit, publish, delete a tour; `new-rental-dialog.tsx` and `rentals-tab.tsx` are now unused.
+
+## 2026-11-10 — Quad page widget: tours only
+
+- **Why:** The owner only sells tours; the Turas su gidu / Nuoma valandomis switch was removed.
+- **Changed:** `quad-service-booking.tsx`, `reservation-flow.tsx` (props), `service-page.tsx` (intro text). `quad-hourly-controls.tsx` is unused.
+- **Status:** `tsc`/`eslint` clean; not clicked through. Uncommitted on `main`.
+- **Next:** Remove the hourly prices from the page's pricing/facts sections if wanted; delete `quad-hourly-controls.tsx`.
+
+## 2026-11-10 — Keturračiai admin: Nuoma tab removed, Žygiai -> Turai
+
+- **Why:** The owner asked to remove the Nuoma tab and rename Žygiai to Turai.
+- **Changed:** `quads-view.tsx` (tabs Turai / Parkas), `tours-tab.tsx` copy, Kalendorius chip label. `rentals-tab.tsx` is now unused.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Decide whether to keep "Nauja nuoma" and delete `rentals-tab.tsx`; hourly rentals from /keturraciu-nuoma can only be managed via Kalendorius now.
+
+## 2026-11-10 — /pirtis: no Pirtininkas step
+
+- **Why:** The owner does not want the Pirtininkas selection in the booking widget.
+- **Changed:** `sauna-service-booking.tsx` (no programId state, venue gates the date), `sauna-service-options.tsx` (programs fieldset removed), `sauna-service-time.tsx` (several programs listed in Laikas, value `programId:hour`).
+- **Status:** `tsc`/`eslint` clean; not clicked through. Uncommitted on `main`.
+- **Next:** Click through Privati -> sauna -> date -> time for a sauna with two programs (Malkine pirtis) and check the checkout shows the chosen program.
+
+## 2026-11-10 — Tipas removed from the program dialog entirely
+
+- **Why:** The owner asked to remove the same dropdown from the edit dialog.
+- **Changed:** `program-dialog.tsx`: no kind select; `changeKind` removed. Kind is fixed per program.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** A new private program can't be created from the UI now; add a dedicated button if needed.
+
+## 2026-11-10 — New program dialog without Tipas
+
+- **Why:** The owner postponed assigning extras to programs and asked to remove the Tipas dropdown when adding a new program.
+- **Changed:** `program-dialog.tsx`: Tipas only when editing; description updated. No schema change.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Decide how a new private program should be created now (Tipas is hidden on create). Extras-per-program (new `sauna_program_upsell_links` table + program booking RPC) is still open.
+
+## 2026-11-10 — /pirtis Tipas split into type, then sauna
+
+- **Why:** My previous change merged the saunas into Tipas; the owner wanted Tipas = Privati pirtis / Pirties seansas, then "Pirties tipas" = the admin's saunas after choosing Privati.
+- **Changed:** `sauna-service-booking.tsx` (two Tipas chips, venue state back), `sauna-service-options.tsx` (venue fieldset "Pirties tipas" restored, from admin saunas only).
+- **Status:** `tsc`/`eslint` clean; first step verified in SSR output; interaction not clicked through. Uncommitted on `main`.
+- **Next:** Click through Privati -> sauna -> Pirtininkas -> date -> time at 375 / 768 / 1024 px.
+
+## 2026-11-10 — Sidebar flattened to simple links
+
+- **Why:** The owner asked to unwrap the Pirtis / Namukai / Keturračiai dropdowns into simple links.
+- **Changed:** `admin-nav.ts`: Pirtis and Keturračiai are plain rows; Namukai dropped (same page as Kainodara).
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Decide on a Rezervacijos row (booking list has none) and whether to delete the unused domain code.
+
+## 2026-11-10 — Sidebar: drop duplicate Kalendorius rows
+
+- **Why:** The owner asked to remove Kalendorius from the Pirtis and Namukai dropdowns now that there is a top-level one.
+- **Changed:** `admin-nav.ts`; badge and `primary` moved to the new row.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Decide where the Rezervacijos booking list should live in the menu (currently no row).
+
+## 2026-11-10 — Edit event in place on Kalendorius
+
+- **Why:** "Redaguoti renginį" redirected to Renginiai; the owner wanted a dialog on the calendar page.
+- **Changed:** `EventSheet` `onEdit` prop (button instead of link); `CalendarView` opens `EventDialog` for the event after closing the panel.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check saving an edit updates the card and the seats in the grid.
+
+## 2026-11-10 — Day / week / month tabs on Kalendorius
+
+- **Why:** The owner wanted to switch the calendar between day, week and month.
+- **Changed:** Tabs in `CalendarView`; new `WeekView`, `DayView`, `DayMenu`; `MonthGrid` uses `DayMenu`; `weekDays` helper. No schema change.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check week columns at 768 / 1024 px (cards are narrow in 7 columns) and the stacked week on a phone.
+
+## 2026-11-10 — Icons on Kalendorius type markers
+
+- **Why:** The owner wanted icons next to the colour bullets, like on the reservation page.
+- **Changed:** `KindMark` (dot + icon) in `components/admin/calendar/kind-dot.tsx`, used by filter chips, `EntryCard`, `DayAgenda`; icons from `ACTIVITY_ICON` plus tent and confetti.
+- **Status:** `tsc`/`eslint` clean; not browser-checked. Uncommitted on `main`.
+- **Next:** Check icon sizes in the filter chips and cards at 375 / 768 / 1024 px.
+
+## 2026-11-10 — Day-cell context menu on Kalendorius
+
+- **Why:** The owner wanted the same right-click actions on the unified calendar as on the sauna calendar.
+- **Changed:** `MonthGrid` day cells have a `ContextMenu` (new booking, new sauna session, new event, show day list); `CalendarView` opens `NewBookingDialog` / `EventDialog`; `EventDialog` gains `presetDate`. No schema change.
+- **Status:** `tsc`/`eslint` clean; not browser-checked (admin login). Uncommitted on `main`.
+- **Next:** Browser pass: right-click on desktop, long-press on a phone, creating a booking, a session and an event from a cell. Right-click on an individual card currently shows the day menu, not an edit menu.
+
+## 2026-11-10 — Kalendorius shows events with their bookings
+
+- **Why:** The owner wanted the calendar to show events (not only bookings) with each event's bookings inside, styled like a reference screenshot but in the project's own tokens.
+- **Changed:** `calendar-entries.ts` adds events (kind `seansas` / `zygis` / `renginys`, seats) and `ticketsFor`; new `EntryCard` and `EventSheet`; `MonthGrid` shows cards per day from md up; `DayAgenda` and `CalendarView` updated. No schema change.
+- **Status:** `tsc`/`eslint` clean; not browser-checked (admin login). Uncommitted on `main`.
+- **Next:** Browser pass at 375 / 768 / 1024 px: card density in a busy day, the "+N daugiau" link, opening an event, confirming a ticket from the sheet.
+
+## 2026-11-10 — /pirtis Tipas shows the admin's saunas
+
+- **Why:** The booking widget's Tipas was hard-coded (Privati pirtis / Pirties seansas); the owner wants it to show the pirtis added in admin.
+- **Changed:** `sauna-service-booking.tsx` builds Tipas from `saunaServiceVenues(data)` (active saunas only) + a sessions chip; `sauna-service-options.tsx` lost the hard-coded fallback venues and the extra Pirtis step.
+- **Status:** `tsc`/`eslint` clean; SSR output checked on live data; interaction (pick sauna -> programs -> date -> time) not clicked through. Uncommitted on `main`.
+- **Next:** Click through at 375 / 768 / 1024 px. A sauna with several private programs still needs a program pick; one with none shows the contact line.
+
+## 2026-11-10 — Unified Kalendorius page
+
+- **Why:** The owner wanted one admin page to see all bookings (sauna, quads, cabins, ...) and the dashboard to lead there.
+- **Changed:** New `/admin/kalendorius` (month grid + day agenda + type filters), `lib/admin/calendar-entries.ts`, `components/admin/calendar/*`, a sidebar row, and a link from Apžvalga. Reuses `BookingSheet` / `RentalSheet`. No schema change.
+- **Status:** `tsc`/`eslint` clean; route guard verified via curl; not browser-checked. Uncommitted on `main`.
+- **Next:** Browser pass at 375 / 768 / 1024 px as staff: filters, month switching, opening a booking and a rental, ticket links. Quad tours filed as rentals show fleet labels, not the route name; say if the route name should show.
+
+## 2026-11-10 — Sauna sessions tab in /admin/pirtis
+
+- **Why:** The owner wanted to create pirties seansai inside the sauna admin, not in Renginiai.
+- **Changed:** `ProgramsCard` has Programos / Seansai tabs; new `SaunaSessionsList`; `EventDialog` gets `presetCategory`. No schema change.
+- **Status:** `tsc`/`eslint` clean; not browser-checked (admin login needed). Code uncommitted on `main`.
+- **Next:** Browser pass at 375 / 768 / 1024 px: create, edit, publish and delete a seansas from the tab.
+
 ## 2026-11-10 — Hourly quad rental on the quad page
 
 - **Why:** The owner has the "Nuoma" (hourly rental) fleet in admin Parkas but the public quad page offered only the guided tours.

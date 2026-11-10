@@ -380,7 +380,6 @@ export function ReservationFlow({
               days={days}
               date={dayChosen ? date : null}
               pick={tourPick}
-              quadPick={picks.keturraciai ?? null}
               busy={busy}
               onDate={(next) => {
                 if (busy) return;
@@ -395,16 +394,6 @@ export function ReservationFlow({
                   const rest = { ...current };
                   delete rest.keturraciai;
                   return rest;
-                });
-              }}
-              onQuadPick={(next) => {
-                if (busy) return;
-                setStep(0);
-                setTourPick(null);
-                setPicks((current) => {
-                  const rest = { ...current };
-                  delete rest.keturraciai;
-                  return next ? { ...rest, keturraciai: next } : rest;
                 });
               }}
             /> : <>

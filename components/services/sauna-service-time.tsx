@@ -24,8 +24,10 @@ interface SaunaServiceTimeProps {
 /** Show the remaining seats beside each published session while choosing a time. */
 export function SaunaServiceTime({ rows, value, busy, dateSelected, onSelect }: SaunaServiceTimeProps) {
   const id = useId();
+  // A sauna with several private programs lists each program's starts, named after it, so choosing the time also chooses the program.
+  const several = rows.filter((row) => row.mode === "private").length > 1;
   const options = rows.flatMap<TimeOption>((row) => row.mode === "private"
-    ? (row.startHours ?? []).map((hour) => ({ row, value: String(hour), label: formatHour(hour), hour }))
+    ? (row.startHours ?? []).map((hour) => ({ row, value: `${row.programId}:${hour}`, label: several ? `${formatHour(hour)} · ${row.title}` : formatHour(hour), hour }))
     : [{ row, value: row.key, label: `${row.time} · ${row.title}`, hour: null }]);
   const selected = options.find((option) => option.value === value);
   const hasFreeTime = options.some(({ row }) => !row.blocked);

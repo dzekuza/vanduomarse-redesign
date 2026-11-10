@@ -6,58 +6,67 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
-import { NewRentalDialog } from "./new-rental-dialog";
+import { CategoryEventsList } from "../events/category-events-list";
 import { QuadSettingsCard } from "./quad-settings-card";
 import { QuadTypesCard } from "./quad-types-card";
 import { TourAccessoriesCard } from "./tour-accessories-card";
+import { TourDepartureDialog } from "./tour-departure-dialog";
 import { TourRoutesCard } from "./tour-routes-card";
-import { RentalsTab } from "./rentals-tab";
 import { ToursTab } from "./tours-tab";
+import type { ManagedEvent } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const TAB_IDS = ["nuoma", "zygiai", "parkas"] as const;
+const TAB_IDS = ["turai", "parkas"] as const;
 
-/** Keturračiai: hourly rental requests, tour registrations, and the fleet and rules behind /keturraciai. `?tab=parkas` opens the settings tab directly (the sidebar's "Valdymas" row). */
+/** Keturračiai: tour registrations (Turai) and the fleet and rules behind /keturraciai (Parkas). `?tab=parkas` opens the settings tab directly. */
 export function QuadsView() {
-  const { quadRentals, tourTickets } = useAdmin();
-  const [creating, setCreating] = useState(false);
-  const pendingRentals = quadRentals.filter((r) => r.status === "laukia").length;
-  const pendingTours = tourTickets.filter((t) => t.status === "laukia").length;
+  const { tourTickets, quadRentals, quadTourRoutes } = useAdmin();
+  const [editing, setEditing] = useState<{ event?: ManagedEvent } | null>(null);
+  const pendingTours = tourTickets.filter((t) => t.status === "laukia").length + quadRentals.filter((r) => r.tourRouteId && r.status === "laukia").length;
   const requested = useSearchParams().get("tab");
-  const initialTab = (TAB_IDS as readonly string[]).includes(requested ?? "") ? requested! : "nuoma";
+  const initialTab = (TAB_IDS as readonly string[]).includes(requested ?? "") ? requested! : "turai";
 
   return (
     <AdminPage
       title="Keturračiai"
-      description="Nuomos užklausos iš /keturraciai, registracijos į žygius ir parko nustatymai."
+      description="Turų tipai, jų datos ir rezervacijos bei parko nustatymai."
       actions={
-        <Button onClick={() => setCreating(true)} className="min-h-11">
-          <PlusIcon size={18} /> Nauja nuoma
+        <Button onClick={() => setEditing({})} className="min-h-11">
+          <PlusIcon size={18} /> Pridėti turą
         </Button>
       }
     >
       <Tabs defaultValue={initialTab}>
         <TabsList>
-          <TabsTrigger value="nuoma" className="min-h-11">
-            Nuoma{pendingRentals ? ` (${pendingRentals})` : ""}
-          </TabsTrigger>
-          <TabsTrigger value="zygiai" className="min-h-11">
-            Žygiai{pendingTours ? ` (${pendingTours})` : ""}
+          <TabsTrigger value="turai" className="min-h-11">
+            Turai{pendingTours ? ` (${pendingTours})` : ""}
           </TabsTrigger>
           <TabsTrigger value="parkas" className="min-h-11">
             Parkas
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="nuoma" className="mt-6">
-          <RentalsTab />
-        </TabsContent>
-        <TabsContent value="zygiai" className="mt-6">
+        <TabsContent value="turai" className="mt-6 space-y-8">
+          <TourRoutesCard />
+          <Card>
+            <CardHeader>
+              <CardTitle>Turų datos</CardTitle>
+              <CardDescription>Svetainėje turą galima rezervuoti tik čia paskelbtomis datomis. Kiekvienas turas priklauso vienam tipui.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CategoryEventsList
+                category="keturratis"
+                emptyText="Būsimų turų nėra. Spauskite „Pridėti turą“."
+                extra={(e) => quadTourRoutes.find((r) => r.id === e.tourRouteId)?.name}
+                onEdit={(event) => setEditing({ event })}
+              />
+            </CardContent>
+          </Card>
           <ToursTab />
         </TabsContent>
         <TabsContent value="parkas" className="mt-6 space-y-6">
           <QuadTypesCard />
-          <TourRoutesCard />
           <TourAccessoriesCard />
           <QuadSettingsCard />
           <Link href="/admin/klientai?activity=keturraciai" className="text-sm underline underline-offset-4 hover:text-rust">
@@ -65,7 +74,7 @@ export function QuadsView() {
           </Link>
         </TabsContent>
       </Tabs>
-      {creating ? <NewRentalDialog onOpenChange={(o) => !o && setCreating(false)} /> : null}
+      {editing ? <TourDepartureDialog key={editing.event?.id ?? "new"} event={editing.event} onOpenChange={(o) => !o && setEditing(null)} /> : null}
     </AdminPage>
   );
 }

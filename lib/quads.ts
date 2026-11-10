@@ -93,6 +93,21 @@ export interface QuadTourData {
   place: string;
 }
 
+/** A dated departure of a tour product (an `events` row with `tour_route_id`): published, upcoming. */
+export interface QuadDeparture {
+  /** The event id; what the booking request names. */
+  id: string;
+  routeId: string;
+  /** yyyy-mm-dd */
+  date: string;
+  /** Start hour (0-23); the route's `hours` set how long it runs. */
+  hour: number;
+  /** Quads that can join; null = limited only by the fleet. */
+  capacity: number | null;
+  /** Quads still open on the departure; null when unlimited. */
+  spotsLeft: number | null;
+}
+
 export const rentalPrice = (type: Pick<QuadType, "pricePerHour">, hours: number, units: number) => type.pricePerHour * hours * units;
 
 export const fleetRentalPrice = (items: readonly QuadRentalItem[], hours: number) =>

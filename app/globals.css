@@ -68,6 +68,10 @@
   --status-confirmed: #015059;
   --status-new: #e2b38c;
   --status-done: #8f838e;
+  /* Calendar: the tan above, taken toward the aubergine ink until it reads as brown (card borders of the Keturračiai type). */
+  --calendar-brown: color-mix(in srgb, #e2b38c 62%, #382e38);
+  /* Calendar: a true rose-pink for Renginiai, far enough in hue from the coral red of Pirtis that the two never read alike. */
+  --calendar-pink: #d96ba3;
   /* Soft aubergine-tinted elevation for floating admin UI (tab bar, sheets). */
   --shadow-float: 0 18px 40px -16px rgba(56, 46, 56, 0.45);
 }
@@ -107,6 +111,8 @@
   --color-status-confirmed: var(--status-confirmed);
   --color-status-new: var(--status-new);
   --color-status-done: var(--status-done);
+  --color-calendar-brown: var(--calendar-brown);
+  --color-calendar-pink: var(--calendar-pink);
   --shadow-float: var(--shadow-float);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);

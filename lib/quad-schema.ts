@@ -69,10 +69,12 @@ const tourGear = z.object({
   units: z.number().int().min(1).max(MAX_QUAD_RENTAL_UNITS * 2),
 });
 
-/** A Mini / Midi / Maxi tour for N quads; the route, gear and prices are database rows, validated again by `create_quad_tour_rental`. */
+/** A Mini / Midi / Maxi tour for N quads on a scheduled departure; route, gear and prices are database rows, validated again by `create_quad_tour_departure_rental`. */
 export const quadTourRentalSchema = contactFields
   .extend({
     routeId: z.string().regex(/^[a-z0-9-]+$/).max(60),
+    /** The scheduled departure (events row); the database takes date and start from it. */
+    eventId: z.uuid(),
     date: z.iso.date(),
     startHour: z.number().int().min(0).max(23),
     units: z.number().int().min(1).max(MAX_QUAD_RENTAL_UNITS),

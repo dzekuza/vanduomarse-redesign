@@ -52,8 +52,11 @@ export function Overview() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Šiandienos tvarkaraštis</CardTitle>
+            <Link href="/admin/kalendorius" className="text-sm underline underline-offset-4 hover:text-rust">
+              Kalendorius
+            </Link>
           </CardHeader>
           <CardContent className="divide-y">
             {todays.length === 0 ? <p className="text-sm text-muted-foreground">Šiandien rezervacijų nėra.</p> : null}

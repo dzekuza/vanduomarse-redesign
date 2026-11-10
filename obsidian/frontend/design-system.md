@@ -41,6 +41,8 @@ A component references tier 2/3 only. A raw hex or px in a `className` is a bug.
 | `--raw-teal-slate` `#2f545b` | primitive | sampled from the booking design | `.theme-reservation` maps `--lake-soft` to slate teal, uses 19% ink for `--line` and `--input`, and uses a 16% white wash for `--card` |
 | `--raw-coral-ink` `#a8282d` | primitive | coral darkened to 5:1 on blush | `text-rust-ink`: small coral text (notices, errors); never use `text-rust` below ~24 px |
 | `--water` | semantic | `--raw-teal` `#00b2b5` | `bg-water` / `ring-water`: live status dot, focus outline on the home page |
+| `--calendar-brown` | semantic | `--status-new` tan (`#e2b38c`) mixed 62/38 with the aubergine `#382e38` | `border-calendar-brown`: Keturračiai cards on `/admin/kalendorius` (their dot stays the lighter tan) |
+| `--calendar-pink` | semantic | `#d96ba3` | `bg-calendar-pink` / `border-calendar-pink`: Renginiai dot and cards on `/admin/kalendorius`, a rose far in hue from the coral of Pirtis |
 | `--spacing-gutter` | primitive | `clamp(1.375rem, 4.2vw, 5rem)` | `px-gutter`: side padding of every home section |
 | `text-hero`, `-display`, `-jumbo`, `-statement`, `-title`, `-tile`, `-footer`, `-menu`, `-micro` (+ `-sm` phone steps) | primitive | fluid sizes with line height + tracking | home page display type (`@theme` in `globals.css`); use `text-x-sm md:text-x` |
 | `text-item` 1rem, `-figure` 1.25rem, `-heading` 1.5rem, `-total` 1.875rem | primitive | UI text roles (2026-11-04): item = card / option / row title, figure = prices, dates, counts, heading = step / dialog / page heading, total = grand totals | replace ad-hoc `text-base/lg/xl/2xl/3xl/4xl` outside `components/ui/` inputs; `text-base` stays on inputs (16 px stops iOS zoom) |

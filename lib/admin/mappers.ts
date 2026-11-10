@@ -92,6 +92,7 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     sold: r.sold,
     published: r.published,
     programId: r.program_id ?? undefined,
+    tourRouteId: r.tour_route_id ?? undefined,
   };
 }
 
@@ -316,6 +317,8 @@ export function toQuadRental(r: QuadRentalRow): QuadRental {
     note: r.note ?? undefined,
     createdAt: r.created_at,
     riderId: r.rider_id ?? undefined,
+    tourRouteId: r.tour_route_id ?? undefined,
+    tourEventId: r.tour_event_id ?? undefined,
   };
 }
 

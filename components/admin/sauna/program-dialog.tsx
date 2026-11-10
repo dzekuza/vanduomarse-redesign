@@ -5,7 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { programSchema, type ProgramFormValues } from "./program-schema";
-import { PROGRAM_KIND_LABEL, PROGRAM_PRICING_LABEL, type ProgramKind, type ProgramPricing, type SaunaProgram } from "@/lib/sauna-programs";
+import { PROGRAM_PRICING_LABEL, type ProgramPricing, type SaunaProgram } from "@/lib/sauna-programs";
 import { slugify } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -77,11 +77,6 @@ export function ProgramDialog({ program, onOpenChange }: { program?: SaunaProgra
     </div>
   );
 
-  function changeKind(next: ProgramKind) {
-    setValue("kind", next);
-    setValue("pricing", next === "private" ? "group" : pricing === "group" ? "person" : pricing);
-  }
-
   const submit = handleSubmit((v) => {
     const taken = new Set(programs.map((p) => p.id));
     let id = program?.id ?? (slugify(v.name) || "programa");
@@ -111,12 +106,11 @@ export function ProgramDialog({ program, onOpenChange }: { program?: SaunaProgra
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{program ? "Redaguoti programą" : "Nauja pirties programa"}</DialogTitle>
-          <DialogDescription>Rodoma rezervacijos puslapyje, skirtuke „Pirtis“. Seansus (datą, laiką, vietų skaičių) kuriate skiltyje „Renginiai“.</DialogDescription>
+          <DialogDescription>Rodoma rezervacijos puslapyje, skirtuke „Pirtis“. Seansus (datą, laiką, vietų skaičių) kuriate skirtuke „Seansai“.</DialogDescription>
         </DialogHeader>
         <form id="program-form" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">{text("name", "Pavadinimas")}</div>
-          {text("label", "Etiketė kortelėje", { placeholder: "Su pirtininku" })}
-          <Pick id="pg-kind" label="Tipas" value={kind} onChange={changeKind} options={(Object.keys(PROGRAM_KIND_LABEL) as ProgramKind[]).map((k) => ({ value: k, label: PROGRAM_KIND_LABEL[k] }))} />
+          <div className="sm:col-span-2">{text("label", "Etiketė kortelėje", { placeholder: "Su pirtininku" })}</div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="pg-description">Aprašymas</Label>
             <Textarea id="pg-description" rows={2} aria-invalid={!!err.description} {...register("description")} />

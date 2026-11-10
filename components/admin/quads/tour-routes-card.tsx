@@ -23,19 +23,19 @@ export function TourRoutesCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Turai</CardTitle>
+        <CardTitle>Turų tipai</CardTitle>
         <CardDescription>
-          Rodomi /keturraciu-nuoma ir rezervacijos puslapyje. Kaina už keturratį su PVM; užsakymo sumą visada perskaičiuoja duomenų bazė iš šių reikšmių.
+          Pavadinimas, trukmė ir kaina. Datas kiekvienam tipui pridedate žemiau, „Turų datos“. Kaina už keturratį su PVM; užsakymo sumą visada perskaičiuoja duomenų bazė iš šių reikšmių.
         </CardDescription>
         <CardAction>
           <Button onClick={() => setEditing({})}>
-            <PlusIcon size={18} /> <span className="hidden sm:inline">Naujas turas</span>
-            <span className="sr-only sm:hidden">Naujas turas</span>
+            <PlusIcon size={18} /> <span className="hidden sm:inline">Naujas tipas</span>
+            <span className="sr-only sm:hidden">Naujas tipas</span>
           </Button>
         </CardAction>
       </CardHeader>
       <CardContent className="divide-y">
-        {quadTourRoutes.length === 0 ? <p className="py-3 text-sm text-muted-foreground">Turų nėra.</p> : null}
+        {quadTourRoutes.length === 0 ? <p className="py-3 text-sm text-muted-foreground">Turų tipų nėra.</p> : null}
         {quadTourRoutes.map((r) => (
           <div key={r.id} className="flex items-center gap-3 py-3 first:pt-0">
             <div className="min-w-0 flex-1">

@@ -10,6 +10,24 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0055 — Quad tours are sold on dated departures (events pointing at a tour type)
+
+- **Status:** Accepted 2026-11-10. Migration `20261110120000_quad_tour_departures.sql` tested inside a rolled-back transaction on the live project (booking 3 quads = 177 EUR and sold = 3; a second booking beyond capacity is refused; cancelling resets sold), then applied to the live database by the owner. Verified afterwards: both columns, the constraint, the trigger, the three `keturraciai` policies and the function exist; the function is executable by anon/authenticated and the trigger function is not; `database.types.ts` regenerated (with the known `create_inquiry.p_date` edit). `tsc`/`eslint` clean; /keturraciu-nuoma and /rezervacija return 200; the booking flow itself is not browser-checked.
+- **Context:** Tour products (Mini / Midi / Maxi, `quad_tour_routes`, ADR-0053) were booked on any date with free fleet. The owner wanted tour *types* with *dated events* under each, like sauna programs and their sessions.
+- **Decision:** A departure is an `events` row of category keturratis with `tour_route_id`; its `capacity` is the number of quads that can join and `sold` the quads booked (trigger from `quad_rentals.tour_event_id`). The public quad page and the /rezervacija tour cards offer only published departures (`QuadPageData.departures`, `quadTourDepartureSlots`: capacity left capped by the free fleet for the whole route); a booking names the event and `create_quad_tour_departure_rental` takes date and start from it, locks the departure, checks capacity and delegates pricing, gear, discount and fleet allocation to the unchanged `create_quad_tour_rental`. Admin: the Turai tab holds the types (`TourRoutesCard`), the dated departures (`CategoryEventsList` + `TourDepartureDialog`, name/price/length come from the type) and the registrations (event tickets plus tour rentals); the calendar shows a departure as an event with its bookings inside and no longer lists those rentals separately. Staff with `keturraciai` may manage keturratis events (new RLS policies; `saveEvent` accepts `renginiai` or `keturraciai`).
+- **Consequences:** Until the owner adds departures, the storefront offers no tour dates. Departures start on whole hours (the booking uses the hour of `start_time`). The legacy per-person tour tickets (`create_tour_ticket`, events without `tour_route_id`) stay and are excluded from the departure list. Two departures of one type at the same hour would share a Laikas value only by event id, which is unique, so they work, but the admin does not warn about duplicates.
+
+---
+
+## ADR-0054 — Kalendorius: one client-side calendar over the existing booking tables, no new permission
+
+- **Status:** Accepted 2026-11-10. Code only, no migration. `tsc`/`eslint` clean; not browser-checked.
+- **Context:** Bookings live in four places (`bookings`, `quad_rentals`, quad-tour tickets, event tickets) and the only calendar (Rezervacijos' Kalendorius tab, ADR-0044) shows sauna hours and stay/quad load, not individual bookings across types. The owner wanted one page showing all of them.
+- **Decision:** `lib/admin/calendar-entries.ts` flattens bookings, quad rentals and events into one `CalendarEntry[]` (kind: pirtis / namelis / keturraciai / renginys, with sessions, campers and tours folded into the first three; first/last day, time, title, customer, status; cancelled dropped, stays span their nights; events carry seats and keep their tickets inside, read with `ticketsFor`, so a ticket is never a separate entry), computed in the browser from data `useAdmin()` already holds. `/admin/kalendorius` renders a month grid, a day agenda and per-type filters (`components/admin/calendar/`). It reuses `BookingSheet` / `RentalSheet`; events open `EventSheet`, which lists their tickets. The page is guarded by the existing `rezervacijos` / `uzimtumas` permissions rather than a new one.
+- **Consequences:** No new queries or RLS: a role sees only the sources its own policies already load (ADR-0012), so a role without `keturraciai` simply sees no quad entries. The per-day load strips in Rezervacijos stay as they are. Quad tours filed as rentals show fleet labels, not the route name. Everything is loaded in the store up front, so a very large booking history would need a date-windowed fetch later.
+
+---
+
 ## ADR-0053 — Quad tour products (Mini / Midi / Maxi) live in the database and are priced by one RPC
 
 - **Status:** Accepted 2026-11-09. Migration `20261109200000_quad_tour_products.sql` applied directly to the live "Vanduo" project (`mwngljhcvqkvncwbmgeo`) with `supabase db query --linked -f`, after the owner said to use the live database rather than a local stack. It was dry-run first on live inside three deliberately aborted transactions (all rolled back; rentals stayed at 1), then applied; recorded in `supabase_migrations.schema_migrations` as version `20261109200000`. `lib/supabase/database.types.ts` regenerated (additions only) and the known `create_inquiry.p_date` hand-edit kept. **Do not use `supabase db push`**: the remote history carries the MCP's own timestamps for earlier migrations, so it would try to re-apply them.
@@ -61,7 +79,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0046 — Pirtis/Namukai/Keturračiai become expandable sidebar domains (Kalendorius + Valdymas)
+## ADR-0046 — Pirtis/Namukai/Keturračiai become expandable sidebar domains (superseded 2026-11-10: flattened back to plain links, see changelog) (Kalendorius + Valdymas)
 
 - **Status:** Accepted 2026-11-08/09. Code only, no migration. `tsc --noEmit`, `eslint` and `next build` clean. Not yet browser-checked (`localhost:3001` still 431s, see `status.md`).
 - **Context:** Right after ADR-0044 flattened the admin IA, the owner said it still felt hard to navigate and sketched a sitemap grouping Pirtis, Namukai and Keturračiai each with their own Kalendorius (booking calendar) and Valdymas (management/settings) rows, plus where to find that resource's customers. Clarified via `/plan`: a nested/expandable sidebar (not per-page tabs, not a flat relabel); keep the single shared Rezervacijos calendar from ADR-0044 rather than splitting it back apart; Valdymas is each resource's *existing* settings page, not a rebuild.

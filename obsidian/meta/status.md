@@ -14,6 +14,14 @@ updated: 2026-11-07
 
 ## Current focus
 
+**Quad tour departures (2026-11-10, ADR-0055): migration applied to the live DB and verified, types regenerated; code built on `main`, uncommitted, not browser-checked.** The storefront offers no tour dates until departures are added per tour type in the Turai tab. Next: add departures, browser-check /keturraciu-nuoma, /rezervacija and the admin, one Stripe test booking.
+
+**/pirtis Tipas from admin saunas (2026-11-10): built on `main`, uncommitted, not clicked through.** The booking widget lists the active saunas plus a sessions chip instead of hard-coded types.
+
+**Kalendorius page (2026-11-10): built on `main`, uncommitted, not browser-checked.** `/admin/kalendorius` shows events (seansai, žygiai, renginiai) as cards with seats taken, beside bookings (sauna, stays, quad rentals), in one month grid with type filters and a day agenda; an event opens `EventSheet` with its own tickets and confirm/reject actions. Diena / Savaitė / Mėnuo tabs switch the layout. Right-clicking a day offers new booking / seansas / renginys on that day. Linked from the sidebar and Apžvalga. Next: browser pass at 375 / 768 / 1024 px as staff.
+
+**Sauna sessions tab (2026-11-10): built on `main`, uncommitted, not browser-checked.** `/admin/pirtis` Programos card has Programos / Seansai tabs; sessions are created there (`SaunaSessionsList`, `EventDialog presetCategory`).
+
 **Hourly quad rental on `/keturraciu-nuoma` (2026-11-10): built on `feat/quad-tour-products`, browser-checked to the checkout dialog on live data, not pushed.** Switch between guided tours and "Nuoma valandomis" (the admin Parkas fleet); `/rezervacija`'s quad tab still shows only tours.
 
 **Payable quad tours (2026-11-10, ADR-0053): built end to end on branch `feat/quad-tour-products` (database part is LIVE; code committed locally, not pushed).** The quad tour flow now books and pays through the shared checkout dialog; browser-checked to the dialog, never submitted (the local `.env.local` has the live Stripe key). Live database now has `quad_tour_routes` / `quad_tour_accessories` / `create_quad_tour_rental` (applied with `supabase db query --linked`; never `db push`). Admin cards for routes, gear and the cancellation line are in /admin/keturraciai -> Parkas (not browser-checked). The booking-confirmed screen padding is fixed for inline panels. Still to do: push + PR, an admin browser pass, and one real paid test booking against Stripe test mode.

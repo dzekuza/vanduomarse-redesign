@@ -9,7 +9,7 @@ import type { QuadPageData } from "@/lib/data/public-types";
 import { hourLabel, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
 import type { When } from "@/lib/reservation";
 import { hoursLabel } from "@/lib/sauna";
-import { quadTourAccessories, quadTourStarts, type QuadTourPick } from "./quad-tour-plan";
+import { quadTourAccessories, quadTourStarts, type QuadTourPick, type QuadTourSlot } from "./quad-tour-plan";
 import { QuadRouteDialog } from "./quad-route-dialog";
 import { QuadAccessories } from "./quad-accessories";
 
@@ -50,7 +50,8 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
             choice={pick?.routeId === route.id ? pick : drafts[route.id] ?? { startHour: null, units: route.minUnits }}
             onDraft={(next) => {
               setDrafts((current) => ({ ...current, [route.id]: next }));
-              if (pick?.routeId === route.id && next.startHour !== null) onChange({ routeId: route.id, ...next, startHour: next.startHour });
+              const start = quadTourStarts(data, when.day, route, busy).find(({ hour }) => hour === next.startHour);
+              if (pick?.routeId === route.id && next.startHour !== null && start?.eventId) onChange({ routeId: route.id, eventId: start.eventId, ...next, startHour: next.startHour });
             }}
             onChoose={choose}
           />
@@ -63,7 +64,7 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
 function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoose }: {
   route: QuadTourRoute;
   catalogue: readonly QuadTourAccessory[];
-  starts: { hour: number; free: number }[];
+  starts: QuadTourSlot[];
   selected: boolean;
   choice: DraftPick;
   onDraft: (next: DraftPick) => void;
@@ -103,7 +104,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
           </>
         ) : null}
         {starts.length === 0 || (selected && !ready) ? (
-          <p role="status" className={`text-xs ${copy}`}>{starts.length === 0 ? "Laisvo laiko nėra. Pasirink kitą datą." : "Patikslink laiką arba kiekį."}</p>
+          <p role="status" className={`text-xs ${copy}`}>{starts.length === 0 ? "Šią dieną turų nėra. Pasirink kitą datą." : "Patikslink laiką arba kiekį."}</p>
         ) : null}
         <Cta
           tone={selected ? "cream" : "dark"}
@@ -113,7 +114,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
           disabled={!selected && !ready}
           onClick={() => {
             if (selected) onChoose(null);
-            else if (slot && ready) onChoose({ routeId: route.id, startHour: slot.hour, units: choice.units, accessories: choice.accessories });
+            else if (slot?.eventId && ready) onChoose({ routeId: route.id, eventId: slot.eventId, startHour: slot.hour, units: choice.units, accessories: choice.accessories });
           }}
         >{selected ? "Pašalinti" : "Pasirinkti"}</Cta>
       </div>

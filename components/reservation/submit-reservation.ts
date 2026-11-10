@@ -24,7 +24,7 @@ function requestFor(id: ActivityId, plans: Plans, when: When, tour: QuadTourPick
   const { pirtis, keturraciai, nakvyne } = plans;
   // A Mini / Midi / Maxi tour replaces an hourly rental; the database prices it from the route and gear rows.
   if (id === "keturraciai" && tour) {
-    return { type: "quadTourRental", input: { routeId: tour.routeId, date: when.day, startHour: tour.startHour, units: tour.units, accessories: quadTourGear(tour.accessories), note: "" } };
+    return { type: "quadTourRental", input: { routeId: tour.routeId, eventId: tour.eventId, date: when.day, startHour: tour.startHour, units: tour.units, accessories: quadTourGear(tour.accessories), note: "" } };
   }
   if (id === "pirtis" && pirtis?.mode === "session" && pirtis.session) {
     return { type: "programTicket", input: { eventId: pirtis.session.key, adults: pirtis.adults, children: pirtis.children } };

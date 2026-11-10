@@ -115,6 +115,8 @@ export interface ManagedEvent {
   published: boolean;
   /** Sauna program this session belongs to (its price then follows the program). */
   programId?: string;
+  /** Set for a dated departure of a quad tour product (`quad_tour_routes`); capacity is then in quads. */
+  tourRouteId?: string;
 }
 
 export type PriceGroup = "Erdvės" | "Maitinimas" | "Paslaugos" | "Pramogos" | "Nakvynė";
@@ -169,6 +171,9 @@ export interface QuadRental {
   payment?: PaymentInfo;
   /** Linked customer (Klientai), when matched or created. ADR-0042 */
   riderId?: string;
+  /** Tour bookings: the tour product, and the dated departure (an event) it joined. */
+  tourRouteId?: string;
+  tourEventId?: string;
 }
 
 /** A ticket for an event (a row of event_tickets); quad tours and other events share the shape. */

@@ -1,5 +1,5 @@
 import type { CabinAvailability } from "@/lib/cabin";
-import type { QuadSettings, QuadTaken, QuadTourAccessory, QuadTourData, QuadTourRoute, QuadType } from "@/lib/quads";
+import type { QuadDeparture, QuadSettings, QuadTaken, QuadTourAccessory, QuadTourData, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaEventData } from "@/lib/sauna-events";
@@ -41,4 +41,6 @@ export interface QuadPageData {
   /** Mini / Midi / Maxi, active only, in display order. */
   tourRoutes: QuadTourRoute[];
   tourAccessories: QuadTourAccessory[];
+  /** Dated departures of the tour products; a tour is booked on one of these. */
+  departures: QuadDeparture[];
 }

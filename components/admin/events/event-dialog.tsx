@@ -8,6 +8,7 @@ import { eventSchema, type EventFormValues } from "./event-schema";
 import { EVENT_CATEGORIES, type EventCategory } from "@/lib/park-events";
 import type { ManagedEvent } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,16 +21,24 @@ interface EventDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Existing event to edit; omit to create. */
   event?: ManagedEvent;
+  /** When creating, start in this category and hide the category picker (e.g. a sauna session from the sauna admin). */
+  presetCategory?: EventCategory;
+  /** When creating, start on this day (yyyy-mm-dd), e.g. from a calendar cell. */
+  presetDate?: string;
 }
 
-function toValues(e?: ManagedEvent): EventFormValues {
+/** A sauna session's place is "Sauna" or "Sauna · attendant"; the form edits the sauna, the attendant suffix is kept. */
+const venueOf = (place: string) => place.split(" · ")[0];
+const attendantSuffix = (place?: string) => (place?.includes(" · ") ? ` · ${place.split(" · ").slice(1).join(" · ")}` : "");
+
+function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?: string, defaultPlace = "Skoniai Marse"): EventFormValues {
   return {
     title: e?.title ?? "",
-    category: e?.category ?? "vakarai",
-    date: e?.date ?? "",
+    category: e?.category ?? presetCategory ?? "vakarai",
+    date: e?.date ?? presetDate ?? "",
     time: e?.time ?? "19:00",
     durationMinutes: e?.durationMinutes == null ? "" : String(e.durationMinutes),
-    place: e?.place ?? "Skoniai Marse",
+    place: e ? (presetCategory === "pirtis" ? venueOf(e.place) : e.place) : defaultPlace,
     price: e?.price == null ? "" : String(e.price),
     capacity: e?.capacity == null ? "" : String(e.capacity),
     blurb: e?.blurb ?? "",
@@ -38,13 +47,22 @@ function toValues(e?: ManagedEvent): EventFormValues {
   };
 }
 
+/** Wording when the dialog is opened for one kind of event (a sauna session, a quad tour) instead of a generic event. */
+const KIND_COPY: Partial<Record<EventCategory, { nom: string; acc: string; created: string; updated: string }>> = {
+  pirtis: { nom: "seansas", acc: "seansą", created: "Seansas sukurtas", updated: "Seansas atnaujintas" },
+};
+
 /** Create or edit an event. Remounted per event (key) so defaults reset. */
-export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
-  const { saveEvent, programs } = useAdmin();
+export function EventDialog({ open, onOpenChange, event, presetCategory, presetDate }: EventDialogProps) {
+  const { saveEvent, programs, saunas } = useAdmin();
+  const sessionDialog = presetCategory === "pirtis";
+  const saunaNames = saunas.map((s) => s.name);
   const { register, control, handleSubmit, setError, formState } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues: toValues(event),
+    defaultValues: toValues(event, presetCategory, presetDate, sessionDialog ? ((saunas.find((s) => s.active) ?? saunas[0])?.name ?? "Pirtis Marse") : undefined),
   });
+  const lockCategory = !!presetCategory;
+  const copy = presetCategory ? KIND_COPY[presetCategory] : undefined;
   const category = useWatch({ control, name: "category" });
   const programId = useWatch({ control, name: "programId" });
   const sessionPrograms = programs.filter((p) => p.kind === "session");
@@ -59,7 +77,7 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
       date: v.date,
       time: v.time,
       durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : event?.durationMinutes,
-      place: v.place,
+      place: sessionDialog ? `${v.place}${attendantSuffix(event?.place)}` : v.place,
       blurb: v.blurb,
       price: program ? program.price : v.price === "" ? null : Number(v.price),
       capacity: v.capacity === "" ? null : Number(v.capacity),
@@ -71,7 +89,7 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
       setError("root", { message: result.error.message });
       return;
     }
-    toast.success(event ? "Renginys atnaujintas" : "Renginys sukurtas");
+    toast.success(copy ? (event ? copy.updated : copy.created) : event ? "Renginys atnaujintas" : "Renginys sukurtas");
     onOpenChange(false);
   });
 
@@ -88,33 +106,35 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{event ? "Redaguoti renginį" : "Naujas renginys"}</DialogTitle>
+          <DialogTitle>{event ? `Redaguoti ${copy?.acc ?? "renginį"}` : `Naujas ${copy?.nom ?? "renginys"}`}</DialogTitle>
           <DialogDescription>Kainą ar vietų skaičių palikite tuščią, jei įėjimas nemokamas ar vietų neribojame.</DialogDescription>
         </DialogHeader>
         <form id="event-form" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">{field("title", "Pavadinimas", <Input id="title" aria-invalid={!!err.title} {...register("title")} />)}</div>
-          {field(
-            "category",
-            "Kategorija",
-            <Controller
-              control={control}
-              name="category"
-              render={({ field: f }) => (
-                <Select value={f.value} onValueChange={f.onChange}>
-                  <SelectTrigger id="category" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EVENT_CATEGORIES.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          {lockCategory
+            ? null
+            : field(
+                "category",
+                "Kategorija",
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field: f }) => (
+                    <Select value={f.value} onValueChange={f.onChange}>
+                      <SelectTrigger id="category" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EVENT_CATEGORIES.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />,
               )}
-            />,
-          )}
           {category === "pirtis" && sessionPrograms.length
             ? field(
                 "programId",
@@ -140,8 +160,31 @@ export function EventDialog({ open, onOpenChange, event }: EventDialogProps) {
                 />,
               )
             : null}
-          {field("place", "Vieta", <Input id="place" aria-invalid={!!err.place} {...register("place")} />)}
-          {field("date", "Data", <Input id="date" type="date" aria-invalid={!!err.date} {...register("date")} />)}
+          {sessionDialog
+            ? field(
+                "place",
+                "Pirties tipas",
+                <Controller
+                  control={control}
+                  name="place"
+                  render={({ field: f }) => (
+                    <Select value={f.value} onValueChange={f.onChange}>
+                      <SelectTrigger id="place" className="w-full" aria-invalid={!!err.place}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(saunaNames.includes(f.value) || !f.value ? saunaNames : [f.value, ...saunaNames]).map((name) => (
+                          <SelectItem key={name} value={name}>
+                            {name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />,
+              )
+            : field("place", "Vieta", <Input id="place" aria-invalid={!!err.place} {...register("place")} />)}
+          {field("date", "Data", <Controller control={control} name="date" render={({ field: f }) => <DatePicker id="date" value={f.value} onChange={f.onChange} invalid={!!err.date} />} />)}
           {field("time", "Laikas", <Input id="time" type="time" aria-invalid={!!err.time} {...register("time")} />)}
           {category === "pirtis" ? field(
             "durationMinutes",

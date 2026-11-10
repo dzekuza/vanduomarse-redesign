@@ -30,22 +30,22 @@ export function QuadTimeField({ slots, duration, minUnits, selected, onSelect }:
       <label htmlFor={timeId} className="flex items-center gap-2 text-sm font-bold">
         <ClockIcon size={18} aria-hidden /> Laikas
       </label>
-      <Select disabled={slots.length === 0} value={selected ? String(selected.hour) : ""} onValueChange={(value) => {
-        const slot = slots.find(({ hour }) => String(hour) === value);
+      <Select disabled={slots.length === 0} value={selected ? (selected.eventId ?? String(selected.hour)) : ""} onValueChange={(value) => {
+        const slot = slots.find((item) => (item.eventId ?? String(item.hour)) === value);
         if (slot && slot.free >= minUnits) onSelect(slot);
       }}>
         <SelectTrigger id={timeId} className="w-full min-w-0 rounded-none border-line bg-transparent">
           <SelectValue placeholder="Pasirink laiką">{selected ? timeLabel(selected.hour, duration) : null}</SelectValue>
         </SelectTrigger>
         <SelectContent position="popper" className="rounded-none">
-          {slots.map(({ hour, free }) => {
+          {slots.map(({ hour, free, eventId }) => {
             const time = timeLabel(hour, duration);
             const available = free >= minUnits;
             const status = free === 0 ? "Užimta" : `Liko ${free}`;
             return (
               <SelectItem
-                key={hour}
-                value={String(hour)}
+                key={eventId ?? hour}
+                value={eventId ?? String(hour)}
                 disabled={!available}
                 aria-label={`${time}. ${free === 0 ? "Užimta" : `Laisvų keturračių: ${free}`}${free > 0 && !available ? `. Turui reikia bent ${minUnits} keturračių` : ""}`}
                 className="min-h-11 data-disabled:text-copy data-disabled:opacity-100 *:last:w-full"

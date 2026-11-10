@@ -1,15 +1,12 @@
 import type { Icon } from "@phosphor-icons/react";
 import {
   AddressBookIcon,
-  CalendarCheckIcon,
+  CalendarBlankIcon,
   ChartPieSliceIcon,
-  ClipboardTextIcon,
   ConfettiIcon,
   EnvelopeSimpleIcon,
   FireIcon,
-  GearSixIcon,
   GiftIcon,
-  HouseIcon,
   LifebuoyIcon,
   MotorcycleIcon,
   PercentIcon,
@@ -63,50 +60,16 @@ export type AdminNavEntry = AdminNavItem | AdminNavDomain;
 export const isDomain = (entry: AdminNavEntry): entry is AdminNavDomain => "children" in entry;
 
 /**
- * Pirtis's and Namukai's Kalendorius both point at the same shared
- * Rezervacijos calendar (sauna + cabins + quads together, ADR-0044) — there
- * is deliberately no separate per-resource grid (ADR-0045).
+ * Plain links, no dropdowns: Kalendorius (all bookings and events), then each
+ * resource's own page. Cabins are managed under Kainodara (`/admin/kainos`), so
+ * there is no separate Namukai row. `AdminNavDomain` support stays for any
+ * future grouped row.
  */
 export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin", label: "Apžvalga", icon: ChartPieSliceIcon, group: "apzvalga", permission: "apzvalga", badge: "pendingAll", primary: true },
-  {
-    id: "pirtis",
-    label: "Pirtis",
-    icon: FireIcon,
-    group: "pardavimai",
-    children: [
-      {
-        href: "/admin/rezervacijos?view=kalendorius",
-        label: "Kalendorius",
-        icon: CalendarCheckIcon,
-        group: "pardavimai",
-        permission: "rezervacijos",
-        badge: "pendingBookings",
-        primary: true,
-      },
-      { href: "/admin/pirtis", label: "Valdymas", icon: GearSixIcon, group: "pardavimai", permission: "pirtis" },
-    ],
-  },
-  {
-    id: "namukai",
-    label: "Namukai",
-    icon: HouseIcon,
-    group: "pardavimai",
-    children: [
-      { href: "/admin/rezervacijos?view=kalendorius", label: "Kalendorius", icon: CalendarCheckIcon, group: "pardavimai", permission: "rezervacijos" },
-      { href: "/admin/kainos", label: "Valdymas", icon: GearSixIcon, group: "pardavimai", permission: "kainos" },
-    ],
-  },
-  {
-    id: "keturraciai",
-    label: "Keturračiai",
-    icon: MotorcycleIcon,
-    group: "pardavimai",
-    children: [
-      { href: "/admin/keturraciai", label: "Nuoma / Žygiai", icon: ClipboardTextIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
-      { href: "/admin/keturraciai?tab=parkas", label: "Valdymas", icon: GearSixIcon, group: "pardavimai", permission: "keturraciai" },
-    ],
-  },
+  { href: "/admin/kalendorius", label: "Kalendorius", icon: CalendarBlankIcon, group: "pardavimai", permission: "rezervacijos", badge: "pendingBookings", primary: true },
+  { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "pardavimai", permission: "pirtis" },
+  { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "pardavimai", permission: "kuponai", badge: "pendingCoupons" },
   { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "pardavimai", permission: "nuolaidos" },
   { href: "/admin/apyrankes", label: "Apyrankės", icon: ScanIcon, group: "pardavimai", permission: "apyrankes" },
