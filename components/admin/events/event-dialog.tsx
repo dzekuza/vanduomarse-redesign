@@ -13,7 +13,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 interface EventDialogProps {
@@ -42,7 +41,7 @@ function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?:
     price: e?.price == null ? "" : String(e.price),
     capacity: e?.capacity == null ? "" : String(e.capacity),
     blurb: e?.blurb ?? "",
-    published: e?.published ?? false,
+    visibility: e?.calendarPrivate ? "private" : e?.published ? "public" : "draft",
     programId: e?.programId ?? "",
   };
 }
@@ -82,7 +81,8 @@ export function EventDialog({ open, onOpenChange, event, presetCategory, presetD
       price: program ? program.price : v.price === "" ? null : Number(v.price),
       capacity: v.capacity === "" ? null : Number(v.capacity),
       sold: event?.sold ?? 0,
-      published: v.published,
+      published: v.visibility === "public",
+      calendarPrivate: v.visibility === "private" || event?.calendarPrivate ? v.visibility === "private" : undefined,
       programId: v.category === "pirtis" && program ? program.id : undefined,
     });
     if ("error" in result) {
@@ -195,16 +195,22 @@ export function EventDialog({ open, onOpenChange, event, presetCategory, presetD
           {field("price", "Kaina, €", <Input id="price" inputMode="decimal" placeholder={program ? `Pagal programą: ${program.price} €` : "Nemokamai"} disabled={!!program} aria-invalid={!!err.price} {...register("price")} />)}
           {field("capacity", "Vietų skaičius", <Input id="capacity" inputMode="numeric" placeholder="Neribota" aria-invalid={!!err.capacity} {...register("capacity")} />)}
           <div className="sm:col-span-2">{field("blurb", "Aprašymas", <Textarea id="blurb" rows={3} aria-invalid={!!err.blurb} {...register("blurb")} />)}</div>
-          <Controller
-            control={control}
-            name="published"
-            render={({ field: f }) => (
-              <label className="flex min-h-11 items-center gap-3 text-sm sm:col-span-2">
-                <Switch checked={f.value} onCheckedChange={f.onChange} />
-                Paskelbti svetainėje
-              </label>
-            )}
-          />
+          <div className="sm:col-span-2">
+            {field("visibility", "Matomumas", (
+              <Controller control={control} name="visibility" render={({ field: f }) => (
+                <Select value={f.value} onValueChange={f.onChange}>
+                  <SelectTrigger id="visibility" className="min-h-11 w-full" aria-describedby="visibility-hint">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Juodraštis</SelectItem>
+                    <SelectItem value="public">Viešas renginys</SelectItem>
+                    <SelectItem value="private">Privatus renginys</SelectItem>
+                  </SelectContent>
+                </Select>
+              )} />
+            ), "Privataus renginio kalendoriuje rodoma tik data ir žyma „Privatus renginys“.")}
+          </div>
           {err.root?.message ? <p role="alert" className="text-xs text-destructive sm:col-span-2">{err.root.message}</p> : null}
         </form>
         <DialogFooter>

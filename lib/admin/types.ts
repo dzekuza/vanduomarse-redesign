@@ -123,6 +123,7 @@ export interface ManagedEvent {
   capacity: number | null;
   sold: number;
   published: boolean;
+  calendarPrivate?: boolean;
   /** Sauna program this session belongs to (its price then follows the program). */
   programId?: string;
   /** Set for a dated departure of a quad tour product (`quad_tour_routes`); capacity is then in quads. */
