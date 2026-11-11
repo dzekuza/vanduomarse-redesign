@@ -12,7 +12,7 @@ updated: 2026-11-07
 
 **Last updated:** 2026-11-12
 
-**Admin "Svetainė" (2026-11-12, ADR-0068): owner-only switch for the coming-soon gate at `/admin/svetaine`; code done, `tsc`/eslint clean. migration `20261112140000_site_settings.sql` APPLIED and verified (1 row, ON, RLS on, anon can read). Follow-up `20261112141000_site_settings_grants.sql` (drops the anon UPDATE and authenticated INSERT/DELETE table grants; RLS already blocks them) is written but NOT applied (MCP apply denied). Deploy the code so the proxy uses the table; not browser-checked.**
+**Admin "Svetainė" (2026-11-12, ADR-0068): owner-only switch for the coming-soon gate at `/admin/svetaine`; code done, `tsc`/eslint clean. migration `20261112140000_site_settings.sql` APPLIED and verified (1 row, ON, RLS on, anon can read). Follow-up `20261112141000_site_settings_grants.sql` (drops the anon UPDATE and authenticated INSERT/DELETE table grants; RLS already blocks them) APPLIED and verified. Deploy the code so the proxy uses the table; not browser-checked.**
 
 **Pirtininkai (2026-11-12, ADR-0067): admin card + storefront picker done, `tsc`/eslint clean; migration `20261112120000_sauna_masters.sql` APPLIED (verified); not browser-checked, not committed. Deploy together with the code: the live site is on the old code.**
 
