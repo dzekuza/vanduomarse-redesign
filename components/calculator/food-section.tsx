@@ -36,7 +36,7 @@ export function CateringSection({ calc: { input, set } }: FoodSectionProps) {
           select(buffet.id);
         }}
       >
-        <div>
+        <div className="w-full">
           <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam suaugusiajam</label>
           <input
             id={sliderId}

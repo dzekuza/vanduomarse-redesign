@@ -25,7 +25,7 @@ export function TourRoutesCard() {
       <CardHeader>
         <CardTitle>Turų tipai</CardTitle>
         <CardDescription>
-          Pavadinimas, trukmė ir kaina. Datas kiekvienam tipui pridedate žemiau, „Turų datos“. Kaina už keturratį su PVM; užsakymo sumą visada perskaičiuoja duomenų bazė iš šių reikšmių.
+          Pavadinimas, trukmė ir kaina. Turus galima rezervuoti bet kuriuo laiku, kol yra laisvų keturračių; mažiausią keturračių skaičių nustatote čia. Kaina už keturratį su PVM; užsakymo sumą visada perskaičiuoja duomenų bazė iš šių reikšmių.
         </CardDescription>
         <CardAction>
           <Button onClick={() => setEditing({})}>

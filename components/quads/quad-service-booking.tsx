@@ -7,7 +7,7 @@ import { ACTIVITY_ICON } from "@/components/reservation/activity-icons";
 import { DateField } from "@/components/reservation/date-field";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { dateKey } from "@/lib/sauna";
-import { quadTourDepartureSlots, type QuadTourPick } from "./quad-tour-plan";
+import { quadTourStarts, type QuadTourPick } from "./quad-tour-plan";
 import { QuadRouteDialog } from "./quad-route-dialog";
 import { QuadRoutePicker } from "./quad-route-picker";
 import { QuadTourFields } from "./quad-tour-fields";
@@ -30,7 +30,7 @@ interface QuadServiceBookingProps {
 
 /**
  * Quad booking: pick a route, then a date, then a start time (with quads and gear).
- * Routes, departures, minimum quads, gear and prices are database rows (`quad_tour_routes`);
+ * Tours are not scheduled: any start the free fleet covers can be booked. Routes, minimum quads, gear and prices are database rows (`quad_tour_routes`);
  * the plan panel and checkout dialog take the selected tour from here.
  */
 export function QuadServiceBooking({ data, days, date, pick, busyHours, busy, pricesHref, onDate, onPick }: QuadServiceBookingProps) {
@@ -62,7 +62,7 @@ export function QuadServiceBooking({ data, days, date, pick, busyHours, busy, pr
         onOpenChange={setCalendarOpen}
         onSelect={onDate}
         icons={(d) => {
-          const available = route !== null && quadTourDepartureSlots(data, dateKey(d), route).some((slot) => slot.free >= route.minUnits);
+          const available = route !== null && quadTourStarts(data, dateKey(d), route, busyHours).length > 0;
           return [{ Icon: ACTIVITY_ICON.keturraciai, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];
         }}
       />

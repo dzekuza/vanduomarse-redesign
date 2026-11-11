@@ -38,7 +38,7 @@ export function QuadTourCard({ data, when, busy, pick, routeId, onChange }: Quad
     onChange(next);
   }
 
-  // Only routes with a departure on this day are offered; a route already in the plan stays so it can be removed.
+  // Only routes with a free start on this day are offered; a route already in the plan stays so it can be removed.
   const routes = data.tourRoutes.filter((route) => pick?.routeId === route.id || ((routeId === undefined || routeId === route.id) && quadTourStarts(data, when.day, route, busy).length > 0));
 
   if (routes.length === 0) {
@@ -60,7 +60,7 @@ export function QuadTourCard({ data, when, busy, pick, routeId, onChange }: Quad
             onDraft={(next) => {
               setDrafts((current) => ({ ...current, [route.id]: next }));
               const start = quadTourStarts(data, when.day, route, busy).find(({ hour }) => hour === next.startHour);
-              if (pick?.routeId === route.id && next.startHour !== null && start?.eventId) onChange({ routeId: route.id, eventId: start.eventId, ...next, startHour: next.startHour });
+              if (pick?.routeId === route.id && next.startHour !== null && start) onChange({ routeId: route.id, ...next, startHour: next.startHour });
             }}
             onChoose={choose}
           />
@@ -122,7 +122,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
           disabled={!selected && !ready}
           onClick={() => {
             if (selected) onChoose(null);
-            else if (slot?.eventId && ready) onChoose({ routeId: route.id, eventId: slot.eventId, startHour: slot.hour, units: choice.units, accessories: choice.accessories });
+            else if (slot && ready) onChoose({ routeId: route.id, startHour: slot.hour, units: choice.units, accessories: choice.accessories });
           }}
         >{selected ? "Pašalinti" : "Pasirinkti"}</Cta>
       </div>

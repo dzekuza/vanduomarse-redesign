@@ -1,6 +1,8 @@
 import { CaretUpIcon, XIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import type { ServicePhoto } from "@/components/landing/content";
+import { ServiceBookingHelp } from "@/components/services/service-booking-help";
+import { MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -80,14 +82,15 @@ export function MobilePlanDock({ activity, photos = activityPhotos(activity), wh
             <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />
             <PlanDetails {...details} />
           </div>
-          {enabledContinueAction ? (
-            <SheetFooter className="shrink-0 px-gutter py-3">
+          <SheetFooter className="shrink-0 gap-0 px-gutter py-3">
+            {enabledContinueAction ? (
               <PlanActions
                 continueAction={{ ...enabledContinueAction, onClick: () => choose(enabledContinueAction) }}
                 secondaryAction={secondaryAction ? { ...secondaryAction, onClick: () => choose(secondaryAction) } : undefined}
               />
-            </SheetFooter>
-          ) : null}
+            ) : null}
+            <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: MAIN_CONTACT.email }} />
+          </SheetFooter>
         </SheetContent>
       </Sheet>
       {enabledContinueAction ? (
