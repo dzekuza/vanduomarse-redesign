@@ -161,6 +161,12 @@ export interface StaffMember {
 }
 
 /** A phone number that receives staff SMS, and the topics it is texted about. Owners only. */
+/** Site-wide switches owners flip at /admin/svetaine. */
+export interface SiteSettings {
+  /** The public site shows the "coming soon" page (503) instead of its pages. */
+  comingSoon: boolean;
+}
+
 export interface NotificationRecipient {
   id: string;
   name: string;
@@ -364,6 +370,8 @@ export interface AdminData {
   staff: StaffMember[];
   /** Empty unless `me` is an owner (or before the notification_recipients migration). */
   notificationRecipients: NotificationRecipient[];
+  /** Site-wide switches; owners only (null for everyone else, or before the site_settings migration). */
+  siteSettings: SiteSettings | null;
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];

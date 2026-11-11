@@ -1802,6 +1802,24 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          coming_soon: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          coming_soon?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          coming_soon?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff: {
         Row: {
           active: boolean

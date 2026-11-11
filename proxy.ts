@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { frameAncestors } from "@/lib/embed";
-import { GATE_COOKIE, GATE_PATH, gateExempt, hasGatePass, siteGateOn } from "@/lib/site-gate";
+import { GATE_COOKIE, GATE_PATH, gateExempt, hasGatePass } from "@/lib/site-gate";
+import { siteGateOn } from "@/lib/site-gate-flag";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 const LOGIN_PATH = "/admin/prisijungti";
@@ -20,7 +21,7 @@ function embedResponse() {
 const SESSION_PREFIXES = ["/admin", "/rezervacija", "/paskyra"];
 
 /**
- * Site gate (SITE_GATE=1): every public path shows the coming-soon page with a 503, URL unchanged.
+ * Site gate (on while site_settings.coming_soon): every public path shows the coming-soon page with a 503, URL unchanged.
  * Non-GET requests (the code form's server action) are rewritten without the 503 so the action answers normally.
  */
 function gateResponse(request: NextRequest) {
@@ -36,7 +37,7 @@ function gateResponse(request: NextRequest) {
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (siteGateOn() && !gateExempt(pathname) && !(await hasGatePass(request.cookies.get(GATE_COOKIE)?.value))) {
+  if (!gateExempt(pathname) && (await siteGateOn()) && !(await hasGatePass(request.cookies.get(GATE_COOKIE)?.value))) {
     return gateResponse(request);
   }
   if (pathname.startsWith("/embed")) return embedResponse();

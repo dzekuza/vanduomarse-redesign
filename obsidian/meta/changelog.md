@@ -1,3 +1,5 @@
+- 2026-11-12 Admin "Svetainė" (`/admin/svetaine`, owner-only, nav group Nustatymai): switch for the public "coming soon" gate (ADR-0068). New `site_settings` table (migration `20261112140000_site_settings.sql`, APPLIED and verified; follow-up `20261112141000_site_settings_grants.sql` (grant tightening) written but not applied), `lib/site-gate-flag.ts` (proxy, `/netrukus` and the code action now read the flag asynchronously), `setComingSoon` server action (`app/admin/site-settings-actions.ts`), `AdminData.siteSettings`, `SiteSettingsView`. `SITE_GATE=1` is now only the fallback when the database is unreachable. `tsc`/eslint clean; not browser-checked (needs the table).
+
 - 2026-11-12 `/pirtis` private booking: Asmenų skaičius moved after Laikas (new `SaunaServicePeople`, split from `SaunaServiceHourly`), so the order is Tipas, Pirtis, Trukmė, Pirtininkas, Data, Laikas, Asmenų skaičius, extras. Order checked in the browser.
 
 - 2026-11-12 `/pirtis` booking panel: the Tipas chips (Privati pirtis / Pirties seansas) are left-aligned like the Pirtis chips. Not browser-checked.

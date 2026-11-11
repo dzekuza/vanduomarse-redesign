@@ -10,6 +10,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0068 — The "coming soon" gate is a database switch owners flip in /admin/svetaine
+
+- **Status:** accepted (2026-11-12); migration applied; grant-tightening follow-up written, not applied.
+- **Context:** the gate (ADR-0037) was the `SITE_GATE` env var, so opening or closing the site needed someone with Vercel access and a redeploy.
+- **Decision:** `site_settings.coming_soon` (singleton row, RLS: public read, owner update) is the source. `proxy.ts` reads it through `lib/site-gate-flag.ts` (anon REST call, 5 s per-instance cache, 2 s timeout). `SITE_GATE=1` stays only as the fallback when the database cannot be answered, so an outage keeps the previous behaviour instead of guessing. The preview code (`SITE_GATE_CODE`) stays an env var: a secret does not belong in a publicly readable table. Seeded ON so applying the migration cannot open the site by accident.
+- **Consequences:** a flip reaches visitors within ~5 s (instantly on the instance that handled the click). Every gated request may now cost one cached REST call. Local dev against the shared database is gated too unless the browser holds the preview-code pass.
+
 ## ADR-0067 — Pirtininkai are named rows priced per booking, added to hourly hire and private programs
 
 - **Context:** the owner wants to add pirtininkai, set their prices and offer them on the programs. The generic `pirtininkas` extra of ADR-0066 could not name or price people separately.

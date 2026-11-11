@@ -1,3 +1,11 @@
+## 2026-11-12 — Coming-soon switch in admin
+
+- **Why:** user asked for a setting in the admin dashboard to enable or disable the coming-soon gate.
+- **Changed:** `site_settings` table + migration (written, NOT applied: MCP apply denied as a production deploy), `lib/site-gate-flag.ts`, proxy / `/netrukus` / gate-code action read it, `/admin/svetaine` page + `SiteSettingsView`, `setComingSoon` action and store entry, nav item "Svetainė", docs, ADR-0068.
+- **Status:** `tsc`/eslint clean; not run in the browser (needs the table).
+- **Applied:** `site_settings` migration applied and verified; `site_settings_grants` follow-up written, apply was denied.
+- **Next:** apply the grants migration (optional hardening), deploy, then browser-check the toggle at `/admin/svetaine` and that `/` flips between the gate and the site.
+
 ## 2026-11-12 — Duration choice on /pirtis
 
 - **Why:** user could not pick a duration on /pirtis (private programs have a fixed length) and suggested removing the duration so guests choose 2, 3 or 4 h.

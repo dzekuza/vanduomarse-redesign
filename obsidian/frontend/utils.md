@@ -10,7 +10,8 @@ them pure and typed; anything with client state belongs in a hook instead.
 
 | Util | File | Signature | Purpose |
 |------|------|-----------|---------|
-| `siteGateOn` / `gateExempt` / `hasGatePass` / `gatePassToken` | `lib/site-gate.ts` | `() => boolean` / `(path) => boolean` / `(cookie?) => Promise<boolean>` / `(code) => Promise<string>` | Coming-soon gate (ADR-0037): `SITE_GATE=1`, exempt `/admin` + `/netrukus`, `vm_gate_pass` cookie = SHA-256 of `SITE_GATE_CODE` (Web Crypto, works in the proxy). Schema: `gateCodeSchema` in `lib/site-gate-schema.ts` |
+| `gateExempt` / `hasGatePass` / `gatePassToken` | `lib/site-gate.ts` | `(path) => boolean` / `(cookie?) => Promise<boolean>` / `(code) => Promise<string>` | Coming-soon gate (ADR-0037): exempt `/admin` + `/netrukus`, `vm_gate_pass` cookie = SHA-256 of `SITE_GATE_CODE` (Web Crypto, works in the proxy). Schema: `gateCodeSchema` in `lib/site-gate-schema.ts` |
+| `siteGateOn` / `forgetSiteGate` | `lib/site-gate-flag.ts` | `() => Promise<boolean>` / `() => void` | Reads `site_settings.coming_soon` with the anon key (5 s in-memory cache per instance, 2 s timeout); falls back to `SITE_GATE=1` when the database is unreachable. `forgetSiteGate` is called by the owner action after a flip (ADR-0068) |
 | `SITE_URL` | `lib/site.ts` | `string` | Public origin for metadata, robots and sitemap: env `SITE_URL` or `https://www.vanduomarse.lt` |
 | `verifiedPhone` / `UNVERIFIED` | `lib/phone-verification.ts` (server-only) | `(token, typedPhone) => string \| null` | The E.164 phone when the signed token is valid, unexpired and for the same number; every public booking action returns `UNVERIFIED` otherwise. Same file: `newCode`, `hashCode`, `hashIp`, `signToken`, `readToken` (ADR-0018) |
 | `phoneNumberSchema` / `phoneCodeSchema` / `verificationToken` | `lib/phone-schema.ts` | Zod | Phone gate forms; `verificationToken` is part of `contactFields` and `couponOrderSchema` |

@@ -8,6 +8,7 @@ import {
   ConfettiIcon,
   EnvelopeSimpleIcon,
   FireIcon,
+  GlobeHemisphereWestIcon,
   GiftIcon,
   LifebuoyIcon,
   MotorcycleIcon,
@@ -17,7 +18,7 @@ import {
   TagIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
-import { hasPermission, NOTIFICATIONS_HREF, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
+import { hasPermission, NOTIFICATIONS_HREF, SITE_SETTINGS_HREF, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
 
 export type AdminNavGroup = "apzvalga" | "pardavimai" | "turinys" | "nustatymai";
 
@@ -91,6 +92,7 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "nustatymai", permission: "nuolaidos" },
   { href: STAFF_HREF, label: "Darbuotojai", icon: UsersThreeIcon, group: "nustatymai", permission: "owner" },
   { href: NOTIFICATIONS_HREF, label: "Pranešimai", icon: BellRingingIcon, group: "nustatymai", permission: "owner" },
+  { href: SITE_SETTINGS_HREF, label: "Svetainė", icon: GlobeHemisphereWestIcon, group: "nustatymai", permission: "owner" },
 ];
 
 /** Where the "new booking" shortcuts (header button, tab bar +) lead. */
