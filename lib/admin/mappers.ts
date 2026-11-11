@@ -198,6 +198,7 @@ export function toSauna(r: Tables<"saunas">, links: Pick<Tables<"sauna_upsell_li
     rates: toSaunaRates(r),
     upsellIds: links.map((l) => l.upsell_id),
     active: r.active,
+    comingSoon: r.coming_soon,
     sortOrder: r.sort_order,
   };
 }

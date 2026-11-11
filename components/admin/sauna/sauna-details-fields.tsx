@@ -4,10 +4,10 @@ import { PlusIcon, XIcon } from "@phosphor-icons/react";
 import { Controller, useFieldArray, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { FormField } from "../form-field";
 import type { SaunaValues } from "./sauna-schema";
-import { MAX_SAUNA_FEATURES } from "@/lib/sauna";
+import { MAX_SAUNA_FEATURES, SAUNA_STATUSES, SAUNA_STATUS_LABELS } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 interface SaunaDetailsFieldsProps {
@@ -16,7 +16,7 @@ interface SaunaDetailsFieldsProps {
   errors: FieldErrors<SaunaValues>;
 }
 
-/** Name, description, feature list and visibility of a sauna. */
+/** Name, description, feature list and status (bookable, coming soon, hidden) of a sauna. */
 export function SaunaDetailsFields({ control, register, errors }: SaunaDetailsFieldsProps) {
   const features = useFieldArray({ control, name: "features" });
 
@@ -57,16 +57,26 @@ export function SaunaDetailsFields({ control, register, errors }: SaunaDetailsFi
         </Button>
       </fieldset>
 
-      <Controller
-        control={control}
-        name="active"
-        render={({ field }) => (
-          <label className="flex min-h-11 items-center gap-3 text-sm">
-            <Switch checked={field.value} onCheckedChange={field.onChange} />
-            Rodyti svetainėje ir leisti rezervuoti
-          </label>
-        )}
-      />
+      <FormField id="sauna-status" label="Būsena" hint="„Netrukus atsidarys“ rodo pirtį svetainėje su užrašu, bet jos užsakyti negalima.">
+        <Controller
+          control={control}
+          name="status"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="sauna-status" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SAUNA_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {SAUNA_STATUS_LABELS[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+      </FormField>
     </div>
   );
 }

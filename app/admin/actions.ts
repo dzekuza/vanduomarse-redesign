@@ -403,7 +403,7 @@ export async function saveSauna(id: string | null, input: SaunaValues): Promise<
   if (!parsed.success || (id !== null && !saunaIdSchema.safeParse(id).success)) return fail("Netinkamos reikšmės.", "invalid");
   const v = parsed.data;
   const { supabase } = ctx;
-  const row = { name: v.name, description: v.description, features: v.features.map((f) => f.value), active: v.active, ...fromSaunaRates(ratesFromValues(v.rates)) };
+  const row = { name: v.name, description: v.description, features: v.features.map((f) => f.value), active: v.status === "active", coming_soon: v.status === "coming-soon", ...fromSaunaRates(ratesFromValues(v.rates)) };
 
   let saunaId = id;
   if (saunaId) {
@@ -442,7 +442,7 @@ export async function setSaunaActive(id: string, active: boolean): Promise<Actio
   const ctx = await staffClient("pirtis");
   if (!ctx.ok) return ctx.error;
   if (!saunaIdSchema.safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
-  const { error } = await ctx.supabase.from("saunas").update({ active }).eq("id", id);
+  const { error } = await ctx.supabase.from("saunas").update({ active, coming_soon: false }).eq("id", id);
   saunaRevalidate();
   return error ? dbError(error) : done(null);
 }

@@ -15,15 +15,20 @@ interface SaunaHireProps {
 
 /** Private hire: pick a sauna (when there is more than one), then book it. */
 export function SaunaHire({ data, days, initialSaunaId }: SaunaHireProps) {
-  const { saunas } = data;
+  const { saunas, comingSoonSaunas } = data;
   const [saunaId, setSaunaId] = useState(() => (saunas.some((s) => s.id === initialSaunaId) ? initialSaunaId : saunas[0]?.id));
   const sauna = saunas.find((s) => s.id === saunaId);
 
   if (!sauna) {
-    return <p className="border border-ink bg-foam p-6 text-ink">Pirtis šiuo metu nerezervuojama internetu. Skambinkite, ir susitarsime.</p>;
+    return (
+      <div className="space-y-4">
+        <p className="border border-ink bg-foam p-6 text-ink">Pirtis šiuo metu nerezervuojama internetu. Skambinkite, ir susitarsime.</p>
+        {comingSoonSaunas.length ? <SaunaPicker saunas={[]} comingSoon={comingSoonSaunas} /> : null}
+      </div>
+    );
   }
 
-  const picker = saunas.length > 1;
+  const picker = saunas.length + comingSoonSaunas.length > 1;
   return (
     <SaunaBooking
       key={sauna.id}
@@ -38,7 +43,7 @@ export function SaunaHire({ data, days, initialSaunaId }: SaunaHireProps) {
         picker ? (
           <div>
             <StepLabel step={1}>Pasirink pirtį</StepLabel>
-            <SaunaPicker saunas={saunas} selected={sauna.id} onSelect={setSaunaId} />
+            <SaunaPicker saunas={saunas} comingSoon={comingSoonSaunas} selected={sauna.id} onSelect={setSaunaId} />
           </div>
         ) : null
       }

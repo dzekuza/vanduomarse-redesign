@@ -82,9 +82,24 @@ export interface Sauna {
   rates: SaunaRates;
   /** `sauna_upsells` ids this sauna offers. */
   upsellIds: string[];
+  /** Bookable and shown. */
   active: boolean;
+  /** Shown as "Netrukus atsidarys" but not bookable (never together with `active`). */
+  comingSoon: boolean;
   sortOrder: number;
 }
+
+/** Visibility of a sauna: bookable, announced ("Netrukus atsidarys") or hidden. */
+export const SAUNA_STATUSES = ["active", "coming-soon", "hidden"] as const;
+export type SaunaStatus = (typeof SAUNA_STATUSES)[number];
+
+export const SAUNA_STATUS_LABELS: Record<SaunaStatus, string> = {
+  active: "Rodoma ir galima rezervuoti",
+  "coming-soon": "Netrukus atsidarys (rodoma, nerezervuojama)",
+  hidden: "Paslėpta",
+};
+
+export const saunaStatus = (s: Pick<Sauna, "active" | "comingSoon">): SaunaStatus => (s.active ? "active" : s.comingSoon ? "coming-soon" : "hidden");
 
 /** Lowest session price, for "nuo X €". */
 export function fromPrice(rates: SaunaRates): number {
