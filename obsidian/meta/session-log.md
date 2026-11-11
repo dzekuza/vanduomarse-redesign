@@ -1,3 +1,18 @@
+## 2026-11-12 — front-updates migrations applied
+
+- **Why:** user asked to apply the two migrations of the rebased `front-updates` branch (PR #27).
+- **Changed:** live DB only: WAKE season-pass coupon products (2 rows) and `events.calendar_private` + `private_event_dates()`. Two parallel `apply_migration` calls collided on the version timestamp; the second was re-run alone, nothing was half-applied.
+- **Status:** verified with SQL (anon can execute the function, 0 private events). PR #27 not merged.
+- **Next:** merge PR #27; browser-check checkout and the celebration calendar with a private date.
+
+## 2026-11-12 — SEO audit and launch fixes
+
+- **Why:** gate removed; user asked for an SEO audit, then to start fixing.
+- **Audit:** live site is healthy (Lighthouse mobile SEO/A11y/BP 100, sitemap and robots fine, unique titles/descriptions, canonicals). The doubled `/rezervacija` H1 is only the streamed Suspense fallback in raw HTML; the rendered DOM has one H1 (not a bug).
+- **Changed:** FAQPage / BreadcrumbList / ContactPage JSON-LD, `/pirtis` meta description, `/netrukus` title (see changelog).
+- **Not done (needs owner input):** Search Console + Bing sitemap submit and indexing requests, Google Business Profile, opening hours/geo in schema (not published on the site, so not invented), Event schema (needs ISO start times), thin service copy (500+ words), per-page OG images, sitemap `lastmod`, image recompression (q72 re-encode only saves 15-40%; `next/image` already resizes).
+- **Status:** uncommitted on `feat/seo-launch-fixes`.
+
 ## 2026-11-12 — Favicon
 
 - **Why:** user supplied a new favicon SVG/PNG.

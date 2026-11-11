@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/json-ld";
 import { pageMetadata } from "@/lib/seo";
-import { localBusinessSchema } from "@/lib/structured-data";
+import { localBusinessSchema, faqSchema } from "@/lib/structured-data";
 import { MainHeader } from "@/components/main-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LandingActivities } from "@/components/landing/landing-activities";
 import { LandingAllIn } from "@/components/landing/landing-all-in";
+import { FAQ_ITEMS } from "@/components/landing/content";
 import { LandingFaq } from "@/components/landing/landing-faq";
 
 import { LandingHero } from "@/components/landing/landing-hero";
@@ -27,6 +28,7 @@ export default function Home() {
   return (
     <LandingProvider>
       <JsonLd data={localBusinessSchema()} />
+      <JsonLd data={faqSchema(FAQ_ITEMS)} />
       <a href="#kryptys" className="sr-only focus:not-sr-only focus:fixed focus:top-2.5 focus:left-5 focus:z-50 focus:bg-dust focus:p-3">
         Pereiti prie veiklų
       </a>

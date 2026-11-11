@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { ContactDetails } from "@/components/contact/contact-details";
+import { JsonLd } from "@/components/json-ld";
 import { pageMetadata } from "@/lib/seo";
+import { breadcrumbSchema, contactPageSchema } from "@/lib/structured-data";
 
 export const metadata: Metadata = pageMetadata({
   title: "Kontaktai ir kaip atvykti",
@@ -13,6 +15,8 @@ export const metadata: Metadata = pageMetadata({
 export default function ContactPage() {
   return (
     <BookingPage>
+      <JsonLd data={contactPageSchema()} />
+      <JsonLd data={breadcrumbSchema({ name: "Kontaktai", path: "/kontaktai" })} />
       <div className="theme-reservation px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
         <div className="max-w-3xl space-y-10">
           <BookingHeader
