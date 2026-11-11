@@ -1,3 +1,4 @@
+- 2026-11-11 Integrated the public booking updates with the live tour, stay and sauna catalogues. The WAKE tab reuses the coupon order panel. Public date fields share a calendar, and the stay schedule uses current inventory by stay type.
 - 2026-11-11 Added 13 optimized WAKE photos to the shared gallery with Lithuanian alt text and image sitemap URLs.
 - 2026-11-12 Favicon: new Vanduo Marse badge icon from the owner's `Vanduo Marse - favicon.svg`. `app/icon.svg` (the source, white background), and `app/icon.png` (512), `app/apple-icon.png` (180) and `app/favicon.ico` (16/32/48, PNG-in-ICO) rendered from it with sharp. Next serves them from the app folder; all four URLs return 200 and are linked in the page head. Checked the 512 px render by eye; not checked in a browser tab.
 

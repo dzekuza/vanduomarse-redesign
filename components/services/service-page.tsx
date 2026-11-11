@@ -12,7 +12,7 @@ import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
 import { cn } from "@/lib/utils";
 import { CELEBRATION_LINKS } from "./celebration-content";
-import { QuadServiceHelp } from "./quad-service-help";
+import { ServiceBookingHelp } from "./service-booking-help";
 import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "./service-content";
 import { ServicePhotoMosaic } from "./service-photo-mosaic";
 import { ServicePricing } from "./service-pricing";
@@ -53,8 +53,16 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
   const gallery = photos ?? SERVICE_GALLERY[copy.service];
   const contact = CONTACTS.find(({ name }) => name === SERVICES[copy.service].contact) ?? MAIN_CONTACT;
   const isCelebration = copy.service === "party";
-  const bookingTitle = slug === "vandenlentes" ? "Užsakyti" : booking ? "Rezervuoti" : isCelebration ? "Gauk šventės pasiūlymą"
+  const bookingTitle = slug === "vandenlentes" ? "Užsakyti"
+    : booking ? "Rezervuoti" : isCelebration ? "Gauk šventės pasiūlymą"
     : slug === "restoranas" ? "Rezervuok staliuką" : "Sužinok plaukimo laikus";
+  const bookingHeader = (
+    <div className="mb-5 space-y-2">
+      <p className="text-micro uppercase text-copy">{copy.label}</p>
+      <h2 id="service-booking-title" className="text-tile font-bold">{bookingTitle}</h2>
+      {copy.bookingIntro ? <p className="text-xs leading-relaxed text-copy">{copy.bookingIntro}</p> : null}
+    </div>
+  );
 
   return (
     <BookingPage>
@@ -71,15 +79,13 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
               ))}
             </nav>
           </header>
-          <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn("min-w-0 scroll-mt-32 border border-line p-4 sm:p-6 lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto", slug === "pirtis" || slug === "vandenlentes" ? "bg-foam" : "bg-card")}>
-            <div className="mb-5 space-y-2">
-              <p className="text-micro uppercase text-copy">{copy.label}</p>
-              <h2 id="service-booking-title" className="text-tile font-bold">{bookingTitle}</h2>
-              {slug === "pirtis" ? <p className="text-xs leading-relaxed text-copy">Rinkis privačią pirtį savo kompanijai arba vietą pirties seanse.</p> : null}
-              {slug === "keturraciu-nuoma" ? <p className="text-xs leading-relaxed text-copy">Susidėliok turo planą. Rezervaciją patvirtins komanda.</p> : null}
-            </div>
+          <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn(
+            "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
+            "p-4 sm:p-6 lg:overflow-y-auto",
+          )}>
+            {bookingHeader}
             {booking}
-            {slug === "keturraciu-nuoma" ? <QuadServiceHelp contact={contact} /> : !booking && (
+            {slug === "keturraciu-nuoma" ? <ServiceBookingHelp contact={contact} /> : !booking && (
               <div className="space-y-3 border-t border-line pt-4">
                 {isCelebration ? <Cta tone="dark" small className="w-full" href="/skaiciuokle">Skaičiuoti šventės kainą</Cta> : (
                   <Cta tone="dark" small className="w-full" href={telHref(contact.phone)}>{contact.phone}</Cta>

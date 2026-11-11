@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { AvailabilityCount } from "./availability-count";
 import { SaunaScheduleChooser } from "./sauna-schedule-chooser";
 import { SESSION_PREVIEW_LIMIT, SaunaSessionDayIndicator } from "./sauna-session-day-details";
+import { SCHEDULE_DAY_CARD, ScheduleDayCards } from "./schedule-day-cards";
 
 interface SaunaServiceScheduleProps {
   data: SaunaPageData;
@@ -31,11 +32,11 @@ function publishedSessionsByDay(data: SaunaPageData) {
 function ScheduleDayIndicator({ sessions, detailed }: { sessions: PublishedSession[]; detailed: boolean }) {
   return (
     <>
-      <span className={cn("block", detailed && "@lg/sauna-schedule:hidden")}>
+      <span className={cn("block", detailed && "@lg/schedule:hidden")}>
         <SaunaSessionDayIndicator rows={sessions} />
       </span>
       {detailed && sessions.length > SESSION_PREVIEW_LIMIT ? (
-        <span className="hidden text-micro @lg/sauna-schedule:block">+{sessions.length - SESSION_PREVIEW_LIMIT}</span>
+        <span className="hidden text-micro @lg/schedule:block">+{sessions.length - SESSION_PREVIEW_LIMIT}</span>
       ) : null}
     </>
   );
@@ -43,9 +44,9 @@ function ScheduleDayIndicator({ sessions, detailed }: { sessions: PublishedSessi
 
 function ScheduleDayLinks({ sessions }: { sessions: PublishedSession[] }) {
   return (
-    <div className="hidden space-y-1 px-1 pb-1 text-micro leading-tight tracking-normal @lg/sauna-schedule:block">
+    <ScheduleDayCards>
       {sessions.slice(0, SESSION_PREVIEW_LIMIT).map((row) => (
-        <SessionInfoLink key={row.key} id={row.eventId} className="block min-h-11 space-y-1 border border-line bg-foam p-1.5 text-ink hover:border-ink">
+        <SessionInfoLink key={row.key} id={row.eventId} className={SCHEDULE_DAY_CARD}>
           <span className="block tabular-nums">
             <span aria-hidden>{row.time.split("–")[0]}</span>
             <span className="sr-only">{row.time}</span>
@@ -55,7 +56,7 @@ function ScheduleDayLinks({ sessions }: { sessions: PublishedSession[] }) {
           <span className="sr-only">{row.seats}</span>
         </SessionInfoLink>
       ))}
-    </div>
+    </ScheduleDayCards>
   );
 }
 
@@ -83,14 +84,13 @@ export function SaunaServiceSchedule({ data, initialDay }: SaunaServiceScheduleP
   }
 
   return (
-    <div ref={calendar} className="@container/sauna-schedule min-w-0 space-y-5">
+    <div ref={calendar} className="@container/schedule min-w-0 space-y-5">
       <p className="text-sm text-copy">Kalendoriuje matysi, kiek vietų laisva. Pasirink seansą arba jo dieną, kad peržiūrėtum informaciją ir rezervuotum vietą.</p>
       <DatePicker
         days={days}
         selected={selected}
         onSelect={selectDay}
         initialView="calendar"
-        lightCalendarDays
         dayDetails={(date, view) => {
           const rows = sessionsByDay.get(dateKey(date));
           if (!rows?.length) return { label: "Seansų nėra", available: false };

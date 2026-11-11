@@ -4,7 +4,7 @@ import { ClockIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
 import { ACTIVITY_ICON } from "@/components/reservation/activity-icons";
-import { ServiceDateField } from "@/components/services/service-date-field";
+import { DateField } from "@/components/reservation/date-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { freeAt, hourLabel } from "@/lib/quads";
@@ -94,7 +94,7 @@ export function QuadHourlyControls({ data, days, date, pick, busy, onDate, onPic
           </Select>
         </div>
       ) : null}
-      <ServiceDateField
+      <DateField
         date={date}
         days={days}
         disabled={busy || !chosen}

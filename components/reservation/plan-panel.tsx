@@ -2,8 +2,8 @@ import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useRef, type Ref } from "react";
 import type { ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
-import { PhoneHelp } from "@/components/phone-help";
-import { RESERVATION_PHONE } from "@/lib/contacts";
+import { ServiceBookingHelp } from "@/components/services/service-booking-help";
+import { MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
 import { PlanLines, type PlanLinesProps } from "./plan-lines";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
@@ -58,7 +58,7 @@ export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemov
           <p className="mt-1 flex items-center gap-2 text-xs text-copy"><ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" /> Nemokamas atšaukimas likus bent 24 val. iki pirties pradžios.</p>
         ) : <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>}
       </div>
-      <PhoneHelp label="Turite klausimų?" phone={RESERVATION_PHONE} />
+      <ServiceBookingHelp contact={{ ...MAIN_CONTACT, phone: RESERVATION_PHONE }} />
     </>
   );
 }

@@ -13,6 +13,7 @@ export interface ServicePageCopy {
   questions: { title: string; body: string }[];
   activity?: ActivityId;
   availabilityNote?: string;
+  bookingIntro?: string;
 }
 
 export const SERVICE_PAGES = {
@@ -20,6 +21,7 @@ export const SERVICE_PAGES = {
     service: "sauna",
     label: "Pirtis Marse",
     title: "Pirties nuoma ir seansai šalia Kauno",
+    bookingIntro: "Rinkis privačią pirtį savo kompanijai arba vietą pirties seanse.",
     summary: "Malkinė pirtis arba suomiška sauna prie vandens. Rezervuok vietą savo kompanijai arba pirties seansui.",
     description: "Malkinė pirtis ir suomiška sauna įsikūrusios Vanduo Marse parke, Žemaitkiemyje, maždaug 20 minučių nuo Kauno centro. Pirtį galima išsinuomoti visai kompanijai su pirtininko programa arba be jos. Artimiausius pirties seansus rasite kalendoriuje.",
     facts: [
@@ -39,6 +41,7 @@ export const SERVICE_PAGES = {
     service: "ciongo",
     label: "Keturračiai",
     title: "Keturračių nuoma ir turai prie Kauno",
+    bookingIntro: "Susidėliok turo planą. Rezervaciją patvirtins komanda.",
     summary: "Mini, Midi ir Maxi išvykos keturračiais. Apžiūrėk „Vanduo Marse“ ir „Ciongo“ turų pasiūlymą bei palygink trasas.",
     description: "Trumpesnė trasa tinka pirmai pažinčiai su keturračiu, ilgesnė skirta tiems, kurie nori daugiau laiko miške ir bekelėje. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Dėl išvykos iš Vanduo Marse susitark su komanda.",
     facts: [
@@ -57,6 +60,7 @@ export const SERVICE_PAGES = {
     service: "cabins",
     label: "Nakvynė Marse",
     title: "Nameliai prie vandens Kauno rajone",
+    bookingIntro: "Pasirink nakvynės tipą ir datas. Kalendoriuje matysi, kiek namelių liko laisvų.",
     summary: "Dviviečiai ir keturviečiai nameliai Vanduo Marse parke. Pasitikrink laisvas datas nakvynei po šventės ar savaitgaliui prie vandens.",
     description: "Rinkis dvivietį ar keturvietį namelį. Jei atvyksti savo kemperiu, yra vietų su elektros įvadu. Nakvynę galima užsakyti kelioms naktims.",
     facts: [{ label: "Nameliai", value: "2 arba 4 asmenims" }, { label: "Kemperiai", value: "Aikštelė su elektros įvadu" }],

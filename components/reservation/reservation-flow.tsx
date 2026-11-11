@@ -7,6 +7,9 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
+import { WakeServiceBooking } from "@/components/services/wake-service-booking";
+import { ACADEMY_CONTACT } from "@/lib/contacts";
+import type { CouponProduct } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking } from "@/components/services/sauna-service-booking";
@@ -37,7 +40,7 @@ import { dateKey, longDateLabel, nextDays } from "@/lib/sauna";
 import type { AccountValues } from "./account-step";
 import { ActivitiesStep } from "./activities-step";
 import { ActivityAbout } from "./activity-about";
-import { ActivityTabs } from "./activity-tabs";
+import { ActivityTabs, type ReservationTab } from "./activity-tabs";
 import { activityPhotos } from "./activity-photos";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
@@ -61,6 +64,7 @@ export function ReservationFlow({
   header,
   data,
   initialTab,
+  wakeProducts,
   initialDay,
   activity,
   payments,
@@ -68,7 +72,8 @@ export function ReservationFlow({
 }: {
   header: ReactNode;
   data: ReservationData;
-  initialTab?: ActivityId;
+  initialTab?: ReservationTab;
+  wakeProducts?: CouponProduct[];
   initialDay?: string;
   /** On a service page the booking is limited to that activity. */
   activity?: "pirtis" | "nakvyne" | "keturraciai";
@@ -85,9 +90,12 @@ export function ReservationFlow({
   const inlinePlan = useRef<HTMLElement>(null);
   const offer = offered(data);
   const tabs = activity ? [activity] : ACTIVITY_TAB_ORDER.filter((id) => offer[id]);
-  const [selectedTab, setTab] = useState<ActivityId>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
+  const availableTabs: ReservationTab[] = wakeProducts ? [...tabs, "wake"] : tabs;
+  const [selectedTab, setTab] = useState<ReservationTab>(initialTab && availableTabs.includes(initialTab) ? initialTab : tabs[0]);
   const sessionId = useSearchParams().get("seansas");
-  const tab = activity ?? (sessionId && offer.pirtis ? "pirtis" : selectedTab);
+  const activeTab = activity ?? (sessionId && offer.pirtis ? "pirtis" : selectedTab);
+  const wake = activeTab === "wake" && wakeProducts;
+  const tab = activeTab === "wake" ? tabs[0] : activeTab;
   const [date, setDate] = useState(() => days.find((candidate) => dateKey(candidate) === initialDay) ?? days[0]);
   const [dayChosen, setDayChosen] = useState(() => days.some((candidate) => dateKey(candidate) === initialDay));
   const [draftNights, setDraftNights] = useState(1);
@@ -357,8 +365,8 @@ export function ReservationFlow({
           <div className={activity ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
             {activity === "pirtis" || activity === "keturraciai" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
             {activity ? null : <ActivityTabs
-              ids={tabs}
-              active={tab}
+              ids={availableTabs}
+              active={activeTab}
               included={inPlan}
               renderDetails={(id, active) => <ActivityAbout id={id} data={data} active={active} />}
               onChange={(id) => {
@@ -367,7 +375,7 @@ export function ReservationFlow({
                 setStep(0);
               }}
             />}
-            {activity === "pirtis" ? <SaunaServiceBooking
+            {wake ? <WakeServiceBooking products={wake} contact={ACADEMY_CONTACT} /> : activity === "pirtis" ? <SaunaServiceBooking
               data={data.sauna}
               days={days}
               date={dayChosen ? date : null}
@@ -458,10 +466,10 @@ export function ReservationFlow({
               </div>
             </>}
           </div>
-          <PlanPanel ref={activity ? inlinePlan : undefined} activity={tab} photos={photos} inline={Boolean(activity)} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
+          {(!wake || lines.length > 0) && <PlanPanel ref={activity ? inlinePlan : undefined} activity={tab} photos={photos} inline={Boolean(activity)} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
         </div>
       </form>
-      {activity ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
+      {activity || (wake && lines.length === 0) ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
       <ReservationAccountDialog
         open={step === LAST}
         onClose={() => { if (!busy) setStep(0); }}

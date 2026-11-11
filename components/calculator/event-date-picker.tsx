@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { DatePicker } from "@/components/reservation/date-picker";
+import { DateField } from "@/components/reservation/date-field";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { dateKey, nextDays } from "@/lib/sauna";
 
@@ -13,16 +13,14 @@ export function EventDatePicker({ today, value, onChange }: { today: string; val
   const selected = value ? nextDays(value, 1)[0] : null;
 
   return (
-    <div role="group" aria-label="Renginio data" className="min-w-0">
-      <DatePicker days={days} selected={selected} onSelect={(date) => onChange(dateKey(date))} allowFutureDates />
-      {selected && (
-        <div className="flex flex-wrap items-center justify-between gap-x-4 text-xs text-copy">
-          <p>{DATE_LABEL.format(selected)}</p>
-          <button type="button" onClick={() => onChange("")} className="min-h-11 hover:underline">
-            Išvalyti datą
-          </button>
-        </div>
-      )}
-    </div>
+    <DateField
+      label="Renginio data"
+      days={days}
+      date={selected}
+      selectionLabel={selected ? DATE_LABEL.format(selected) : undefined}
+      onSelect={(date) => onChange(dateKey(date))}
+      onClear={() => onChange("")}
+      allowFutureDates
+    />
   );
 }

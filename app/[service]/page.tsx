@@ -10,7 +10,7 @@ import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components
 import { ServicePage } from "@/components/services/service-page";
 import { StayServiceSchedule } from "@/components/services/stay-service-schedule";
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
-import { CONTACTS, MAIN_CONTACT } from "@/lib/contacts";
+import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
 import { getCabinPageData, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
@@ -67,12 +67,11 @@ export default async function ActivityPage({ params, searchParams }: Props) {
 
   if (service === "vandenlentes") {
     const [events, products] = await Promise.all([getParkEvents(), getCouponProducts()]);
-    const contact = CONTACTS.find(({ name }) => name === SERVICES.wake.contact) ?? MAIN_CONTACT;
     return (
       <>
         {schema}
         <ServicePage slug={service} wake={events.filter(({ category }) => category === "akademija")}
-          booking={<WakeServiceBooking products={products.filter(({ service }) => service === "kabelis")} contact={contact} />} />
+          booking={<WakeServiceBooking products={products.filter(({ service }) => service === "kabelis")} contact={ACADEMY_CONTACT} />} />
       </>
     );
   }

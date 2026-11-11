@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import { Cta } from "@/components/cta";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,19 +12,24 @@ export interface PlanContinueAction {
 interface PlanActionsProps {
   continueAction: PlanContinueAction;
   secondaryAction?: PlanContinueAction;
+  continueRef?: Ref<HTMLButtonElement>;
+  secondaryRef?: Ref<HTMLButtonElement>;
   tone?: "dark" | "cream";
   className?: string;
 }
 
+export const PLAN_PRIMARY_CLASS = "relative w-full justify-center px-12 text-center [&>svg]:absolute [&>svg]:right-4";
+
 /** The same primary reservation and outlined pay-on-site choice in every plan surface. */
-export function PlanActions({ continueAction, secondaryAction, tone = "dark", className }: PlanActionsProps) {
+export function PlanActions({ continueAction, secondaryAction, continueRef, secondaryRef, tone = "dark", className }: PlanActionsProps) {
   return (
     <div className={cn("grid w-full gap-2", className)}>
-      <Cta tone={tone} small className="relative w-full justify-center px-12 text-center [&>svg]:absolute [&>svg]:right-4" disabled={continueAction.disabled} onClick={continueAction.onClick}>
+      <Cta ref={continueRef} tone={tone} small className={PLAN_PRIMARY_CLASS} disabled={continueAction.disabled} onClick={continueAction.onClick}>
         {continueAction.label ?? "Toliau"}
       </Cta>
       {secondaryAction ? (
         <Button
+          ref={secondaryRef}
           type="button"
           variant="outline"
           disabled={secondaryAction.disabled}
