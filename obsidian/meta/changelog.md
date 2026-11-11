@@ -1,3 +1,5 @@
+- 2026-11-12 `/rezervacija` date picker grid (`reservation-flow.tsx`): added `grid-cols-1` so the auto column no longer grows to the date strip's width; at 375 px the page was 537 px wide (horizontal scroll) after the front-updates rebase, now 360 px (checked in the browser by adding the class; `main` was not affected).
+
 - 2026-11-11 Added the celebration sidebar calculator and 60-day calendar on `/sventes`. Published events show details, and the private-event calendar migration exposes marked dates. Reconciled overlapping Finnish sauna changes with the admin-managed duration prices and named attendants from main (ADR-0066 and ADR-0067).
 - 2026-11-11 Integrated the public booking updates with the live tour, stay and sauna catalogues. The WAKE tab reuses the coupon order panel. Public date fields share a calendar, and the stay schedule uses current inventory by stay type.
 - 2026-11-11 Added 13 optimized WAKE photos to the shared gallery with Lithuanian alt text and image sitemap URLs.

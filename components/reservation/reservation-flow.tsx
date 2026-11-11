@@ -421,7 +421,7 @@ export function ReservationFlow({
             /> : <>
               {/* With the month calendar open and room to spare, the day's results sit beside it instead of below. */}
               <div className="@container">
-                <div className="grid gap-8 has-[[data-view=calendar]]:@4xl:grid-cols-[3fr_2fr] has-[[data-view=calendar]]:@4xl:items-start">
+                <div className="grid grid-cols-1 gap-8 has-[[data-view=calendar]]:@4xl:grid-cols-[3fr_2fr] has-[[data-view=calendar]]:@4xl:items-start">
                   <WhenStep
                     days={days}
                     date={date}
