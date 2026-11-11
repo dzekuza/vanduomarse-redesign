@@ -40,7 +40,7 @@ function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; childr
 
 export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake }: {
   slug: ServiceSlug;
-  booking?: ReactNode;
+  booking?: ReactNode | ((header: ReactNode) => ReactNode);
   schedule?: ReactNode;
   sauna?: SaunaPageData;
   quads?: QuadPageData;
@@ -53,7 +53,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
   const gallery = photos ?? SERVICE_GALLERY[copy.service];
   const contact = CONTACTS.find(({ name }) => name === SERVICES[copy.service].contact) ?? MAIN_CONTACT;
   const isCelebration = copy.service === "party";
-  const bookingTitle = slug === "vandenlentes" ? "Užsakyti"
+  const bookingTitle = slug === "vandenlentes" ? "Užsakyti" : slug === "sventes" ? "Šventės skaičiuoklė"
     : booking ? "Rezervuoti" : isCelebration ? "Gauk šventės pasiūlymą"
     : slug === "restoranas" ? "Rezervuok staliuką" : "Sužinok plaukimo laikus";
   const bookingHeader = (
@@ -63,6 +63,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
       {copy.bookingIntro ? <p className="text-xs leading-relaxed text-copy">{copy.bookingIntro}</p> : null}
     </div>
   );
+  const customBookingLayout = typeof booking === "function";
 
   return (
     <BookingPage>
@@ -81,10 +82,9 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
           </header>
           <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn(
             "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
-            "p-4 sm:p-6 lg:overflow-y-auto",
+            customBookingLayout ? "lg:flex lg:flex-col" : "p-4 sm:p-6 lg:overflow-y-auto",
           )}>
-            {bookingHeader}
-            {booking}
+            {customBookingLayout ? booking(bookingHeader) : <>{bookingHeader}{booking}</>}
             {slug === "keturraciu-nuoma" ? <ServiceBookingHelp contact={contact} /> : !booking && (
               <div className="space-y-3 border-t border-line pt-4">
                 {isCelebration ? <Cta tone="dark" small className="w-full" href="/skaiciuokle">Skaičiuoti šventės kainą</Cta> : (

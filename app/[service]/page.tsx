@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CelebrationCalculator } from "@/components/calculator/celebration-calculator";
+import { CelebrationSchedule } from "@/components/services/celebration-schedule";
 import { JsonLd } from "@/components/json-ld";
 import { SERVICE_GALLERY, SERVICES } from "@/components/landing/content";
 import { activityPhotos } from "@/components/reservation/activity-photos";
@@ -12,7 +14,7 @@ import { StayServiceSchedule } from "@/components/services/stay-service-schedule
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
-import { getCabinPageData, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { metaDescription, pageMetadata } from "@/lib/seo";
 import { serviceSchema } from "@/lib/structured-data";
@@ -75,6 +77,18 @@ export default async function ActivityPage({ params, searchParams }: Props) {
       </>
     );
   }
+  if (service === "sventes") {
+    const [calendar, catalog] = await Promise.all([getCelebrationSchedule(), getCalculatorCatalog()]);
+    return (
+      <>
+        {schema}
+        <ServicePage slug={service}
+          booking={(header) => <CelebrationCalculator today={calendar.today} catalog={catalog} header={header} />}
+          schedule={<CelebrationSchedule data={calendar} />} />
+      </>
+    );
+  }
+
   return (
     <>
       {schema}

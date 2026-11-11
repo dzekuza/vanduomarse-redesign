@@ -24,9 +24,9 @@ export function StartTimeGrid({ taken, rates, pastHour, minHours, selected, onSe
         <SelectValue placeholder="Pasirink laiką">{selected === null ? null : formatHour(selected)}</SelectValue>
       </SelectTrigger>
       <TimeSelectContent>
-        {startHours(rates).map((hour) => {
+        {startHours(rates, minHours).map((hour) => {
           const past = hour <= pastHour;
-          const open = isOpenStart(taken, hour, rates, pastHour);
+          const open = isOpenStart(taken, hour, rates, pastHour, minHours);
           return (
             <TimeSelectOption
               key={hour}

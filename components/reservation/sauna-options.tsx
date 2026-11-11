@@ -76,7 +76,7 @@ export function SaunaOptions({ plan, data, when, included, busy, sessionId, onSe
         open={Boolean(sessionId)}
         details={event && session ? { event, row: session, quantity: quantity(session), selected: selected(session) } : undefined}
         onClose={closeSessionInfo}
-        onConfirmedClose={onSessionSelectedFocus}
+        onSelectedFocus={onSessionSelectedFocus}
         onSelect={() => {
           if (!session || !event || session.blocked) return;
           if (!selected(session)) {
