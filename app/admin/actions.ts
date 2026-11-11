@@ -324,10 +324,9 @@ const eventInput = z.object({
   published: z.boolean(),
   calendarPrivate: z.boolean().optional(),
   programId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
-  tourRouteId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
 }).refine((event) => !(event.published && event.calendarPrivate));
 
-/** Events are managed with `renginiai`; staff with only `keturraciai` manage the quad tour departures (RLS limits them to category keturratis). */
+/** Events are managed with `renginiai`; staff with only `keturraciai` manage the guided per-person tours (RLS limits them to category keturratis). */
 const EVENT_STAFF = ["renginiai", "keturraciai"] as const;
 
 export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
@@ -350,7 +349,6 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     published: e.published,
     ...(e.calendarPrivate === undefined ? {} : { calendar_private: e.calendarPrivate }),
     program_id: e.programId ?? null,
-    tour_route_id: e.category === "keturratis" ? (e.tourRouteId ?? null) : null,
   });
   return error ? dbError(error) : done(null);
 }

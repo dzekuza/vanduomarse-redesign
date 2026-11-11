@@ -436,7 +436,7 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
     return sauna && Math.min(program.capacity ?? 0, sauna.rates.maxParty) > 0
       && privateStarts(program, sauna, data.sauna, day).length > 0;
   });
-  // Tours are sold on scheduled departures only, so a day is open when a route has one with enough free quads.
+  // A tour can start at any hour, so a day is open when the free fleet covers a route for at least its minimum number of quads.
   const keturraciai = data.quads.tourRoutes.some((route) => quadTourStarts(data.quads, day, route).length > 0);
   const checkIn = nextDays(day, 1)[0];
   const nakvyne = data.cabin.stayTypes.some((type) => freeStayUnits(data.cabin.availability, checkIn, nights, type) > 0);

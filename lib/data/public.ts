@@ -301,7 +301,7 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
   const today = todayKey(now);
   const last = addDays(today, availabilityWindow ? availabilityWindow.days - 1 : QUAD_DAYS);
 
-  const [types, settings, taken, tours, routes, accessories, departures] = await Promise.all([
+  const [types, settings, taken, tours, routes, accessories] = await Promise.all([
     supabase.from("quad_types").select("*").eq("active", true).order("sort_order"),
     supabase.from("quad_settings").select("*").single(),
     readAvailabilityRows(
@@ -324,16 +324,6 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
     // RLS limits anon to active rows.
     supabase.from("quad_tour_routes").select("*").eq("active", true).order("sort_order").order("id"),
     supabase.from("quad_tour_accessories").select("*").eq("active", true).order("sort_order").order("id"),
-    // RLS limits anon to published events. Only inside the fleet availability window, so every departure has stock data.
-    supabase
-      .from("events")
-      .select("*")
-      .eq("category", "keturratis")
-      .not("tour_route_id", "is", null)
-      .gte("date", today)
-      .lte("date", last)
-      .order("date")
-      .order("start_time"),
   ]);
 
   const takenMap: QuadTaken = {};
@@ -347,9 +337,6 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
     taken: takenMap,
     tourRoutes: must(routes, "Quad tour routes").map(toQuadTourRoute),
     tourAccessories: must(accessories, "Quad tour accessories").map(toQuadTourAccessory),
-    departures: must(departures, "Quad tour departures").flatMap((e) =>
-      e.tour_route_id ? [{ id: e.id, routeId: e.tour_route_id, date: e.date, hour: Number(toHHMM(e.start_time).slice(0, 2)), capacity: e.capacity, spotsLeft: spotsLeft(e) ?? null }] : [],
-    ),
     tours: must(tours, "Quad tours").map((e) => ({
       key: e.id,
       title: e.title,

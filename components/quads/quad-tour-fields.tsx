@@ -21,19 +21,19 @@ interface QuadTourFieldsProps {
   onChange: (pick: QuadTourPick | null) => void;
 }
 
-/** Start time, quads and gear of the chosen route and day. The tour is in the plan as soon as a start is chosen, and follows every change. */
+/** Start time (any hour the fleet is free for the whole route), quads and gear of the chosen route and day. The tour is in the plan as soon as a start is chosen, and follows every change. */
 export function QuadTourFields({ data, route, day, busy, pick, onChange }: QuadTourFieldsProps) {
   const id = useId();
   const starts = route && day ? quadTourStarts(data, day, route, busy) : [];
-  const current = route && pick?.routeId === route.id && starts.some(({ eventId }) => eventId === pick.eventId) ? pick : null;
-  const slot = starts.find(({ eventId }) => eventId === current?.eventId);
+  const current = route && pick?.routeId === route.id && starts.some(({ hour }) => hour === pick.startHour) ? pick : null;
+  const slot = starts.find(({ hour }) => hour === current?.startHour);
   const disabled = !route || !day || starts.length === 0;
 
   function start(hour: number) {
     const next = starts.find((entry) => entry.hour === hour);
-    if (!route || !next?.eventId) return;
+    if (!route || !next) return;
     const units = Math.min(Math.max(current?.units ?? route.minUnits, route.minUnits), next.free);
-    onChange({ routeId: route.id, eventId: next.eventId, startHour: hour, units, accessories: current?.accessories });
+    onChange({ routeId: route.id, startHour: hour, units, accessories: current?.accessories });
   }
 
   return (

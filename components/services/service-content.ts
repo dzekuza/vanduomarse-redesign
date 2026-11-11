@@ -48,7 +48,7 @@ export const SERVICE_PAGES = {
     description: "Trumpesnė trasa tinka pirmai pažinčiai su keturračiu, ilgesnė skirta tiems, kurie nori daugiau laiko miške ir bekelėje. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Dėl išvykos iš Vanduo Marse susitark su komanda.",
     facts: [
       { label: "Trasos", value: "Mini, Midi ir Maxi" },
-      { label: "Grupė", value: "Turui reikia bent 3 keturračių." },
+      { label: "Grupė", value: "Turui reikia bent 5 keturračių." },
       { label: "Apranga", value: "Rinkis judėti patogią aprangą pagal oro sąlygas." },
       { label: "Partneris", value: "Ciongo" },
     ],

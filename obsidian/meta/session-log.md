@@ -1,3 +1,11 @@
+## 2026-11-12 — Quad tours at any time, min 5 quads
+
+- **Why:** owner: remove "Turų datos" from the admin and the booking page; guests book quads at any time, minimum 5.
+- **Found:** `create_quad_tour_rental` already books any date against the fleet; the departures hardening had only revoked its grant. Live routes already had `min_units` 5.
+- **Changed:** see ADR-0071 and the changelog: fleet-based starts, no `eventId`, direct RPC, admin departure UI removed.
+- **Status:** `tsc`/eslint clean; browser-checked the start times, 5-quad minimum and 395 € total; admin screens and a real submit NOT checked. Branch `feat/quad-anytime-booking` (stacked on `feat/sauna-duration-table`, PR #32).
+- **Next:** apply `20261112170000_quad_tours_any_time.sql` (the grant) on the live project, then submit a test tour; decide whether to drop the unused departure columns/functions later.
+
 ## 2026-11-12 — Quad route tiles on the booking panel
 
 - **Why:** the owner saw Mini / Midi / Maxi route cards with a tag on the friend's `/keturraciu-nuoma`; `main` showed only a date field (and every date said "no free times": 0 departures).

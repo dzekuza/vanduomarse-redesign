@@ -149,7 +149,7 @@ export function ReservationFlow({
   const whenLabel = tracksPeople ? `${datesLabel}, ${people} žm.` : datesLabel;
   /**
    * Per-day marks for the active tab: whether it is still free (faded days are not) and, for the sauna and quads,
-   * how many scheduled sessions or tour departures there are.
+   * how many scheduled sauna sessions there are.
    */
   const dayDetails = (d: Date): ReservationDayDetails => {
     const key = dateKey(d);
@@ -160,7 +160,7 @@ export function ReservationFlow({
       // The count covers cabins only; `available` also counts camper pitches.
       return cabins ? { ...cabins, available } : { label: status, available };
     }
-    const count = tab === "pirtis" ? data.sauna.events.filter((e) => e.date === key).length : data.quads.departures.filter((x) => x.date === key).length;
+    const count = tab === "pirtis" ? data.sauna.events.filter((e) => e.date === key).length : 0;
     // An empty marker keeps every day the same height, with or without sessions.
     if (count === 0) return { label: status, available, indicator: <span className="block h-3" /> };
     const noun = tab === "pirtis" ? (count === 1 ? "seansas" : count < 10 ? "seansai" : "seansų") : count === 1 ? "turas" : count < 10 ? "turai" : "turų";
