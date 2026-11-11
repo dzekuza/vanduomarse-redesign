@@ -18,6 +18,8 @@ interface QuadTourCardProps {
   when: When;
   busy: readonly number[];
   pick: QuadTourPick | null;
+  /** Show only this route (the one chosen above the date); a tour already in the plan always stays. */
+  routeId?: string;
   onChange: (pick: QuadTourPick | null) => void;
 }
 
@@ -27,8 +29,8 @@ interface DraftPick {
   accessories?: Record<string, number>;
 }
 
-/** Three route cards after the date picker, with independent drafts and one selected tour. */
-export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardProps) {
+/** Route cards after the date picker, with independent drafts and one selected tour. */
+export function QuadTourCard({ data, when, busy, pick, routeId, onChange }: QuadTourCardProps) {
   const [drafts, setDrafts] = useState<Record<string, DraftPick>>({});
 
   function choose(next: QuadTourPick | null) {
@@ -37,7 +39,7 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
   }
 
   // Only routes with a departure on this day are offered; a route already in the plan stays so it can be removed.
-  const routes = data.tourRoutes.filter((route) => pick?.routeId === route.id || quadTourStarts(data, when.day, route, busy).length > 0);
+  const routes = data.tourRoutes.filter((route) => pick?.routeId === route.id || ((routeId === undefined || routeId === route.id) && quadTourStarts(data, when.day, route, busy).length > 0));
 
   if (routes.length === 0) {
     return <p role="status" className="text-sm text-copy">Šią dieną turų nėra. Pasirink kitą datą.</p>;
@@ -45,7 +47,7 @@ export function QuadTourCard({ data, when, busy, pick, onChange }: QuadTourCardP
 
   return (
     <div className="@container">
-      <OptionGroupLabel>Trasos</OptionGroupLabel>
+      <OptionGroupLabel>{routeId === undefined ? "Trasos" : "Turas"}</OptionGroupLabel>
       <div className="grid items-start gap-3 lg:@2xl:grid-cols-3">
         {routes.map((route) => (
           <RouteCard
@@ -86,7 +88,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
     <article aria-label={title} className={`relative flex min-w-0 flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
       <header className="space-y-2">
         <p className={`text-micro uppercase ${copy}`}>{route.kilometres} km · {hoursLabel(route.hours)}</p>
-        <h3 className="text-item font-bold">{title}</h3>
+        <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-item font-bold">{title}{route.badge ? <span className="bg-rust px-1.5 py-0.5 text-micro font-bold text-ink">{route.badge}</span> : null}</h3>
         <p className="text-xs font-bold">{route.price} € / keturračiui</p>
       </header>
       <QuadRouteDialog route={route} variant="icon" className="absolute top-2 right-2" />

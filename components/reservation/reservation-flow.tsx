@@ -429,6 +429,7 @@ export function ReservationFlow({
               pick={tourPick}
               busyHours={planHours(plans.pirtis)}
               busy={busy}
+              pricesHref={inline ? "#kainos" : undefined}
               onDate={(next) => {
                 if (busy) return;
                 setDayChosen(true);
