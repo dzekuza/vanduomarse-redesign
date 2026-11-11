@@ -17,7 +17,7 @@ import { getCustomer } from "@/lib/customer";
 import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { metaDescription, pageMetadata } from "@/lib/seo";
-import { serviceSchema } from "@/lib/structured-data";
+import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
 import { paymentsEnabled } from "@/lib/stripe";
 
 interface Props {
@@ -28,15 +28,21 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
-  const { title, summary, description, service: id } = SERVICE_PAGES[service];
-  return pageMetadata({ title, description: metaDescription([summary, description]), path: `/${service}`, image: { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
+  const { title, summary, description, metaDescription: custom, service: id }: ServicePageCopy = SERVICE_PAGES[service];
+  return pageMetadata({ title, description: custom ?? metaDescription([summary, description]), path: `/${service}`, image: { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
 }
 
 export default async function ActivityPage({ params, searchParams }: Props) {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
   const copy: ServicePageCopy = SERVICE_PAGES[service];
-  const schema = <JsonLd data={serviceSchema({ name: copy.title, description: copy.summary, path: `/${service}` })} />;
+  const schema = (
+    <>
+      <JsonLd data={serviceSchema({ name: copy.title, description: copy.summary, path: `/${service}` })} />
+      <JsonLd data={breadcrumbSchema({ name: copy.title, path: `/${service}` })} />
+      {copy.questions.length > 0 && <JsonLd data={faqSchema(copy.questions.map(({ title, body }) => ({ q: title, a: body })))} />}
+    </>
+  );
   const activity = copy.activity;
   const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
 

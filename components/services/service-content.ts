@@ -7,6 +7,7 @@ export interface ServicePageCopy {
   label: string;
   title: string;
   summary: string;
+  /** Meta description when summary + description would read badly or get cut. */
   metaDescription?: string;
   description: string;
   facts: { label: string; value: string }[];
@@ -22,6 +23,7 @@ export const SERVICE_PAGES = {
     label: "Pirtis Marse",
     title: "Pirties nuoma ir seansai šalia Kauno",
     bookingIntro: "Rinkis privačią pirtį savo kompanijai arba vietą pirties seanse.",
+    metaDescription: "Malkinė pirtis ir suomiška sauna prie vandens Žemaitkiemyje, 20 min. nuo Kauno. Rezervuok pirtį kompanijai arba vietą pirties seanse.",
     summary: "Malkinė pirtis arba suomiška sauna prie vandens. Rezervuok vietą savo kompanijai arba pirties seansui.",
     description: "Malkinė pirtis ir suomiška sauna įsikūrusios Vanduo Marse parke, Žemaitkiemyje, maždaug 20 minučių nuo Kauno centro. Pirtį galima išsinuomoti visai kompanijai su pirtininko programa arba be jos. Artimiausius pirties seansus rasite kalendoriuje.",
     facts: [

@@ -7,7 +7,7 @@ import { siteGateOn } from "@/lib/site-gate-flag";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Netrukus - Vanduo Marse",
+  title: { absolute: "Netrukus | Vanduo Marse" },
   description: "Kuriame naują Vanduo Marse svetainę. Rezervacijų ir klausimų laukiame telefonu ar el. paštu.",
   robots: { index: false, follow: false },
 };

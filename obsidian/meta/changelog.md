@@ -1,3 +1,9 @@
+- 2026-11-12 JSON-LD postal code is 54311 (owner's address "Sausinės g. 20, Žemaitkiemio k., LT-54311 Kauno r."; was 54312, which came from the Google Maps listing). Street unchanged. `tsc`/eslint clean.
+
+- 2026-11-12 Home JSON-LD (`localBusinessSchema`) now has `geo` (54.9910823, 23.8620224, from the Google Maps pin) and `openingHoursSpecification` (Fri 17-21, Sat-Sun 10-20, from the Google Business Profile; the restaurant's separate breakfast hours are not included). `tsc`/eslint clean; output checked on the dev server.
+
+- 2026-11-12 SEO launch pass (branch `feat/seo-launch-fixes`, uncommitted): `lib/structured-data.ts` gained `faqSchema`, `breadcrumbSchema`, `contactPageSchema`. FAQPage JSON-LD on the home page (`FAQ_ITEMS`) and on each service page (its `questions`); BreadcrumbList on service pages and `/kontaktai`; ContactPage on `/kontaktai`. `ServicePageCopy.meta` overrides the generated meta description (used by `/pirtis`, whose summary + description was cut mid-word). `/netrukus` title is now `Netrukus | Vanduo Marse` (no doubled brand). `tsc`/eslint clean; JSON-LD, titles and descriptions checked against the local dev server; not deployed.
+
 - 2026-11-12 `/rezervacija` date picker grid (`reservation-flow.tsx`): added `grid-cols-1` so the auto column no longer grows to the date strip's width; at 375 px the page was 537 px wide (horizontal scroll) after the front-updates rebase, now 360 px (checked in the browser by adding the class; `main` was not affected).
 
 - 2026-11-11 Added the celebration sidebar calculator and 60-day calendar on `/sventes`. Published events show details, and the private-event calendar migration exposes marked dates. Reconciled overlapping Finnish sauna changes with the admin-managed duration prices and named attendants from main (ADR-0066 and ADR-0067).

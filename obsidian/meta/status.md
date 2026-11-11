@@ -12,6 +12,10 @@ updated: 2026-11-07
 
 **Last updated:** 2026-11-12
 
+**front-updates (PR #27, 2026-11-12): rebased onto `main`, build/tsc/lint pass, overflow fix on `/rezervacija`; its migrations `20261111130000_wake_season_passes.sql` and `20261111200001_private_event_calendar.sql` are APPLIED to the live project and verified (2 coupon products active; `events.calendar_private` + `private_event_dates()` readable by anon, 0 private rows yet). Open: merge PR #27 (not merged), then browser-check checkout and the celebration calendar with a real private date. The migration files live on that branch, not on `main` yet.**
+
+**SEO launch pass (2026-11-12): FAQPage/BreadcrumbList/ContactPage JSON-LD, `/pirtis` meta description, `/netrukus` title; on branch `feat/seo-launch-fixes`, uncommitted, `tsc`/eslint clean. Owner to do: submit sitemap in Search Console/Bing, Google Business Profile.**
+
 **Favicon (2026-11-12): new badge icon in `app/` (`icon.svg`, `icon.png`, `apple-icon.png`, `favicon.ico`); uncommitted, not checked in a browser tab.**
 
 **Admin "Svetainė" (2026-11-12, ADR-0068): owner-only switch for the coming-soon gate at `/admin/svetaine`; code done, `tsc`/eslint clean. migration `20261112140000_site_settings.sql` APPLIED and verified (1 row, ON, RLS on, anon can read). Follow-up `20261112141000_site_settings_grants.sql` (drops the anon UPDATE and authenticated INSERT/DELETE table grants; RLS already blocks them) APPLIED and verified. Deploy the code so the proxy uses the table; not browser-checked.**
