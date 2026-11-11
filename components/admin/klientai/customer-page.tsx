@@ -136,7 +136,7 @@ function DeleteCustomerButton({ riderId, onDone }: { riderId: string; onDone: ()
 
 /** One timeline merging purchases, bookings, quad rentals, event tickets and coupons for this customer. */
 function ActivityTab({ riderId }: { riderId: string }) {
-  const { purchases, bookings, quadRentals, eventTickets, coupons, quadTypes } = useAdmin();
+  const { purchases, bookings, stayTypes, quadRentals, eventTickets, coupons, quadTypes } = useAdmin();
 
   const rows = useMemo<ActivityRow[]>(() => {
     const out: ActivityRow[] = [];
@@ -144,7 +144,7 @@ function ActivityTab({ riderId }: { riderId: string }) {
       out.push({ id: `pirkimas-${p.id}`, at: p.soldAt, label: p.planName, detail: p.planCategory, amount: p.price });
     }
     for (const b of bookings.filter((b) => b.riderId === riderId)) {
-      out.push({ id: `rezervacija-${b.id}`, at: b.createdAt, label: bookingTypeLabel(b), detail: `${bookingWhen(b)} · ${b.reference}`, amount: b.total });
+      out.push({ id: `rezervacija-${b.id}`, at: b.createdAt, label: bookingTypeLabel(b, stayTypes), detail: `${bookingWhen(b)} · ${b.reference}`, amount: b.total });
     }
     for (const q of quadRentals.filter((q) => q.riderId === riderId)) {
       out.push({ id: `nuoma-${q.id}`, at: q.createdAt, label: quadRentalLabel(q, quadTypes), detail: q.reference, amount: q.total });
@@ -156,7 +156,7 @@ function ActivityTab({ riderId }: { riderId: string }) {
       out.push({ id: `kuponas-${c.id}`, at: c.createdAt, label: c.productName, detail: COUPON_STATUS_LABEL[c.status], amount: c.faceValue });
     }
     return out.toSorted((a, b) => b.at.localeCompare(a.at));
-  }, [purchases, bookings, quadRentals, eventTickets, coupons, quadTypes, riderId]);
+  }, [purchases, bookings, stayTypes, quadRentals, eventTickets, coupons, quadTypes, riderId]);
 
   if (rows.length === 0) return <p className="py-3 text-sm text-muted-foreground">Veiklos dar nėra.</p>;
 

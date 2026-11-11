@@ -1,5 +1,6 @@
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { Cta } from "@/components/cta";
 import { MAIN_CONTACT } from "@/lib/contacts";
 
 export interface MenuLink {
@@ -15,11 +16,13 @@ interface MenuPanelProps {
   /** Smaller links under them, with their heading. */
   secondary: readonly MenuLink[];
   secondaryTitle: string;
+  /** Account page, shown as a button right under the big links so it is visible without scrolling. */
+  account?: MenuLink;
   onNavigate: () => void;
 }
 
 /** Full-screen coral menu: big numbered links, then a smaller list of the rest. */
-export function MenuPanel({ items, secondary, secondaryTitle, onNavigate }: MenuPanelProps) {
+export function MenuPanel({ items, secondary, secondaryTitle, account, onNavigate }: MenuPanelProps) {
   return (
     <div
       id="menu-panel"
@@ -39,6 +42,11 @@ export function MenuPanel({ items, secondary, secondaryTitle, onNavigate }: Menu
           </Link>
         ))}
       </nav>
+      {account ? (
+        <Cta tone="dark" small href={account.href} onClick={onNavigate} className="mt-6">
+          {account.label}
+        </Cta>
+      ) : null}
       <nav aria-label={secondaryTitle} className="mt-8 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-400 motion-safe:delay-300 motion-safe:ease-out-strong motion-safe:fill-mode-both">
         <p className="text-micro uppercase">{secondaryTitle}</p>
         <ul className="mt-2 flex flex-wrap gap-x-6">

@@ -13,6 +13,7 @@ import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, Pr
 import type { CouponProduct } from "@/lib/coupons";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
 import type { NotificationRecipientInput } from "@/lib/notification-recipient-schema";
+import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { SaunaValues } from "./sauna/sauna-schema";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -32,6 +33,7 @@ type Action =
   | { type: "block/toggle"; saunaId: string; date: string; hour: number; reason: string }
   | { type: "inquiry/status"; id: string; status: InquiryStatus }
   | { type: "inquiry/note"; id: string; text: string }
+  | { type: "inquiry/accepted"; id: string; acceptedAt?: string }
   | { type: "event/upsert"; event: ManagedEvent }
   | { type: "event/delete"; id: string }
   | { type: "event/publish"; id: string; published: boolean }
@@ -54,6 +56,8 @@ type Action =
   | { type: "rental/status"; id: string; status: BookingStatus }
   | { type: "rental/add"; rental: QuadRental }
   | { type: "ticket/status"; id: string; status: BookingStatus }
+  | { type: "stayType/upsert"; stayType: StayType }
+  | { type: "stayType/delete"; id: string }
   | { type: "quadType/upsert"; quadType: QuadType }
   | { type: "quadType/delete"; id: string }
   | { type: "quadTourRoute/upsert"; route: QuadTourRoute }
@@ -104,6 +108,8 @@ function reducer(state: AdminData, action: Action): AdminData {
     }
     case "inquiry/status":
       return { ...state, inquiries: state.inquiries.map((q) => (q.id === action.id ? { ...q, status: action.status } : q)) };
+    case "inquiry/accepted":
+      return { ...state, inquiries: state.inquiries.map((q) => (q.id === action.id ? { ...q, acceptedAt: action.acceptedAt } : q)) };
     case "inquiry/note":
       return {
         ...state,
@@ -184,6 +190,12 @@ function reducer(state: AdminData, action: Action): AdminData {
       const apply = (t: TourTicket) => (t.id === action.id ? { ...t, status: action.status } : t);
       return { ...state, tourTickets: state.tourTickets.map(apply), eventTickets: state.eventTickets.map(apply) };
     }
+    case "stayType/upsert": {
+      const rest = state.stayTypes.filter((t) => t.id !== action.stayType.id);
+      return { ...state, stayTypes: [...rest, action.stayType].toSorted((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)) };
+    }
+    case "stayType/delete":
+      return { ...state, stayTypes: state.stayTypes.filter((t) => t.id !== action.id) };
     case "quadType/upsert": {
       const exists = state.quadTypes.some((t) => t.id === action.quadType.id);
       return {
@@ -305,6 +317,17 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "inquiry/status", id, status });
         return report(actions.setInquiryStatus(id, status));
       },
+      /** Not optimistic: the database re-checks every night; the fresh bookings arrive with the revalidated layout. */
+      acceptInquiry: async (id: string) => {
+        const result = await report(actions.acceptInquiry(id));
+        if ("data" in result) dispatch({ type: "inquiry/accepted", id, acceptedAt: new Date().toISOString() });
+        return result;
+      },
+      releaseInquiry: async (id: string) => {
+        const result = await report(actions.releaseInquiry(id));
+        if ("data" in result) dispatch({ type: "inquiry/accepted", id });
+        return result;
+      },
       addInquiryNote: (id: string, text: string) => {
         dispatch({ type: "inquiry/note", id, text });
         return report(actions.addInquiryNote(id, text));
@@ -421,6 +444,14 @@ function useAdminReducer(initial: AdminData) {
         return result;
       },
       setTourTicketStatus: (id: string, status: BookingStatus) => report(actions.setTourTicketStatus(id, status)),
+      saveStayType: (stayType: StayType) => {
+        dispatch({ type: "stayType/upsert", stayType });
+        return report(actions.saveStayType(stayType));
+      },
+      deleteStayType: (id: string) => {
+        dispatch({ type: "stayType/delete", id });
+        return report(actions.deleteStayType(id));
+      },
       saveQuadType: (quadType: QuadType) => {
         dispatch({ type: "quadType/upsert", quadType });
         return report(actions.saveQuadType(quadType));

@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { MAX_STAY_UNITS, roomLabel } from "@/lib/cabin";
+import { MAX_STAY_UNITS } from "@/lib/cabin";
 import { freeAt, quadRentalUnitLimit } from "@/lib/quads";
 import { MAX_PEOPLE, planHours, type ActivityId, type Picks, type Plans, type ReservationData, type When } from "@/lib/reservation";
 
@@ -59,12 +59,12 @@ export function planQuantities(
     })).filter(({ max }) => max > 0);
   }
 
-  if (nakvyne) {
-    const max = Math.min(MAX_STAY_UNITS, nakvyne.free(nakvyne.roomId === "namelis" ? nakvyne.size : nakvyne.roomId));
+  if (nakvyne?.type) {
+    const max = Math.min(MAX_STAY_UNITS, nakvyne.free(nakvyne.type));
     if (max > 0) {
       quantities.nakvyne = [{
         id: "stay",
-        label: roomLabel(nakvyne.roomId, nakvyne.size),
+        label: nakvyne.type.label,
         value: nakvyne.units,
         max,
         onChange: (units) => setPicks((picks) => picks.nakvyne ? { ...picks, nakvyne: { ...picks.nakvyne, units } } : picks),

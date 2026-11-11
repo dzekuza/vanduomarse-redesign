@@ -19,7 +19,7 @@ interface BookingSheetProps {
 /** Side panel with the full booking, contact shortcuts and status actions. */
 export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
   const change = useBookingStatus();
-  const { saunas } = useAdmin();
+  const { saunas, stayTypes } = useAdmin();
   const saunaName = saunas.find((s) => s.id === booking?.saunaId)?.name;
   return (
     <Sheet open={!!booking} onOpenChange={onOpenChange}>
@@ -37,7 +37,7 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
             </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 text-sm">
               {[
-                ["Tipas", saunaName ?? bookingTypeLabel(booking)],
+                ["Tipas", saunaName ?? bookingTypeLabel(booking, stayTypes)],
                 ["Data", formatDay(booking.date)],
                 ["Laikas", bookingWhen(booking)],
                 ["Svečiai", booking.guests === null ? "Nenurodyta" : `${booking.guests} asm.`],

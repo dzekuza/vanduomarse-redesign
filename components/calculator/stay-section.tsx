@@ -3,34 +3,21 @@
 import { StepLabel } from "@/components/booking/step-label";
 import { Stepper } from "@/components/booking/stepper";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
-import { CABIN_SIZES } from "@/lib/cabin";
-import { PRICES, formatMoney } from "@/lib/event-pricing";
-import { DEFAULT_SAUNA_RATES, nextDays, sessionPrice } from "@/lib/sauna";
+import { guestsLabel, stayTypesOf } from "@/lib/cabin";
+import { PRICES } from "@/lib/event-pricing";
+import { nextDays } from "@/lib/sauna";
 import { CalculatorQuantityCard } from "./calculator-option-card";
-import { OptionToggle } from "./option-toggle";
+import { CalculatorSaunaCard } from "./calculator-sauna-card";
 import type { EventCalculatorState } from "./use-event-calculator";
 
 const STAY_DATE = new Intl.DateTimeFormat("lt-LT", { weekday: "long", month: "long", day: "numeric" });
 
-export function SaunaAndQuadCards({ calc: { input, set, guests } }: { calc: EventCalculatorState }) {
-  const minSaunaHours = DEFAULT_SAUNA_RATES.minHours;
-
+export function SaunaAndQuadCards({ calc: { input, set, setSauna, catalog, guests } }: { calc: EventCalculatorState }) {
   return (
     <>
-      <CalculatorQuantityCard
-        title="Pirtis"
-        description={`Privati suomiška sauna prie ežero jūsų svečiams, nuo ${minSaunaHours} val.`}
-        price={`Nuo ${sessionPrice(minSaunaHours, guests).toLocaleString("lt-LT")} €`}
-        label="Valandos"
-        value={input.saunaHours}
-        min={minSaunaHours}
-        max={8}
-        onChange={(hours) => set("saunaHours", hours)}
-      >
-        <div className="min-w-0 grow basis-40 bg-dust">
-          <OptionToggle label="Pirtininkas" hint={`+${formatMoney(PRICES.saunaMaster)}`} checked={input.saunaMaster} onChange={(selected) => set("saunaMaster", selected)} />
-        </div>
-      </CalculatorQuantityCard>
+      {catalog.saunas.map((sauna) => (
+        <CalculatorSaunaCard key={sauna.id} sauna={sauna} guests={guests} programs={catalog.programs.filter((p) => p.saunaId === sauna.id)} upsells={catalog.upsells.filter((u) => sauna.upsellIds.includes(u.id))} pick={input.saunas[sauna.id]} onChange={(pick) => setSauna(sauna.id, pick)} />
+      ))}
       <CalculatorQuantityCard
         title="Keturračiai"
         description="Žygis keturračiais po Marso apylinkes su instruktoriumi."
@@ -44,7 +31,7 @@ export function SaunaAndQuadCards({ calc: { input, set, guests } }: { calc: Even
   );
 }
 
-function CabinOptions({ calc: { input, set, setCabinUnits } }: { calc: EventCalculatorState }) {
+function CabinOptions({ calc: { input, set, setCabinUnits, stayTypes } }: { calc: EventCalculatorState }) {
   const nights = input.cabinNights;
   const dates = input.date ? nextDays(input.date, nights + 1) : null;
 
@@ -66,16 +53,16 @@ function CabinOptions({ calc: { input, set, setCabinUnits } }: { calc: EventCalc
       <div>
         <OptionGroupLabel>Namelio tipas</OptionGroupLabel>
         <div className="grid gap-3 lg:grid-cols-2">
-          {CABIN_SIZES.map(({ id, label, name, pricePerNight, count }) => (
+          {stayTypesOf(stayTypes, "namelis").map(({ id, label, maxGuests, pricePerNight, units }) => (
             <CalculatorQuantityCard
               key={id}
-              eyebrow={label}
-              title={name}
+              eyebrow={guestsLabel(maxGuests)}
+              title={label}
               price={`${pricePerNight} € už namelį per naktį`}
               label="Kiekis"
-              value={input.cabinUnits[id]}
-              max={count}
-              onChange={(units) => setCabinUnits(id, units)}
+              value={input.cabinUnits[id] ?? 0}
+              max={units ?? 20}
+              onChange={(count) => setCabinUnits(id, count)}
             />
           ))}
         </div>

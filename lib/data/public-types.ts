@@ -1,4 +1,4 @@
-import type { CabinAvailability } from "@/lib/cabin";
+import type { CabinAvailability, StayType } from "@/lib/cabin";
 import type { QuadDeparture, QuadSettings, QuadTaken, QuadTourAccessory, QuadTourData, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -25,6 +25,8 @@ export interface SaunaPageData {
 
 export interface CabinPageData {
   today: string;
+  /** Active cabin sizes and camper pitches in display order, with their live prices and stock. */
+  stayTypes: StayType[];
   availability: CabinAvailability;
 }
 

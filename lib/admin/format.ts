@@ -1,4 +1,4 @@
-import { CABIN_SIZES, cabinStayType, roomLabel } from "@/lib/cabin";
+import { findStayType, type StayType } from "@/lib/cabin";
 import type { QuadType } from "@/lib/quads";
 import { formatHour, longDateLabel, weekdayLabel } from "@/lib/sauna";
 import { BOOKING_KIND } from "./labels";
@@ -27,9 +27,9 @@ export const formatEurRange = (r: { min: number; max: number }) =>
   r.min === r.max ? formatEur(r.min) : `${Math.round(r.min).toLocaleString("lt-LT")}–${formatEur(r.max)}`;
 
 /** Booking type, including the size and quantity of a stay when known. */
-export function bookingTypeLabel(b: Booking): string {
-  const size = b.kind === "namelis" ? CABIN_SIZES.find((s) => cabinStayType(s.id) === b.stayTypeId) : undefined;
-  const label = size ? roomLabel("namelis", size.id) : BOOKING_KIND[b.kind];
+export function bookingTypeLabel(b: Booking, stayTypes: readonly StayType[]): string {
+  const stay = b.stayTypeId ? findStayType(stayTypes, b.stayTypeId) : undefined;
+  const label = stay?.label ?? BOOKING_KIND[b.kind];
   const units = b.stayUnits ?? 1;
   return units > 1 ? `${units} × ${label}` : label;
 }

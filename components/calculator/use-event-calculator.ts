@@ -1,20 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import type { CabinSize } from "@/lib/cabin";
-import { DEFAULT_INPUT, PRESETS, SPACES, dayTypeOf, estimate, type EstimateInput, type PresetId } from "@/lib/event-pricing";
+import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type PresetId, type SaunaPick } from "@/lib/event-pricing";
 import { todayKey } from "@/lib/sauna";
 
-/** State of the event price calculator: the input, a setter and the live estimate. Shared by the page and the drawer. */
-export function useEventCalculator(today = todayKey()) {
+/**
+ * State of the event price calculator: the input, setters and the live estimate. Shared by the page and the drawer.
+ * `catalog` holds the live cabin sizes and saunas with their prices (from `public.stay_types` and `public.saunas`).
+ */
+export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalog = EMPTY_CATALOG) {
   const [input, setInput] = useState<EstimateInput>(DEFAULT_INPUT);
   const set = <K extends keyof EstimateInput>(key: K, value: EstimateInput[K]) => setInput((s) => ({ ...s, [key]: value }));
 
-  function setCabinUnits(size: CabinSize, count: number) {
-    setInput((s) => ({ ...s, cabinUnits: { ...s.cabinUnits, [size]: count } }));
+  function setCabinUnits(typeId: string, count: number) {
+    setInput((s) => ({ ...s, cabinUnits: { ...s.cabinUnits, [typeId]: count } }));
   }
 
-  const result = estimate(input);
+  /** Add, change or (with null) remove one sauna of the quote. */
+  function setSauna(id: string, pick: SaunaPick | null) {
+    setInput((s) => {
+      const saunas = { ...s.saunas };
+      if (pick) saunas[id] = pick;
+      else delete saunas[id];
+      return { ...s, saunas };
+    });
+  }
+
+  const result = estimate(input, catalog);
   const guests = input.adults + input.kids;
   const space = input.space ? SPACES.find((s) => s.id === input.space)! : null;
   const preset = PRESETS.find((p) => p.id === input.preset) ?? null;
@@ -30,7 +42,7 @@ export function useEventCalculator(today = todayKey()) {
     setInput((s) => ({ ...s, date: date || null, day: date ? dayTypeOf(date) : s.day }));
   }
 
-  return { input, set, setCabinUnits, result, guests, space, preset, applyPreset, chooseDate, today };
+  return { input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, space, preset, applyPreset, chooseDate, today };
 }
 
 export type EventCalculatorState = ReturnType<typeof useEventCalculator>;

@@ -10,6 +10,7 @@ export function WakeCards({ calc: { input, set } }: { calc: EventCalculatorState
     <>
       <CalculatorQuantityCard
         title="WAKE plaukimas"
+        description="Plaukimas vandenlente kabeline trasa Marso parke."
         price={`${PRICES.wakeRider} € / asm.`}
         label="Dalyviai"
         value={input.wakeRiders}
@@ -18,6 +19,7 @@ export function WakeCards({ calc: { input, set } }: { calc: EventCalculatorState
       />
       <CalculatorOptionCard
         title="Privati WAKE trasa, 2 val."
+        description="Visa trasa dviem valandoms tik jūsų grupei."
         price={`${PRICES.wakePrivate.toLocaleString("lt-LT")} €`}
         selected={input.wakePrivate}
         onToggle={() => set("wakePrivate", !input.wakePrivate)}

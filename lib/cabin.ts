@@ -1,65 +1,74 @@
 import { dateKey } from "@/lib/sauna";
 
 /**
- * Cabin sizes from the 2026–27 sheet: 8 doubles + 6 quads (40 beds),
- * 50–60 €/night — read as 50 € for a double and 60 € for a quad.
- * Mirrored by `public.stay_types` (`namelis-2`, `namelis-4`, `kemperis`), where
- * the database enforces the unit counts; there is no admin editor for them yet.
+ * Stay types (cabin sizes and camper pitches) live in `public.stay_types` and are
+ * managed by the owner at `/admin/namukai`. Prices, guest limits and stock all come
+ * from there; nothing about a particular cabin size is hard-coded in the app.
  */
-export const CABIN_SIZES = [
-  { id: 2, name: "Dvivietis namelis", label: "2 asmenims", pricePerNight: 50, count: 8 },
-  { id: 4, name: "Keturvietis namelis", label: "4 asmenims", pricePerNight: 60, count: 6 },
-] as const;
+export type StayKind = "namelis" | "kemperis";
 
-export type CabinSize = (typeof CABIN_SIZES)[number]["id"];
-
-export const CABIN_TOTAL = CABIN_SIZES.reduce((sum, s) => sum + s.count, 0);
-
-export const ROOM_TYPES = [
-  { id: "namelis", label: "Namelis", note: "2 arba 4 asmenims", pricePerNight: CABIN_SIZES[0].pricePerNight },
-  { id: "kemperis", label: "Kemperio aikštelė", note: "su elektra", pricePerNight: 25 },
-] as const;
-
-export type RoomTypeId = (typeof ROOM_TYPES)[number]["id"];
-
-/** Most guests a stay can take: the cabin size, or a camper pitch's limit. */
-export const CAMPER_MAX_GUESTS = 6;
+export interface StayType {
+  /** Slug, e.g. `namelis-2` or `kemperis` (see `newStayTypeId`). */
+  id: string;
+  kind: StayKind;
+  label: string;
+  note: string;
+  maxGuests: number;
+  pricePerNight: number;
+  /** How many exist; null = not limited (camper pitches). */
+  units: number | null;
+  active: boolean;
+  sortOrder: number;
+}
 
 /** Public request limit for stay units, separate from the park's stock. */
 export const MAX_STAY_UNITS = 20;
 export const MAX_STAY_NIGHTS = 14;
 
-export function cabinSize(size: CabinSize) {
-  return CABIN_SIZES.find((s) => s.id === size)!;
+export const STAY_KIND_LABEL: Record<StayKind, string> = { namelis: "Namelis", kemperis: "Kemperio aikštelė" };
+
+/** The types of one kind, in display order. */
+export const stayTypesOf = (types: readonly StayType[], kind: StayKind): StayType[] => types.filter((t) => t.kind === kind);
+
+export const findStayType = (types: readonly StayType[], id: string): StayType | undefined => types.find((t) => t.id === id);
+
+/** The cheapest nightly price of a kind, or null when there is none. */
+export function lowestStayPrice(types: readonly StayType[], kind?: StayKind): number | null {
+  const prices = types.filter((t) => !kind || t.kind === kind).map((t) => t.pricePerNight);
+  return prices.length ? Math.min(...prices) : null;
 }
 
-export function roomPrice(id: RoomTypeId, size: CabinSize): number {
-  return id === "namelis" ? cabinSize(size).pricePerNight : ROOM_TYPES.find((r) => r.id === id)!.pricePerNight;
-}
+/** Free units per night and stay type id from `stay_occupancy()`, with no entry for unlimited stock. */
+export type CabinAvailability = Record<string, Record<string, number>>;
 
-export function roomLabel(id: RoomTypeId, size: CabinSize): string {
-  return id === "namelis" ? cabinSize(size).name : ROOM_TYPES.find((r) => r.id === id)!.label;
-}
-
-/** Stay type id in `public.stay_types` for a cabin size. */
-export const cabinStayType = (size: CabinSize) => `namelis-${size}`;
-
-export type StayUnitType = CabinSize | "kemperis";
-
-/** Free units per night and type from `stay_occupancy()`, with no entry for unlimited camper stock. */
-export type CabinAvailability = Record<string, Partial<Record<StayUnitType, number>>>;
-
-/** Lowest availability across all nights, with unlisted nights using the default inventory. */
-export function freeStayUnits(availability: CabinAvailability, checkIn: Date, nights: number, type: StayUnitType): number {
-  const inventory = type === "kemperis" ? Infinity : cabinSize(type).count;
+/** Lowest availability across all nights, with unlisted nights using the type's whole stock. */
+export function freeStayUnits(availability: CabinAvailability, checkIn: Date, nights: number, type: StayType): number {
+  const inventory = type.units ?? Infinity;
   let free = inventory;
   for (let i = 0; i < nights; i++) {
     const d = new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + i);
-    free = Math.min(free, availability[dateKey(d)]?.[type] ?? inventory);
+    free = Math.min(free, availability[dateKey(d)]?.[type.id] ?? inventory);
   }
   return free;
 }
 
-export function freeCabins(availability: CabinAvailability, checkIn: Date, nights: number, size: CabinSize): number {
-  return freeStayUnits(availability, checkIn, nights, size);
+/** Units of any type of a kind that are free for every night of the stay. */
+export function freeStayUnitsOfKind(types: readonly StayType[], availability: CabinAvailability, checkIn: Date, nights: number, kind: StayKind): number {
+  return stayTypesOf(types, kind).reduce((sum, t) => sum + freeStayUnits(availability, checkIn, nights, t), 0);
 }
+
+/** Id for a new type: the kind plus a short random suffix, within the `^[a-z0-9-]+$` the table requires. */
+export const newStayTypeId = (kind: StayKind) => `${kind}-${crypto.randomUUID().slice(0, 8)}`;
+
+/** "iki 4 asmenų" */
+export const guestsLabel = (maxGuests: number) => `iki ${maxGuests} ${maxGuests === 1 ? "asmens" : "asmenų"}`;
+
+/** The active type a phone booking gets: the smallest of the kind that fits the party, else the largest. */
+export function pickStayType(types: readonly StayType[], kind: StayKind, guests: number): StayType | undefined {
+  const ofKind = types.filter((t) => t.kind === kind && t.active).toSorted((a, b) => a.maxGuests - b.maxGuests);
+  return ofKind.find((t) => t.maxGuests >= guests) ?? ofKind.at(-1);
+}
+
+/** Total cabins (or pitches) of a kind; camper pitches without a limit count as 0. */
+export const stayStock = (types: readonly StayType[], kind: StayKind): number =>
+  types.filter((t) => t.kind === kind && t.active).reduce((sum, t) => sum + (t.units ?? 0), 0);

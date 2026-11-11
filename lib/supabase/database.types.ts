@@ -75,6 +75,7 @@ export type Database = {
           guests: number | null
           hours: number | null
           id: string
+          inquiry_id: string | null
           kind: Database["public"]["Enums"]["booking_kind"]
           nights: number | null
           note: string | null
@@ -104,6 +105,7 @@ export type Database = {
           guests?: number | null
           hours?: number | null
           id?: string
+          inquiry_id?: string | null
           kind: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
@@ -133,6 +135,7 @@ export type Database = {
           guests?: number | null
           hours?: number | null
           id?: string
+          inquiry_id?: string | null
           kind?: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
@@ -151,6 +154,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "inquiries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_discount_code_id_fkey"
             columns: ["discount_code_id"]
@@ -587,6 +597,7 @@ export type Database = {
       }
       inquiries: {
         Row: {
+          accepted_at: string | null
           calculator_input: Json | null
           created_at: string
           customer_email: string | null
@@ -605,6 +616,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
           calculator_input?: Json | null
           created_at?: string
           customer_email?: string | null
@@ -623,6 +635,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
           calculator_input?: Json | null
           created_at?: string
           customer_email?: string | null
@@ -1844,6 +1857,48 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      my_riders: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cards: string[]
+          id: string
+          name: string
+          plan_category: string | null
+          plan_description: string | null
+          plan_name: string | null
+          plan_price: number | null
+          purchases: Json
+          surname: string
+        }[]
+      }
+      my_inquiries: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          accepted: boolean
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          date: string | null
+          estimate_max: number | null
+          estimate_min: number | null
+          event_type: string
+          guests: number
+          id: string
+          lines: Json
+          message: string
+          space: string
+          status: Database["public"]["Enums"]["inquiry_status"]
+        }[]
+      }
+      accept_inquiry_stays: {
+        Args: { p_inquiry_id: string }
+        Returns: number
+      }
+      release_inquiry_stays: {
+        Args: { p_inquiry_id: string }
+        Returns: number
+      }
       abandon_payment: { Args: { p_payment_id: string }; Returns: number }
       account_notify_email: { Args: { p_user: string }; Returns: string }
       activate_coupon: {

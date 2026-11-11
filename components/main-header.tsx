@@ -18,7 +18,7 @@ export function MainHeader({ placement = "bar" }: { placement?: "overlay" | "bar
           Rezervuok
         </Cta>
       )}
-      menu={(close) => <MenuPanel items={NAV_LINKS} secondary={SECTION_LINKS} secondaryTitle="Pagrindinis puslapis" onNavigate={close} />}
+      menu={(close) => <MenuPanel items={NAV_LINKS} secondary={SECTION_LINKS} secondaryTitle="Pagrindinis puslapis" account={{ href: "/paskyra", label: "Mano paskyra" }} onNavigate={close} />}
     />
   );
 }

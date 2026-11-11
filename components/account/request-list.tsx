@@ -9,15 +9,12 @@ const dayLabel = (key: string) => {
 };
 
 /** The customer's reservations, newest date first; each one with its reference, status and whether it was paid. */
-export function RequestList({ requests }: { requests: MyRequest[] }) {
+export function RequestList({ requests, filtered = false }: { requests: MyRequest[]; /** Showing one category: the empty note says so instead of inviting a first booking. */ filtered?: boolean }) {
   return (
-    <section aria-labelledby="requests-title" className="space-y-4">
-      <h2 id="requests-title" className="font-display text-item font-bold uppercase">
-        Rezervacijos
-      </h2>
+    <section aria-label="Rezervacijos" className="space-y-4">
       {requests.length === 0 ? (
         <div className="space-y-3 border border-line p-5 sm:p-6">
-          <p className="text-copy">Rezervacijų dar nėra. Pasirink pirtį, nakvynę ar keturračius ir jos atsiras čia.</p>
+          <p className="text-copy">{filtered ? "Šioje skiltyje rezervacijų nėra." : "Rezervacijų dar nėra. Pasirink pirtį, nakvynę ar keturračius ir jos atsiras čia."}</p>
           <Link href="/rezervacija" className="inline-flex min-h-11 items-center border-b border-current text-sm font-bold">
             Rezervuoti
           </Link>

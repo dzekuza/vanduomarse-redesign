@@ -4,6 +4,7 @@ import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/l
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
+import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -95,6 +96,13 @@ export interface Inquiry {
   message: string;
   status: InquiryStatus;
   notes: { at: string; text: string }[];
+  /** Cabins the calculator quote asked for (stay type id and count), arriving on `date`. */
+  stays: { typeId: string; units: number }[];
+  stayNights: number;
+  /** Saunas of the quote; one with a start hour is booked on accept, the rest are quote lines. */
+  saunas: { saunaId: string; hours: number; startHour: number | null; programId: string | null; extras: Record<string, number> }[];
+  /** Set once staff accepted the inquiry and its cabins were booked. */
+  acceptedAt?: string;
 }
 
 export interface ManagedEvent {
@@ -335,6 +343,8 @@ export interface AdminData {
   couponProducts: CouponProduct[];
   /** Empty without the `nuolaidos` permission (or before its migration). */
   discountCodes: DiscountCode[];
+  /** Cabin sizes and camper pitches, hidden ones included (owner-managed at /admin/namukai). */
+  stayTypes: StayType[];
   quadTypes: QuadType[];
   quadSettings: QuadSettings;
   /** Mini / Midi / Maxi, all of them (inactive too) for staff with `keturraciai`. */

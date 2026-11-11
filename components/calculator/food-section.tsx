@@ -92,7 +92,7 @@ export function FoodSection({ calc }: FoodSectionProps) {
           <TabsTrigger
             key={id}
             value={id}
-            className="h-full min-h-11 min-w-0 rounded-none px-1 py-2 text-xs wrap-break-word whitespace-normal text-ink data-active:bg-ink data-active:text-dust"
+            className="h-full min-h-11 min-w-0 rounded-none px-1 py-2 text-xs wrap-break-word whitespace-normal text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust"
           >
             {label}
           </TabsTrigger>

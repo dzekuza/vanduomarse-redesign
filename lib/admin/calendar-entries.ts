@@ -39,7 +39,7 @@ export interface CalendarEntry {
   event?: { sold: number; capacity: number | null; published: boolean };
 }
 
-type Source = Pick<AdminData, "bookings" | "quadRentals" | "quadTypes" | "events">;
+type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events">;
 
 const EVENT_KIND: Record<EventCategory, CalendarKind> = { pirtis: "pirtis", keturratis: "keturraciai", vakarai: "renginys", akademija: "renginys", sventes: "renginys" };
 
@@ -58,7 +58,7 @@ function lastNight(date: string, nights: number): string {
 }
 
 /** Every non-cancelled booking and rental, plus every event (its tickets are read with `ticketsFor`), as one flat, date-sorted list. */
-export function calendarEntries({ bookings, quadRentals, quadTypes, events }: Source): CalendarEntry[] {
+export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events }: Source): CalendarEntry[] {
   const entries: CalendarEntry[] = [];
 
   for (const b of bookings) {
@@ -71,7 +71,7 @@ export function calendarEntries({ bookings, quadRentals, quadTypes, events }: So
       date: b.date,
       endDate: stay ? lastNight(b.date, b.nights ?? 1) : b.date,
       time: b.startHour === undefined ? "" : `${hhmm(b.startHour)}`,
-      title: bookingTypeLabel(b),
+      title: bookingTypeLabel(b, stayTypes),
       detail: bookingWhen(b),
       customer: b.customer,
       status: b.status,

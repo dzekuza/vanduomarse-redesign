@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 import { EstimateSummary } from "./estimate-summary";
 import { CalculatorGroups } from "./calculator-groups";
 import { useEventCalculator } from "./use-event-calculator";
-import { formatMoney } from "@/lib/event-pricing";
+import { formatMoney, type CalculatorCatalog } from "@/lib/event-pricing";
 
 /** Event price calculator page: question groups on the left, sticky live estimate on the right. */
-export function EventCalculator({ header, today }: { header: ReactNode; today: string }) {
-  const calc = useEventCalculator(today);
+export function EventCalculator({ header, today, catalog }: { header: ReactNode; today: string; catalog: CalculatorCatalog }) {
+  const calc = useEventCalculator(today, catalog);
   const { result, input, guests, space, preset } = calc;
 
   return (

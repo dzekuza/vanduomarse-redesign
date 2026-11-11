@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { saveCustomerName, signOutCustomer } from "@/app/actions/customer";
+import { AddPhone } from "./add-phone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +51,12 @@ export function ProfileCard({ customer }: { customer: Customer }) {
           </div>
         ) : null}
       </dl>
+      {customer.phone ? null : (
+        <div className="space-y-2">
+          <p className="text-sm text-copy">Telefonas</p>
+          <AddPhone />
+        </div>
+      )}
       <div className="space-y-1.5">
         <Label htmlFor="profile-name">Vardas, pavardė</Label>
         <Input id="profile-name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />

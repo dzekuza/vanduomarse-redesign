@@ -1,10 +1,10 @@
-import { CABIN_SIZES, roomPrice } from "@/lib/cabin";
+import { guestsLabel, type StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import { SPACES, formatMoney } from "@/lib/event-pricing";
 import { programPriceLine } from "@/lib/sauna-programs";
 import type { ServiceSlug } from "./service-content";
 
-function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData) {
+function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, stayTypes?: StayType[]) {
   if (slug === "pirtis") return sauna?.programs.map((program) => ({
     label: program.name,
     price: programPriceLine(program),
@@ -20,10 +20,11 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData) 
     })),
     ...(quads?.tourAccessories ?? []).map((gear) => ({ label: gear.name, price: `${gear.price} € / vnt.`, note: "Papildoma įranga" })),
   ];
-  if (slug === "nakvyne") return [
-    ...CABIN_SIZES.map((cabin) => ({ label: cabin.name, price: `${cabin.pricePerNight} € / naktį`, note: cabin.label })),
-    { label: "Kemperio aikštelė", price: `${roomPrice("kemperis", 2)} € / naktį`, note: "Viena transporto priemonė, su elektra." },
-  ];
+  if (slug === "nakvyne") return (stayTypes ?? []).map((type) => ({
+    label: type.label,
+    price: `${type.pricePerNight} € / naktį`,
+    note: [type.kind === "kemperis" ? "Viena transporto priemonė" : "", type.note, `Telpa ${guestsLabel(type.maxGuests)}`].filter(Boolean).join(". ") + ".",
+  }));
   if (slug === "restoranas" || slug === "vandenlentes") return [];
   const spaceIds = slug === "imoniu-renginiai"
     ? ["kupolas-seminaras", "kupolas-svente", "parkas"]
@@ -43,8 +44,8 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData) 
   });
 }
 
-export function ServicePricing({ slug, sauna, quads }: { slug: ServiceSlug; sauna?: SaunaPageData; quads?: QuadPageData }) {
-  const rows = prices(slug, sauna, quads);
+export function ServicePricing({ slug, sauna, quads, stayTypes }: { slug: ServiceSlug; sauna?: SaunaPageData; quads?: QuadPageData; stayTypes?: StayType[] }) {
+  const rows = prices(slug, sauna, quads, stayTypes);
   return (
     <div className="space-y-3">
       {rows.length ? (

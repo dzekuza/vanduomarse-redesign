@@ -9,6 +9,7 @@ import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-sc
 import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRiderSession, toRidePlan } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RiderSession, RidePlan } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
+import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import { sendCouponEmail } from "@/lib/email/send-coupon";
@@ -144,9 +145,16 @@ const newBookingInput = z
 
 export type NewBookingInput = z.infer<typeof newBookingInput>;
 
-/** Cabin size until the form asks for one: a couple gets a double, anyone more a quad. */
-const stayTypeFor = (kind: NewBookingInput["kind"], guests: number) =>
-  kind === "kemperis" ? "kemperis" : kind === "namelis" ? (guests <= 2 ? "namelis-2" : "namelis-4") : null;
+/**
+ * Stay type for a phone booking (the form asks only for cabin or camper and the party size):
+ * the cheapest-capacity active type of the kind that fits the party, else the largest one.
+ */
+async function stayTypeFor(supabase: Extract<StaffContext, { ok: true }>["supabase"], kind: NewBookingInput["kind"], guests: number): Promise<string | null> {
+  if (kind === "pirtis") return null;
+  const { data } = await supabase.from("stay_types").select("id, max_guests").eq("kind", kind).eq("active", true).order("max_guests");
+  const fits = (data ?? []).find((t) => t.max_guests >= guests) ?? data?.at(-1);
+  return fits?.id ?? null;
+}
 
 export async function createBooking(input: NewBookingInput): Promise<ActionResult<Booking>> {
   const ctx = await staffClient("rezervacijos");
@@ -171,7 +179,7 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
       start_hour: sauna ? v.startHour : null,
       hours: sauna ? v.hours : null,
       nights: sauna ? null : v.nights,
-      stay_type_id: stayTypeFor(v.kind, v.guests),
+      stay_type_id: await stayTypeFor(supabase, v.kind, v.guests),
       guests: v.guests,
       total: v.total,
       status: v.status,
@@ -246,6 +254,47 @@ export async function setInquiryStatus(id: string, status: "nauja" | "susisiekta
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("inquiries").update({ status }).eq("id", id);
   return error ? dbError(error) : done(null);
+}
+
+const revalidateStayHolds = () => {
+  revalidatePath("/admin", "layout");
+  for (const path of ["/rezervacija", "/nakvyne", "/embed/miegas"]) revalidatePath(path);
+};
+
+/**
+ * Accept a calculator inquiry: books its cabins (confirmed stay bookings on the event date, linked to the
+ * inquiry) so /rezervacija no longer offers them. All or nothing; needs `uzklausos` and `rezervacijos`.
+ */
+export async function acceptInquiry(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("uzklausos");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.rpc("accept_inquiry_stays", { p_inquiry_id: id });
+  if (error) {
+    const byHint: Record<string, string> = {
+      inquiry_accepted: "Užklausa jau priimta.",
+      inquiry_no_date: "Užklausoje nėra datos – namelių užimti negalima.",
+      no_stays: "Užklausoje nėra ko užimti: pasirinkite namelius arba pirtį su pradžios laiku.",
+      stay_type_missing: "Užklausos namelio tipo nebėra – užimkite rankiniu būdu.",
+      sauna_missing: "Užklausos pirties nebėra – užimkite rankiniu būdu.",
+      program_missing: "Užklausos pirties programos nebėra arba ji išjungta.",
+      sauna_hours: "Pirties seansas netelpa į pirties darbo valandas.",
+    };
+    return error.hint && byHint[error.hint] ? fail(byHint[error.hint], "invalid") : dbError(error);
+  }
+  revalidateStayHolds();
+  return done(null);
+}
+
+/** Undo `acceptInquiry`: cancels the cabin bookings it created, so the cabins are free again. */
+export async function releaseInquiry(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("uzklausos");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.rpc("release_inquiry_stays", { p_inquiry_id: id });
+  if (error) return dbError(error);
+  revalidateStayHolds();
+  return done(null);
 }
 
 export async function addInquiryNote(id: string, text: string): Promise<ActionResult> {
@@ -676,6 +725,59 @@ export async function cancelCoupon(id: string): Promise<ActionResult> {
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("coupons").update({ status: "atsauktas" }).eq("id", id).in("status", ["laukia_apmokejimo", "aktyvus"]);
+  return error ? dbError(error) : done(null);
+}
+
+/* ---------------- stay types (cabins, camper pitches) ---------------- */
+
+const stayTypeInput = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  kind: z.enum(["namelis", "kemperis"]),
+  label: z.string().trim().min(1).max(60),
+  note: z.string().trim().max(120),
+  maxGuests: z.number().int().min(1).max(30),
+  pricePerNight: z.number().min(0).max(10000),
+  /** null = not limited (camper pitches). */
+  units: z.number().int().min(1).max(500).nullable(),
+  active: z.boolean(),
+  sortOrder: z.number().int().min(0).max(1000),
+});
+
+const revalidateStays = () => {
+  for (const path of ["/rezervacija", "/nakvyne", "/embed/miegas", "/skaiciuokle"]) revalidatePath(path);
+};
+
+/** Owner-only (RLS `owner stay types *`): prices, stock and guest limits drive every public booking. */
+export async function saveStayType(type: StayType): Promise<ActionResult> {
+  const ctx = await staffClient("owner");
+  if (!ctx.ok) return ctx.error;
+  const parsed = stayTypeInput.safeParse(type);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const t = parsed.data;
+  // Cabins are always counted; only camper pitches may be unlimited.
+  if (t.kind === "namelis" && t.units === null) return fail("Namelių skaičius privalomas.", "invalid");
+  const { error } = await ctx.supabase.from("stay_types").upsert({
+    id: t.id,
+    kind: t.kind,
+    label: t.label,
+    note: t.note,
+    max_guests: t.maxGuests,
+    price_per_night: t.pricePerNight,
+    units: t.units,
+    active: t.active,
+    sort_order: t.sortOrder,
+  });
+  revalidateStays();
+  return error ? dbError(error) : done(null);
+}
+
+export async function deleteStayType(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("owner");
+  if (!ctx.ok) return ctx.error;
+  if (!z.string().regex(/^[a-z0-9-]+$/).safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { error } = await ctx.supabase.from("stay_types").delete().eq("id", id);
+  if (error?.code === "23503") return fail("Šio tipo jau buvo rezervacijų – jį galima tik išjungti.", "in_use");
+  revalidateStays();
   return error ? dbError(error) : done(null);
 }
 

@@ -43,11 +43,11 @@ export function EstimateSummary({ estimate, input, guests, spaceLabel, typical, 
           if (!lines.length) return null;
           return (
             <dl key={group}>
-              <dt className="mb-2 text-micro uppercase text-copy">{group}</dt>
+              <dt className="mb-2 text-micro font-bold uppercase text-ink">{group}</dt>
               {lines.map((l) => (
                 <dd key={l.label} className="flex items-baseline justify-between gap-4 border-b border-line py-2 text-xs last:border-0">
-                  <span className="text-copy">{l.label}</span>
-                  <span className="shrink-0 tabular-nums">{formatMoney(l.amount)}</span>
+                  <span className="text-ink/80">{l.label}</span>
+                  <span className="shrink-0 font-bold tabular-nums">{formatMoney(l.amount)}</span>
                 </dd>
               ))}
             </dl>

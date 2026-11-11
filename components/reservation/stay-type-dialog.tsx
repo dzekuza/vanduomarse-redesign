@@ -6,20 +6,18 @@ import { Cta } from "@/components/cta";
 import { SERVICE_GALLERY } from "@/components/landing/content";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { CAMPER_MAX_GUESTS, MAX_STAY_NIGHTS, type StayUnitType } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, type StayType } from "@/lib/cabin";
 
 interface StayTypeDialogProps {
-  type: StayUnitType;
-  title: string;
-  price: number;
+  type: StayType;
   className?: string;
 }
 
 /** Details of one stay type (cabin size or camper pitch), opened from the info icon in the corner of its card. */
-export function StayTypeDialog({ type, title, price, className }: StayTypeDialogProps) {
-  const camper = type === "kemperis";
+export function StayTypeDialog({ type, className }: StayTypeDialogProps) {
+  const { label: title, pricePerNight: price, maxGuests: guests } = type;
+  const camper = type.kind === "kemperis";
   const photo = camper ? undefined : SERVICE_GALLERY.cabins[0];
-  const guests = camper ? CAMPER_MAX_GUESTS : type;
 
   return (
     <Dialog>
@@ -40,7 +38,7 @@ export function StayTypeDialog({ type, title, price, className }: StayTypeDialog
             <p className="text-micro uppercase text-copy">Nakvynė Marse</p>
             <DialogTitle className="font-display text-heading! font-bold uppercase">{title}</DialogTitle>
             <DialogDescription className="text-sm leading-relaxed text-copy">
-              {camper ? "Viena vieta vienai transporto priemonei, su elektra." : `Namelis iki ${type} asmenų Vanduo Marse parke.`}
+              {type.note || (camper ? "Viena vieta vienai transporto priemonei." : `Namelis iki ${guests} asmenų Vanduo Marse parke.`)}
             </DialogDescription>
           </header>
           <dl className="grid grid-cols-3 gap-3 border-y border-line py-5">
