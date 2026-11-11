@@ -8,6 +8,16 @@ export const DEFAULT_OG_IMAGE = {
   alt: "Vanduo Marse kabelinis vandenlenčių parkas prie ežero",
 };
 
+/** Designed 1200x630 share images (`public/og/`), by service id; a service without one shares its gallery photo. */
+export const SERVICE_OG_IMAGES: Partial<Record<string, { url: string; alt: string }>> = {
+  sauna: { url: "/og/pirtis.jpg", alt: "Vanduo Marse: pirtis prie vandens" },
+  cabins: { url: "/og/nameliai.jpg", alt: "Vanduo Marse: nameliai prie vandens, gyvenk Marse" },
+  party: { url: "/og/renginiai.jpg", alt: "Vanduo Marse: renginys be rūpesčių, gauti pasiūlymą" },
+};
+
+/** Share image of the event price calculator and the celebration pages. */
+export const EVENTS_OG_IMAGE = SERVICE_OG_IMAGES.party!;
+
 interface PageSeo {
   title: string;
   description: string;
