@@ -18,7 +18,7 @@ export default async function QuadsPreviewPage() {
   const data = await getQuadPageData({ days: 60, now: new Date() });
   return (
     <BookingPage>
-      <main className="theme-reservation">
+      <div className="theme-reservation">
         <section className="grid gap-8 px-gutter pt-10 pb-10 lg:grid-cols-2 lg:items-center lg:gap-12 lg:py-14">
           <div className="space-y-6">
             <span className="inline-flex min-h-11 items-center border border-line px-3 text-micro uppercase">Dizaino peržiūra · Vanduo Marse × Ciongo</span>
@@ -60,7 +60,7 @@ export default async function QuadsPreviewPage() {
           <QuadTourGallery />
           <p className="text-xs text-copy">Peržiūros trasų informacija ir laikinos nuotraukos iš <a href={QUAD_TOUR_SOURCE} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline underline-offset-4">Ciongo</a>.</p>
         </div>
-      </main>
+      </div>
     </BookingPage>
   );
 }

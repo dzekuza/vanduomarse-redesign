@@ -197,3 +197,4 @@ feature components in `components/<feature>/`. Admin screens build on
 - `LegalPage` (`components/legal/legal-page.tsx`): booking-style header plus titled sections; copy in `components/legal/privacy-content.ts`.
 - `ContactDetails` (`components/contact/contact-details.tsx`): address, map link and all contacts for `/kontaktai`.
 - Metadata for any public page: `pageMetadata()` / `metaDescription()` in `lib/seo.ts`.
+- `BookingPage` (`components/booking/booking-page.tsx`) now renders the skip link and the page's only `<main id="turinys">`; pages inside it must not add their own `<main>`.

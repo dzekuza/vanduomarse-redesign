@@ -14,6 +14,8 @@ updated: 2026-11-07
 
 ## Current focus
 
+**SEO follow-up (2026-11-11): main landmark and skip link on inner pages, security headers; committed on `fix/seo-a11y-headers`, not pushed. Still open: thin-page copy, About page, CSP, image weight, `SITE_GATE` off at launch.**
+
 **SEO pass (2026-11-11, ADR-0063): metadata helper, JSON-LD, /kontaktai, /privatumo-politika (draft text), footer links, llms.txt; uncommitted, production build passes, not checked by eye. Prod is still behind `SITE_GATE` (503 + noindex): turn it off at launch.**
 
 **my_riders account phone (2026-11-11): migration `20261111230000_my_rider_account_phone_plain.sql` written after a second security review, applied, verified and merged to `main` (PR #19).**

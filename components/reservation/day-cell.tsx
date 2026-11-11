@@ -76,7 +76,7 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
       tabIndex={tabIndex}
       data-date={dateKey(date)}
       aria-pressed={selected}
-      aria-label={endpoint ? `${endpoint}, ${longDateLabel(date)}` : longDateLabel(date)}
+      aria-label={`${endpoint ? `${endpoint}, ` : ""}${compactMonth ? "" : `${weekdayLabel(date)} `}${longDateLabel(date)}`}
       aria-describedby={details ? descriptionId : undefined}
       className={`relative flex min-h-11 flex-col items-center border text-sm transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${compact ? "justify-center gap-0.5 py-1" : "gap-1 py-2.5 sm:py-3"} ${
         fluid ? "w-full" : compact ? "w-12 shrink-0" : "w-14 shrink-0 sm:w-16"
