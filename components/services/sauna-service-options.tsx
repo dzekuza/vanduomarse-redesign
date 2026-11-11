@@ -9,18 +9,22 @@ export interface SaunaServiceVenue {
   /** The sauna has prices to book by the hour. */
   hasPrices: boolean;
   maxParty: number;
+  /** Announced ("Netrukus atsidarys"): shown, not selectable. */
+  comingSoon?: boolean;
 }
 
 const SAUNA_CONTACT = CONTACTS.find(({ name }) => name === "Pirtis Marse") ?? MAIN_CONTACT;
 
-/** The active saunas from the admin, in display order; a private booking is by the hour (2-4 h) with an optional pirtininkas. */
+/** The active saunas from the admin, then the announced ones; a private booking is by the hour (2-4 h) with an optional pirtininkas. */
 export function saunaServiceVenues(data: SaunaPageData): SaunaServiceVenue[] {
-  return data.saunas.filter(({ active }) => active).map(({ id, name, rates }) => ({
+  const venues = data.saunas.filter(({ active }) => active).map(({ id, name, rates }) => ({
     id,
     label: name,
     maxParty: rates.maxParty,
     hasPrices: Object.keys(rates.weekdayPrices).length + Object.keys(rates.weekendPrices).length > 0,
   }));
+  const announced = data.comingSoonSaunas.map(({ id, name, rates }) => ({ id, label: name, maxParty: rates.maxParty, hasPrices: false, comingSoon: true }));
+  return [...venues, ...announced];
 }
 
 interface SaunaServicePrivateOptionsProps {
@@ -43,10 +47,10 @@ export function SaunaServicePrivateOptions({ venues, venueId, onVenue, disabled 
           <WavesIcon size={18} aria-hidden /> Pirtis
         </legend>
         <div className="grid grid-cols-2 gap-2">
-          {venues.map(({ id, label, maxParty }) => (
-            <FilterChip key={id} active={id === venueId} onClick={() => onVenue(id)} className={CHOICE}>
+          {venues.map(({ id, label, maxParty, comingSoon }) => (
+            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={CHOICE}>
               <span className="font-bold">{label}</span>
-              <span className={id === venueId ? "text-dust/80" : "text-copy"}>Iki {maxParty} žmonių</span>
+              <span className={id === venueId ? "text-dust/80" : "text-copy"}>{comingSoon ? "Netrukus atsidarys" : `Iki ${maxParty} žmonių`}</span>
             </FilterChip>
           ))}
         </div>
