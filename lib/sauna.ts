@@ -180,6 +180,20 @@ export function maxHoursFrom(taken: readonly number[], startHour: number, rates:
   return hours;
 }
 
+/**
+ * Starts for "Visa diena" on `day`: the session runs from the start to closing, so it must be longer than
+ * the longest hourly length (else the hourly price is the better one) and the whole run must be free.
+ */
+export function fullDayStartHours(taken: readonly number[], rates: SaunaRates, day: string | undefined, pastHour: number): number[] {
+  const longestHourly = Math.max(0, ...sessionLengths(rates, day).filter((h) => h < FULL_DAY_HOURS));
+  const starts: number[] = [];
+  for (let hour = Math.max(rates.openHour, rates.closeHour - FULL_DAY_HOURS); hour < rates.closeHour; hour++) {
+    const run = rates.closeHour - hour;
+    if (run > longestHourly && hour > pastHour && maxHoursFrom(taken, hour, rates) >= run) starts.push(hour);
+  }
+  return starts;
+}
+
 /** Last hour already started on `day` (starts at or before it are gone); -1 on any later day. */
 export function pastHourOn(day: string, today: string, nowHour: number): number {
   return day === today ? nowHour : -1;

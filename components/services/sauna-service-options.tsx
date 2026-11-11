@@ -48,7 +48,7 @@ export function SaunaServicePrivateOptions({ venues, venueId, onVenue, disabled 
         </legend>
         <div className="grid grid-cols-2 gap-2">
           {venues.map(({ id, label, maxParty, comingSoon }) => (
-            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={CHOICE}>
+            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={comingSoon ? `${CHOICE} border-dashed bg-dust-soft opacity-60` : CHOICE}>
               <span className="font-bold">{label}</span>
               <span className={id === venueId ? "text-dust/80" : "text-copy"}>{comingSoon ? "Netrukus atsidarys" : `Iki ${maxParty} žmonių`}</span>
             </FilterChip>
