@@ -14,6 +14,70 @@ updated: 2026-11-07
 
 ## Current focus
 
+**Sidebar badges (2026-11-11): count badges now vertically centred on lg rows; uncommitted, not browser-checked.**
+
+**Admin sidebar alignment (2026-11-11): top four items merged into one group to even out spacing; uncommitted, not browser-checked.**
+
+**Admin sidebar (2026-11-11): Kuponai now after Kainodara under Nustatymai; uncommitted, not browser-checked.**
+
+**Admin sidebar (2026-11-11): Nuolaidos now after Kainodara under Nustatymai; uncommitted, not browser-checked.**
+
+**Admin sidebar (2026-11-11): Kalendorius now after Užklausos, above Paslaugos; uncommitted, not browser-checked.**
+
+**Admin sidebar (2026-11-11): Užklausos now sits after Klientai (above Paslaugos); uncommitted, not browser-checked.**
+
+**Admin sidebar (2026-11-11): group renamed Paslaugos; Klientai moved right after Apžvalga; uncommitted, not browser-checked.**
+
+**Program tile price (2026-11-11): smaller, medium weight; uncommitted, not browser-checked.**
+
+**Inquiries board (2026-11-11): /admin/uzklausos is three draggable status columns; uncommitted, not browser-checked.**
+
+**Rider picker (2026-11-11): e-mail shown under the name and searchable in the "Esamas naudotojas" dropdown; my_riders migration applied; uncommitted, not browser-checked.**
+
+**Vandenlentės tab on /paskyra (2026-11-11, ADR-0062): built, uncommitted, not browser-checked. Migration `20261111210000_my_rider.sql` applied and verified.** Next: check with a rider's email or phone.
+
+**Add phone on /paskyra (2026-11-11): SMS-confirmed flow built; uncommitted, not run end to end.**
+
+**Quote popup close button (2026-11-11): moved to top-right; uncommitted, not browser-checked as a customer.**
+
+**Pasiūlymai badge (2026-11-11): "Gauta" removed; only "Priimta…" shows once accepted; uncommitted, not browser-checked.**
+
+**Pasiūlymai details popup (2026-11-11): quote cards on /paskyra open a popup with the full quote; `my_inquiries()` widened and applied; uncommitted, not browser-checked as a customer.**
+
+**Inquiry-sent modal (2026-11-11): success dialog after the calculator form is sent; uncommitted, not browser-checked.**
+
+**Estimate summary weights (2026-11-11): bold group headings and prices; uncommitted, not browser-checked.**
+
+**Calculator form prefill (2026-11-11): signed-in customers get email / phone / name filled in; uncommitted, not browser-checked.**
+
+**/paskyra tabs (2026-11-11, ADR-0061): Visi / Pirtis / Namukai / Keturračiai / Pasiūlymai built, uncommitted, not browser-checked. Migration `20261111190000_my_inquiries.sql` applied and verified.** Next: sign in as a customer and check each tab.
+
+**/paskyra (2026-11-11): visible "Rezervacijos" heading removed from the reservations list; uncommitted, not browser-checked.**
+
+**Menu account button (2026-11-11): "Mano paskyra" button under the big links in the hamburger menu; uncommitted, checked at 375 px.**
+
+**Open-menu header (2026-11-11): nav links and close button use ink text on the coral panel; uncommitted, not browser-checked.**
+
+**Calculator card controls row (2026-11-11): top border and padding removed; uncommitted, not browser-checked.**
+
+**Inquiry-hold migration applied (2026-11-11) to the live project and verified; accepting an inquiry is untested end to end.** Next: accept a test calculator inquiry (cabin + sauna with start hour, program, extras), confirm `/rezervacija` shows them taken and Atlaisvinti frees them, regenerate `database.types.ts`.
+
+**Calculator sauna extras (2026-11-11): Pirtininkas toggle removed, real priedai selectable per sauna and held on accept; uncommitted; the migration is applied.**
+
+**Calculator sauna programs (2026-11-11): programs selectable per sauna and held on accept; uncommitted; the migration is applied.**
+
+**Calculator real saunas (2026-11-11, ADR-0060): one card per active sauna with start hour; accepting an inquiry books them with the cabins; uncommitted; migration applied.**
+
+**Calculator card controls (2026-11-11): stepper and button inline; uncommitted, not browser-checked.**
+
+**Calculator WAKE cards (2026-11-11): both now have descriptions to match Pirtis / Keturračiai; uncommitted, not browser-checked.**
+
+**Accept calculator inquiries (2026-11-11, ADR-0060): code built on `main`, uncommitted, not browser-checked; migration applied.** Until the owner applies it to the live project, the accept button fails. Next: apply the migration (verify the project ref), regenerate `database.types.ts`, accept a test inquiry, then check `/rezervacija` shows those cabins as taken and Atlaisvinti frees them.
+
+**Namukai admin (2026-11-11, ADR-0059): built on `main`, uncommitted, public pages checked at 375 px, `/admin/namukai` not browser-checked (needs owner login).** Owner manages cabin sizes / camper pitches; public booking and the calculator now read `stay_types`. Next: sign in as owner, add / edit / hide a type, confirm it shows on `/rezervacija?veikla=nakvyne`; place one test stay booking; check the calculator drawer cabin cards.
+
+**Food tab hover (2026-11-11): active tab in `food-section.tsx` keeps `text-dust` on hover; uncommitted, not browser-checked.**
+
 **Apžvalga rework (2026-11-11): built on `main`, uncommitted, not browser-checked.** `/admin` is now only the Pardavimai section with the category tabs, three stat cards (coupons excluded from revenue) and the table; rows open drawers or pages. Next: sign in and check 375 / 768 / 1024 px; confirm the coupon rule.
 
 **Design docs (2026-11-10): `obsidian/frontend/design-brief.md` and a root `DESIGN.md` (zero-slop-design plugin, draft, lint valid) written; docs only, no code changed.** Decisions: four Termina weights; admin dark mode exists (ADR-0008). `review-design-md` done and its defects fixed (lint valid). Decided: coral buttons take dark text (`#171317`); The coral `Cta` now uses `text-on-rust` (new `--on-rust` token, uncommitted, not browser-checked); every other ink-on-coral surface now uses it too (menu panel, ticker, hero sticker, all-in band, TOP badge, coral hovers); only the booking-tabs count badge (`text-foam`) is left. Weights note in `design-system.md` fixed. Drift check on `/` (1280 px): 6 of 8 values match; band text fixed in `DESIGN.md`. The running dev server on :3000 serves CSS from before `--on-rust` (coral buttons show dust text there until it restarts). Design checks in place (`pnpm design:check`, 0 errors; CI not wired, needs approval); focus rings are full opacity and coral-ink on light surfaces (5.1:1); focus on ink bands is unmeasured and input borders are unverified. Big Shoulders removed (ADR-0057); the coming-soon wordmark is unchecked visually. Next: restart `pnpm dev`, browser-check the coral surfaces at 375 / 768 / 1024 px, decide the booking-tabs badge, then `/zero-slop-design:review-design-drift` and browser-check.
