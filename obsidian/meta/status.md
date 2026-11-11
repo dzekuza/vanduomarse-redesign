@@ -12,7 +12,7 @@ updated: 2026-11-12
 
 **Last updated:** 2026-11-12
 
-**Quad tours at any time, min 5 quads (2026-11-12, ADR-0071): branch `feat/quad-anytime-booking` (stacked on PR #32): departures removed from the admin and the booking, starts come from the free fleet; tsc/eslint clean, checked at 390 px. BLOCKER: migration `20261112170000_quad_tours_any_time.sql` (grant `create_quad_tour_rental` to anon/authenticated) is NOT applied, so a quad tour cannot be submitted yet.**
+**Quad tours at any time, min 5 quads (2026-11-12, ADR-0071): branch `feat/quad-anytime-booking` (stacked on PR #32): departures removed from the admin and the booking, starts come from the free fleet; tsc/eslint clean, checked at 390 px. Migration `20261112170000_quad_tours_any_time.sql` (grant to anon/authenticated, `min_units` 5) APPLIED and verified; a real test booking has not been submitted yet.**
 
 **Quad route tiles (2026-11-12): `QuadRoutePicker` above the date on the quad booking (/keturraciu-nuoma, /keturraciai, /rezervacija); tsc/eslint clean, checked at 375/1280 px up to the empty-day message; the start-time card needs real departures (none yet). Uncommitted, on `feat/sauna-duration-table` with the sauna work (separate files).**
 
