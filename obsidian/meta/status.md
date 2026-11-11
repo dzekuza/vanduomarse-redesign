@@ -14,6 +14,8 @@ updated: 2026-11-07
 
 ## Current focus
 
+**my_riders exact phone match (2026-11-11): migration `20261111220000_my_rider_exact_phone.sql` written after a security review, applied and verified; `my_riders()` now matches normalised phones exactly.**
+
 **Sidebar badges (2026-11-11): count badges now vertically centred on lg rows; uncommitted, not browser-checked.**
 
 **Admin sidebar alignment (2026-11-11): top four items merged into one group to even out spacing; uncommitted, not browser-checked.**

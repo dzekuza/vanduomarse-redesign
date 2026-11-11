@@ -1,3 +1,10 @@
+## 2026-11-11 — my_riders exact phone match (not applied)
+
+- **Why:** Security review: matching on the last 8 digits could match foreign numbers.
+- **Changed:** new migration `20261111220000_my_rider_exact_phone.sql`; ADR-0062 and changelog notes. Applied to the live project (project URL checked) and verified; committed on a branch.
+- **Status:** the live DB now matches normalised phones exactly.
+- **Next:** Merge the branch when ready.
+
 ## 2026-11-11 — Sidebar badge centring (robust)
 
 - **Why:** Owner still saw the badge off-centre (their pasted DOM had the old class, i.e. an unreloaded page).
