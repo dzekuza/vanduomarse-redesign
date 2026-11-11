@@ -2,7 +2,6 @@
 export const NAV_LINKS = [
   { href: "/rezervacija", label: "Rezervacija" },
   { href: "/renginiai", label: "Renginiai" },
-  { href: "/skaiciuokle", label: "Skaičiuoklė" },
   { href: "/kuponai", label: "Dovanų kuponai" },
   { href: "/paskyra", label: "Mano rezervacijos" },
 ] as const;

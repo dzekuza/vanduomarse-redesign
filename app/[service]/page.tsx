@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CelebrationCalculator } from "@/components/calculator/celebration-calculator";
 import { SERVICE_GALLERY, SERVICES } from "@/components/landing/content";
 import { activityPhotos } from "@/components/reservation/activity-photos";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
+import { CelebrationSchedule } from "@/components/services/celebration-schedule";
 import { QuadServiceSchedule, QuadServiceSidebar, QuadServiceTools } from "@/components/services/quad-service-tools";
 import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
 import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
@@ -11,7 +13,7 @@ import { StayServiceSchedule } from "@/components/services/stay-service-schedule
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
-import { getCabinPageData, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { getCabinPageData, getCelebrationSchedule, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { paymentsEnabled } from "@/lib/stripe";
 
@@ -77,6 +79,14 @@ export default async function ActivityPage({ params, searchParams }: Props) {
     return (
       <ServicePage slug={service} wake={events.filter(({ category }) => category === "akademija")}
         booking={<WakeServiceBooking products={products.filter(({ service }) => service === "kabelis")} contact={ACADEMY_CONTACT} />} />
+    );
+  }
+
+  if (service === "sventes") {
+    const calendar = await getCelebrationSchedule();
+    return (
+      <ServicePage slug={service} booking={(header) => <CelebrationCalculator today={calendar.today} header={header} />}
+        schedule={<CelebrationSchedule data={calendar} />} />
     );
   }
 
