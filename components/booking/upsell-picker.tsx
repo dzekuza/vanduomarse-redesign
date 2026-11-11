@@ -12,11 +12,11 @@ interface UpsellPickerProps {
   hours: number;
 }
 
-/** Active extras: counted items get a stepper, the rest an on/off row with the current cost. */
+/** Active extras, one per row (stacked): counted items get a stepper, the rest an on/off row with the current cost. */
 export function UpsellPicker({ upsells, quantities, onChange, partySize, hours }: UpsellPickerProps) {
   const ctx = { partySize, hours };
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3">
       {upsells
         .filter((u) => u.active)
         .map((u) =>

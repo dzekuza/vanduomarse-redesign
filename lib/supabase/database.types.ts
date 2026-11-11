@@ -1506,6 +1506,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sauna_masters: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          id: string
+          min_hours: number
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id: string
+          min_hours?: number
+          name: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          min_hours?: number
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sauna_programs: {
         Row: {
           active: boolean
@@ -2051,6 +2087,7 @@ export type Database = {
           p_date: string
           p_discount_code?: string
           p_email?: string
+          p_master_id?: string
           p_name: string
           p_note?: string
           p_party: number
@@ -2170,6 +2207,7 @@ export type Database = {
               p_email?: string
               p_extras: Json
               p_hours: number
+              p_master_id?: string
               p_name: string
               p_note?: string
               p_party: number

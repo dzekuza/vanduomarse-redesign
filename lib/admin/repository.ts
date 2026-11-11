@@ -1,7 +1,7 @@
 import "server-only";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData } from "./types";
 
@@ -96,7 +96,7 @@ async function readRiderSessions(supabase: ServerSupabase, me: StaffAccess) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories, saunaMasters] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -141,6 +141,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("rider_waivers").select("*").order("signed_at", { ascending: false }),
     supabase.from("quad_tour_routes").select("*").order("sort_order").order("id"),
     supabase.from("quad_tour_accessories").select("*").order("sort_order").order("id"),
+    supabase.from("sauna_masters").select("*").order("sort_order").order("created_at"),
   ]);
 
   for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories]) {
@@ -162,6 +163,8 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     prices: prices.data!.map(toPriceItem),
     saunas: saunas.data!.map((r) => toSauna(r, r.sauna_upsell_links, supabaseEnv().url)),
     upsells: upsells.data!.map(toUpsell),
+    // Optional context like payments: a database without the masters migration just has none.
+    saunaMasters: (saunaMasters.data ?? []).map(toSaunaMaster),
     programs: programs.data!.map(toSaunaProgram),
     coupons: coupons.data!.map(toCoupon),
     couponProducts: couponProducts.data!.map(toCouponProduct),

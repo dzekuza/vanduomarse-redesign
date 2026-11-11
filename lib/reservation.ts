@@ -14,6 +14,7 @@ import {
   isOpenStart,
   maxHoursFrom,
   minHoursFor,
+  startHours,
   longDateLabel,
   nextDays,
   pastHourOn,
@@ -22,6 +23,7 @@ import {
   type Sauna,
 } from "@/lib/sauna";
 import type { SaunaEventData } from "@/lib/sauna-events";
+import type { SaunaMaster } from "@/lib/sauna-masters";
 import { durationLabel, programRateLine, programTotal, type SaunaProgram } from "@/lib/sauna-programs";
 import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 
@@ -68,6 +70,8 @@ export interface SaunaPick {
   hours: number;
   /** Upsell id -> item count (counted extras) or 1 (on/off extras). */
   extras: Record<string, number>;
+  /** The pirtininkas added to an hourly or private-program booking; null = none. */
+  masterId: string | null;
 }
 export interface QuadPick {
   quantities: Record<string, number>;
@@ -91,6 +95,8 @@ export interface SaunaPlan {
   mode: "hourly";
   sauna: Sauna;
   upsells: Upsell[];
+  /** The chosen pirtininkas (price included in `price`), if any. */
+  master: SaunaMaster | null;
   startHour: number | null;
   hours: number;
   extras: Record<string, number>;
@@ -111,6 +117,8 @@ interface ProgramPlanDetails {
   hours: number;
   adults: number;
   children: number;
+  /** Private programs: the chosen pirtininkas (price included in `price`), if any. */
+  master: SaunaMaster | null;
   ok: boolean;
   price: number;
 }
@@ -161,7 +169,7 @@ export function defaultPick(id: ActivityId, data: ReservationData): SaunaPick | 
   if (id === "pirtis") {
     const sauna = data.sauna.saunas[0];
     const first = data.sauna.programs[0];
-    return { programId: first?.id ?? null, eventId: null, children: 0, saunaId: sauna?.id ?? "", startHour: null, hours: sauna?.rates.minHours ?? 2, extras: {} };
+    return { programId: first?.id ?? null, eventId: null, children: 0, saunaId: sauna?.id ?? "", startHour: null, hours: sauna?.rates.minHours ?? 2, extras: {}, masterId: null };
   }
   if (id === "keturraciai") return { quantities: {}, startHour: null, hours: 1 };
   const types = data.cabin.stayTypes;
@@ -227,7 +235,7 @@ function planSession(pick: SaunaPick, program: SaunaProgram | null, data: SaunaP
   const ok = session !== null && start !== null && start / 60 >= pastHourOn(when.day, data.today, data.nowHour) + 1
     && session.spotsLeft >= when.people && !spanHours(start, minutes).some((h) => busy.includes(h));
   return {
-    kind: "pirtis", mode: "session", program, session, sauna: null,
+    kind: "pirtis", mode: "session", program, session, sauna: null, master: null,
     startHour: start === null ? null : Math.floor(start / 60), hours: minutes / 60, adults, children, ok,
     price: ok ? (program ? programTotal(program, adults, children) : session.pricePerPerson * adults) : 0,
   };
@@ -239,9 +247,10 @@ function planPrivate(pick: SaunaPick, program: SaunaProgram, data: SaunaPageData
   const start = pick.startHour;
   const fits = sauna !== null && when.people <= Math.min(program.capacity ?? 0, sauna.rates.maxParty);
   const ok = fits && start !== null && programStartOpen(sauna, hours, [...saunaTaken(data, sauna.id, when.day), ...busy], pastHourOn(when.day, data.today, data.nowHour), start);
+  const master = data.masters.find((m) => m.id === pick.masterId) ?? null;
   return {
     kind: "pirtis", mode: "private", program, sauna, startHour: start, hours,
-    adults: when.people, children: 0, ok, price: ok ? program.price : 0,
+    adults: when.people, children: 0, master, ok, price: ok ? program.price + (master?.price ?? 0) : 0,
   };
 }
 
@@ -316,14 +325,15 @@ export function rowSelected(row: SessionRow, plan: PirtisPlan): boolean {
 }
 
 export function pickForRow(row: SessionRow, pick: SaunaPick, startHour: number | null): SaunaPick {
-  return { ...pick, programId: row.programId, eventId: row.eventId, children: 0, startHour };
+  // A pirtininkas belongs to a private program or hourly hire, not to a shared session.
+  return { ...pick, programId: row.programId, eventId: row.eventId, children: 0, startHour, masterId: row.mode === "private" ? pick.masterId : null };
 }
 
 /** The pick that produced a plan, so a card can change one field of it. */
 export function pickFromPlan(plan: PirtisPlan, data: SaunaPageData): SaunaPick {
   const first = data.saunas[0];
   if (plan.mode === "hourly") {
-    return { programId: null, eventId: null, children: 0, saunaId: plan.sauna.id, startHour: plan.startHour, hours: plan.hours, extras: plan.extras };
+    return { programId: null, eventId: null, children: 0, saunaId: plan.sauna.id, startHour: plan.startHour, hours: plan.hours, extras: plan.extras, masterId: plan.master?.id ?? null };
   }
   return {
     programId: plan.program?.id ?? null,
@@ -333,6 +343,7 @@ export function pickFromPlan(plan: PirtisPlan, data: SaunaPageData): SaunaPick {
     startHour: plan.mode === "private" ? plan.startHour : null,
     hours: first?.rates.minHours ?? 2,
     extras: {},
+    masterId: plan.master?.id ?? null,
   };
 }
 
@@ -342,6 +353,18 @@ export function planSauna(pick: SaunaPick, data: SaunaPageData, when: When, busy
   if (program?.kind === "session" || (!program && pick.eventId)) return planSession(pick, program, data, when, busy);
   if (program?.kind === "private") return planPrivate(pick, program, data, when, busy);
   return planHourly(pick, data, when, busy);
+}
+
+/**
+ * Starts an hourly booking can use that day: not past, and a session of at least `wantedHours`
+ * (rounded up to a length the day offers) fits before the next booking.
+ */
+export function hourlyStartHours(data: SaunaPageData, sauna: Sauna, day: string, busy: readonly number[] = [], wantedHours = 0): number[] {
+  const { rates } = sauna;
+  const taken = [...saunaTaken(data, sauna.id, day), ...busy];
+  const past = pastHourOn(day, data.today, data.nowHour);
+  const min = minHoursFor(rates, day, wantedHours);
+  return startHours(rates, min).filter((hour) => isOpenStart(taken, hour, rates, past, min));
 }
 
 function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: readonly number[]): SaunaPlan | null {
@@ -355,8 +378,9 @@ function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: read
     const qty = Math.min(pick.extras[u.id] ?? 0, u.unit === "vienetui" ? upsellMax(u, when.people) : 1);
     if (qty > 0) extras[u.id] = qty;
   }
-  // An extra such as the sauna master raises the shortest session.
-  const extrasMin = Math.max(0, ...upsells.filter((u) => extras[u.id]).map((u) => u.minHours ?? 0));
+  const master = data.masters.find((m) => m.id === pick.masterId) ?? null;
+  // An extra, or the pirtininkas, can raise the shortest session.
+  const extrasMin = Math.max(master?.minHours ?? 0, ...upsells.filter((u) => extras[u.id]).map((u) => u.minHours ?? 0));
   const minHours = minHoursFor(rates, when.day, extrasMin);
   const lengths = sessionLengths(rates, when.day, extrasMin);
   const start = pick.startHour;
@@ -369,7 +393,7 @@ function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: read
   const fitting = lengths.filter((h) => h <= maxHours);
   const hours = fitting.find((h) => h >= pick.hours) ?? fitting[fitting.length - 1] ?? minHours;
   const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize: when.people, hours }), 0);
-  return { kind: "pirtis", mode: "hourly", sauna, upsells, startHour: start, hours, extras, maxHours, lengths, ok, price: ok ? sessionPrice(hours, when.people, rates, when.day) + extrasPrice : 0 };
+  return { kind: "pirtis", mode: "hourly", sauna, upsells, master, startHour: start, hours, extras, maxHours, lengths, ok, price: ok ? sessionPrice(hours, when.people, rates, when.day) + extrasPrice + (master?.price ?? 0) : 0 };
 }
 
 export function planQuads(pick: QuadPick, data: QuadPageData, day: string, busy: readonly number[] = []): QuadPlan {
@@ -452,14 +476,14 @@ export function describePlans(plans: Plans, when: When): PlanLine[] {
   if (pirtis?.mode === "hourly") {
     const extras = upsellSummary(pirtis.upsells, pirtis.extras);
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${formatHour(pirtis.startHour)}-${formatHour(pirtis.startHour + pirtis.hours)}`;
-    lines.push({ id: "pirtis", title: pirtis.sauna.name.startsWith("Pirtis") ? pirtis.sauna.name : `Pirtis · ${pirtis.sauna.name}`, detail: [hoursLabel(pirtis.hours), ...extras].join(", "), schedule: `${dayLabel}, ${time}`, price: pirtis.price });
+    lines.push({ id: "pirtis", title: pirtis.sauna.name.startsWith("Pirtis") ? pirtis.sauna.name : `Pirtis · ${pirtis.sauna.name}`, detail: [hoursLabel(pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : []), ...extras].join(", "), schedule: `${dayLabel}, ${time}`, price: pirtis.price });
   } else if (pirtis) {
     const who = `${pirtis.adults} ${pirtis.children ? "suaug." : "žm."}${pirtis.children ? ` + ${pirtis.children} vaik.` : ""}`;
     const start = pirtis.mode === "session" && pirtis.session ? startMinute(pirtis.session.time) : (pirtis.startHour ?? 0) * 60;
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${clock(start)}–${clock(start + pirtis.hours * 60)}`;
     const title = (pirtis.mode === "session" ? pirtis.session?.title : pirtis.program.name) ?? pirtis.program?.name ?? "Pirties seansas";
     const date = pirtis.mode === "session" && pirtis.session ? longDateLabel(nextDays(pirtis.session.date, 1)[0]) : dayLabel;
-    lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : hoursLabel(pirtis.hours), schedule: `${date}, ${time}`, price: pirtis.price });
+    lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : [hoursLabel(pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : [])].join(", "), schedule: `${date}, ${time}`, price: pirtis.price });
   }
   if (nakvyne) {
     const departure = longDateLabel(nextDays(when.day, nakvyne.nights + 1)[nakvyne.nights]);

@@ -19,6 +19,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
+import type { SaunaMaster } from "@/lib/sauna-masters";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { dbError, done, fail, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
 import { createClient } from "@/lib/supabase/server";
@@ -550,6 +551,37 @@ export async function saveUpsell(upsell: Upsell): Promise<ActionResult> {
   const { error } = await ctx.supabase
     .from("sauna_upsells")
     .upsert({ id: u.id, name: u.name, description: u.description, price: u.price, unit: u.unit, max_qty: u.maxQty, min_hours: u.minHours, active: u.active });
+  saunaRevalidate();
+  return error ? dbError(error) : done(null);
+}
+
+const masterInput = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  name: z.string().trim().min(2).max(60),
+  description: z.string().trim().max(240),
+  price: z.number().min(0).max(100000),
+  minHours: z.number().int().min(1).max(12),
+  active: z.boolean(),
+  sortOrder: z.number().int().min(0).max(32000),
+});
+
+export async function saveSaunaMaster(master: SaunaMaster): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  const parsed = masterInput.safeParse(master);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const m = parsed.data;
+  const { error } = await ctx.supabase
+    .from("sauna_masters")
+    .upsert({ id: m.id, name: m.name, description: m.description, price: m.price, min_hours: m.minHours, active: m.active, sort_order: m.sortOrder });
+  saunaRevalidate();
+  return error ? dbError(error) : done(null);
+}
+
+export async function deleteSaunaMaster(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("pirtis");
+  if (!ctx.ok) return ctx.error;
+  const { error } = await ctx.supabase.from("sauna_masters").delete().eq("id", id);
   saunaRevalidate();
   return error ? dbError(error) : done(null);
 }

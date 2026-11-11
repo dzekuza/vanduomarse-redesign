@@ -29,12 +29,12 @@ function requestFor(id: ActivityId, plans: Plans, when: When, tour: QuadTourPick
     return { type: "programTicket", input: { eventId: pirtis.session.key, adults: pirtis.adults, children: pirtis.children } };
   }
   if (id === "pirtis" && pirtis?.mode === "private" && pirtis.startHour !== null) {
-    return { type: "programBooking", input: { programId: pirtis.program.id, date: when.day, startHour: pirtis.startHour, party: when.people } };
+    return { type: "programBooking", input: { programId: pirtis.program.id, date: when.day, startHour: pirtis.startHour, party: when.people, masterId: pirtis.master?.id } };
   }
   if (id === "pirtis" && pirtis?.mode === "hourly" && pirtis.startHour !== null) {
     return {
       type: "saunaBooking",
-      input: { saunaId: pirtis.sauna.id, date: when.day, startHour: pirtis.startHour, hours: pirtis.hours, party: when.people, extras: pirtis.extras },
+      input: { saunaId: pirtis.sauna.id, date: when.day, startHour: pirtis.startHour, hours: pirtis.hours, party: when.people, extras: pirtis.extras, masterId: pirtis.master?.id },
     };
   }
   if (id === "keturraciai" && keturraciai?.startHour != null) {

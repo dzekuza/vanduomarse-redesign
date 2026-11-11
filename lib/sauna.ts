@@ -12,6 +12,9 @@ export const CLOSE_HOUR = 22;
 export const MIN_HOURS = 2;
 export const MAX_HOURS = 4;
 
+/** The whole opening day (10:00-22:00) as one length: a 12 h key in the price tables, labelled "Visa diena". */
+export const FULL_DAY_HOURS = 12;
+
 export const MAX_PARTY = 20;
 /** The price covers this many people; every guest above pays `EXTRA_GUEST_FEE` once. */
 export const INCLUDED_GUESTS = 10;
@@ -177,7 +180,7 @@ export function formatHour(hour: number): string {
 }
 
 export function hoursLabel(hours: number): string {
-  return `${hours} val.`;
+  return hours === FULL_DAY_HOURS ? "Visa diena" : `${hours} val.`;
 }
 
 /** Current park hour (0-23, Europe/Vilnius), wherever the server runs. */

@@ -1,3 +1,19 @@
+## 2026-11-12 — Duration choice on /pirtis
+
+- **Why:** user could not pick a duration on /pirtis (private programs have a fixed length) and suggested removing the duration so guests choose 2, 3 or 4 h.
+- **Changed:** `sauna-service-booking.tsx` and `sauna-service-options.tsx` (private = hourly with pirtininkas and duration), `hourlyStartHours` in `lib/reservation.ts`.
+- **Status:** `tsc`/eslint clean; browser-checked weekday flow at 390 px. Weekend table and a real submit not checked.
+- **Also:** panel reordered to the mockup (Trukmė, Pirtininkas, Asmenų skaičius before Data); "Visa diena" (12 h) added as a length; staff set its price in /admin/pirtis, until then it is not offered.
+- **Next:** decide whether to switch off the fixed private programs (they still show on /rezervacija and in Kainos); check a Friday–Sunday date.
+
+
+## 2026-11-12 — Pirtininkai block and picker
+
+- **Why:** user asked for a pirtininkai block before Priedai in /admin/pirtis (add pirtininkai, set prices) shown on programs; answers: price added on top, and the generic hourly extra replaced by named pirtininkai.
+- **Changed:** migration `20261112120000_sauna_masters.sql`, `lib/sauna-masters.ts`, admin card/dialog/row, store + server actions, `MasterPicker`, reservation plans and requests, ADR-0067, docs.
+- **Status:** `tsc`/eslint clean. Migration applied via MCP (verified). Not browser-checked.
+- **Next:** check the picker at 375 px and place one test booking with a pirtininkas (hourly 3 h and a private program).
+
 ## 2026-11-12 — Sauna pricing per session length
 
 - **Why:** user sent the owner's sheet (2/3/4 h with fixed prices, weekday vs Fri–Sun, pirtininkas +250 € min 3 h, 10 guests included then +15 €/person, 1 h gap between sessions) and asked to update the pirtis settings and storefront. Answers: weekday 4 h = 240 €, both saunas, 1 h gap, pirtininkas any day.

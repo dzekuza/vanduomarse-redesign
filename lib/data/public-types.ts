@@ -3,6 +3,7 @@ import type { QuadDeparture, QuadSettings, QuadTaken, QuadTourAccessory, QuadTou
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaEventData } from "@/lib/sauna-events";
+import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /** Props the public pages hand to their Client Components (see `lib/data/public.ts`). */
@@ -16,6 +17,8 @@ export interface SaunaPageData {
   saunas: Sauna[];
   /** Active extras catalogue; each sauna offers a subset. */
   upsells: Upsell[];
+  /** Active sauna masters (pirtininkai) a booking can add. */
+  masters: SaunaMaster[];
   /** Active sauna programs in display order. */
   programs: SaunaProgram[];
   /** Sauna id -> yyyy-mm-dd -> hours that are booked or closed. */

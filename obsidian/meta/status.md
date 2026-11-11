@@ -12,6 +12,8 @@ updated: 2026-11-07
 
 **Last updated:** 2026-11-12
 
+**Pirtininkai (2026-11-12, ADR-0067): admin card + storefront picker done, `tsc`/eslint clean; migration `20261112120000_sauna_masters.sql` APPLIED (verified); not browser-checked, not committed. Deploy together with the code: the live site is on the old code.**
+
 **Sauna pricing per length (2026-11-12, ADR-0066): code done, `tsc`/eslint clean; migration `20261112090000_sauna_duration_pricing.sql` APPLIED to the live database (verified). Still to do: browser-check /pirtis, /rezervacija, /admin/pirtis at 375/768/1024 px and place one test booking before merging; the live site runs the old code until then, so its pirtis booking will fail against the new columns.**
 
 **Admin Renginiai (2026-11-12): tickets section removed; bulk select + "Ištrinti pasirinktus" in the events table; tsc/eslint clean, not browser-checked.**

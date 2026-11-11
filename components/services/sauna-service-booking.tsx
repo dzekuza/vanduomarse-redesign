@@ -7,9 +7,12 @@ import { FilterChip } from "@/components/events/filter-chip";
 import { SaunaSessionDialog } from "@/components/reservation/sauna-session-dialog";
 import { closeSessionInfo, SessionInfoLink } from "@/components/reservation/session-info-link";
 import type { SaunaPageData } from "@/lib/data/public-types";
-import { MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
+import { UpsellPicker } from "@/components/booking/upsell-picker";
+import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { hourlyStartHours, MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
 import { dateKey } from "@/lib/sauna";
 import { ServiceDateField } from "./service-date-field";
+import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
 import { SaunaServiceTime } from "./sauna-service-time";
 
@@ -42,17 +45,41 @@ export function SaunaServiceBooking({
 }: SaunaServiceBookingProps) {
   const [mode, setMode] = useState<Mode | null>(() => sessionId ? "session" : null);
   const [venueId, setVenueId] = useState<string>();
+  /** Length and pirtininkas asked before a time is chosen; once a time is picked they live in `pick`. */
+  const [draft, setDraft] = useState<{ hours: number; masterId: string | null }>({ hours: 0, masterId: null });
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [dialogQuantity, setDialogQuantity] = useState<{ eventId: string; people: number }>();
   const venues = saunaServiceVenues(data);
   const hasSessions = data.events.length > 0 || data.programs.some((program) => program.active && program.kind === "session");
   const venue = venues.find(({ id }) => id === venueId);
-  const canPickDate = mode === "session" || (mode === "private" && Boolean(venue?.programs.length));
-  const rowsFor = (day: string) => sessionRows(data, day).filter((row) =>
-    mode === "session" ? row.mode === "session" : row.mode === "private" && venue?.programs.some(({ id }) => id === row.programId));
+  const sauna = data.saunas.find(({ id }) => id === venueId);
+  const hourly = plan?.mode === "hourly" ? plan : null;
+  const masterId = hourly ? pick.masterId : draft.masterId;
+  const draftMaster = data.masters.find(({ id }) => id === masterId) ?? null;
+  const wantedHours = hourly ? pick.hours : draft.hours;
+  function setHours(hours: number) {
+    if (!hourly) return setDraft((d) => ({ ...d, hours }));
+    // A longer session may no longer fit after the chosen start: ask for the start again.
+    onPick({ ...pick, hours, startHour: hours > hourly.maxHours ? null : pick.startHour });
+  }
+  function setMaster(next: string | null) {
+    if (!hourly) return setDraft((d) => ({ ...d, masterId: next }));
+    onPick({ ...pick, masterId: next });
+  }
+  const canPickDate = mode === "session" || (mode === "private" && Boolean(venue?.hasPrices));
+  /** A private booking is by the hour: one row holding the day's free starts; length and pirtininkas follow the start. */
+  const hourlyRow = (day: string): SessionRow[] => {
+    if (!sauna) return [];
+    const startHours = hourlyStartHours(data, sauna, day, [], hourly ? hourly.hours : Math.max(draft.hours, draftMaster?.minHours ?? 0));
+    return [{
+      key: `h-${sauna.id}`, mode: "private", time: "", title: sauna.name, label: "", description: "", rate: "", seats: "",
+      maxPeople: sauna.rates.maxParty, blocked: startHours.length === 0, programId: null, eventId: null, startHours,
+    }];
+  };
+  const rowsFor = (day: string) => mode === "session" ? sessionRows(data, day).filter((row) => row.mode === "session") : hourlyRow(day);
   const rows = date && canPickDate ? rowsFor(dateKey(date)) : [];
   const selectedRow = rows.find((row) => row.mode === "session" && row.eventId === pick.eventId);
-  const time = plan?.mode === "private" && plan.startHour !== null ? `${plan.program.id}:${plan.startHour}` : selectedRow?.key;
+  const time = plan?.mode === "hourly" && plan.startHour !== null ? `null:${plan.startHour}` : selectedRow?.key;
   const event = data.events.find(({ key }) => key === sessionId);
   const eventDate = event && days.find((day) => dateKey(day) === event.date);
   const dialogRow = event && eventDate && sessionRows(data, event.date).find(({ eventId }) => eventId === event.key);
@@ -75,7 +102,7 @@ export function SaunaServiceBooking({
               setMode(id);
               setCalendarOpen(false);
               onRemove();
-            }} className="min-h-16 min-w-0 flex-col items-center justify-center gap-1 px-2 py-2 text-center">
+            }} className="min-h-16 min-w-0 flex-col items-start justify-center gap-1 px-3 py-2 text-left">
               <span className="font-bold">{title}</span>
               <span className={mode === id ? "text-dust/80" : "text-copy"}>{hint}</span>
             </FilterChip>
@@ -92,6 +119,10 @@ export function SaunaServiceBooking({
           }}
         />
       ) : null}
+      {mode === "private" && sauna?.rates && venue?.hasPrices ? (
+        <SaunaServiceHourly sauna={sauna} masters={data.masters} day={date ? dateKey(date) : null} hours={wantedHours} onHours={setHours}
+          masterId={masterId} onMaster={setMaster} disabled={busy} />
+      ) : null}
       <ServiceDateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={onDate}
         icons={(day) => {
           const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
@@ -100,8 +131,16 @@ export function SaunaServiceBooking({
       />
       <SaunaServiceTime rows={rows} value={time} busy={busy} dateSelected={Boolean(date) && canPickDate} onSelect={(row, hour) => {
         if (row.mode === "session") selectSession(row, 1);
-        else onPick(pickForRow(row, { ...pick, saunaId: venueId ?? pick.saunaId }, hour), 1);
+        else onPick({ ...pick, programId: null, eventId: null, children: 0, saunaId: venueId ?? pick.saunaId, startHour: hour, hours: draft.hours, masterId: draft.masterId }, people);
       }} />
+      {mode === "private" && sauna?.rates && venue?.hasPrices ? <SaunaServicePeople sauna={sauna} people={people} onPeople={onPeople} disabled={busy} /> : null}
+      {hourly && hourly.upsells.length ? (
+        <fieldset disabled={busy}>
+          <OptionGroupLabel>Papildomai</OptionGroupLabel>
+          <UpsellPicker upsells={hourly.upsells} quantities={hourly.extras} partySize={people} hours={hourly.hours}
+            onChange={(id, qty) => onPick({ ...pick, extras: { ...hourly.extras, [id]: qty } })} />
+        </fieldset>
+      ) : null}
       {selectedRow?.eventId && plan?.mode === "session" ? (
         <div className="space-y-3">
           <p className="text-xs text-copy">{selectedRow.rate} · {selectedRow.seats}</p>

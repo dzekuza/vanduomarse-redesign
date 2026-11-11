@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import type { SaunaPageData } from "@/lib/data/public-types";
 import { MAX_PEOPLE, pickForRow, pickFromPlan, rowSelected, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow, type When } from "@/lib/reservation";
+import { MasterPicker } from "./master-picker";
 import { matchesSaunaFilter, SaunaFilters, type SaunaFilter } from "./sauna-filters";
 import { SaunaHourlyOptions } from "./sauna-hourly-options";
 import { SaunaSessionDialog } from "./sauna-session-dialog";
@@ -91,7 +92,10 @@ export function SaunaOptions({ plan, data, when, included, busy, sessionId, onSe
       {showSelection && plan.mode === "session" && plan.program?.pricing === "family" ? (
         <Stepper label={`Vaikų grupėje (suaugusių: ${plan.adults})`} value={plan.children} onChange={(children) => onChange({ ...pick, children })} min={0} max={Math.max(0, when.people - 1)} />
       ) : null}
-      {included && plan.mode === "hourly" ? <SaunaHourlyOptions plan={plan} pick={pick} when={when} onChange={onChange} /> : null}
+      {included && plan.mode === "private" ? (
+        <MasterPicker masters={data.masters} value={pick.masterId} onChange={(masterId) => onChange({ ...pick, masterId })} />
+      ) : null}
+      {included && plan.mode === "hourly" ? <SaunaHourlyOptions plan={plan} masters={data.masters} pick={pick} when={when} onChange={onChange} /> : null}
       {included && !rows.some(selected) ? (
         <button type="button" onClick={onRemove} className="inline-flex min-h-11 items-center text-sm text-ink/70 underline underline-offset-4 hover:text-rust">
           Pašalinti iš plano

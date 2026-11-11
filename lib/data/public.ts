@@ -5,7 +5,7 @@ import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
 import type { CalculatorCatalog } from "@/lib/event-pricing";
-import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
+import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaMaster, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
 import { MAX_STAY_NIGHTS, type CabinAvailability, type StayType } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
@@ -68,10 +68,11 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
   const eventDays = availabilityWindow?.days ?? EVENT_WINDOW_DAYS;
   const last = addDays(today, Math.max(availabilityWindow?.days ?? SAUNA_DAYS, eventDays) - 1);
 
-  const [saunas, upsells, programs, taken, events] = await Promise.all([
+  const [saunas, upsells, masters, programs, taken, events] = await Promise.all([
     // RLS limits anon to active saunas.
     supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").eq("active", true).order("sort_order").order("created_at"),
     supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"),
+    supabase.from("sauna_masters").select("*").eq("active", true).order("sort_order").order("created_at"),
     supabase.from("sauna_programs").select("*").eq("active", true).order("sort_order"),
     readAvailabilityRows(
       (from, to) => supabase
@@ -123,6 +124,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
       };
     }),
     upsells: activeUpsells,
+    masters: must(masters, "Sauna masters").map(toSaunaMaster),
     programs: must(programs, "Sauna programs").map(toSaunaProgram),
     takenBySauna,
     events: events.map((e) => {

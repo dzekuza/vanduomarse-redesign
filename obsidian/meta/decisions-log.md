@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0067 — Pirtininkai are named rows priced per booking, added to hourly hire and private programs
+
+- **Context:** the owner wants to add pirtininkai, set their prices and offer them on the programs. The generic `pirtininkas` extra of ADR-0066 could not name or price people separately.
+- **Decision:** table `sauna_masters` (name, description, price per booking, `min_hours` for hourly hire, `active`, `sort_order`; anon reads active, `pirtis` writes), edited in a "Pirtininkai" card on `/admin/pirtis` above "Priedai". A booking takes an optional `masterId`: `create_sauna_booking` and `create_program_booking` get `p_master_id`, add his price to the total (and to the base the discount code applies to) and store it as a `booking_extras` line "Pirtininkas: <name>" with no `upsell_id`, so payments, receipts and the admin show it with no new columns. For hourly hire his `min_hours` raises the shortest session. The storefront shows a "Pirtininkas" select (Be pirtininko / name · +price) under the sauna choice for hourly hire and under a selected private program, not for shared sessions. The old generic extra is switched off and its row copied as the first master. Migration `20261112120000_sauna_masters.sql`.
+- **Consequences:** `SaunaPick.masterId`, `SaunaPlan.master` / `ProgramPlan.master`, `MasterPicker`, `MastersCard` / `MasterDialog` / `MasterRow`, `AdminData.saunaMasters`. Programs are not limited by `min_hours`; the turnaround is not enforced for programs. A master has no calendar (two bookings can name the same person at the same time): availability per pirtininkas is not built.
+
+---
+
 ## ADR-0066 — Sauna sessions are priced per length, by weekday or Fri–Sun, with a guest fee and a turnaround
 
 - **Context:** the owner's booking sheet (2026-11-11): choose 2/3/4 h with a fixed price each (160 / 220 / 240 € weekdays; 250 / 320 € Fri–Sun, where 3 h is the minimum), a "pirtininkas" extra (+250 €, minimum 3 h), a base price for up to 10 people and +15 € per extra guest, and 1–1.5 h kept free between sessions. The old model (hourly rate by group size plus a package) could not express this.

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type { PriceTable, SaunaRates } from "@/lib/sauna";
+import { FULL_DAY_HOURS, type PriceTable, type SaunaRates } from "@/lib/sauna";
 
-/** Lengths the price tables offer a field for; an empty field means that length is not sold. */
-export const LENGTH_SLOTS = [1, 2, 3, 4, 5, 6] as const;
+/** Lengths the price tables offer a field for (the last is the full day); an empty field means that length is not sold. */
+export const LENGTH_SLOTS = [1, 2, 3, 4, 5, 6, FULL_DAY_HOURS] as const;
 
 const whole = (min: number, max: number) => z.number({ error: "Įveskite skaičių." }).int("Tik sveikas skaičius.").min(min).max(max);
 const money = z.number({ error: "Įveskite sumą." }).min(0, "Kaina negali būti neigiama.").max(100000);

@@ -1,5 +1,5 @@
 import { formatEur } from "@/lib/admin/format";
-import { sessionLengths, sessionPrice, type SaunaRates } from "@/lib/sauna";
+import { hoursLabel, sessionLengths, sessionPrice, type SaunaRates } from "@/lib/sauna";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -31,7 +31,7 @@ export function PricePreview({ rates }: { rates: SaunaRates | null }) {
             <TableBody>
               {lengths.map((h) => (
                 <TableRow key={h}>
-                  <TableCell>{h} val.</TableCell>
+                  <TableCell>{hoursLabel(h)}</TableCell>
                   <TableCell className="text-right tabular-nums">{cell(h, sessionLengths(rates), "2026-11-11")}</TableCell>
                   <TableCell className="text-right tabular-nums">{cell(h, sessionLengths(rates, "2026-11-13"), "2026-11-13")}</TableCell>
                 </TableRow>

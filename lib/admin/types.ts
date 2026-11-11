@@ -8,6 +8,7 @@ import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
+import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
@@ -337,6 +338,8 @@ export interface AdminData {
   /** All saunas incl. hidden ones, in display order. */
   saunas: Sauna[];
   upsells: Upsell[];
+  /** All sauna masters (pirtininkai) incl. hidden ones, in display order. */
+  saunaMasters: SaunaMaster[];
   /** All sauna programs incl. hidden ones, in display order. */
   programs: SaunaProgram[];
   coupons: Coupon[];

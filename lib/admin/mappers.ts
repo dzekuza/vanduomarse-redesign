@@ -6,6 +6,7 @@ import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@
 import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type PriceTable, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
+import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
 import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
@@ -202,6 +203,10 @@ export function toSauna(r: Tables<"saunas">, links: Pick<Tables<"sauna_upsell_li
 
 export function toUpsell(r: Tables<"sauna_upsells">): Upsell {
   return { id: r.id, name: r.name, description: r.description, price: r.price, unit: r.unit, maxQty: r.max_qty, minHours: r.min_hours, active: r.active };
+}
+
+export function toSaunaMaster(r: Tables<"sauna_masters">): SaunaMaster {
+  return { id: r.id, name: r.name, description: r.description, price: r.price, minHours: r.min_hours, active: r.active, sortOrder: r.sort_order };
 }
 
 export function toSaunaProgram(r: Tables<"sauna_programs">): SaunaProgram {

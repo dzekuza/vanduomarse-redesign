@@ -4,6 +4,7 @@ import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { LENGTH_SLOTS, type RatesValues } from "./rates-schema";
 import type { SaunaValues } from "./sauna-schema";
 import { UnitAmountInput } from "../unit-amount-input";
+import { hoursLabel } from "@/lib/sauna";
 
 type ScalarField = Exclude<keyof RatesValues, "weekdayPrices" | "weekendPrices">;
 type Field = { name: ScalarField; label: string; unit: string };
@@ -59,25 +60,25 @@ export function SaunaRatesFields({ register, errors }: SaunaRatesFieldsProps) {
     <div className="space-y-6">
       <section>
         <h3 className="mb-1 text-xs font-bold text-muted-foreground">Kaina pagal trukmę</h3>
-        <p className="mb-3 text-xs text-muted-foreground">Visai pirčiai. Palikite tuščią, jei tokios trukmės nepardavinėjate (pvz., 2 val. savaitgalį).</p>
-        <div className="grid grid-cols-[3rem_1fr_1fr] items-center gap-x-3 gap-y-2">
+        <p className="mb-3 text-xs text-muted-foreground">Visai pirčiai. Palikite tuščią, jei tokios trukmės nepardavinėjate (pvz., 2 val. savaitgalį). „Visa diena“ – visa darbo diena (12 val., 10:00–22:00), pradedama atidarymo valandą.</p>
+        <div className="grid grid-cols-[5rem_1fr_1fr] items-center gap-x-3 gap-y-2">
           <span />
           <span className="text-xs font-medium">Pr–Kt</span>
           <span className="text-xs font-medium">Pn–Sk</span>
           {LENGTH_SLOTS.map((hours, i) => (
             <div key={hours} className="contents">
-              <span className="text-sm">{hours} val.</span>
+              <span className="text-sm">{hoursLabel(hours)}</span>
               <UnitAmountInput
                 type="number"
                 unit="€"
-                aria-label={`${hours} val. darbo dienomis`}
+                aria-label={`${hoursLabel(hours)} darbo dienomis`}
                 aria-invalid={!!errors.rates?.weekdayPrices?.[i]}
                 {...register(`rates.weekdayPrices.${i}`, { setValueAs: emptyToNull })}
               />
               <UnitAmountInput
                 type="number"
                 unit="€"
-                aria-label={`${hours} val. savaitgalį`}
+                aria-label={`${hoursLabel(hours)} savaitgalį`}
                 aria-invalid={!!errors.rates?.weekendPrices?.[i]}
                 {...register(`rates.weekendPrices.${i}`, { setValueAs: emptyToNull })}
               />

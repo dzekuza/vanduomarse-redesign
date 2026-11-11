@@ -17,6 +17,7 @@ import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { SaunaValues } from "./sauna/sauna-schema";
 import type { SaunaProgram } from "@/lib/sauna-programs";
+import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 
 /**
@@ -44,6 +45,8 @@ type Action =
   | { type: "sauna/photos"; id: string; paths: string[] }
   | { type: "upsell/upsert"; upsell: Upsell }
   | { type: "upsell/delete"; id: string }
+  | { type: "master/upsert"; master: SaunaMaster }
+  | { type: "master/delete"; id: string }
   | { type: "program/upsert"; program: SaunaProgram }
   | { type: "program/delete"; id: string }
   | { type: "coupon/cancel"; id: string }
@@ -154,6 +157,15 @@ function reducer(state: AdminData, action: Action): AdminData {
     }
     case "upsell/delete":
       return { ...state, upsells: state.upsells.filter((u) => u.id !== action.id) };
+    case "master/upsert": {
+      const exists = state.saunaMasters.some((m) => m.id === action.master.id);
+      return {
+        ...state,
+        saunaMasters: exists ? state.saunaMasters.map((m) => (m.id === action.master.id ? action.master : m)) : [...state.saunaMasters, action.master],
+      };
+    }
+    case "master/delete":
+      return { ...state, saunaMasters: state.saunaMasters.filter((m) => m.id !== action.id) };
     case "program/upsert": {
       const exists = state.programs.some((p) => p.id === action.program.id);
       const programs = exists ? state.programs.map((p) => (p.id === action.program.id ? action.program : p)) : [...state.programs, action.program];
@@ -379,6 +391,14 @@ function useAdminReducer(initial: AdminData) {
       deleteUpsell: (id: string) => {
         dispatch({ type: "upsell/delete", id });
         return report(actions.deleteUpsell(id));
+      },
+      saveSaunaMaster: (master: SaunaMaster) => {
+        dispatch({ type: "master/upsert", master });
+        return report(actions.saveSaunaMaster(master));
+      },
+      deleteSaunaMaster: (id: string) => {
+        dispatch({ type: "master/delete", id });
+        return report(actions.deleteSaunaMaster(id));
       },
       saveProgram: (program: SaunaProgram) => {
         dispatch({ type: "program/upsert", program });

@@ -21,6 +21,8 @@ export const saunaBookingSchema = refined(
     /** Upsell id -> quantity (counted extras) or 1 (on/off extras). */
     extras: z.record(z.string().regex(/^[a-z0-9-]+$/).max(60), z.number().int().min(1).max(100)),
     coupon: couponCode,
+    /** A `sauna_masters` id: the pirtininkas added to the booking. */
+    masterId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
   }),
 );
 export type SaunaBookingInput = z.infer<typeof saunaBookingSchema>;
@@ -54,6 +56,7 @@ export const programBookingSchema = refined(
     date: z.iso.date(),
     startHour: z.number().int().min(0).max(23),
     party: z.number().int().min(1).max(100),
+    masterId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
   }),
 );
 export type ProgramBookingInput = z.infer<typeof programBookingSchema>;
