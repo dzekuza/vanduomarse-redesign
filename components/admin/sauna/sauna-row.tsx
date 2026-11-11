@@ -1,7 +1,7 @@
 import { DotsThreeIcon, FireIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
-import { fromRate, type Sauna } from "@/lib/sauna";
+import { fromPrice, type Sauna } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -24,7 +24,7 @@ export function SaunaRow({ sauna: s, onDelete }: SaunaRowProps) {
             {s.active ? null : " (paslėpta)"}
           </span>
           <span className="block text-xs text-muted-foreground">
-            nuo {fromRate(s.rates)} €/val. · iki {s.rates.maxParty} žm. · {s.photos.length} nuotr.
+            nuo {fromPrice(s.rates)} € · iki {s.rates.maxParty} žm. · {s.photos.length} nuotr.
           </span>
         </span>
       </Link>

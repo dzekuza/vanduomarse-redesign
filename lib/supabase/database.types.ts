@@ -1650,6 +1650,7 @@ export type Database = {
           description: string
           id: string
           max_qty: number | null
+          min_hours: number | null
           name: string
           price: number
           sort_order: number
@@ -1662,6 +1663,7 @@ export type Database = {
           description?: string
           id: string
           max_qty?: number | null
+          min_hours?: number | null
           name: string
           price: number
           sort_order?: number
@@ -1674,6 +1676,7 @@ export type Database = {
           description?: string
           id?: string
           max_qty?: number | null
+          min_hours?: number | null
           name?: string
           price?: number
           sort_order?: number
@@ -1688,20 +1691,25 @@ export type Database = {
           close_hour: number
           created_at: string
           description: string
+          extra_guest_fee: number
           features: string[]
           id: string
-          large_group_rate: number
+          included_guests: number
+          large_group_rate: number | null
           max_hours: number
           max_party: number
           min_hours: number
           name: string
           open_hour: number
-          package_hours: number
-          package_price: number
+          package_hours: number | null
+          package_price: number | null
           photos: string[]
-          small_group_max: number
-          small_group_rate: number
+          small_group_max: number | null
+          small_group_rate: number | null
           sort_order: number
+          turnaround_hours: number
+          weekday_prices: Json
+          weekend_prices: Json
           updated_at: string
         }
         Insert: {
@@ -1709,20 +1717,25 @@ export type Database = {
           close_hour: number
           created_at?: string
           description?: string
+          extra_guest_fee?: number
           features?: string[]
           id: string
-          large_group_rate: number
+          included_guests?: number
+          large_group_rate?: number | null
           max_hours: number
           max_party: number
           min_hours: number
           name: string
           open_hour: number
-          package_hours: number
-          package_price: number
+          package_hours?: number | null
+          package_price?: number | null
           photos?: string[]
-          small_group_max: number
-          small_group_rate: number
+          small_group_max?: number | null
+          small_group_rate?: number | null
           sort_order?: number
+          turnaround_hours?: number
+          weekday_prices?: Json
+          weekend_prices?: Json
           updated_at?: string
         }
         Update: {
@@ -1730,20 +1743,25 @@ export type Database = {
           close_hour?: number
           created_at?: string
           description?: string
+          extra_guest_fee?: number
           features?: string[]
           id?: string
-          large_group_rate?: number
+          included_guests?: number
+          large_group_rate?: number | null
           max_hours?: number
           max_party?: number
           min_hours?: number
           name?: string
           open_hour?: number
-          package_hours?: number
-          package_price?: number
+          package_hours?: number | null
+          package_price?: number | null
           photos?: string[]
-          small_group_max?: number
-          small_group_rate?: number
+          small_group_max?: number | null
+          small_group_rate?: number | null
           sort_order?: number
+          turnaround_hours?: number
+          weekday_prices?: Json
+          weekend_prices?: Json
           updated_at?: string
         }
         Relationships: []

@@ -43,6 +43,7 @@ interface DbError {
 const BY_HINT: Record<string, string> = {
   sauna_unavailable: "Ši pirtis šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   sauna_closed: "Pasirinktas laikas už darbo valandų.",
+  sauna_duration: "Tokios trukmės šią dieną pasirinkti negalima. Atnaujinkite puslapį.",
   sauna_party: "Netinkamas žmonių skaičius.",
   sauna_past: "Pasirinkta data jau praėjo arba yra per toli.",
   sauna_blocked: "Šis laikas pirtyje uždarytas. Pasirinkite kitą.",

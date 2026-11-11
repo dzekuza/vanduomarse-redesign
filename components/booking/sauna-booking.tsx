@@ -18,12 +18,15 @@ import { Stepper } from "./stepper";
 import {
   dateKey,
   formatHour,
-  hourRate,
+  guestSurcharge,
   hoursLabel,
   isOpenStart,
+  isWeekendDay,
   maxHoursFrom,
+  minHoursFor,
   nextDays,
   pastHourOn,
+  sessionLengths,
   sessionPrice,
   startHours,
   type Sauna,
@@ -56,13 +59,15 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
   /** A day is bookable when at least one start has not passed and fits the minimum session. */
   const hasOpenStart = (d: Date) => {
     const k = dateKey(d);
-    return startHours(rates).some((h) => isOpenStart(takenByDay[k] ?? [], h, rates, pastHourOn(k, today, nowHour)));
+    const min = minHoursFor(rates, k);
+    return startHours(rates, min).some((h) => isOpenStart(takenByDay[k] ?? [], h, rates, pastHourOn(k, today, nowHour), min));
   };
-  const allStartsPassed = (d: Date) => startHours(rates).every((h) => h <= pastHourOn(dateKey(d), today, nowHour));
+  const allStartsPassed = (d: Date) => startHours(rates, minHoursFor(rates, dateKey(d))).every((h) => h <= pastHourOn(dateKey(d), today, nowHour));
   // Late in the day today has nothing left: open on the first day that does.
   const [selectedDate, setSelectedDate] = useState(() => days.find(hasOpenStart) ?? days[0]);
   const [startHour, setStartHour] = useState<number | null>(null);
-  const [hours, setHours] = useState(rates.minHours);
+  /** The length the guest asked for; the shown length is the nearest one that is on offer and fits. */
+  const [wantedHours, setWantedHours] = useState(0);
   const [partySize, setPartySize] = useState(() => Math.min(4, rates.maxParty));
   /** Upsell id -> item count (counted extras) or 0/1 (on/off extras). */
   const [extras, setExtras] = useState<Record<string, number>>({});
@@ -78,7 +83,16 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
   const taken = takenByDay[dateK] ?? [];
   const pastHour = pastHourOn(dateK, today, nowHour);
   const maxHours = startHour === null ? 0 : maxHoursFrom(taken, startHour, rates);
-  const basePrice = startHour === null ? 0 : sessionPrice(hours, partySize, rates);
+  /** Some extras (the sauna master) set a minimum session. */
+  const extrasMin = Math.max(0, ...upsells.filter((u) => (extras[u.id] ?? 0) > 0).map((u) => u.minHours ?? 0));
+  const minHours = minHoursFor(rates, dateK, extrasMin);
+  const lengths = sessionLengths(rates, dateK, extrasMin);
+  const fitting = lengths.filter((h) => h <= maxHours);
+  const hours = startHour === null ? minHours : (fitting.find((h) => h >= wantedHours) ?? fitting[fitting.length - 1] ?? minHours);
+  const basePrice = startHour === null ? 0 : sessionPrice(hours, partySize, rates, dateK);
+  const surcharge = guestSurcharge(partySize, rates);
+  /** Adding the sauna master can leave too little time after the chosen start. */
+  const startFits = startHour === null || (hours > 0 && hours <= maxHours);
   const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize, hours }), 0);
   const subtotal = basePrice + extrasPrice;
   const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
@@ -90,13 +104,10 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
   function selectDate(date: Date) {
     setSelectedDate(date);
     setStartHour(null);
-    setHours(rates.minHours);
   }
 
   function selectStart(hour: number) {
     setStartHour(hour);
-    // Keep the chosen length if it still fits, otherwise shrink to what does.
-    setHours((h) => Math.min(h, maxHoursFrom(taken, hour, rates)));
   }
 
   function changeParty(next: number) {
@@ -140,7 +151,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
           setConfirmed(null);
           setCoupon(null);
           setStartHour(null);
-          setHours(rates.minHours);
+          setWantedHours(0);
           setExtras({});
           form.reset();
         }}
@@ -176,11 +187,13 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
           <div className="grid gap-3 @xl:grid-cols-2">
             <Stepper label="Žmonių" value={partySize} onChange={changeParty} min={1} max={rates.maxParty} />
           </div>
-          <p className="mt-2 text-sm text-ink">Jūsų grupei – {hourRate(partySize, rates)} €/val. už visą pirtį.</p>
+          <p className="mt-2 text-sm text-ink">
+            {surcharge > 0
+              ? `Jūsų grupei: +${surcharge} € už ${partySize - rates.includedGuests} asm. virš ${rates.includedGuests}.`
+              : `Kaina visai pirčiai, galioja iki ${rates.includedGuests} asm.`}
+          </p>
           <p className="mt-1 text-sm text-ink/60">
-            Kaina visai grupei, ne žmogui: iki {rates.smallGroupMax} asm. – {rates.smallGroupRate} €/val., {rates.smallGroupMax + 1}–
-            {rates.maxParty} asm. – {rates.largeGroupRate} €/val. Minimaliai {rates.minHours} val., {rates.packageHours} val. paketas –{" "}
-            {rates.packagePrice} €.
+            Kiekvienas svečias virš {rates.includedGuests} asm. – +{rates.extraGuestFee} €. Daugiausia {rates.maxParty} asm.
           </p>
         </div>
       ),
@@ -193,13 +206,20 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
         <>
           <div>
             <StepLabel step={firstStep + 2}>Pradžios laikas</StepLabel>
-            <StartTimeGrid taken={taken} rates={rates} pastHour={pastHour} selected={startHour} onSelect={selectStart} />
+            <StartTimeGrid taken={taken} rates={rates} pastHour={pastHour} minHours={minHours} selected={startHour} onSelect={selectStart} />
+            <p className="mt-2 text-sm text-ink/60">
+              {isWeekendDay(dateK) ? `Penktadienį–sekmadienį trumpiausias seansas – ${minHours} val. ` : ""}
+              {extrasMin > 0 ? `Su pirtininku – mažiausiai ${extrasMin} val. ` : ""}
+              {rates.turnaroundHours > 0 ? `Tarp seansų paliekame ${rates.turnaroundHours} val. pirčiai paruošti.` : ""}
+            </p>
           </div>
           {startHour !== null ? (
             <div>
               <StepLabel step={firstStep + 3}>Trukmė</StepLabel>
-              <DurationPicker rates={rates} partySize={partySize} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setHours} />
-              {maxHours < rates.maxHours ? (
+              <DurationPicker lengths={lengths} price={(h) => sessionPrice(h, partySize, rates, dateK)} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setWantedHours} />
+              {!startFits ? (
+                <p className="mt-2 text-sm text-rust">Su pasirinktais priedais šiam laikui trūksta laiko: pasirinkite ankstesnę pradžią.</p>
+              ) : maxHours < (lengths[lengths.length - 1] ?? 0) ? (
                 <p className="mt-2 text-sm text-ink/60">Ilgiausiai iki {formatHour(startHour + maxHours)}: po to pirtis užimta arba uždaroma.</p>
               ) : null}
             </div>
@@ -246,7 +266,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
             />
           }
           action={
-            <ArrowButton type="submit" disabled={startHour === null || form.formState.isSubmitting}>
+            <ArrowButton type="submit" disabled={startHour === null || !startFits || form.formState.isSubmitting}>
               {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti rezervaciją"}
             </ArrowButton>
           }

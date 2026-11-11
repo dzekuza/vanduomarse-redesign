@@ -13,9 +13,11 @@ import {
   hoursLabel,
   isOpenStart,
   maxHoursFrom,
+  minHoursFor,
   longDateLabel,
   nextDays,
   pastHourOn,
+  sessionLengths,
   sessionPrice,
   type Sauna,
 } from "@/lib/sauna";
@@ -94,6 +96,8 @@ export interface SaunaPlan {
   extras: Record<string, number>;
   /** Longest session from the chosen start; 0 when the start is not bookable. */
   maxHours: number;
+  /** Lengths on offer that day (with the chosen extras), shortest first. */
+  lengths: number[];
   ok: boolean;
   price: number;
 }
@@ -345,22 +349,27 @@ function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: read
   if (!sauna) return null;
   const { rates } = sauna;
   const taken = [...saunaTaken(data, sauna.id, when.day), ...busy];
-  const start = pick.startHour;
-  const ok =
-    start !== null &&
-    when.people <= rates.maxParty &&
-    start >= rates.openHour &&
-    isOpenStart(taken, start, rates, pastHourOn(when.day, data.today, data.nowHour));
-  const maxHours = ok ? maxHoursFrom(taken, start, rates) : 0;
-  const hours = Math.min(Math.max(pick.hours, rates.minHours), Math.max(maxHours, rates.minHours));
   const upsells = data.upsells.filter((u) => sauna.upsellIds.includes(u.id));
   const extras: Record<string, number> = {};
   for (const u of upsells) {
     const qty = Math.min(pick.extras[u.id] ?? 0, u.unit === "vienetui" ? upsellMax(u, when.people) : 1);
     if (qty > 0) extras[u.id] = qty;
   }
+  // An extra such as the sauna master raises the shortest session.
+  const extrasMin = Math.max(0, ...upsells.filter((u) => extras[u.id]).map((u) => u.minHours ?? 0));
+  const minHours = minHoursFor(rates, when.day, extrasMin);
+  const lengths = sessionLengths(rates, when.day, extrasMin);
+  const start = pick.startHour;
+  const ok =
+    start !== null &&
+    when.people <= rates.maxParty &&
+    start >= rates.openHour &&
+    isOpenStart(taken, start, rates, pastHourOn(when.day, data.today, data.nowHour), minHours);
+  const maxHours = ok ? maxHoursFrom(taken, start, rates) : 0;
+  const fitting = lengths.filter((h) => h <= maxHours);
+  const hours = fitting.find((h) => h >= pick.hours) ?? fitting[fitting.length - 1] ?? minHours;
   const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize: when.people, hours }), 0);
-  return { kind: "pirtis", mode: "hourly", sauna, upsells, startHour: start, hours, extras, maxHours, ok, price: ok ? sessionPrice(hours, when.people, rates) + extrasPrice : 0 };
+  return { kind: "pirtis", mode: "hourly", sauna, upsells, startHour: start, hours, extras, maxHours, lengths, ok, price: ok ? sessionPrice(hours, when.people, rates, when.day) + extrasPrice : 0 };
 }
 
 export function planQuads(pick: QuadPick, data: QuadPageData, day: string, busy: readonly number[] = []): QuadPlan {

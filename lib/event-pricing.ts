@@ -392,7 +392,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
     if (program) {
       push("Pramogos", `${sauna.name}: ${program.name}, ${durationLabel(program.durationMinutes)}`, fixed(programTotal(program, guests, 0)));
     } else {
-      push("Pramogos", `${sauna.name}, ${Math.max(sauna.rates.minHours, pick.hours)} val.`, fixed(sessionPrice(pick.hours, guests, sauna.rates)));
+      push("Pramogos", `${sauna.name}, ${Math.max(sauna.rates.minHours, pick.hours)} val.`, fixed(sessionPrice(pick.hours, guests, sauna.rates, input.date ?? undefined)));
     }
     const hours = program ? programHours(program) : Math.max(sauna.rates.minHours, pick.hours);
     for (const upsell of upsells) {

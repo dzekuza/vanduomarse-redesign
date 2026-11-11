@@ -4,7 +4,7 @@ import type { CouponProduct } from "@/lib/coupons";
 import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
-import { saunaPhotoUrl, type Sauna, type SaunaRates } from "@/lib/sauna";
+import { saunaPhotoUrl, type PriceTable, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
@@ -141,35 +141,45 @@ export function toPriceItem(r: Tables<"price_items">): PriceItem {
 
 type RatesRow = Pick<
   Tables<"saunas">,
-  "small_group_max" | "small_group_rate" | "large_group_rate" | "max_party" | "min_hours" | "max_hours" | "package_hours" | "package_price" | "open_hour" | "close_hour"
+  | "weekday_prices" | "weekend_prices" | "included_guests" | "extra_guest_fee" | "turnaround_hours"
+  | "max_party" | "min_hours" | "max_hours" | "open_hour" | "close_hour"
 >;
+
+/** `{ "2": 160 }` from the database -> `{ 2: 160 }`; anything that is not a price is dropped. */
+function toPriceTable(value: Tables<"saunas">["weekday_prices"]): PriceTable {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
+  const table: PriceTable = {};
+  for (const [hours, price] of Object.entries(value)) if (typeof price === "number") table[Number(hours)] = price;
+  return table;
+}
 
 export function toSaunaRates(r: RatesRow): SaunaRates {
   return {
-    smallGroupMax: r.small_group_max,
-    smallGroupRate: r.small_group_rate,
-    largeGroupRate: r.large_group_rate,
+    weekdayPrices: toPriceTable(r.weekday_prices),
+    weekendPrices: toPriceTable(r.weekend_prices),
+    includedGuests: r.included_guests,
+    extraGuestFee: r.extra_guest_fee,
+    turnaroundHours: r.turnaround_hours,
     maxParty: r.max_party,
     minHours: r.min_hours,
     maxHours: r.max_hours,
-    packageHours: r.package_hours,
-    packagePrice: r.package_price,
     openHour: r.open_hour,
     closeHour: r.close_hour,
   };
 }
 
-/** Model -> `saunas` rate columns. */
+/** Model -> `saunas` rate columns. The shortest and longest length are derived from the tables. */
 export function fromSaunaRates(r: SaunaRates): RatesRow {
+  const lengths = [...Object.keys(r.weekdayPrices), ...Object.keys(r.weekendPrices)].map(Number);
   return {
-    small_group_max: r.smallGroupMax,
-    small_group_rate: r.smallGroupRate,
-    large_group_rate: r.largeGroupRate,
+    weekday_prices: r.weekdayPrices,
+    weekend_prices: r.weekendPrices,
+    included_guests: r.includedGuests,
+    extra_guest_fee: r.extraGuestFee,
+    turnaround_hours: r.turnaroundHours,
     max_party: r.maxParty,
-    min_hours: r.minHours,
-    max_hours: r.maxHours,
-    package_hours: r.packageHours,
-    package_price: r.packagePrice,
+    min_hours: Math.min(...lengths),
+    max_hours: Math.max(...lengths),
     open_hour: r.openHour,
     close_hour: r.closeHour,
   };
@@ -191,7 +201,7 @@ export function toSauna(r: Tables<"saunas">, links: Pick<Tables<"sauna_upsell_li
 }
 
 export function toUpsell(r: Tables<"sauna_upsells">): Upsell {
-  return { id: r.id, name: r.name, description: r.description, price: r.price, unit: r.unit, maxQty: r.max_qty, active: r.active };
+  return { id: r.id, name: r.name, description: r.description, price: r.price, unit: r.unit, maxQty: r.max_qty, minHours: r.min_hours, active: r.active };
 }
 
 export function toSaunaProgram(r: Tables<"sauna_programs">): SaunaProgram {

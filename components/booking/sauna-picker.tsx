@@ -2,7 +2,7 @@
 
 import { FireIcon } from "@phosphor-icons/react";
 import Image from "next/image";
-import { fromRate, type Sauna } from "@/lib/sauna";
+import { fromPrice, type Sauna } from "@/lib/sauna";
 
 interface SaunaPickerProps {
   saunas: Sauna[];
@@ -45,7 +45,7 @@ function SaunaCard({ sauna, active, onSelect }: { sauna: Sauna; active: boolean;
         <span className="flex items-baseline justify-between gap-3">
           <span className="font-display text-figure font-bold uppercase">{sauna.name}</span>
           <span className="shrink-0 text-sm">
-            nuo <span className="font-display text-figure font-bold">{fromRate(sauna.rates)} €</span>/val.
+            nuo <span className="font-display text-figure font-bold">{fromPrice(sauna.rates)} €</span>
           </span>
         </span>
         {sauna.description ? <span className={`text-sm ${active ? "text-foam/70" : "text-ink/60"}`}>{sauna.description}</span> : null}

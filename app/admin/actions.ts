@@ -5,6 +5,7 @@ import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
+import { ratesFromValues } from "@/components/admin/sauna/rates-schema";
 import { saunaSchema, type SaunaValues } from "@/components/admin/sauna/sauna-schema";
 import { fromSaunaRates, toBooking, toPurchase, toQuadRental, toRider, toRiderComment, toRiderDocument, toRiderSession, toRidePlan } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RiderSession, RidePlan } from "@/lib/admin/types";
@@ -198,7 +199,7 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
       .map((u) => ({ u, qty: v.extras[u.id] ?? 0 }))
       .filter(({ qty }) => qty > 0)
       .map(({ u, qty }) => {
-        const upsell: Upsell = { id: u.id, name: u.name, description: u.description, price: u.price, unit: u.unit, maxQty: u.max_qty, active: u.active };
+        const upsell: Upsell = { id: u.id, name: u.name, description: u.description, price: u.price, unit: u.unit, maxQty: u.max_qty, minHours: u.min_hours, active: u.active };
         return {
           booking_id: row.id,
           upsell_id: u.id,
@@ -401,7 +402,7 @@ export async function saveSauna(id: string | null, input: SaunaValues): Promise<
   if (!parsed.success || (id !== null && !saunaIdSchema.safeParse(id).success)) return fail("Netinkamos reikšmės.", "invalid");
   const v = parsed.data;
   const { supabase } = ctx;
-  const row = { name: v.name, description: v.description, features: v.features.map((f) => f.value), active: v.active, ...fromSaunaRates(v.rates) };
+  const row = { name: v.name, description: v.description, features: v.features.map((f) => f.value), active: v.active, ...fromSaunaRates(ratesFromValues(v.rates)) };
 
   let saunaId = id;
   if (saunaId) {
@@ -536,6 +537,7 @@ const upsellInput = z.object({
   price: z.number().min(0),
   unit: z.enum(["rezervacijai", "asmeniui", "vienetui", "valandai"]),
   maxQty: z.number().int().positive().nullable(),
+  minHours: z.number().int().min(1).max(12).nullable(),
   active: z.boolean(),
 });
 
@@ -547,7 +549,7 @@ export async function saveUpsell(upsell: Upsell): Promise<ActionResult> {
   const u = parsed.data;
   const { error } = await ctx.supabase
     .from("sauna_upsells")
-    .upsert({ id: u.id, name: u.name, description: u.description, price: u.price, unit: u.unit, max_qty: u.maxQty, active: u.active });
+    .upsert({ id: u.id, name: u.name, description: u.description, price: u.price, unit: u.unit, max_qty: u.maxQty, min_hours: u.minHours, active: u.active });
   saunaRevalidate();
   return error ? dbError(error) : done(null);
 }

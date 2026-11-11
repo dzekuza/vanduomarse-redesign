@@ -1,54 +1,56 @@
 /**
- * Private hire is sold by the hour: pick a start, then 2-6 hours.
+ * Private hire is sold by session length: pick a start, then one of the lengths
+ * on offer (2-4 h). Each length has a fixed price for the whole sauna, and Fri-Sun
+ * has its own table (usually without the shortest length).
  *
- * Live rates and limits come from `public.sauna_settings` (edited in
- * /admin/pirtis). The constants below are the "Kainodara'26-'27.xlsx" sheet
- * snapshot (incl. 21% PVM): the database was seeded from them, and the event
- * calculator (`lib/event-pricing.ts`) still prices from them.
+ * Live prices and limits come from `public.saunas` (edited in /admin/pirtis).
+ * The constants below are the defaults the form starts from (the owner's sheet
+ * of 2026-11-11, incl. 21% PVM). The database re-prices every booking.
  */
 export const OPEN_HOUR = 10;
 export const CLOSE_HOUR = 22;
 export const MIN_HOURS = 2;
-export const MAX_HOURS = 6;
+export const MAX_HOURS = 4;
 
 export const MAX_PARTY = 20;
+/** The price covers this many people; every guest above pays `EXTRA_GUEST_FEE` once. */
+export const INCLUDED_GUESTS = 10;
+export const EXTRA_GUEST_FEE = 15;
+/** Hours kept free before and after a session (cleaning and heating). */
+export const TURNAROUND_HOURS = 1;
 
-/** Hourly rate depends on group size, not time of day. */
-export const SMALL_GROUP_MAX = 6;
-export const SMALL_GROUP_RATE = 70;
-export const LARGE_GROUP_RATE = 100;
-/** 4-hour package for the whole sauna; applied when it beats the hourly price. */
-export const PACKAGE_HOURS = 4;
-export const PACKAGE_PRICE = 350;
-/**
- * Pirtininkas, per booking. The sauna rows of the sheet say +100 €; the
- * contract-terms sheet says 200 € per event. Using 100 € until confirmed.
- */
-export const MASTER_PRICE = 100;
+/** Session length (hours) -> price for the whole sauna. */
+export type PriceTable = Record<number, number>;
 
-/** Everything that prices or bounds a private booking; a `sauna_settings` row. */
+export const WEEKDAY_PRICES: PriceTable = { 2: 160, 3: 220, 4: 240 };
+export const WEEKEND_PRICES: PriceTable = { 3: 250, 4: 320 };
+
+/** Everything that prices or bounds a private booking; a `saunas` row. */
 export interface SaunaRates {
-  smallGroupMax: number;
-  smallGroupRate: number;
-  largeGroupRate: number;
+  /** Mon-Thu. */
+  weekdayPrices: PriceTable;
+  /** Fri-Sun. */
+  weekendPrices: PriceTable;
+  includedGuests: number;
+  extraGuestFee: number;
+  turnaroundHours: number;
   maxParty: number;
+  /** Shortest and longest length across both tables (the form keeps them in step). */
   minHours: number;
   maxHours: number;
-  packageHours: number;
-  packagePrice: number;
   openHour: number;
   closeHour: number;
 }
 
 export const DEFAULT_SAUNA_RATES: SaunaRates = {
-  smallGroupMax: SMALL_GROUP_MAX,
-  smallGroupRate: SMALL_GROUP_RATE,
-  largeGroupRate: LARGE_GROUP_RATE,
+  weekdayPrices: WEEKDAY_PRICES,
+  weekendPrices: WEEKEND_PRICES,
+  includedGuests: INCLUDED_GUESTS,
+  extraGuestFee: EXTRA_GUEST_FEE,
+  turnaroundHours: TURNAROUND_HOURS,
   maxParty: MAX_PARTY,
   minHours: MIN_HOURS,
   maxHours: MAX_HOURS,
-  packageHours: PACKAGE_HOURS,
-  packagePrice: PACKAGE_PRICE,
   openHour: OPEN_HOUR,
   closeHour: CLOSE_HOUR,
 };
@@ -81,9 +83,9 @@ export interface Sauna {
   sortOrder: number;
 }
 
-/** Cheapest hourly rate, for "nuo X €/val.". */
-export function fromRate(rates: SaunaRates): number {
-  return Math.min(rates.smallGroupRate, rates.largeGroupRate);
+/** Lowest session price, for "nuo X €". */
+export function fromPrice(rates: SaunaRates): number {
+  return Math.min(...Object.values(rates.weekdayPrices), ...Object.values(rates.weekendPrices));
 }
 
 /** Public URL of a photo in the sauna bucket. */
@@ -102,31 +104,57 @@ export function slugify(name: string): string {
     .slice(0, 50);
 }
 
-export function hourRate(partySize: number, rates: SaunaRates = DEFAULT_SAUNA_RATES): number {
-  return partySize <= rates.smallGroupMax ? rates.smallGroupRate : rates.largeGroupRate;
+/** Friday, Saturday and Sunday use the weekend table. `day` is yyyy-mm-dd. */
+export function isWeekendDay(day: string): boolean {
+  const [y, m, d] = day.split("-").map(Number);
+  const weekday = new Date(y, m - 1, d).getDay();
+  return weekday === 0 || weekday >= 5;
 }
 
-/** Price for a session; short sessions bill the minimum, and the package applies if cheaper. */
-export function sessionPrice(hours: number, partySize: number, rates: SaunaRates = DEFAULT_SAUNA_RATES): number {
+/** The price table for a day; no day means a weekday (quotes without a date). */
+export function pricesFor(rates: SaunaRates, day?: string): PriceTable {
+  return day && isWeekendDay(day) ? rates.weekendPrices : rates.weekdayPrices;
+}
+
+/**
+ * Lengths on offer that day, shortest first. `minHours` lifts the floor
+ * (the sauna master needs 3 h).
+ */
+export function sessionLengths(rates: SaunaRates, day?: string, minHours = 0): number[] {
+  return Object.keys(pricesFor(rates, day))
+    .map(Number)
+    .filter((h) => h >= minHours)
+    .sort((a, b) => a - b);
+}
+
+/** Shortest bookable length that day, with the extras' floor applied; 0 when nothing fits. */
+export function minHoursFor(rates: SaunaRates, day?: string, minHours = 0): number {
+  return sessionLengths(rates, day, minHours)[0] ?? 0;
+}
+
+/** Guests above the included number pay a flat fee each. */
+export function guestSurcharge(partySize: number, rates: SaunaRates): number {
+  return Math.max(0, partySize - rates.includedGuests) * rates.extraGuestFee;
+}
+
+/** Price for a session: the length's fixed price plus the extra-guest fee. A length not on offer bills as the next one up. */
+export function sessionPrice(hours: number, partySize: number, rates: SaunaRates, day?: string): number {
   if (hours <= 0) return 0;
-  const billable = Math.max(rates.minHours, hours);
-  const hourly = billable * hourRate(partySize, rates);
-  return billable === rates.packageHours ? Math.min(hourly, rates.packagePrice) : hourly;
+  const lengths = sessionLengths(rates, day);
+  const billable = lengths.find((h) => h >= hours) ?? lengths[lengths.length - 1];
+  if (billable === undefined) return 0;
+  return pricesFor(rates, day)[billable] + guestSurcharge(partySize, rates);
 }
 
-/** Every start that leaves room for the minimum session before closing. */
-export function startHours(rates: SaunaRates): number[] {
-  return Array.from({ length: Math.max(0, rates.closeHour - rates.minHours - rates.openHour + 1) }, (_, i) => rates.openHour + i);
-}
-
-/** Session lengths the rates allow, shortest first. */
-export function sessionLengths(rates: SaunaRates): number[] {
-  return Array.from({ length: rates.maxHours - rates.minHours + 1 }, (_, i) => rates.minHours + i);
+/** Every start that leaves room for the shortest session before closing. */
+export function startHours(rates: SaunaRates, minHours = rates.minHours): number[] {
+  return Array.from({ length: Math.max(0, rates.closeHour - minHours - rates.openHour + 1) }, (_, i) => rates.openHour + i);
 }
 
 /**
  * Longest bookable run from `startHour`: stops at the next taken hour (booked
- * or closed by staff, from `sauna_taken_hours`), closing or the max length.
+ * or closed by staff, from `sauna_taken`, which already includes the turnaround
+ * around each booking), closing or the max length.
  */
 export function maxHoursFrom(taken: readonly number[], startHour: number, rates: SaunaRates): number {
   let hours = 0;
@@ -139,9 +167,9 @@ export function pastHourOn(day: string, today: string, nowHour: number): number 
   return day === today ? nowHour : -1;
 }
 
-/** Whether a start can still be booked: not already past and the minimum session fits. */
-export function isOpenStart(taken: readonly number[], startHour: number, rates: SaunaRates, pastHour: number): boolean {
-  return startHour > pastHour && maxHoursFrom(taken, startHour, rates) >= rates.minHours;
+/** Whether a start can still be booked: not already past and the shortest session (`minHours`) fits. */
+export function isOpenStart(taken: readonly number[], startHour: number, rates: SaunaRates, pastHour: number, minHours = rates.minHours): boolean {
+  return startHour > pastHour && minHours > 0 && maxHoursFrom(taken, startHour, rates) >= minHours;
 }
 
 export function formatHour(hour: number): string {

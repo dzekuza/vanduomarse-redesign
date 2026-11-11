@@ -6,7 +6,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { PricePreview } from "./price-preview";
-import { ratesSchema } from "./rates-schema";
+import { ratesFromValues, ratesSchema, ratesToValues } from "./rates-schema";
 import { SaunaDetailsFields } from "./sauna-details-fields";
 import { SaunaRatesFields } from "./sauna-rates-fields";
 import { saunaSchema, type SaunaValues } from "./sauna-schema";
@@ -19,7 +19,7 @@ const toValues = (s?: Sauna): SaunaValues => ({
   name: s?.name ?? "",
   description: s?.description ?? "",
   features: (s?.features ?? []).map((value) => ({ value })),
-  rates: s?.rates ?? DEFAULT_SAUNA_RATES,
+  rates: ratesToValues(s?.rates ?? DEFAULT_SAUNA_RATES),
   upsellIds: s?.upsellIds ?? [],
   // A new sauna starts hidden, so photos can be added before visitors see it.
   active: s?.active ?? false,
@@ -75,13 +75,13 @@ export function SaunaForm({ sauna }: { sauna?: Sauna }) {
           <Card>
             <CardHeader>
               <CardTitle>Kainos ir taisyklės</CardTitle>
-              <CardDescription>Valandos kaina priklauso nuo grupės dydžio. Paketas taikomas, jei jis pigesnis.</CardDescription>
+              <CardDescription>Kaina nustatoma pagal trukmę ir savaitės dieną. Pirtininką valdykite skiltyje „Papildomos paslaugos“.</CardDescription>
             </CardHeader>
             <CardContent>
               <SaunaRatesFields register={register} errors={formState.errors} />
             </CardContent>
           </Card>
-          <PricePreview rates={preview.success ? preview.data : null} />
+          <PricePreview rates={preview.success ? ratesFromValues(preview.data) : null} />
         </div>
       </div>
       <div className="sticky bottom-20 z-10 flex justify-end gap-2 border bg-card p-3 md:bottom-4">

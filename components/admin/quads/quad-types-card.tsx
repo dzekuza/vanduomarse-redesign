@@ -23,7 +23,7 @@ export function QuadTypesCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Parkas</CardTitle>
+        <CardTitle>Inventorius</CardTitle>
         <CardDescription>
           Pradiniai kiekiai ir kainos yra pavyzdiniai: patikrinkite juos prieš reklamuodami puslapį. Išjungtas tipas dingsta iš svetainės (pvz., dėl oro).
         </CardDescription>

@@ -13,7 +13,7 @@ import { newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { formatEur } from "@/lib/admin/format";
 import { freeHoursFrom, freeStartHours, fullStayNights, saunaSlice } from "@/lib/admin/occupancy";
 import { pickStayType } from "@/lib/cabin";
-import { DEFAULT_SAUNA_RATES, dateKey, sessionPrice } from "@/lib/sauna";
+import { DEFAULT_SAUNA_RATES, dateKey, sessionLengths, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,8 +27,6 @@ interface NewBookingDialogProps {
   /** Prefills the form, e.g. when opened from a free cell on the Užimtumas grid. */
   initial?: { saunaId?: string; date?: string; startHour?: number };
 }
-
-const range = (from: number, to: number) => (to < from ? [] : Array.from({ length: to - from + 1 }, (_, i) => from + i));
 
 /** Staff-entered booking (phone or walk-in): free slots only, price from admin rates. */
 export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookingDialogProps) {
@@ -67,7 +65,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
 
   const starts = sauna && chosen && date ? freeStartHours(slice.bookings, slice.blocks, saunaRates, date) : [];
   const run = sauna && chosen && startHour ? freeHoursFrom(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : 0;
-  const lengths = range(saunaRates.minHours, run);
+  const lengths = sessionLengths(saunaRates, date || undefined).filter((h) => h <= run);
   // A stay goes to the smallest active type that fits the party; the server picks the same one.
   const stayType = sauna ? undefined : pickStayType(stayTypes, kind, party);
   const maxGuests = sauna ? saunaRates.maxParty : Math.max(0, ...stayTypes.filter((t) => t.kind === kind && t.active).map((t) => t.maxGuests));
@@ -75,7 +73,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   const extrasCtx = { partySize: party, hours: Number(hours) || 0 };
   const stayRate = stayType?.pricePerNight ?? 0;
   const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
-  const computed = sauna ? (hours ? sessionPrice(Number(hours), party, saunaRates) : 0) + extrasPrice : stayRate * (Number(nights) || 0);
+  const computed = sauna ? (hours ? sessionPrice(Number(hours), party, saunaRates, date || undefined) : 0) + extrasPrice : stayRate * (Number(nights) || 0);
   const total = priceOverride ? Number(priceOverride) : computed;
 
   const resetSlot = () => {

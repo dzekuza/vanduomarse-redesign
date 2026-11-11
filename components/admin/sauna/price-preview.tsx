@@ -1,18 +1,20 @@
 import { formatEur } from "@/lib/admin/format";
-import { sessionPrice, type SaunaRates } from "@/lib/sauna";
+import { sessionLengths, sessionPrice, type SaunaRates } from "@/lib/sauna";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-/** What a guest pays per duration and group size with the given rates. */
+/** What a guest pays per session length with the given rates (a group within the included guests, no extras). */
 export function PricePreview({ rates }: { rates: SaunaRates | null }) {
-  const hours = rates ? Array.from({ length: rates.maxHours - rates.minHours + 1 }, (_, i) => rates.minHours + i) : [];
+  const lengths = rates ? [...new Set([...sessionLengths(rates), ...sessionLengths(rates, "2026-11-13")])].sort((a, b) => a - b) : [];
+  const cell = (hours: number, table: readonly number[], day: string) =>
+    rates && table.includes(hours) ? formatEur(sessionPrice(hours, 1, rates, day)) : "–";
   return (
     <Card>
       <CardHeader>
         <CardTitle>Kaip atrodys kaina</CardTitle>
         <CardDescription>
           {rates
-            ? `Iki ${rates.smallGroupMax} asm. ir ${rates.smallGroupMax + 1}–${rates.maxParty} asm., be priedų.`
+            ? `Iki ${rates.includedGuests} asm. Kiekvienas svečias virš to – +${formatEur(rates.extraGuestFee)}, iki ${rates.maxParty} asm. (pilna grupė: +${formatEur((rates.maxParty - rates.includedGuests) * rates.extraGuestFee)}). Be priedų.`
             : "Ištaisykite klaidas formoje, kad matytumėte kainas."}
         </CardDescription>
       </CardHeader>
@@ -22,19 +24,16 @@ export function PricePreview({ rates }: { rates: SaunaRates | null }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Trukmė</TableHead>
-                <TableHead className="text-right">Iki {rates.smallGroupMax} asm.</TableHead>
-                <TableHead className="text-right">Iki {rates.maxParty} asm.</TableHead>
+                <TableHead className="text-right">Pr–Kt</TableHead>
+                <TableHead className="text-right">Pn–Sk</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {hours.map((h) => (
+              {lengths.map((h) => (
                 <TableRow key={h}>
-                  <TableCell>
-                    {h} val.
-                    {h === rates.packageHours ? <span className="ml-2 text-xs text-rust">paketas</span> : null}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">{formatEur(sessionPrice(h, rates.smallGroupMax, rates))}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatEur(sessionPrice(h, rates.maxParty, rates))}</TableCell>
+                  <TableCell>{h} val.</TableCell>
+                  <TableCell className="text-right tabular-nums">{cell(h, sessionLengths(rates), "2026-11-11")}</TableCell>
+                  <TableCell className="text-right tabular-nums">{cell(h, sessionLengths(rates, "2026-11-13"), "2026-11-13")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

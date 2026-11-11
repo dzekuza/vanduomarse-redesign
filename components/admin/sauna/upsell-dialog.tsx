@@ -21,6 +21,7 @@ const schema = z.object({
   price: z.string().trim().regex(/^\d+(\.\d{1,2})?$/, "Įveskite kainą, pvz. 15."),
   unit: z.enum(UNITS as [UpsellUnit, ...UpsellUnit[]]),
   maxQty: z.string().trim().refine((v) => v === "" || (/^\d+$/.test(v) && Number(v) >= 1), "Sveikas skaičius arba tuščia."),
+  minHours: z.string().trim().refine((v) => v === "" || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 12), "Skaičius nuo 1 iki 12 arba tuščia."),
   active: z.boolean(),
 });
 type Values = z.infer<typeof schema>;
@@ -41,6 +42,7 @@ export function UpsellDialog({ upsell, onOpenChange }: UpsellDialogProps) {
       price: upsell ? String(upsell.price) : "",
       unit: upsell?.unit ?? "rezervacijai",
       maxQty: upsell?.maxQty == null ? "" : String(upsell.maxQty),
+      minHours: upsell?.minHours == null ? "" : String(upsell.minHours),
       active: upsell?.active ?? true,
     },
   });
@@ -55,6 +57,7 @@ export function UpsellDialog({ upsell, onOpenChange }: UpsellDialogProps) {
       price: Number(v.price),
       unit: v.unit,
       maxQty: v.unit === "vienetui" && v.maxQty !== "" ? Number(v.maxQty) : null,
+      minHours: v.minHours !== "" ? Number(v.minHours) : null,
       active: v.active,
     });
     toast.success(upsell ? "Paslauga atnaujinta" : "Paslauga pridėta");
@@ -116,6 +119,11 @@ export function UpsellDialog({ upsell, onOpenChange }: UpsellDialogProps) {
           ) : (
             <p className="text-xs text-muted-foreground">Klientas šią paslaugą tiesiog įjungia arba išjungia.</p>
           )}
+          <div className="space-y-1.5">
+            <Label htmlFor="up-min">Minimali seanso trukmė, val.</Label>
+            <Input id="up-min" inputMode="numeric" placeholder="Nereikalaujama" aria-invalid={!!err.minHours} {...register("minHours")} />
+            {err.minHours ? <p className="text-xs text-destructive">{err.minHours.message}</p> : <p className="text-xs text-muted-foreground">Pasirinkus šią paslaugą trumpesnių seansų pasirinkti nebus galima (pirtininkui – 3 val.).</p>}
+          </div>
           <Controller
             control={control}
             name="active"

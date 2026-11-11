@@ -2,6 +2,7 @@
 
 import { DurationPicker } from "@/components/booking/duration-picker";
 import { UpsellPicker } from "@/components/booking/upsell-picker";
+import { sessionPrice } from "@/lib/sauna";
 import type { SaunaPick, SaunaPlan, When } from "@/lib/reservation";
 import { OptionGroupLabel } from "./option-card";
 
@@ -19,7 +20,7 @@ export function SaunaHourlyOptions({ plan, pick, when, onChange }: SaunaHourlyOp
     <>
       <div>
         <OptionGroupLabel>Trukmė</OptionGroupLabel>
-        <DurationPicker rates={plan.sauna.rates} partySize={when.people} startHour={plan.startHour} maxHours={plan.maxHours} selected={plan.hours} onSelect={(hours) => onChange({ ...pick, hours })} />
+        <DurationPicker lengths={plan.lengths} price={(h) => sessionPrice(h, when.people, plan.sauna.rates, when.day)} startHour={plan.startHour} maxHours={plan.maxHours} selected={plan.hours} onSelect={(hours) => onChange({ ...pick, hours })} />
       </div>
       {plan.upsells.length ? (
         <div>

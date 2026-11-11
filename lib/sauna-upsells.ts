@@ -13,6 +13,8 @@ export interface Upsell {
   unit: UpsellUnit;
   /** For `vienetui`: max items (null = up to the group size). Other units are on/off. */
   maxQty: number | null;
+  /** Picking it raises the minimum session to this many hours (the sauna master: 3). */
+  minHours: number | null;
   active: boolean;
 }
 

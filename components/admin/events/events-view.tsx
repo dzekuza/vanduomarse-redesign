@@ -5,9 +5,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
-import { StatusActions } from "../quads/status-actions";
-import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { DeleteEventDialog } from "./delete-event-dialog";
+import { DeleteEventsDialog } from "./delete-events-dialog";
 import { EventDialog } from "./event-dialog";
 import { CategoryTag } from "@/components/events/category-tag";
 import { formatDay, formatEur } from "@/lib/admin/format";
@@ -16,22 +15,34 @@ import { dateKey } from "@/lib/sauna";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type Editing = { mode: "new" } | { mode: "edit"; event: ManagedEvent } | null;
 
-/** Events list: publish toggle, sales, edit and delete. */
+/** Events list: publish toggle, sales, edit, delete and bulk delete. */
 export function EventsView() {
-  const { events, eventTickets, setEventPublished, setTourTicketStatus } = useAdmin();
+  const { events, setEventPublished } = useAdmin();
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<ManagedEvent | null>(null);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const today = dateKey(new Date());
   const upcoming = events.filter((e) => e.date >= today);
-  const tickets = eventTickets.toSorted(
-    (a, b) => Number(b.status === "laukia") - Number(a.status === "laukia") || `${a.eventDate}${a.eventTime}`.localeCompare(`${b.eventDate}${b.eventTime}`),
-  );
+
+  const selectedEvents = upcoming.filter((e) => selected.has(e.id));
+  const allSelected = upcoming.length > 0 && selectedEvents.length === upcoming.length;
+
+  function toggleOne(id: string, on: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   async function togglePublished(e: ManagedEvent) {
     const result = await setEventPublished(e.id, !e.published);
@@ -48,10 +59,30 @@ export function EventsView() {
         </Button>
       }
     >
+      {selectedEvents.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted px-4 py-2">
+          <p className="text-sm">Pasirinkta: {selectedEvents.length}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" className="min-h-11" onClick={() => setSelected(new Set())}>
+              Atšaukti
+            </Button>
+            <Button variant="destructive" className="min-h-11" onClick={() => setBulkDeleting(true)}>
+              Ištrinti pasirinktus
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <Card className="py-0">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected ? true : selectedEvents.length > 0 ? "indeterminate" : false}
+                  onCheckedChange={(on) => setSelected(on === true ? new Set(upcoming.map((e) => e.id)) : new Set())}
+                  aria-label="Pasirinkti visus renginius"
+                />
+              </TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Renginys</TableHead>
               <TableHead className="hidden xl:table-cell">Kategorija</TableHead>
@@ -63,7 +94,14 @@ export function EventsView() {
           </TableHeader>
           <TableBody>
             {upcoming.map((e) => (
-              <TableRow key={e.id}>
+              <TableRow key={e.id} data-state={selected.has(e.id) ? "selected" : undefined}>
+                <TableCell>
+                  <Checkbox
+                    checked={selected.has(e.id)}
+                    onCheckedChange={(on) => toggleOne(e.id, on === true)}
+                    aria-label={`Pasirinkti „${e.title}“`}
+                  />
+                </TableCell>
                 <TableCell>
                   <p className="font-normal">{formatDay(e.date)}</p>
                   <p className="text-xs text-muted-foreground">{e.time}</p>
@@ -121,37 +159,6 @@ export function EventsView() {
         </Table>
       </Card>
 
-      <section className="space-y-4">
-        <h2 className="font-display text-figure font-bold">Bilietai ir registracijos</h2>
-        <p className="text-sm text-muted-foreground">
-          Vietos į viešas pirties sesijas ir kitus renginius su limitu. Registracijos į renginius be limito atsiranda skyriuje Užklausos.
-        </p>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {tickets.map((t) => (
-            <Card key={t.id} className="h-full gap-3 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <p className="font-medium">{t.eventTitle}</p>
-                <div className="flex flex-wrap justify-end gap-1">
-                  <BookingStatusBadge status={t.status} />
-                  <PaymentBadge payment={t.payment} />
-                </div>
-              </div>
-              <p className="text-sm">
-                {formatDay(t.eventDate)} · {t.eventTime}
-              </p>
-              <p className="text-sm">
-                <span className="font-display text-figure font-bold">{t.people}</span> asm. · {formatEur(t.total)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t.customer.name} · {t.customer.phone || t.customer.email} · {t.reference}
-              </p>
-              <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} />
-            </Card>
-          ))}
-        </div>
-        {tickets.length === 0 ? <p className="text-sm text-muted-foreground">Bilietų dar nėra.</p> : null}
-      </section>
-
       {editing ? (
         <EventDialog
           key={editing.mode === "edit" ? editing.event.id : "new"}
@@ -160,6 +167,11 @@ export function EventsView() {
           onOpenChange={(o) => !o && setEditing(null)}
         />
       ) : null}
+      <DeleteEventsDialog
+        events={bulkDeleting ? selectedEvents : []}
+        onOpenChange={(o) => !o && setBulkDeleting(false)}
+        onDeleted={() => setSelected(new Set())}
+      />
       <DeleteEventDialog event={deleting} onOpenChange={(o) => !o && setDeleting(null)} />
     </AdminPage>
   );

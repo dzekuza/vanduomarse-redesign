@@ -18,9 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const TAB_IDS = ["turai", "parkas"] as const;
+const TAB_IDS = ["turai", "inventorius"] as const;
 
-/** Keturračiai: tour registrations (Turai) and the fleet and rules behind /keturraciai (Parkas). `?tab=parkas` opens the settings tab directly. */
+/** Keturračiai: tour registrations (Turai) and the fleet and rules behind /keturraciai (Inventorius). `?tab=inventorius` opens the settings tab directly. */
 export function QuadsView() {
   const { tourTickets, quadRentals, quadTourRoutes } = useAdmin();
   const [editing, setEditing] = useState<{ event?: ManagedEvent } | null>(null);
@@ -43,8 +43,8 @@ export function QuadsView() {
           <TabsTrigger value="turai" className="min-h-11">
             Turai{pendingTours ? ` (${pendingTours})` : ""}
           </TabsTrigger>
-          <TabsTrigger value="parkas" className="min-h-11">
-            Parkas
+          <TabsTrigger value="inventorius" className="min-h-11">
+            Inventorius
           </TabsTrigger>
         </TabsList>
         <TabsContent value="turai" className="mt-6 space-y-8">
@@ -65,7 +65,7 @@ export function QuadsView() {
           </Card>
           <ToursTab />
         </TabsContent>
-        <TabsContent value="parkas" className="mt-6 space-y-6">
+        <TabsContent value="inventorius" className="mt-6 space-y-6">
           <QuadTypesCard />
           <TourAccessoriesCard />
           <QuadSettingsCard />
