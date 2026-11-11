@@ -33,13 +33,18 @@ export default function ReservationPage({ searchParams }: { searchParams: Search
   );
 }
 
-/** Header and a placeholder while the availability queries run, so the page shell is not blocked on them. */
+/** Header and a placeholder while the availability queries run; same padding and grid as `ReservationFlow`, so nothing jumps when it arrives. */
 function ReservationFallback() {
   return (
-    <>
-      {header}
-      <Skeleton className="mx-auto mt-6 h-96 w-full max-w-6xl" />
-    </>
+    <div className="px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
+      <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
+        <div className="min-w-0 space-y-8 lg:col-span-2">
+          {header}
+          <Skeleton className="h-96 w-full rounded-none" />
+        </div>
+        <Skeleton className="hidden h-96 rounded-none lg:block" />
+      </div>
+    </div>
   );
 }
 
