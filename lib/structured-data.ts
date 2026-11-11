@@ -22,6 +22,7 @@ export function localBusinessSchema(): Record<string, unknown> {
       streetAddress: PARK_ADDRESS.street,
       addressLocality: "Žemaitkiemis",
       addressRegion: "Kauno rajonas",
+      postalCode: "54312",
       addressCountry: "LT",
     },
     hasMap: MAPS_URL,
