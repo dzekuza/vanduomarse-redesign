@@ -9,10 +9,10 @@ import { FormField } from "../form-field";
 import { BookingCustomerFields } from "./booking-customer-fields";
 import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingWhenFields } from "./booking-when-fields";
-import { STAY_MAX_GUESTS, newBookingSchema, type NewBookingValues } from "./new-booking-schema";
+import { newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { formatEur } from "@/lib/admin/format";
-import { freeHoursFrom, freeStartHours, fullCabinNights, saunaSlice } from "@/lib/admin/occupancy";
-import { ROOM_TYPES } from "@/lib/cabin";
+import { freeHoursFrom, freeStartHours, fullStayNights, saunaSlice } from "@/lib/admin/occupancy";
+import { pickStayType } from "@/lib/cabin";
 import { DEFAULT_SAUNA_RATES, dateKey, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ const range = (from: number, to: number) => (to < from ? [] : Array.from({ lengt
 
 /** Staff-entered booking (phone or walk-in): free slots only, price from admin rates. */
 export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookingDialogProps) {
-  const { bookings, blocks, saunas, upsells: catalogue, prices, createBooking } = useAdmin();
+  const { bookings, blocks, saunas, upsells: catalogue, stayTypes, createBooking } = useAdmin();
   const [extras, setExtras] = useState<Record<string, number>>({});
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
@@ -68,10 +68,12 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   const starts = sauna && chosen && date ? freeStartHours(slice.bookings, slice.blocks, saunaRates, date) : [];
   const run = sauna && chosen && startHour ? freeHoursFrom(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : 0;
   const lengths = range(saunaRates.minHours, run);
-  const maxGuests = sauna ? saunaRates.maxParty : STAY_MAX_GUESTS[kind];
+  // A stay goes to the smallest active type that fits the party; the server picks the same one.
+  const stayType = sauna ? undefined : pickStayType(stayTypes, kind, party);
+  const maxGuests = sauna ? saunaRates.maxParty : Math.max(0, ...stayTypes.filter((t) => t.kind === kind && t.active).map((t) => t.maxGuests));
 
   const extrasCtx = { partySize: party, hours: Number(hours) || 0 };
-  const stayRate = sauna ? 0 : (prices.find((p) => p.id === `room-${kind}`)?.value ?? ROOM_TYPES.find((r) => r.id === kind)!.pricePerNight);
+  const stayRate = stayType?.pricePerNight ?? 0;
   const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
   const computed = sauna ? (hours ? sessionPrice(Number(hours), party, saunaRates) : 0) + extrasPrice : stayRate * (Number(nights) || 0);
   const total = priceOverride ? Number(priceOverride) : computed;
@@ -85,9 +87,10 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     if (party > maxGuests) return setError("guests", { message: `Daugiausia ${maxGuests} žm.` });
     if (sauna && freeHoursFrom(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
       return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
-    if (kind === "namelis") {
-      const full = fullCabinNights(bookings, v.date, Number(v.nights));
-      if (full.length) return setError("nights", { message: `Visi nameliai užimti: ${full.join(", ")}` });
+    if (!sauna) {
+      if (!stayType) return setError("kind", { message: "Šio tipo nakvynės nėra – pridėkite ją skiltyje Namukai." });
+      const full = fullStayNights(bookings, v.date, Number(v.nights), stayType);
+      if (full.length) return setError("nights", { message: `„${stayType.label}“ užimti: ${full.join(", ")}` });
     }
     const result = await createBooking({
       kind: v.kind,

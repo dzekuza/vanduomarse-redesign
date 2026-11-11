@@ -1,31 +1,35 @@
 "use client";
 
 import { ChoiceTile } from "./choice-tile";
-import { CABIN_SIZES, type CabinSize } from "@/lib/cabin";
+import type { StayType } from "@/lib/cabin";
 
-/** Double or quad cabin, with the nightly price and how many are free for the stay. */
+/** The cabin types, with the nightly price and how many are free for the stay. */
 export function CabinSizePicker({
+  types,
   selected,
   onSelect,
   free,
+  legend,
 }: {
-  selected: CabinSize;
-  onSelect: (size: CabinSize) => void;
-  free: (size: CabinSize) => number;
+  types: StayType[];
+  selected: string;
+  onSelect: (id: string) => void;
+  free: (type: StayType) => number;
+  legend: string;
 }) {
   return (
     <fieldset className="grid grid-cols-2 gap-2 pt-2">
-      <legend className="mb-2 text-sm text-ink/70">Namelio dydis</legend>
-      {CABIN_SIZES.map((s) => {
-        const left = free(s.id);
+      <legend className="mb-2 text-sm text-ink/70">{legend}</legend>
+      {types.map((type) => {
+        const left = free(type);
         return (
           <ChoiceTile
-            key={s.id}
-            primary={s.label}
-            secondary={left > 0 ? `${s.pricePerNight} € · liko ${left}` : "Užimta"}
-            active={selected === s.id}
+            key={type.id}
+            primary={type.label}
+            secondary={left > 0 ? `${type.pricePerNight} €${Number.isFinite(left) ? ` · liko ${left}` : ""}` : "Užimta"}
+            active={selected === type.id}
             disabled={left === 0}
-            onClick={() => onSelect(s.id)}
+            onClick={() => onSelect(type.id)}
           />
         );
       })}

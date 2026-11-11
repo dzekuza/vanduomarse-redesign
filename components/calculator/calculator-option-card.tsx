@@ -29,7 +29,7 @@ export function CalculatorOptionCard({ eyebrow, title, description, price, selec
         {description ? <p className={`text-xs leading-relaxed ${selected ? "text-dust/80" : "text-copy"}`}>{description}</p> : null}
         <p className="text-xs font-bold">{price}</p>
       </div>
-      <div className={`mt-auto space-y-4 border-t pt-3 ${selected ? "border-line-on-ink" : "border-line"}`}>
+      <div className="mt-auto flex flex-wrap items-end gap-x-4 gap-y-4">
         {children}
         <button
           type="button"

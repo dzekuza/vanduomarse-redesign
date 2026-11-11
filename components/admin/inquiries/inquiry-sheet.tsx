@@ -7,6 +7,10 @@ import { NoteForm } from "./note-form";
 import { INQUIRY_SOURCE, INQUIRY_STATUS } from "@/lib/admin/labels";
 import { formatDateTime, formatDay, formatEurRange } from "@/lib/admin/format";
 import type { Inquiry, InquiryStatus } from "@/lib/admin/types";
+import { findStayType } from "@/lib/cabin";
+import { formatHour } from "@/lib/sauna";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -18,7 +22,8 @@ interface InquirySheetProps {
 
 /** Inquiry details: request, estimate, contact, status pipeline and notes. */
 export function InquirySheet({ inquiry, onOpenChange }: InquirySheetProps) {
-  const { setInquiryStatus, addInquiryNote } = useAdmin();
+  const { setInquiryStatus, addInquiryNote, acceptInquiry, releaseInquiry, stayTypes, saunas, programs, upsells } = useAdmin();
+  const holdable = !!inquiry && (inquiry.stays.length > 0 || inquiry.saunas.length > 0);
   return (
     <Sheet open={!!inquiry} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
@@ -68,6 +73,43 @@ export function InquirySheet({ inquiry, onOpenChange }: InquirySheetProps) {
               </dl>
 
               <blockquote className="border-l-2 border-rust pl-3 text-sm">{inquiry.message}</blockquote>
+
+              {holdable ? (
+                <div className="space-y-3 border-t pt-4">
+                  <p className="text-sm font-medium">Užimami nameliai ir pirtys</p>
+                  <ul className="space-y-1 text-sm">
+                    {inquiry.stays.map((s) => (
+                      <li key={s.typeId}>
+                        {s.units} × {findStayType(stayTypes, s.typeId)?.label ?? s.typeId}, {inquiry.stayNights} {inquiry.stayNights === 1 ? "naktis" : "naktys"}
+                      </li>
+                    ))}
+                    {inquiry.saunas.map((s) => (
+                      <li key={s.saunaId}>
+                        {saunas.find((x) => x.id === s.saunaId)?.name ?? s.saunaId}, {s.programId ? (programs.find((p) => p.id === s.programId)?.name ?? s.programId) : `${s.hours} val.`}
+                        {s.startHour === null ? <span className="text-muted-foreground"> (be laiko – neužimama)</span> : <>, nuo {formatHour(s.startHour)}</>}
+                        {Object.keys(s.extras).length > 0 ? <span className="text-muted-foreground"> · {Object.entries(s.extras).map(([id, qty]) => `${upsells.find((u) => u.id === id)?.name ?? id}${qty > 1 ? ` × ${qty}` : ""}`).join(", ")}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-muted-foreground">Data: {inquiry.date ? formatDay(inquiry.date) : "nenurodyta"}.</p>
+                  {inquiry.acceptedAt ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Badge>Užimta</Badge>
+                      <Button variant="outline" className="min-h-11" onClick={() => releaseInquiry(inquiry.id).then((r) => "data" in r && toast.success("Atlaisvinta"))}>
+                        Atlaisvinti
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      className="min-h-11"
+                      disabled={!inquiry.date}
+                      onClick={() => acceptInquiry(inquiry.id).then((r) => "data" in r && toast.success("Užklausa priimta, nameliai ir pirtys užimti"))}
+                    >
+                      Priimti ir užimti
+                    </Button>
+                  )}
+                </div>
+              ) : null}
 
               <div className="space-y-1 border-t pt-4 text-sm">
                 <p className="font-medium">{inquiry.customer.name}</p>

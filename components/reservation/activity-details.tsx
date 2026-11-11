@@ -1,4 +1,4 @@
-import { CABIN_SIZES, CAMPER_MAX_GUESTS, ROOM_TYPES } from "@/lib/cabin";
+import { guestsLabel, lowestStayPrice, stayTypesOf } from "@/lib/cabin";
 import { Cta } from "@/components/cta";
 import { QuadInformation } from "@/components/quads/quad-information";
 import type { ActivityId, ReservationData } from "@/lib/reservation";
@@ -6,7 +6,10 @@ import type { ActivityId, ReservationData } from "@/lib/reservation";
 /** Dialog introduction, using the same price catalogues as the activity controls. */
 export function activityBlurb(id: ActivityId, data: ReservationData): string {
   if (id === "pirtis") return "Prisijunk prie pirties seanso arba rezervuok privačią pirtį savo grupei.";
-  if (id === "nakvyne") return `Nameliai 2 ar 4 asmenims ir kemperių aikštelė su elektra. Nuo ${CABIN_SIZES[0].pricePerNight} € / naktį.`;
+  if (id === "nakvyne") {
+    const from = lowestStayPrice(data.cabin.stayTypes);
+    return `Nameliai ir kemperių aikštelės Vanduo Marse parke.${from === null ? "" : ` Nuo ${from} € / naktį.`}`;
+  }
   const routes = data.quads.tourRoutes;
   if (routes.length === 0) return "Keturračių turai su gidu ir nuoma valandomis.";
   const from = Math.min(...routes.map((route) => route.price));
@@ -60,22 +63,28 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
   }
 
   if (id === "nakvyne") {
+    const cabins = stayTypesOf(data.cabin.stayTypes, "namelis");
+    const campers = stayTypesOf(data.cabin.stayTypes, "kemperis");
     return (
       <div className="space-y-6">
-        <Section title="Nameliai">
-          <ul className="space-y-3">
-            {CABIN_SIZES.map((s) => (
-              <Item key={s.id} title={`Namelis ${s.label}`} meta={`${s.pricePerNight} € / naktį`} />
-            ))}
-          </ul>
-        </Section>
-        <Section title="Kemperiams">
-          <ul className="space-y-3">
-            {ROOM_TYPES.filter((r) => r.id === "kemperis").map((r) => (
-              <Item key={r.id} title={`${r.label}, ${r.note}`} text={`Telpa iki ${CAMPER_MAX_GUESTS} žmonių.`} meta={`${r.pricePerNight} € / naktį`} />
-            ))}
-          </ul>
-        </Section>
+        {cabins.length ? (
+          <Section title="Nameliai">
+            <ul className="space-y-3">
+              {cabins.map((t) => (
+                <Item key={t.id} title={t.label} text={t.note || undefined} meta={`${t.pricePerNight} € / naktį · ${guestsLabel(t.maxGuests)}`} />
+              ))}
+            </ul>
+          </Section>
+        ) : null}
+        {campers.length ? (
+          <Section title="Kemperiams">
+            <ul className="space-y-3">
+              {campers.map((t) => (
+                <Item key={t.id} title={t.note ? `${t.label}, ${t.note}` : t.label} text={`Telpa ${guestsLabel(t.maxGuests)}.`} meta={`${t.pricePerNight} € / naktį`} />
+              ))}
+            </ul>
+          </Section>
+        ) : null}
       </div>
     );
   }

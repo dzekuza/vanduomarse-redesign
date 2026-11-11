@@ -35,6 +35,3 @@ export const newBookingSchema = z
   });
 
 export type NewBookingValues = z.infer<typeof newBookingSchema>;
-
-/** Most guests a stay allows (sheet: quads sleep 4; camper pitch is a family). */
-export const STAY_MAX_GUESTS = { namelis: 4, kemperis: 6 } as const;

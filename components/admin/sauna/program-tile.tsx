@@ -36,7 +36,7 @@ export function ProgramTile({ program: p, sessions, onToggle, onEdit, onDelete }
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-1">
-          <p className="font-display text-figure font-bold">{programPriceLine(p)}</p>
+          <p className="font-display text-sm font-medium">{programPriceLine(p)}</p>
           <p className="text-xs text-muted-foreground">
             {PROGRAM_KIND_LABEL[p.kind]}
             {p.kind === "session" ? ` · seansų: ${sessions}` : ""}

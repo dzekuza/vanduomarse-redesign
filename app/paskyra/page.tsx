@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { AccountLogin } from "@/components/account/account-login";
 import { ProfileCard } from "@/components/account/profile-card";
-import { RequestList } from "@/components/account/request-list";
+import { AccountTabs } from "@/components/account/account-tabs";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
-import { loadMyRequests } from "@/lib/account-data";
+import { loadMyInquiries, loadMyRequests, loadMyRiders } from "@/lib/account-data";
 import { getCustomer } from "@/lib/customer";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 /** "Mano rezervacijos": sign in with a code, then the customer's reservations first and their account details beside them. */
 export default async function AccountPage() {
   const customer = await getCustomer();
-  const requests = customer ? await loadMyRequests() : [];
+  const [requests, inquiries, riders] = customer ? await Promise.all([loadMyRequests(), loadMyInquiries(), loadMyRiders()]) : [[], [], []];
 
   return (
     <BookingPage>
@@ -24,7 +24,7 @@ export default async function AccountPage() {
         {customer ? (
           <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
             <div className="lg:col-span-2">
-              <RequestList requests={requests} />
+              <AccountTabs requests={requests} inquiries={inquiries} riders={riders} />
             </div>
             <div className="lg:col-span-1">
               <ProfileCard customer={customer} />

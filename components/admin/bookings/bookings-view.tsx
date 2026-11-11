@@ -27,7 +27,7 @@ const TAB_IDS = ["sarasas", "kalendorius"] as const;
 
 /** Bookings list with filters; a row opens the details sheet. */
 export function BookingsView() {
-  const { bookings } = useAdmin();
+  const { bookings, stayTypes } = useAdmin();
   const [filters, setFilters] = useState(INITIAL);
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -117,7 +117,7 @@ export function BookingsView() {
                         ) : null}
                       </p>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{bookingTypeLabel(b)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{bookingTypeLabel(b, stayTypes)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{b.guests ?? "—"}</TableCell>
                     <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(b.total)}</TableCell>
                     <TableCell>

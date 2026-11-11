@@ -1,7 +1,8 @@
 "use server";
 
 import type { ActionResult } from "@/app/admin/actions";
-import { CABIN_DAYS, SAUNA_DAYS, getCabinPageData, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import type { CalculatorCatalog } from "@/lib/event-pricing";
+import { CABIN_DAYS, SAUNA_DAYS, getCabinPageData, getQuadPageData, getSaunaPageData, getCalculatorCatalog } from "@/lib/data/public";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 
 /** Activities of the home page that have an online booking form. */
@@ -26,4 +27,13 @@ export async function loadBookingData(kind: BookableKind): Promise<ActionResult<
     return { error: { message: "Nepavyko įkelti rezervacijos. Bandykite dar kartą.", code: "load" } };
   }
   return { error: { message: "Nežinoma veikla.", code: "invalid" } };
+}
+
+/** Live cabin sizes and saunas with their prices, for the event calculator drawer (opened from the static home page). */
+export async function loadCalculatorCatalog(): Promise<ActionResult<CalculatorCatalog>> {
+  try {
+    return { data: await getCalculatorCatalog() };
+  } catch {
+    return { error: { message: "Nepavyko įkelti nakvynės ir pirčių kainų.", code: "load" } };
+  }
 }

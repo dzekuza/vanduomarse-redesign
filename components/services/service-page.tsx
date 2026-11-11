@@ -7,6 +7,7 @@ import { PARK_ADDRESS, SERVICE_GALLERY, SERVICES, type ServicePhoto } from "@/co
 import { LandingAccordion } from "@/components/landing/landing-accordion";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { CONTACTS, MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
+import type { StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
 import { CELEBRATION_LINKS } from "./celebration-content";
@@ -37,12 +38,14 @@ function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; childr
   );
 }
 
-export function ServicePage({ slug, booking, schedule, sauna, quads, photos, wake }: {
+export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake }: {
   slug: ServiceSlug;
   booking?: ReactNode;
   schedule?: ReactNode;
   sauna?: SaunaPageData;
   quads?: QuadPageData;
+  /** Active stay types, for the Nakvynė price list. */
+  stayTypes?: StayType[];
   photos?: ServicePhoto[];
   wake?: ParkEventData[];
 }) {
@@ -110,7 +113,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, photos, wak
                 {slug === "pirtis" ? <a href={`mailto:${contact.email}`} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Susisiekti dėl pirties</a> : null}
               </div>
             </Section>
-            <Section id="kainos"><ServicePricing slug={slug} sauna={sauna} quads={quads} /></Section>
+            <Section id="kainos"><ServicePricing slug={slug} sauna={sauna} quads={quads} stayTypes={stayTypes} /></Section>
             <Section id="galerija"><ServicePhotoMosaic photos={gallery} label={`${copy.label}: galerija`} /></Section>
             <Section id="tvarkarastis">{schedule ?? <ServiceSchedule wake={wake} note={copy.availabilityNote} hasCalendar={Boolean(booking)} />}</Section>
             <Section id="atsiliepimai"><ServiceReviews service={copy.service} /></Section>

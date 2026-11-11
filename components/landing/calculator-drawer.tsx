@@ -1,6 +1,8 @@
 "use client";
 
 import { XIcon } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { loadCalculatorCatalog } from "@/app/actions/booking-data";
 import { BookingCard, type BookingStep } from "@/components/booking/booking-card";
 import { SteppedBooking } from "@/components/booking/stepped";
 import { CALCULATOR_SECTIONS } from "@/components/calculator/calculator-sections";
@@ -8,13 +10,19 @@ import { EstimateSummary } from "@/components/calculator/estimate-summary";
 import { useEventCalculator } from "@/components/calculator/use-event-calculator";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { formatMoney } from "@/lib/event-pricing";
+import { EMPTY_CATALOG, formatMoney, type CalculatorCatalog } from "@/lib/event-pricing";
 import { DRAWER_PANEL, MODAL_CLOSE, MODAL_OVERLAY } from "./dialog-motion";
 
 /** Header with the live total, then the questions as steps and a last step with the breakdown and the inquiry form. */
 function CalculatorPanel() {
-  const calc = useEventCalculator();
+  const [catalog, setCatalog] = useState<CalculatorCatalog>(EMPTY_CATALOG);
+  const calc = useEventCalculator(undefined, catalog);
   const { result, input, guests, space, preset } = calc;
+
+  useEffect(() => {
+    // The home page is static, so the live cabin and sauna prices load when the drawer opens.
+    void loadCalculatorCatalog().then((res) => "data" in res && setCatalog(res.data)).catch(() => undefined);
+  }, []);
 
   const steps: BookingStep[] = [
     ...CALCULATOR_SECTIONS.map(({ id, label, Section }) => ({ id, label, content: <Section calc={calc} /> })),

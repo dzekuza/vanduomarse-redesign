@@ -76,6 +76,11 @@ export async function confirmLoginCode(input: unknown): Promise<ActionResult<Cus
   return { data: customer };
 }
 
+/** The signed-in customer (or null), for forms on pages that are not rendered per request, such as the home page drawer. */
+export async function loadCurrentCustomer(): Promise<Customer | null> {
+  return getCustomer();
+}
+
 /** Remembers the name on the account so the next booking is pre-filled. */
 export async function saveCustomerName(input: unknown): Promise<ActionResult<null>> {
   const name = customerNameSchema.safeParse(input);
@@ -84,6 +89,40 @@ export async function saveCustomerName(input: unknown): Promise<ActionResult<nul
   const { error } = await (await createClient()).auth.updateUser({ data: { full_name: name.data } });
   if (error) return fail(GENERIC, "auth");
   return { data: null };
+}
+
+/**
+ * Adds a phone to a signed-in account (for example one created with an email): Supabase texts a code to the
+ * new number, and the number only counts once `confirmPhoneChange` verifies it. Same destination rules as sign-in.
+ */
+export async function sendPhoneChangeCode(input: unknown): Promise<ActionResult<CodeSent>> {
+  const target = loginTargetSchema.safeParse({ channel: "phone", value: input });
+  if (!target.success) return fail(target.error.issues[0]?.message ?? "Neteisingas telefono numeris.", "invalid");
+  if (!(await getCustomer())) return fail("Prisijunkite, kad tęstumėte.", "unauthorized");
+  const phone = toE164(target.data.value);
+  if (!phone) return fail("Neteisingas telefono numeris.", "invalid");
+  if (!smsDestinationAllowed(phone)) return fail("SMS šiai šaliai nesiunčiame.", "destination");
+
+  const { error } = await (await createClient()).auth.updateUser({ phone });
+  if (error) {
+    if (error.code === "phone_exists") return fail("Šis numeris jau naudojamas kitoje paskyroje.", "exists");
+    return authFailure(error, "Neteisingas telefono numeris.");
+  }
+  return { data: { channel: "phone", value: phone, resendIn: 60 } };
+}
+
+export async function confirmPhoneChange(input: unknown): Promise<ActionResult<Customer>> {
+  const { phone, code } = (input ?? {}) as { phone?: unknown; code?: unknown };
+  const parsedCode = loginCodeSchema.safeParse(code);
+  const parsedPhone = typeof phone === "string" ? toE164(phone) : null;
+  if (!parsedCode.success || !parsedPhone) return fail("Įveskite kodą iš žinutės.", "invalid");
+  if (!(await getCustomer())) return fail("Prisijunkite, kad tęstumėte.", "unauthorized");
+
+  const { data, error } = await (await createClient()).auth.verifyOtp({ phone: parsedPhone, token: parsedCode.data, type: "phone_change" });
+  if (error) return authFailure(error, "Neteisingas kodas. Patikrinkite žinutę ir bandykite dar kartą.");
+  const customer = data.user ? toCustomer(data.user) : null;
+  if (!customer) return fail(GENERIC, "auth");
+  return { data: customer };
 }
 
 export async function signOutCustomer(): Promise<ActionResult<null>> {

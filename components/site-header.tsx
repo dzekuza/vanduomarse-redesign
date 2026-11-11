@@ -48,6 +48,8 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
         "fixed inset-x-0 top-0 z-20 flex h-21.5 items-center justify-between gap-3.5 border-b border-transparent px-gutter py-4 text-dust transition-[background-color,border-color] duration-200 md:h-26.5 md:gap-8 md:py-5",
         placement === "overlay" && "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500 motion-safe:ease-out-strong",
         scrolled && !menuOpen && "border-line-on-ink bg-ink/95 backdrop-blur-md",
+        // The open menu panel is coral: switch the bar from light to ink text.
+        menuOpen && "text-ink",
       )}
     >
       <Link href={logoHref} aria-label="Vanduo Marse, pradžia" className="w-29 shrink-0 md:w-35">
@@ -58,7 +60,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
           <Link
             key={l.href}
             href={l.href}
-            className="relative inline-flex min-h-11 items-center after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-dust motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100"
+            className="relative inline-flex min-h-11 items-center after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100"
           >
             {l.label}
           </Link>
@@ -72,10 +74,10 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
           aria-expanded={menuOpen}
           aria-controls="menu-panel"
           onClick={() => setMenuOpen((o) => !o)}
-          className="grid size-11 place-content-center gap-1.75 border border-line-on-ink transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-95 md:w-12"
+          className={cn("grid size-11 place-content-center gap-1.75 border transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-95 md:w-12", menuOpen ? "border-ink/30" : "border-line-on-ink")}
         >
-          <span className={cn("h-px w-5 bg-dust motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong", menuOpen && "translate-y-1 rotate-45")} />
-          <span className={cn("h-px w-5 bg-dust motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong", menuOpen && "-translate-y-1 -rotate-45")} />
+          <span className={cn("h-px w-5 bg-current motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong", menuOpen && "translate-y-1 rotate-45")} />
+          <span className={cn("h-px w-5 bg-current motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong", menuOpen && "-translate-y-1 -rotate-45")} />
         </button>
       </div>
     </header>

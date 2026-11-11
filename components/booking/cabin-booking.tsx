@@ -14,34 +14,20 @@ import { DayPicker, type DayNote } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
 import { StepLabel } from "./step-label";
 import { Stepper } from "./stepper";
-import {
-  CABIN_SIZES,
-  CAMPER_MAX_GUESTS,
-  cabinStayType,
-  freeCabins,
-  roomPrice,
-  type CabinAvailability,
-  type CabinSize,
-  type RoomTypeId,
-} from "@/lib/cabin";
+import { freeStayUnits, freeStayUnitsOfKind, stayTypesOf, type StayKind, type StayType } from "@/lib/cabin";
 import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
 import type { CabinPageData } from "@/lib/data/public-types";
 import { contactSchema, type ContactInput } from "@/lib/request-schema";
 import { dateKey, nextDays } from "@/lib/sauna";
 
-/** Cabins of any size free for every night of the stay. */
-function freeAll(availability: CabinAvailability, checkIn: Date, nights: number): number {
-  return CABIN_SIZES.reduce((sum, s) => sum + freeCabins(availability, checkIn, nights, s.id), 0);
-}
-
 export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; days: number }) {
-  const { availability } = data;
+  const { availability, stayTypes } = data;
   const days = useMemo(() => nextDays(data.today, dayCount), [data.today, dayCount]);
   const [nights, setNights] = useState(2);
-  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeAll(availability, d, 2) > 0) ?? days[0]);
+  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeStayUnitsOfKind(stayTypes, availability, d, 2, "namelis") > 0) ?? days[0]);
   const [guests, setGuests] = useState(2);
-  const [roomId, setRoomId] = useState<RoomTypeId>("namelis");
-  const [preferredSize, setPreferredSize] = useState<CabinSize>(2);
+  const [kind, setKind] = useState<StayKind>(() => (stayTypesOf(stayTypes, "namelis").length > 0 ? "namelis" : "kemperis"));
+  const [preferredId, setPreferredId] = useState<string | null>(null);
   const [coupon, setCoupon] = useState<CheckedCoupon | null>(null);
   const [confirmed, setConfirmed] = useState<{ reference: string; total: number; coupon?: { code: string; discount: number } } | null>(null);
 
@@ -50,27 +36,30 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
     defaultValues: { customerName: "", customerPhone: "", customerEmail: "", website: "" },
   });
 
-  const cabin = roomId === "namelis";
-  const free = (size: CabinSize) => freeCabins(availability, checkIn, nights, size);
-  // Fall back to the other size when the preferred one is booked out for this stay.
-  const size = free(preferredSize) > 0 ? preferredSize : (CABIN_SIZES.find((s) => free(s.id) > 0)?.id ?? preferredSize);
-  const soldOut = cabin && free(size) === 0;
-  const maxGuests = cabin ? size : CAMPER_MAX_GUESTS;
+  const cabin = kind === "namelis";
+  const ofKind = stayTypesOf(stayTypes, kind);
+  const free = (type: StayType) => freeStayUnits(availability, checkIn, nights, type);
+  // Fall back to another type of the kind when the preferred one is booked out for this stay.
+  const preferred = ofKind.find((t) => t.id === preferredId) ?? ofKind[0];
+  const type: StayType | undefined = preferred && free(preferred) > 0 ? preferred : (ofKind.find((t) => free(t) > 0) ?? preferred);
+  const soldOut = !type || free(type) === 0;
+  const maxGuests = type?.maxGuests ?? 1;
   const shownGuests = Math.min(guests, maxGuests);
-  const subtotal = roomPrice(roomId, size) * nights;
+  const subtotal = (type?.pricePerNight ?? 0) * nights;
   const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
   const total = subtotal - discount;
 
   function dayNote(d: Date): DayNote | undefined {
     if (!cabin) return undefined;
-    const left = freeAll(availability, d, nights);
+    const left = freeStayUnitsOfKind(stayTypes, availability, d, nights, "namelis");
     return { text: left > 0 ? `liko ${left}` : "Užimta", disabled: left === 0 };
   }
 
   /** Stored as a pending request: the database prices it and re-checks the free cabins. */
   const submit = form.handleSubmit(async (contact) => {
+    if (!type) return;
     const result = await createStayBooking({
-      stayTypeId: cabin ? cabinStayType(size) : roomId,
+      stayTypeId: type.id,
       date: dateKey(checkIn),
       nights,
       guests: shownGuests,
@@ -89,8 +78,7 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         checkIn={checkIn}
         nights={nights}
         guests={shownGuests}
-        roomId={roomId}
-        size={size}
+        label={type?.label ?? "Nakvynė"}
         total={confirmed.total}
         coupon={confirmed.coupon}
         onReset={() => {
@@ -121,8 +109,8 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
         <div>
           <StepLabel step={2}>Tipas</StepLabel>
           <div className="grid gap-2">
-            <RoomTypePicker selected={roomId} onSelect={setRoomId} />
-            {cabin && <CabinSizePicker selected={size} onSelect={setPreferredSize} free={free} />}
+            <RoomTypePicker types={stayTypes} selected={kind} onSelect={setKind} />
+            {ofKind.length > 1 && type ? <CabinSizePicker types={ofKind} selected={type.id} onSelect={setPreferredId} free={free} legend={cabin ? "Namelio tipas" : "Aikštelės tipas"} /> : null}
           </div>
         </div>
       ),

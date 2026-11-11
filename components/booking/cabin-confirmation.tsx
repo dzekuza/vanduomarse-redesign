@@ -2,7 +2,6 @@
 
 import { Receipt } from "./receipt";
 import { VENUE } from "@/lib/calendar";
-import { roomLabel, type CabinSize, type RoomTypeId } from "@/lib/cabin";
 import { longDateLabel } from "@/lib/sauna";
 
 interface CabinConfirmationProps {
@@ -10,15 +9,14 @@ interface CabinConfirmationProps {
   checkIn: Date;
   nights: number;
   guests: number;
-  roomId: RoomTypeId;
-  size: CabinSize;
+  /** Name of the booked stay type. */
+  label: string;
   total: number;
   coupon?: { code: string; discount: number };
   onReset: () => void;
 }
 
-export function CabinConfirmation({ reference, checkIn, nights, guests, roomId, size, total, coupon, onReset }: CabinConfirmationProps) {
-  const label = roomLabel(roomId, size);
+export function CabinConfirmation({ reference, checkIn, nights, guests, label, total, coupon, onReset }: CabinConfirmationProps) {
   const checkOut = new Date(checkIn);
   checkOut.setDate(checkOut.getDate() + nights);
 

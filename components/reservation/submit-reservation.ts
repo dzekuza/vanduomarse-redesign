@@ -1,6 +1,5 @@
 import { quadTourGear, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { fileRequest } from "@/lib/file-request";
-import { cabinStayType } from "@/lib/cabin";
 import { discountCovers, type CheckedDiscount } from "@/lib/discount-codes";
 import type { ReservationRequest } from "@/lib/payments";
 import type { ContactInput } from "@/lib/request-schema";
@@ -49,7 +48,7 @@ function requestFor(id: ActivityId, plans: Plans, when: When, tour: QuadTourPick
   if (id === "nakvyne" && nakvyne) {
     return {
       type: "stayBooking",
-      input: { stayTypeId: nakvyne.roomId === "namelis" ? cabinStayType(nakvyne.size) : nakvyne.roomId, date: when.day, nights: nakvyne.nights, units: nakvyne.units },
+      input: { stayTypeId: nakvyne.typeId, date: when.day, nights: nakvyne.nights, units: nakvyne.units },
     };
   }
   return null;

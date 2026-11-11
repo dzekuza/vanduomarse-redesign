@@ -1,6 +1,6 @@
 import { parseDay } from "@/lib/admin/format";
-import { CABIN_COUNT } from "./labels";
 import type { Block, Booking } from "./types";
+import type { StayType } from "@/lib/cabin";
 import { dateKey, type SaunaRates } from "@/lib/sauna";
 
 const active = (b: Booking) => b.status !== "atsaukta";
@@ -17,10 +17,10 @@ export function saunaBookingAt(bookings: Booking[], day: string, hour: number): 
   );
 }
 
-/** Cabin or camper units occupied during the night of `day`. */
-export function stayUnitsOn(bookings: Booking[], day: string, kind: "namelis" | "kemperis"): number {
+/** Cabin or camper units occupied during the night of `day`, of one stay type when `typeId` is given. */
+export function stayUnitsOn(bookings: Booking[], day: string, kind: "namelis" | "kemperis", typeId?: string): number {
   return bookings.reduce((total, b) => {
-    if (!active(b) || b.kind !== kind || !b.nights) return total;
+    if (!active(b) || b.kind !== kind || !b.nights || (typeId !== undefined && b.stayTypeId !== typeId)) return total;
     const end = parseDay(b.date);
     end.setDate(end.getDate() + b.nights);
     return b.date <= day && day < dateKey(end) ? total + (b.stayUnits ?? 1) : total;
@@ -52,8 +52,9 @@ export function freeStartHours(bookings: Booking[], blocks: Block[], rates: Saun
   return hours;
 }
 
-/** Nights (from `day`, for `nights`) on which every cabin is already taken. */
-export function fullCabinNights(bookings: Booking[], day: string, nights: number): string[] {
-  const start = parseDay(day);
-  return daysFrom(start, nights).filter((d) => stayUnitsOn(bookings, d, "namelis") >= CABIN_COUNT);
+/** Nights (from `day`, for `nights`) on which every unit of this stay type is already taken; none for unlimited stock. */
+export function fullStayNights(bookings: Booking[], day: string, nights: number, type: StayType): string[] {
+  const { units } = type;
+  if (units === null) return [];
+  return daysFrom(parseDay(day), nights).filter((d) => stayUnitsOn(bookings, d, type.kind, type.id) >= units);
 }

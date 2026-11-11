@@ -1,29 +1,33 @@
 "use client";
 
-import { ROOM_TYPES, type RoomTypeId } from "@/lib/cabin";
+import { STAY_KIND_LABEL, lowestStayPrice, stayTypesOf, type StayKind, type StayType } from "@/lib/cabin";
 
-export function RoomTypePicker({ selected, onSelect }: { selected: RoomTypeId; onSelect: (id: RoomTypeId) => void }) {
+/** Cabin or camper pitch: one button per kind that has at least one active type. */
+export function RoomTypePicker({ types, selected, onSelect }: { types: StayType[]; selected: StayKind; onSelect: (kind: StayKind) => void }) {
+  const kinds = (["namelis", "kemperis"] as const).filter((kind) => stayTypesOf(types, kind).length > 0);
   return (
     <div className="grid gap-2 sm:grid-cols-2">
-      {ROOM_TYPES.map((room) => {
-        const active = selected === room.id;
+      {kinds.map((kind) => {
+        const active = selected === kind;
+        const ofKind = stayTypesOf(types, kind);
+        const note = ofKind.length === 1 ? ofKind[0].note : `${ofKind.length} tipai`;
         return (
           <button
-            key={room.id}
+            key={kind}
             type="button"
-            onClick={() => onSelect(room.id)}
+            onClick={() => onSelect(kind)}
             aria-pressed={active}
             className={`flex items-center justify-between border px-4 py-4 text-left transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-98 ${
               active ? "border-ink bg-ink text-foam" : "border-ink text-ink hover:border-rust"
             }`}
           >
             <div>
-              <p className="font-normal">{room.label}</p>
-              <p className={active ? "text-foam/70" : "text-ink/50"}>{room.note}</p>
+              <p className="font-normal">{STAY_KIND_LABEL[kind]}</p>
+              <p className={active ? "text-foam/70" : "text-ink/50"}>{note}</p>
             </div>
             <p className="font-display text-figure font-bold">
-              {room.id === "namelis" && <span className="font-sans text-sm font-normal normal-case">nuo </span>}
-              {room.pricePerNight} €
+              {ofKind.length > 1 && <span className="font-sans text-sm font-normal normal-case">nuo </span>}
+              {lowestStayPrice(types, kind)} €
             </p>
           </button>
         );

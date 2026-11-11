@@ -53,6 +53,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
         slug={service}
         sauna={activity === "pirtis" ? sauna : undefined}
         quads={activity === "keturraciai" ? quads : undefined}
+        stayTypes={activity === "nakvyne" ? cabin.stayTypes : undefined}
         photos={photos}
         booking={<ReservationFlow activity={activity} header={null} data={data} initialDay={saunaDay} payments={paymentsEnabled()} initialCustomer={customer} />}
         schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : activity === "keturraciai" ? <QuadSchedule data={quads} /> : undefined}

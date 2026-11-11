@@ -4,17 +4,7 @@
  * rules as its own booking page (`lib/sauna.ts`, `lib/quads.ts`, `lib/cabin.ts`);
  * the database re-prices and re-checks every request on submit.
  */
-import {
-  CABIN_SIZES,
-  MAX_STAY_NIGHTS,
-  MAX_STAY_UNITS,
-  freeStayUnits,
-  roomLabel,
-  roomPrice,
-  type CabinSize,
-  type RoomTypeId,
-  type StayUnitType,
-} from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, MAX_STAY_UNITS, findStayType, freeStayUnits, stayTypesOf, type StayType } from "@/lib/cabin";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import { quadTourStarts } from "@/components/quads/quad-tour-plan";
 import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
@@ -83,8 +73,8 @@ export interface QuadPick {
   hours: number;
 }
 export interface StayPick {
-  roomId: RoomTypeId;
-  size: CabinSize;
+  /** A `stay_types` id (cabin size or camper pitch). */
+  typeId: string;
   nights: number;
   units: number;
 }
@@ -136,8 +126,10 @@ export interface QuadPlan extends QuadPick {
 }
 export interface StayPlan extends StayPick {
   kind: "nakvyne";
+  /** The chosen type, or null once it is gone (hidden or deleted) from the catalogue. */
+  type: StayType | null;
   /** Free units of a type for the whole stay. */
-  free: (type: StayUnitType) => number;
+  free: (type: StayType) => number;
   ok: boolean;
   price: number;
 }
@@ -157,7 +149,7 @@ export interface PlanLine {
 
 /** Which activities have anything to book right now. */
 export function offered(data: ReservationData): Record<ActivityId, boolean> {
-  return { pirtis: data.sauna.saunas.length > 0, keturraciai: data.quads.types.some((t) => t.units > 0), nakvyne: true };
+  return { pirtis: data.sauna.saunas.length > 0, keturraciai: data.quads.types.some((t) => t.units > 0), nakvyne: data.cabin.stayTypes.length > 0 };
 }
 
 export function defaultPick<K extends ActivityId>(id: K, data: ReservationData): NonNullable<Picks[K]>;
@@ -168,7 +160,8 @@ export function defaultPick(id: ActivityId, data: ReservationData): SaunaPick | 
     return { programId: first?.id ?? null, eventId: null, children: 0, saunaId: sauna?.id ?? "", startHour: null, hours: sauna?.rates.minHours ?? 2, extras: {} };
   }
   if (id === "keturraciai") return { quantities: {}, startHour: null, hours: 1 };
-  return { roomId: "namelis", size: CABIN_SIZES[0].id, nights: 1, units: 1 };
+  const types = data.cabin.stayTypes;
+  return { typeId: (stayTypesOf(types, "namelis")[0] ?? types[0])?.id ?? "", nights: 1, units: 1 };
 }
 
 /** Whole hours `[start, start + hours)` of a private program are free, open and not past. */
@@ -386,12 +379,13 @@ export function planQuads(pick: QuadPick, data: QuadPageData, day: string, busy:
 }
 
 export function planStay(pick: StayPick, data: CabinPageData, day: string): StayPlan {
-  const { roomId, size, nights, units } = pick;
+  const { nights, units } = pick;
+  const type = findStayType(data.stayTypes, pick.typeId) ?? null;
   const checkIn = nextDays(day, 1)[0];
-  const free = (type: StayUnitType) => freeStayUnits(data.availability, checkIn, nights, type);
+  const free = (t: StayType) => freeStayUnits(data.availability, checkIn, nights, t);
   const validNights = Number.isInteger(nights) && nights >= 1 && nights <= MAX_STAY_NIGHTS;
-  const ok = validNights && Number.isInteger(units) && units >= 1 && units <= Math.min(MAX_STAY_UNITS, free(roomId === "namelis" ? size : roomId));
-  return { ...pick, kind: "nakvyne", free, ok, price: ok ? roomPrice(roomId, size) * nights * units : 0 };
+  const ok = !!type && validNights && Number.isInteger(units) && units >= 1 && units <= Math.min(MAX_STAY_UNITS, free(type));
+  return { ...pick, kind: "nakvyne", type, free, ok, price: ok && type ? type.pricePerNight * nights * units : 0 };
 }
 
 /**
@@ -411,8 +405,7 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
   // Tours are sold on scheduled departures only, so a day is open when a route has one with enough free quads.
   const keturraciai = data.quads.tourRoutes.some((route) => quadTourStarts(data.quads, day, route).length > 0);
   const checkIn = nextDays(day, 1)[0];
-  const hasStay = (type: StayUnitType) => freeStayUnits(data.cabin.availability, checkIn, nights, type) > 0;
-  const nakvyne = hasStay("kemperis") || CABIN_SIZES.some(({ id }) => hasStay(id));
+  const nakvyne = data.cabin.stayTypes.some((type) => freeStayUnits(data.cabin.availability, checkIn, nights, type) > 0);
   return { pirtis: sessionOpen || privateOpen, keturraciai, nakvyne };
 }
 
@@ -461,7 +454,7 @@ export function describePlans(plans: Plans, when: When): PlanLine[] {
   }
   if (nakvyne) {
     const departure = longDateLabel(nextDays(when.day, nakvyne.nights + 1)[nakvyne.nights]);
-    lines.push({ id: "nakvyne", title: "Nakvynė", detail: `${nakvyne.units} × ${roomLabel(nakvyne.roomId, nakvyne.size)}, ${nakvyne.nights} n.`, schedule: `Atvykimas ${dayLabel}, išvykimas ${departure}`, price: nakvyne.price });
+    lines.push({ id: "nakvyne", title: "Nakvynė", detail: `${nakvyne.units} × ${nakvyne.type?.label ?? "Nakvynė"}, ${nakvyne.nights} n.`, schedule: `Atvykimas ${dayLabel}, išvykimas ${departure}`, price: nakvyne.price });
   }
   return lines;
 }

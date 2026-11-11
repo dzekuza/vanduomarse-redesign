@@ -54,7 +54,7 @@ const soldOn = (iso: string) => todayKey(new Date(iso));
 
 type SalesSource = Pick<
   AdminData,
-  "bookings" | "quadRentals" | "quadTypes" | "tourTickets" | "eventTickets" | "events" | "coupons" | "purchases" | "riders"
+  "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "tourTickets" | "eventTickets" | "events" | "coupons" | "purchases" | "riders"
 >;
 
 /** Every sale from every source as one list, newest first. */
@@ -67,7 +67,7 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `b-${b.id}`,
       category: b.kind === "pirtis" ? "pirtis" : "nakvyne",
       soldOn: soldOn(b.createdAt),
-      item: bookingTypeLabel(b),
+      item: bookingTypeLabel(b, data.stayTypes),
       when,
       customer: b.customer.name,
       reference: b.reference,

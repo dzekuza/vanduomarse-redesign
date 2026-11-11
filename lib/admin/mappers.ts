@@ -1,4 +1,5 @@
 import { isPermissionId } from "@/lib/admin/permissions";
+import type { StayType } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
@@ -75,7 +76,44 @@ export function toInquiry(r: InquiryRow): Inquiry {
     notes: r.inquiry_notes
       .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
       .map((n) => ({ at: n.created_at, text: n.text })),
+    ...inquiryStays(r.calculator_input),
+    saunas: inquirySaunas(r.calculator_input),
+    acceptedAt: r.accepted_at ?? undefined,
   };
+}
+
+function pickExtras(extras: unknown): Record<string, number> {
+  if (typeof extras !== "object" || extras === null || Array.isArray(extras)) return {};
+  return Object.fromEntries(Object.entries(extras).flatMap(([id, qty]) => (Number.isInteger(qty) && Number(qty) > 0 ? [[id, Number(qty)] as const] : [])));
+}
+
+/** The saunas in a calculator quote (`saunas`: sauna id -> hours, start hour or null). */
+function inquirySaunas(input: Tables<"inquiries">["calculator_input"]): Inquiry["saunas"] {
+  const record = typeof input === "object" && input !== null && !Array.isArray(input) ? input : {};
+  const picked = record.saunas;
+  if (typeof picked !== "object" || picked === null || Array.isArray(picked)) return [];
+  return Object.entries(picked).flatMap(([saunaId, pick]) => {
+    if (typeof pick !== "object" || pick === null || Array.isArray(pick)) return [];
+    const hours = Number(pick.hours);
+    const start = pick.startHour;
+    return Number.isInteger(hours) && hours > 0
+      ? [{ saunaId, hours, startHour: typeof start === "number" && Number.isInteger(start) ? start : null, programId: typeof pick.programId === "string" && pick.programId ? pick.programId : null, extras: pickExtras(pick.extras) }]
+      : [];
+  });
+}
+
+/** The cabins in a calculator quote: `cabinUnits` (stay type id -> count; the first calculator keyed by size, "2" / "4") and `cabinNights`. */
+function inquiryStays(input: Tables<"inquiries">["calculator_input"]): Pick<Inquiry, "stays" | "stayNights"> {
+  const record = typeof input === "object" && input !== null && !Array.isArray(input) ? input : {};
+  const units = record.cabinUnits;
+  const nights = Number(record.cabinNights);
+  const stays = typeof units === "object" && units !== null && !Array.isArray(units)
+    ? Object.entries(units).flatMap(([key, count]) => {
+        const n = Number(count);
+        return Number.isInteger(n) && n > 0 ? [{ typeId: /^\d+$/.test(key) ? `namelis-${key}` : key, units: n }] : [];
+      })
+    : [];
+  return { stays, stayNights: Number.isInteger(nights) && nights >= 1 ? nights : 1 };
 }
 
 export function toManagedEvent(r: Tables<"events">): ManagedEvent {
@@ -267,6 +305,20 @@ export function toRiderWaiver(r: Tables<"rider_waivers">): RiderWaiver {
 
 export function toQuadType(r: Tables<"quad_types">): QuadType {
   return { id: r.id, name: r.name, description: r.description, seats: r.seats, units: r.units, pricePerHour: r.price_per_hour, active: r.active };
+}
+
+export function toStayType(r: Tables<"stay_types">): StayType {
+  return {
+    id: r.id,
+    kind: r.kind === "kemperis" ? "kemperis" : "namelis",
+    label: r.label,
+    note: r.note,
+    maxGuests: r.max_guests,
+    pricePerNight: Number(r.price_per_night),
+    units: r.units,
+    active: r.active,
+    sortOrder: r.sort_order,
+  };
 }
 
 export function toQuadSettings(r: Tables<"quad_settings">): QuadSettings {

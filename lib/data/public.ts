@@ -1,7 +1,11 @@
 import "server-only";
 import { connection } from "next/server";
-import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
-import { CABIN_SIZES, MAX_STAY_NIGHTS, cabinStayType, type CabinAvailability } from "@/lib/cabin";
+import type { Sauna } from "@/lib/sauna";
+import type { SaunaProgram } from "@/lib/sauna-programs";
+import type { Upsell } from "@/lib/sauna-upsells";
+import type { CalculatorCatalog } from "@/lib/event-pricing";
+import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
+import { MAX_STAY_NIGHTS, type CabinAvailability, type StayType } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
@@ -142,30 +146,72 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
   };
 }
 
+/** Active stay types (cabin sizes, camper pitches) in display order; RLS lets anon read inactive rows too, so filter here. */
+export async function getStayTypes(): Promise<StayType[]> {
+  await connection();
+  const supabase = createPublicClient();
+  return must(await supabase.from("stay_types").select("*").eq("active", true).order("sort_order"), "Stay types").map(toStayType);
+}
+
+/** Active saunas for the event calculator: the same rows and rates as /pirtis, so quotes match real prices. */
+async function getActiveSaunas(): Promise<Sauna[]> {
+  await connection();
+  const supabase = createPublicClient();
+  const { url } = supabaseEnv();
+  const rows = must(
+    await supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").eq("active", true).order("sort_order").order("created_at"),
+    "Saunas",
+  );
+  return rows.map((r) => toSauna(r, r.sauna_upsell_links, url));
+}
+
+/** Active private sauna programs (a whole sauna at a flat price), for the event calculator. */
+async function getPrivatePrograms(): Promise<SaunaProgram[]> {
+  await connection();
+  const supabase = createPublicClient();
+  const rows = must(
+    await supabase.from("sauna_programs").select("*").eq("active", true).eq("kind", "private").order("sort_order"),
+    "Sauna programs",
+  );
+  return rows.map(toSaunaProgram).filter((p) => p.saunaId !== null);
+}
+
+/** Active sauna extras (priedai), for the event calculator. */
+async function getActiveUpsells(): Promise<Upsell[]> {
+  await connection();
+  const supabase = createPublicClient();
+  return must(await supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"), "Sauna upsells").map(toUpsell);
+}
+
+/** Everything the event calculator reads from the database: cabin sizes, saunas and their private programs. */
+export async function getCalculatorCatalog(): Promise<CalculatorCatalog> {
+  const [stayTypes, saunas, programs, upsells] = await Promise.all([getStayTypes(), getActiveSaunas(), getPrivatePrograms(), getActiveUpsells()]);
+  return { stayTypes, saunas, programs, upsells };
+}
+
 export async function getCabinPageData(availabilityWindow?: AvailabilityWindow): Promise<CabinPageData> {
   await connection();
   const supabase = createPublicClient();
   const today = todayKey(availabilityWindow?.now);
   // Last check-in day plus the longest stay.
   const last = addDays(today, (availabilityWindow?.days ?? CABIN_DAYS) + MAX_STAY_NIGHTS);
-  const rows = await readAvailabilityRows(
-    (from, to) => supabase
-      .rpc("stay_occupancy", { p_from: today, p_to: last }, { count: "exact" })
-      .order("day").order("stay_type_id")
-      .range(from, to),
-    "Cabin availability",
-  );
+  const [stayTypes, rows] = await Promise.all([
+    getStayTypes(),
+    readAvailabilityRows(
+      (from, to) => supabase
+        .rpc("stay_occupancy", { p_from: today, p_to: last }, { count: "exact" })
+        .order("day").order("stay_type_id")
+        .range(from, to),
+      "Cabin availability",
+    ),
+  ]);
 
   const availability: CabinAvailability = {};
   for (const row of rows) {
     if (row.units === null) continue;
-    const type = row.stay_type_id === "kemperis"
-      ? "kemperis"
-      : CABIN_SIZES.find(({ id }) => cabinStayType(id) === row.stay_type_id)?.id;
-    if (type === undefined) continue;
-    (availability[row.day] ??= {})[type] = Math.max(0, row.units - row.taken);
+    (availability[row.day] ??= {})[row.stay_type_id] = Math.max(0, row.units - row.taken);
   }
-  return { today, availability };
+  return { today, stayTypes, availability };
 }
 
 export async function getParkEvents(): Promise<ParkEventData[]> {

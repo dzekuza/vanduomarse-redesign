@@ -1,5 +1,7 @@
-import { CABIN_SIZES, type CabinSize } from "./cabin";
-import { MASTER_PRICE, sessionPrice } from "./sauna";
+import { stayTypesOf, type StayType } from "./cabin";
+import { sessionPrice, type Sauna } from "./sauna";
+import { durationLabel, programTotal, type SaunaProgram } from "./sauna-programs";
+import { upsellTotal, type Upsell } from "./sauna-upsells";
 
 /**
  * Event price estimator, built from "Kainodara'26-'27.xlsx" (valid until 2027-12-31).
@@ -186,7 +188,6 @@ export const PRICES = {
   decor: range(150, 250),
   serving: 7,
   /** Sheet conflict: +100 € on the sauna rows, 200 € in the contract terms. */
-  saunaMaster: range(MASTER_PRICE, 200),
   wakePrivate: 1694,
   wakeRider: 20,
   atvTour: 72,
@@ -226,6 +227,31 @@ export const PRESETS: EventPreset[] = [
 
 /* ---------- Estimate ---------- */
 
+/** One sauna in the quote: session length, start hour (null until chosen) and the Pirtininkas add-on. */
+export interface SaunaPick {
+  hours: number;
+  startHour: number | null;
+  /** Extras (priedai) from `sauna_upsells`: upsell id -> item count, or 1 for an on / off extra. */
+  extras: Record<string, number>;
+  /** A private program of this sauna (flat price and length) instead of hourly rates; null = by the hour. */
+  programId: string | null;
+}
+
+/** Whole hours a private program blocks (a 2.5 h program holds 3). */
+export const programHours = (program: Pick<SaunaProgram, "durationMinutes">) => Math.ceil(program.durationMinutes / 60);
+
+/** Live prices the estimate needs from the database: cabin sizes (`stay_types`) and the active saunas. */
+export interface CalculatorCatalog {
+  stayTypes: readonly StayType[];
+  saunas: readonly Sauna[];
+  /** Active private programs; each belongs to one sauna (`saunaId`). */
+  programs: readonly SaunaProgram[];
+  /** Active extras; each sauna offers the ones in its `upsellIds`. */
+  upsells: readonly Upsell[];
+}
+
+export const EMPTY_CATALOG: CalculatorCatalog = { stayTypes: [], saunas: [], programs: [], upsells: [] };
+
 export interface EstimateInput {
   preset: PresetId | null;
   /** yyyy-mm-dd of the event, null until chosen. */
@@ -244,12 +270,13 @@ export interface EstimateInput {
   bartenders: number;
   decor: boolean;
   serving: boolean;
-  saunaHours: number;
-  saunaMaster: boolean;
+  /** Saunas picked for the event, by sauna id; a sauna with a start hour is held when staff accept the inquiry. */
+  saunas: Record<string, SaunaPick>;
   wakePrivate: boolean;
   wakeRiders: number;
   atvRiders: number;
-  cabinUnits: Record<CabinSize, number>;
+  /** Cabins wanted per stay type id. */
+  cabinUnits: Record<string, number>;
   cabinNights: number;
 }
 
@@ -267,12 +294,11 @@ export const DEFAULT_INPUT: EstimateInput = {
   bartenders: 0,
   decor: false,
   serving: false,
-  saunaHours: 0,
-  saunaMaster: false,
+  saunas: {},
   wakePrivate: false,
   wakeRiders: 0,
   atvRiders: 0,
-  cabinUnits: { 2: 0, 4: 0 },
+  cabinUnits: {},
   cabinNights: 1,
 };
 
@@ -300,7 +326,8 @@ export interface Estimate {
 }
 
 
-export function estimate(input: EstimateInput): Estimate {
+/** `catalog` supplies the cabin and sauna prices (they live in `public.stay_types` and `public.saunas`). */
+export function estimate(input: EstimateInput, { stayTypes, saunas, programs, upsells }: CalculatorCatalog = EMPTY_CATALOG): Estimate {
   const space = input.space ? SPACES.find((s) => s.id === input.space)! : null;
   const guests = input.adults + input.kids;
   const lines: EstimateLine[] = [];
@@ -358,10 +385,22 @@ export function estimate(input: EstimateInput): Estimate {
   if (input.serving) push("Paslaugos", "Stalų serviravimas", fixed(PRICES.serving * guests));
 
   // Activities
-  if (input.saunaHours > 0) {
-    push("Pramogos", `Pirtis, ${Math.max(2, input.saunaHours)} val.`, fixed(sessionPrice(input.saunaHours, guests)));
-    if (guests > 20) warnings.push("Pirtyje vienu metu telpa iki 20 asm., didesnė grupė keičiasi.");
-    if (input.saunaMaster) push("Pramogos", "Pirtininkas", PRICES.saunaMaster);
+  for (const sauna of saunas) {
+    const pick = input.saunas[sauna.id];
+    if (!pick || pick.hours <= 0) continue;
+    const program = pick.programId ? programs.find((p) => p.id === pick.programId && p.saunaId === sauna.id) : undefined;
+    if (program) {
+      push("Pramogos", `${sauna.name}: ${program.name}, ${durationLabel(program.durationMinutes)}`, fixed(programTotal(program, guests, 0)));
+    } else {
+      push("Pramogos", `${sauna.name}, ${Math.max(sauna.rates.minHours, pick.hours)} val.`, fixed(sessionPrice(pick.hours, guests, sauna.rates)));
+    }
+    const hours = program ? programHours(program) : Math.max(sauna.rates.minHours, pick.hours);
+    for (const upsell of upsells) {
+      const qty = pick.extras[upsell.id] ?? 0;
+      if (qty <= 0 || !sauna.upsellIds.includes(upsell.id)) continue;
+      push("Pramogos", `${upsell.name}${upsell.unit === "vienetui" ? ` × ${qty}` : ""} (${sauna.name})`, fixed(upsellTotal(upsell, qty, { partySize: guests, hours })));
+    }
+    if (guests > sauna.rates.maxParty) warnings.push(`${sauna.name}: telpa iki ${sauna.rates.maxParty} asm., didesnė grupė keičiasi.`);
   }
   if (input.wakePrivate) push("Pramogos", "Privati WAKE trasa, 2 val.", fixed(PRICES.wakePrivate));
   if (input.wakeRiders > 0) push("Pramogos", `WAKE plaukimas × ${input.wakeRiders}`, fixed(PRICES.wakeRider * input.wakeRiders));
@@ -371,10 +410,10 @@ export function estimate(input: EstimateInput): Estimate {
   }
 
   // Stay
-  for (const cabin of CABIN_SIZES) {
-    const units = input.cabinUnits[cabin.id];
+  for (const cabin of stayTypesOf(stayTypes, "namelis")) {
+    const units = input.cabinUnits[cabin.id] ?? 0;
     if (units > 0) {
-      push("Nakvynė", `${cabin.name} · ${units} vnt. × ${input.cabinNights} n.`, fixed(cabin.pricePerNight * units * input.cabinNights));
+      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(cabin.pricePerNight * units * input.cabinNights));
     }
   }
 

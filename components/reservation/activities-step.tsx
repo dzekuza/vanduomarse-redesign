@@ -89,7 +89,7 @@ export function ActivitiesStep({ data, when, tab, sessionId, onSessionDay, onSes
         />
       ) : null}
       {tab === "nakvyne" && nakvyne ? (
-        <StayOptions plan={nakvyne} datesSelected={stayNights !== null} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onRemove("nakvyne")} />
+        <StayOptions plan={nakvyne} stayTypes={data.cabin.stayTypes} datesSelected={stayNights !== null} included={included} onChange={(p) => onPick({ ...picks, nakvyne: p })} onRemove={() => onRemove("nakvyne")} />
       ) : null}
       {included && (tab === "keturraciai" || (tab === "pirtis" && !pirtis)) ? (
         <button type="button" onClick={() => onRemove(tab)} className="inline-flex min-h-11 items-center text-sm text-ink/70 underline underline-offset-4 hover:text-rust">

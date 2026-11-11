@@ -17,7 +17,7 @@ interface RiderSelectProps {
 /** Longest list a search can usefully show before it's just scrolling. */
 const MAX_RESULTS = 50;
 
-/** Picks an existing rider by name — searchable (since `riders` now runs into the thousands, Grabby import) or by scanning their bracelet. */
+/** Picks an existing rider by name (e-mail shown below it) — searchable by name, e-mail or phone (since `riders` now runs into the thousands, Grabby import) or by scanning their bracelet. */
 export function RiderSelect({ value, onChange, label = "Naudotojas" }: RiderSelectProps) {
   const { riders, riderCards } = useAdmin();
   const [open, setOpen] = useState(false);
@@ -29,7 +29,7 @@ export function RiderSelect({ value, onChange, label = "Naudotojas" }: RiderSele
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const rows = q === "" ? riders : riders.filter((r) => `${r.name} ${r.surname}`.toLowerCase().includes(q) || (r.phone ?? "").includes(q));
+    const rows = q === "" ? riders : riders.filter((r) => `${r.name} ${r.surname}`.toLowerCase().includes(q) || (r.email ?? "").toLowerCase().includes(q) || (r.phone ?? "").includes(q));
     return rows.slice(0, MAX_RESULTS);
   }, [riders, query]);
 
@@ -71,7 +71,7 @@ export function RiderSelect({ value, onChange, label = "Naudotojas" }: RiderSele
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <div className="flex items-center gap-1.5 border-b border-border p-2">
-          <Input autoFocus placeholder="Ieškoti pagal vardą ar telefoną" value={query} onChange={(e) => setQuery(e.target.value)} className="min-h-10" />
+          <Input autoFocus placeholder="Ieškoti pagal vardą, el. paštą ar telefoną" value={query} onChange={(e) => setQuery(e.target.value)} className="min-h-10" />
           <button
             type="button"
             aria-label={scanning ? "Baigti skenuoti" : "Skenuoti apyrankę"}
@@ -118,8 +118,11 @@ export function RiderSelect({ value, onChange, label = "Naudotojas" }: RiderSele
                   r.id === value && "bg-accent",
                 )}
               >
-                <span className="truncate">
-                  {r.name} {r.surname}
+                <span className="min-w-0 py-1.5">
+                  <span className="block truncate">
+                    {r.name} {r.surname}
+                  </span>
+                  {r.email ? <span className="block truncate text-xs text-muted-foreground">{r.email}</span> : null}
                 </span>
                 {r.id === value ? <CheckIcon size={16} className="shrink-0 text-primary" /> : null}
               </button>
