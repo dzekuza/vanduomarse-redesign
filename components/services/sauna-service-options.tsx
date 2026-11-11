@@ -13,14 +13,19 @@ export interface SaunaServiceVenue {
 
 const SAUNA_CONTACT = CONTACTS.find(({ name }) => name === "Pirtis Marse") ?? MAIN_CONTACT;
 
-/** The active saunas from the admin, in display order; a private booking is by the hour (2-4 h) with an optional pirtininkas. */
+const FINNISH_SAUNA_ID = "suomiska-sauna";
+
+/** Show the Finnish sauna first, then the other active saunas in catalogue order. */
 export function saunaServiceVenues(data: SaunaPageData): SaunaServiceVenue[] {
-  return data.saunas.filter(({ active }) => active).map(({ id, name, rates }) => ({
-    id,
-    label: name,
-    maxParty: rates.maxParty,
-    hasPrices: Object.keys(rates.weekdayPrices).length + Object.keys(rates.weekendPrices).length > 0,
-  }));
+  return data.saunas
+    .filter(({ active }) => active)
+    .sort((a, b) => Number(b.id === FINNISH_SAUNA_ID) - Number(a.id === FINNISH_SAUNA_ID))
+    .map(({ id, name, rates }) => ({
+      id,
+      label: name,
+      maxParty: rates.maxParty,
+      hasPrices: Object.keys(rates.weekdayPrices).length + Object.keys(rates.weekendPrices).length > 0,
+    }));
 }
 
 interface SaunaServicePrivateOptionsProps {
@@ -30,21 +35,21 @@ interface SaunaServicePrivateOptionsProps {
   disabled?: boolean;
 }
 
-const CHOICE = "min-h-16 min-w-0 flex-col items-start justify-center gap-1 px-3 py-2 text-left";
+const CHOICE = "min-h-18 min-w-0 flex-col items-start justify-center gap-1 px-3 py-2 text-left";
 
-/** Shown after "Privati pirtis": the admin's saunas (Pirties tipas), or a contact line for a sauna with no prices. */
+/** Show the venue choices before the private booking mode is selected. */
 export function SaunaServicePrivateOptions({ venues, venueId, onVenue, disabled }: SaunaServicePrivateOptionsProps) {
   const venue = venues.find(({ id }) => id === venueId);
 
   return (
     <div className="space-y-5">
-      <fieldset disabled={disabled}>
+      <fieldset disabled={disabled} className="min-w-0 disabled:opacity-50">
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
           <WavesIcon size={18} aria-hidden /> Pirtis
         </legend>
         <div className="grid grid-cols-2 gap-2">
-          {venues.map(({ id, label, maxParty }) => (
-            <FilterChip key={id} active={id === venueId} onClick={() => onVenue(id)} className={CHOICE}>
+          {venues.map(({ id, label, maxParty, hasPrices }) => (
+            <FilterChip key={id} active={id === venueId} onClick={() => onVenue(id)} className={hasPrices ? CHOICE : `${CHOICE} border-dashed`}>
               <span className="font-bold">{label}</span>
               <span className={id === venueId ? "text-dust/80" : "text-copy"}>Iki {maxParty} žmonių</span>
             </FilterChip>

@@ -41,9 +41,9 @@ type Mode = SaunaMode;
 /** Whether the venue offers shared sessions next to private hire. */
 export const saunaHasSessions = (data: SaunaPageData) => data.events.length > 0 || data.programs.some((program) => program.active && program.kind === "session");
 
-const TYPES: { id: Mode; title: string; hint: string }[] = [
-  { id: "private", title: "Privati pirtis", hint: "Visa pirtis jūsų grupei" },
-  { id: "session", title: "Pirties seansas", hint: "Vieta bendrame seanse" },
+const TYPES: { id: Mode; title: string }[] = [
+  { id: "private", title: "Privati pirtis" },
+  { id: "session", title: "Pirties seansas" },
 ];
 
 /** Type, date and time lead into the existing reservation plan. */
@@ -87,7 +87,6 @@ export function SaunaServiceBooking({
   const rowsFor = (day: string) => mode === "session" ? sessionRows(data, day).filter((row) => row.mode === "session") : hourlyRow(day);
   const rows = date && canPickDate ? rowsFor(dateKey(date)) : [];
   const selectedRow = rows.find((row) => row.mode === "session" && row.eventId === pick.eventId);
-  const time = plan?.mode === "hourly" && plan.startHour !== null ? String(plan.startHour) : selectedRow?.key;
   const event = data.events.find(({ key }) => key === sessionId);
   const eventDate = event && days.find((day) => dateKey(day) === event.date);
   const dialogRow = event && eventDate && sessionRows(data, event.date).find(({ eventId }) => eventId === event.key);
@@ -112,21 +111,20 @@ export function SaunaServiceBooking({
       {lockedMode ? null : <fieldset disabled={busy}>
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold"><WavesIcon size={18} aria-hidden /> Tipas</legend>
         <div className="grid grid-cols-2 gap-2">
-          {TYPES.filter(({ id }) => id === "private" || hasSessions).map(({ id, title, hint }) => (
+          {TYPES.filter(({ id }) => id === "private" || hasSessions).map(({ id, title }) => (
             <FilterChip key={id} active={mode === id} onClick={() => {
               if (mode === id) return;
               setMode(id);
               setCalendarOpen(false);
               onRemove();
-            }} className="min-h-16 min-w-0 flex-col items-start justify-center gap-1 px-3 py-2 text-left">
-              <span className="font-bold">{title}</span>
-              <span className={mode === id ? "text-dust/80" : "text-copy"}>{hint}</span>
+            }} className="min-w-0 justify-center px-2 py-2 text-center font-bold">
+              {title}
             </FilterChip>
           ))}
         </div>
       </fieldset>}
-      {mode === "private" ? (
-        <SaunaServicePrivateOptions venues={venues} venueId={venueId} disabled={busy}
+      {mode !== "session" && venues.length > 0 ? (
+        <SaunaServicePrivateOptions venues={venues} venueId={venueId} disabled={busy || mode === null}
           onVenue={(id) => {
             if (id === venueId) return;
             setVenueId(id);
@@ -140,9 +138,19 @@ export function SaunaServiceBooking({
           masterId={masterId} onMaster={setMaster} disabled={busy} />
       ) : null}
       <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
-        icons={(day) => {
+        dayDetails={(day) => {
           const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
-          return [{ Icon: WavesIcon, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];
+          const label = available ? "Laisva" : "Pilna";
+          const color = available ? "text-availability-open" : "text-rust-ink";
+          return {
+            label,
+            available,
+            indicator: (
+              <span className="@container mx-auto block w-6">
+                <span className={`relative left-1/2 block w-max -translate-x-1/2 text-calendar-status font-bold ${color}`}>{label}</span>
+              </span>
+            ),
+          };
         }}
       />
       {mode === "session" && date ? (
@@ -151,13 +159,24 @@ export function SaunaServiceBooking({
           familyControls={plan?.mode === "session" && plan.program?.pricing === "family"
             ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable />
             : null} />
-      ) : (
-            <SaunaServiceTime rows={rows} value={time} busy={busy} dateSelected={Boolean(date) && canPickDate} onSelect={(row, hour) => {
-          if (row.mode === "session") selectSession(row, 1);
-          else onPick({ ...pick, programId: null, eventId: null, children: 0, saunaId: venueId ?? pick.saunaId, startHour: hour, hours: draft.hours, masterId: draft.masterId }, people);
-        }} />
-      )}
-      {mode === "private" && sauna?.rates && venue?.hasPrices ? <SaunaServicePeople sauna={sauna} people={people} onPeople={onPeople} disabled={busy} /> : null}
+      ) : date && canPickDate ? (
+        <SaunaServiceTime
+          hours={rows[0]?.startHours ?? []}
+          selected={hourly?.startHour ?? null}
+          busy={busy}
+          onSelect={(startHour) => onPick({
+            ...pick,
+            programId: null,
+            eventId: null,
+            children: 0,
+            saunaId: venueId ?? pick.saunaId,
+            startHour,
+            hours: wantedHours,
+            masterId,
+          }, people)}
+        />
+      ) : null}
+      {mode === "private" && hourly?.startHour != null && sauna ? <SaunaServicePeople sauna={sauna} people={people} onPeople={onPeople} disabled={busy} /> : null}
       {hourly && hourly.upsells.length ? (
         <fieldset disabled={busy}>
           <OptionGroupLabel>Papildomai</OptionGroupLabel>

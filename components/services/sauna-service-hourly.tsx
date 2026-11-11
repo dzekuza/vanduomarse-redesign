@@ -2,11 +2,11 @@
 
 import { ClockIcon, UsersIcon, UserIcon } from "@phosphor-icons/react";
 import { FilterChip } from "@/components/events/filter-chip";
-import { hoursLabel, isWeekendDay, pricesFor, sessionLengths, type Sauna } from "@/lib/sauna";
+import { hoursLabel, pricesFor, type Sauna } from "@/lib/sauna";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 
 const LEGEND = "mb-3 flex items-center gap-2 text-sm font-bold";
-const TILE = "min-h-11 min-w-0 justify-center px-2 text-center";
+const TILE = "min-h-14 min-w-0 flex-col justify-center gap-1 px-1 py-2 text-center leading-tight";
 
 interface SaunaServiceHourlyProps {
   sauna: Sauna;
@@ -28,28 +28,44 @@ export function SaunaServiceHourly({ sauna, masters, day, hours, onHours, master
   const { rates } = sauna;
   const master = masters.find((m) => m.id === masterId) ?? null;
   const floor = master?.minHours ?? 0;
-  const all = [...new Set([...sessionLengths(rates), ...sessionLengths(rates, "2026-11-13")])].sort((a, b) => a - b).filter((h) => h >= floor);
-  const offered = (h: number) => day === null || sessionLengths(rates, day, floor).includes(h);
-  const chosen = all.filter(offered).find((h) => h >= hours) ?? all.filter(offered).at(-1) ?? null;
-  const weekday = chosen === null ? undefined : pricesFor(rates)[chosen];
-  const weekend = chosen === null ? undefined : pricesFor(rates, "2026-11-13")[chosen];
+  const { weekdayPrices, weekendPrices } = rates;
+  const lengths = [...new Set([...Object.keys(weekdayPrices), ...Object.keys(weekendPrices)].map(Number))]
+    .filter((hours) => hours >= floor)
+    .sort((a, b) => a - b);
+  const dayPrices = day === null ? null : pricesFor(rates, day);
+  const offered = (hours: number) => dayPrices === null || dayPrices[hours] !== undefined;
+  const availableLengths = lengths.filter(offered);
+  const chosen = availableLengths.find((length) => length >= hours) ?? availableLengths.at(-1);
+  const basePrice = chosen === undefined ? undefined : dayPrices?.[chosen];
+  const weekday = chosen === undefined ? undefined : weekdayPrices[chosen];
+  const weekend = chosen === undefined ? undefined : weekendPrices[chosen];
 
   return (
     <div className="space-y-5">
       <fieldset disabled={disabled}>
         <legend className={LEGEND}><ClockIcon size={18} aria-hidden /> Trukmė</legend>
         <div className="grid grid-cols-4 gap-2">
-          {all.map((h) => (
-            <FilterChip key={h} active={h === chosen} disabled={!offered(h)} onClick={() => onHours(h)} className={TILE}>
-              {hoursLabel(h)}
-            </FilterChip>
-          ))}
+          {lengths.map((hours) => {
+            const tariffs = [weekdayPrices[hours], weekendPrices[hours]].filter((price) => price !== undefined);
+            const lowest = Math.min(...tariffs);
+            const price = dayPrices === null ? lowest : dayPrices[hours];
+            const from = dayPrices === null && tariffs.some((tariff) => tariff !== lowest);
+
+            return (
+              <FilterChip key={hours} active={hours === chosen} disabled={!offered(hours)} onClick={() => onHours(hours)} className={TILE}>
+                <span className="font-bold">{hoursLabel(hours)}</span>
+                <span className={hours === chosen ? "text-dust/80" : "text-copy"}>
+                  {price === undefined ? "–" : `${from ? "nuo " : ""}${euro(price)}`}
+                </span>
+              </FilterChip>
+            );
+          })}
         </div>
-        {chosen !== null ? (
-          <p className="mt-2 text-xs text-copy">
+        {chosen !== undefined ? (
+          <p className="mt-2 text-sm text-copy">
             Bazinė kaina{" "}
-            {day !== null ? (
-              <strong className="text-ink">{euro((isWeekendDay(day) ? weekend : weekday) ?? 0)}</strong>
+            {basePrice !== undefined ? (
+              <strong className="text-ink">{euro(basePrice)}</strong>
             ) : (
               <>
                 <strong className="text-ink">{weekday === undefined ? "–" : euro(weekday)}</strong> I–IV ·{" "}

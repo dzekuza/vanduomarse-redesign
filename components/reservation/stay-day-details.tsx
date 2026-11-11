@@ -10,10 +10,14 @@ export function stayDayDetails(types: readonly StayType[], availability: CabinAv
   const capacity = stayStock(types, "namelis");
   if (capacity === 0) return null;
   const free = freeStayUnitsOfKind(types, availability, date, nights, "namelis");
+  return stayAvailabilityDetails("Laisvų namelių", free, capacity);
+}
+
+export function stayAvailabilityDetails(label: string, free: number, capacity?: number): ReservationDayDetails {
   return {
-    label: `Laisvų namelių: ${free} iš ${capacity}`,
+    label: capacity === undefined ? (free > 0 ? `${label}: yra vietų` : `${label}: užimta`) : `${label}: ${free} iš ${capacity}`,
     available: free > 0,
-    indicator: (
+    indicator: capacity === undefined ? undefined : (
       <span className="@container block">
         <span className="block text-calendar-status">
           <AvailabilityCount free={free} capacity={capacity} binary />
