@@ -6,7 +6,7 @@ import { CABIN_SIZES, MAX_STAY_NIGHTS, cabinStayType, type CabinAvailability } f
 import type { CouponProduct } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
-import { EVENTS_WINDOW_DAYS, type ParkEventData } from "@/lib/park-events";
+import { CELEBRATION_WINDOW_DAYS, EVENTS_WINDOW_DAYS, type CelebrationScheduleData, type ParkEventData } from "@/lib/park-events";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { EVENT_WINDOW_DAYS, saunaSessionHref } from "@/lib/sauna-events";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -170,22 +170,24 @@ export async function getCabinPageData(availabilityWindow?: AvailabilityWindow):
   return { today, availability };
 }
 
-export async function getParkEvents(): Promise<ParkEventData[]> {
+export async function getParkEvents(windowDays = EVENTS_WINDOW_DAYS, date?: string): Promise<ParkEventData[]> {
   await connection();
   const supabase = createPublicClient();
-  const today = todayKey();
-  const rows = must(
-    await supabase
+  const today = date ?? todayKey();
+  const rows = await readAvailabilityRows(
+    (from, to) => supabase
       .from("events")
-      .select("*")
+      .select("*", { count: "exact" })
+      .eq("published", true)
       .gte("date", today)
-      .lte("date", addDays(today, EVENTS_WINDOW_DAYS - 1))
+      .lte("date", addDays(today, windowDays - 1))
       .order("date")
-      .order("start_time"),
+      .order("start_time")
+      .order("id")
+      .range(from, to),
     "Events",
   );
 
-  // RLS already limits anon to published rows.
   return rows.map((e) => ({
     key: e.id,
     title: e.title,
@@ -196,6 +198,7 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
     blurb: e.blurb,
     price: e.price,
     spotsLeft: spotsLeft(e),
+    capacity: e.capacity ?? undefined,
     cta:
       e.category === "pirtis" && e.capacity !== null
         ? { label: "Pirkti bilietą", href: saunaSessionHref(e.id) }
@@ -203,6 +206,20 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
           ? { label: "Registruotis į žygį", href: "/rezervacija?veikla=keturraciai" }
           : { label: "Registruotis" },
   }));
+}
+
+/** Public event details plus the dates explicitly marked private by staff. */
+export async function getCelebrationSchedule(): Promise<CelebrationScheduleData> {
+  await connection();
+  const today = todayKey();
+  const supabase = createPublicClient();
+  const [events, dates] = await Promise.all([
+    getParkEvents(CELEBRATION_WINDOW_DAYS, today),
+    supabase.rpc("private_event_dates", { p_from: today, p_to: addDays(today, CELEBRATION_WINDOW_DAYS - 1) }),
+  ]);
+  // Until the calendar migration is applied the published event schedule can still render.
+  const privateDates = dates.error?.code === "PGRST202" ? [] : must(dates, "Private event dates").map(({ event_date }) => event_date);
+  return { today, events, privateDates };
 }
 
 /** Active coupon products for /kuponai (RLS limits anon to active rows). */

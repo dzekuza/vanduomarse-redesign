@@ -10,6 +10,15 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0067 — Publish private event dates without event details
+
+- **Date:** 2026-11-11
+- **Context:** The public celebration calendar needs to show private dates alongside published events.
+- **Decision:** Staff choose draft, public or private visibility through the existing event permissions. Private events remain unpublished. A bounded public RPC returns only distinct dates marked private. The published feed supplies public event details.
+- **Consequences:** Existing drafts remain hidden. The public calendar can show a private marker on the same date as a public event without receiving any private event details.
+
+---
+
 ## ADR-0059 — WAKE season pass orders use the coupon catalogue
 
 - **Date:** 2026-11-11

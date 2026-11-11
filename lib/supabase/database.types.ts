@@ -506,6 +506,7 @@ export type Database = {
       events: {
         Row: {
           blurb: string
+          calendar_private: boolean
           capacity: number | null
           category: Database["public"]["Enums"]["event_category"]
           created_at: string
@@ -525,6 +526,7 @@ export type Database = {
         }
         Insert: {
           blurb: string
+          calendar_private?: boolean
           capacity?: number | null
           category: Database["public"]["Enums"]["event_category"]
           created_at?: string
@@ -544,6 +546,7 @@ export type Database = {
         }
         Update: {
           blurb?: string
+          calendar_private?: boolean
           capacity?: number | null
           category?: Database["public"]["Enums"]["event_category"]
           created_at?: string
@@ -2218,6 +2221,10 @@ export type Database = {
           status: string
           stripe_session_id: string
         }[]
+      }
+      private_event_dates: {
+        Args: { p_from: string; p_to: string }
+        Returns: { event_date: string }[]
       }
       quad_taken: {
         Args: { p_from: string; p_to: string }

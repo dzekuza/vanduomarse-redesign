@@ -92,6 +92,7 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     capacity: r.capacity,
     sold: r.sold,
     published: r.published,
+    calendarPrivate: r.calendar_private ?? false,
     programId: r.program_id ?? undefined,
     tourRouteId: r.tour_route_id ?? undefined,
   };

@@ -20,7 +20,7 @@ export const eventSchema = z.object({
   price: optionalAmount,
   capacity: optionalAmount,
   blurb: z.string().trim().min(10, "Aprašymas per trumpas.").max(240),
-  published: z.boolean(),
+  visibility: z.enum(["draft", "public", "private"]),
   /** Sauna program id, or "" for none. */
   programId: z.string(),
 }).refine(
