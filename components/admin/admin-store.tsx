@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import * as actions from "@/app/admin/actions";
 import * as discountActions from "@/app/admin/discount-actions";
 import * as notificationActions from "@/app/admin/notification-actions";
+import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
@@ -54,6 +55,7 @@ type Action =
   | { type: "couponProduct/delete"; id: string }
   | { type: "discountCode/active"; id: string; active: boolean }
   | { type: "discountCode/delete"; id: string }
+  | { type: "siteSettings/comingSoon"; enabled: boolean }
   | { type: "notificationRecipient/active"; id: string; active: boolean }
   | { type: "notificationRecipient/delete"; id: string }
   | { type: "rental/status"; id: string; status: BookingStatus }
@@ -190,6 +192,8 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, discountCodes: state.discountCodes.map((d) => (d.id === action.id ? { ...d, active: action.active } : d)) };
     case "discountCode/delete":
       return { ...state, discountCodes: state.discountCodes.filter((d) => d.id !== action.id) };
+    case "siteSettings/comingSoon":
+      return state.siteSettings ? { ...state, siteSettings: { ...state.siteSettings, comingSoon: action.enabled } } : state;
     case "notificationRecipient/active":
       return { ...state, notificationRecipients: state.notificationRecipients.map((n) => (n.id === action.id ? { ...n, active: action.active } : n)) };
     case "notificationRecipient/delete":
@@ -428,6 +432,12 @@ function useAdminReducer(initial: AdminData) {
       deleteDiscountCode: async (id: string) => {
         const result = await report(discountActions.deleteDiscountCode(id));
         if ("data" in result) dispatch({ type: "discountCode/delete", id });
+        return result;
+      },
+      /** Not optimistic: the change goes live for every visitor, so the switch only moves once the database has it. */
+      setComingSoon: async (enabled: boolean) => {
+        const result = await report(siteSettingsActions.setComingSoon(enabled));
+        if ("data" in result) dispatch({ type: "siteSettings/comingSoon", enabled });
         return result;
       },
       /** Not optimistic: the id comes from the database and a repeated number is refused. */

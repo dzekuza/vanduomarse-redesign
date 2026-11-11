@@ -3,7 +3,7 @@ import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/per
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
-import type { AdminData } from "./types";
+import type { AdminData, SiteSettings } from "./types";
 
 /**
  * Who is signed in, their staff row (everyone can read their own) and what their
@@ -56,6 +56,17 @@ async function readNotificationRecipients(supabase: ServerSupabase, me: StaffAcc
     return [];
   }
   return data.map(toNotificationRecipient);
+}
+
+/** Site switches, owners only. Optional: before the site_settings migration the screen reads "unavailable". */
+async function readSiteSettings(supabase: ServerSupabase, me: StaffAccess): Promise<SiteSettings | null> {
+  if (!me.isOwner) return null;
+  const { data, error } = await supabase.from("site_settings").select("coming_soon").limit(1).maybeSingle();
+  if (error) {
+    console.error("Admin data: site settings", error.message);
+    return null;
+  }
+  return data ? { comingSoon: data.coming_soon } : null;
 }
 
 /**
@@ -182,6 +193,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     // RLS already hides other people's rows from non-owners; this keeps the payload explicit.
     staff: me.isOwner ? staff.data!.map(toStaffMember) : [],
     notificationRecipients: await readNotificationRecipients(supabase, me),
+    siteSettings: await readSiteSettings(supabase, me),
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),
