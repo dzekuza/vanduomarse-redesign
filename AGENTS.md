@@ -25,7 +25,7 @@ architectural choices).
 4. **Lithuanian UI copy**, no i18n library yet. Prices include 21% PVM.
 5. **Prices come from one place.** Sauna rates and extras: Supabase
    (`sauna_settings`, `sauna_upsells`), priced with `lib/sauna.ts` +
-   `lib/sauna-upsells.ts`. Cabins: `lib/cabin.ts`. Events/spaces:
+   `lib/sauna-upsells.ts`. Cabins and camper pitches: Supabase `stay_types` (owner edits them at `/admin/namukai`), read through `lib/data/public.ts`, helpers in `lib/cabin.ts`. Events/spaces:
    `lib/event-pricing.ts` (the 2026–27 sheet; ranges stay ranges). Never
    hard-code a price in a component.
 6. **Data lives in Supabase** (ADR-0007). Admin screens read and write only

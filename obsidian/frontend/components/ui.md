@@ -31,7 +31,7 @@ files are listed in the last column; re-running `shadcn add` would overwrite the
 | Select | `components/ui/select.tsx` | Radix select parts, `size` | h-11 / h-10, `bg-card` |
 | Separator | `components/ui/separator.tsx` | `orientation` | — |
 | Sheet | `components/ui/sheet.tsx` | side panel parts | — |
-| Sidebar | `components/ui/sidebar.tsx` | Provider, Sidebar, Menu*, Inset, Trigger | desktop breakpoint md → lg (`useIsMobile(1024)`); `SidebarMenuButton` centers its icon horizontally in icon-collapsed mode (`group-data-[collapsible=icon]:justify-center`) regardless of `size` — the `lg` variant zeroes padding there, which otherwise left the icon flush left with no `justify-center` |
+| Sidebar | `components/ui/sidebar.tsx` | Provider, Sidebar, Menu*, Inset, Trigger | desktop breakpoint md → lg (`useIsMobile(1024)`); `SidebarMenuButton` centers its icon horizontally in icon-collapsed mode (`group-data-[collapsible=icon]:justify-center`) regardless of `size` — the `lg` variant zeroes padding there, which otherwise left the icon flush left with no `justify-center`; `SidebarMenuBadge` is vertically centred (`top-1/2 -translate-y-1/2`) on `size="lg"` rows |
 | Skeleton | `components/ui/skeleton.tsx` | — | — |
 | Sonner | `components/ui/sonner.tsx` | `Toaster` | — (admin passes `theme="light"`) |
 | Switch | `components/ui/switch.tsx` | `checked`, `onCheckedChange` | — |

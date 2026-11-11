@@ -1,3 +1,241 @@
+## 2026-11-11 — Sidebar badge centring (robust)
+
+- **Why:** Owner still saw the badge off-centre (their pasted DOM had the old class, i.e. an unreloaded page).
+- **Changed:** `components/ui/sidebar.tsx` (badge centred with `top-1/2 -translate-y-1/2` on lg rows), changelog, ui catalog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** Hard-reload /admin and look at the badges.
+
+## 2026-11-11 — Sidebar badge vertical alignment
+
+- **Why:** Owner saw the count badges sitting higher than the sidebar labels.
+- **Changed:** `components/ui/sidebar.tsx` (`SidebarMenuBadge` lg offset), changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** Check Užklausos / Kalendorius / Kuponai badges.
+
+## 2026-11-11 — Sidebar top group alignment
+
+- **Why:** Owner said the sidebar layout looked misaligned.
+- **Changed:** `admin-nav.ts` (one top group instead of two header-less groups), changelog.
+- **Status:** `tsc` clean; not browser-checked; the exact misalignment was not seen (no screenshot, no admin login), so this is a best guess.
+- **Next:** Look at the sidebar and tell me what is still off.
+
+## 2026-11-11 — Kuponai after Kainodara
+
+- **Why:** Owner asked to place Kuponai after Kainodara.
+- **Changed:** `components/admin/admin-nav.ts`, changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** None.
+
+## 2026-11-11 — Nuolaidos after Kainodara
+
+- **Why:** Owner asked to place Nuolaidos after Kainodara.
+- **Changed:** `components/admin/admin-nav.ts`, changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** None.
+
+## 2026-11-11 — Kalendorius after Užklausos
+
+- **Why:** Owner asked to place Kalendorius after Užklausos.
+- **Changed:** `components/admin/admin-nav.ts`, changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** Check the sidebar and mobile bar.
+
+## 2026-11-11 — Užklausos after Klientai
+
+- **Why:** Owner asked to place Užklausos after Klientai.
+- **Changed:** `components/admin/admin-nav.ts`, changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** Check the sidebar.
+
+## 2026-11-11 — Sidebar: Paslaugos, Klientai second
+
+- **Why:** Owner asked to rename Pardavimai to Paslaugos and put Klientai after Apžvalga.
+- **Changed:** `components/admin/admin-nav.ts`, changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** Check the sidebar and the mobile tab bar.
+
+## 2026-11-11 — Program tile price size
+
+- **Why:** Owner asked for smaller, medium-weight price text on program cards.
+- **Changed:** `components/admin/sauna/program-tile.tsx`, changelog.
+- **Status:** not browser-checked; uncommitted.
+- **Next:** None.
+
+## 2026-11-11 — Inquiries as a drag-and-drop board
+
+- **Why:** Owner wanted /admin/uzklausos as three status columns with drag to change status.
+- **Changed:** `inquiries-board.tsx`, `inquiry-card.tsx` (new), `inquiries-view.tsx`, catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; native drag does not work on touch (panel select is the fallback).
+- **Next:** Try dragging in /admin/uzklausos; decide whether touch needs a drag library or a move menu.
+
+## 2026-11-11 — Rider picker shows e-mail; my_riders applied
+
+- **Why:** Owner asked for emails under the name in the new-bilietas dropdown, and to apply the pending migration.
+- **Changed:** `components/admin/apyrankes/rider-select.tsx`; applied `my_riders` via MCP slot `supabase-project-3` (verified); notes.
+- **Status:** `tsc` clean; dropdown not browser-checked.
+- **Next:** Check the dropdown in /admin/apyrankes; check the Vandenlentės tab with a rider's contact.
+
+## 2026-11-11 — Vandenlentės tab on /paskyra
+
+- **Why:** Owner wanted customers to see their apyrankė plan on the account page.
+- **Changed:** `rider-plans.tsx`, `account-tabs.tsx`, `app/paskyra/page.tsx`, `lib/account.ts`, `lib/account-data.ts`, hand-edited `database.types.ts`, migration `20261111210000_my_rider.sql` (NOT applied, blocked), ADR-0062, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; tab is empty until the migration is applied.
+- **Next:** Owner allows / applies the migration, then sign in with a rider's email or phone and check the tab.
+
+## 2026-11-11 — Add phone to the account
+
+- **Why:** Owner wanted customers to add a phone number on /paskyra.
+- **Changed:** `app/actions/customer.ts` (`sendPhoneChangeCode`, `confirmPhoneChange`), `add-phone.tsx`, `profile-card.tsx`, changelog.
+- **Status:** `tsc`/`eslint` clean; not run end to end (real SMS).
+- **Next:** Try it with your own number on /paskyra; consider the same for adding an email to phone-only accounts.
+
+## 2026-11-11 — Quote popup close button
+
+- **Why:** Owner saw the close icon at the top-left of the quote popup.
+- **Changed:** `inquiry-list.tsx` (own top-right close), changelog.
+- **Status:** `tsc` clean; not browser-checked as a customer.
+- **Next:** Re-open a quote on /paskyra and check the X.
+
+## 2026-11-11 — Pasiūlymai status badge removed
+
+- **Why:** Owner found the "Gauta" badge unnecessary; show text only when approved.
+- **Changed:** `inquiry-list.tsx`, changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** None.
+
+## 2026-11-11 — Pasiūlymai details popup
+
+- **Why:** Owner wanted to open all details of a quote from /paskyra.
+- **Changed:** `inquiry-list.tsx` (client, popup), `lib/account.ts` / `account-data.ts` (`message`, `lines`, `contact`), `database.types.ts`, migration `20261111200000_my_inquiries_details.sql` (applied; first attempt blocked, applied after the owner allowed it), ADR-0061, changelog.
+- **Status:** `tsc`/`eslint` clean; migration verified; not browser-checked as a customer.
+- **Next:** Sign in as a customer, open Pasiūlymai and click a quote.
+
+## 2026-11-11 — Inquiry sent popup
+
+- **Why:** Owner asked for a success modal when the calculator form is sent.
+- **Changed:** `inquiry-form.tsx`, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** Send a test inquiry (delete it afterwards in /admin/uzklausos) and look at the modal.
+
+## 2026-11-11 — Estimate summary font weights
+
+- **Why:** Owner saw no weight hierarchy in the calculator breakdown.
+- **Changed:** `estimate-summary.tsx`, changelog.
+- **Status:** not browser-checked; uncommitted.
+- **Next:** Look at it on `/skaiciuokle` at 375 / 1024 px.
+
+## 2026-11-11 — Calculator form prefilled for signed-in customers
+
+- **Why:** Owner wanted the registered user's email as the default in the calculator form.
+- **Changed:** `app/actions/customer.ts` (`loadCurrentCustomer`), `inquiry-form.tsx`, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** Sign in as a customer and open the form on `/skaiciuokle` and the home drawer.
+
+## 2026-11-11 — my_inquiries migration applied
+
+- **Why:** Owner asked to retry applying it after the classifier blocked the first attempt.
+- **Changed:** applied `my_inquiries` via MCP slot `supabase-project-3` (project URL checked first); notes updated.
+- **Status:** verified (anon cannot execute, authenticated can).
+- **Next:** Sign in as a customer and check the /paskyra tabs.
+
+## 2026-11-11 — /paskyra tabs and Pasiūlymai
+
+- **Why:** Owner asked for tabs on the profile (Visi, pirtis, namukai, quads, pasiūlymai / skaičiuoklė).
+- **Changed:** `account-tabs.tsx`, `inquiry-list.tsx`, `request-list.tsx`, `app/paskyra/page.tsx`, `lib/account.ts`, `lib/account-data.ts`, hand-edited `database.types.ts`, migration `20261111190000_my_inquiries.sql` (unapplied), ADR-0061, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; the migration was blocked by the permission classifier and still needs the owner's approval.
+- **Next:** Approve / apply the migration, then sign in as a customer and check each tab.
+
+## 2026-11-11 — /paskyra list heading removed
+
+- **Why:** Owner asked to remove the "Rezervacijos" heading.
+- **Changed:** `components/account/request-list.tsx`, changelog.
+- **Status:** not browser-checked; uncommitted.
+- **Next:** None.
+
+## 2026-11-11 — Account button in the menu
+
+- **Why:** Owner found no account page button in the hamburger menu.
+- **Changed:** `menu-panel.tsx` (`account` prop), `main-header.tsx`, changelog.
+- **Status:** checked at 375 px; uncommitted. The calculator's mobile total bar shows over the open menu (pre-existing).
+- **Next:** Decide whether the calculator total bar should hide while the menu is open.
+
+## 2026-11-11 — Open-menu header colours
+
+- **Why:** Owner saw light nav links and close icon on the coral menu.
+- **Changed:** `site-header.tsx` (ink text when `menuOpen`), changelog.
+- **Status:** not browser-checked; uncommitted.
+- **Next:** Open the menu at 375 / 1024 px and check the bar.
+
+## 2026-11-11 — Calculator card controls: no top border
+
+- **Why:** Owner asked to remove the top padding and border above the controls.
+- **Changed:** `calculator-option-card.tsx`, changelog.
+- **Status:** not browser-checked; uncommitted.
+- **Next:** Look at the cards at 375 / 1024 px.
+
+## 2026-11-11 — Inquiry-hold migration applied
+
+- **Why:** Owner asked to apply the migration via MCP or token.
+- **Changed:** applied `inquiry_stay_holds` to project `mwngljhcvqkvncwbmgeo` through MCP slot `supabase-project-3` (URL checked first; slots 1, 2 and skin365 are other projects); fixed the migration's header comment; notes.
+- **Status:** verified: columns exist, anon cannot execute the functions, authenticated can. Recorded as version `20261111164744`.
+- **Next:** Test accept / release end to end; regenerate types.
+
+## 2026-11-11 — Sauna extras (priedai) in the calculator
+
+- **Why:** Owner asked to drop the Pirtininkas toggle and let visitors pick the real priedai.
+- **Changed:** `calculator-sauna-card.tsx` (Priedai row), `event-pricing.ts` (`extras`, `upsells`), `public.ts` loader, migration (`booking_extras`), inquiry mapper and sheet, notes.
+- **Status:** `tsc`/`eslint` clean; browser-checked; accept flow untested; migration not applied.
+- **Next:** Apply migration; accept an inquiry with extras.
+
+## 2026-11-11 — Sauna programs in the calculator
+
+- **Why:** Owner wanted programs (e.g. Privati pirtis su pirtininku) selectable per sauna.
+- **Changed:** `calculator-sauna-card.tsx` (program tiles), `event-pricing.ts` (`programId`, `programHours`, catalog programs), `public.ts` loader, migration (program branch), inquiry mapper and sheet, notes.
+- **Status:** `tsc`/`eslint` clean; browser-checked on `/skaiciuokle`; accept flow untested; migration not applied.
+- **Next:** Apply migration; accept an inquiry with a program.
+
+## 2026-11-11 — Calculator shows real saunas; accept books them
+
+- **Why:** Owner wanted the calculator's Pirtis to list the real saunas and hold them like cabins.
+- **Changed:** `calculator-sauna-card.tsx` (new), `event-pricing.ts` (`SaunaPick`, `CalculatorCatalog`,), `public.ts` / `booking-data.ts` (catalog loaders), calculator hook / pages / drawer, inquiry sheet and mapper, migration extended (unapplied), ADR-0060, changelog.
+- **Status:** `tsc`/`eslint` clean; `/skaiciuokle` checked in the browser; accept flow untested; migration not applied.
+- **Next:** Apply migration, accept an inquiry with a cabin and a sauna with a start hour.
+
+## 2026-11-11 — Calculator card controls inline
+
+- **Why:** Owner asked for the stepper and button to be on one line.
+- **Changed:** `calculator-option-card.tsx` (flex row, wraps), changelog.
+- **Status:** `tsc` clean; not browser-checked.
+- **Next:** Check at 375 / 768 / 1024 px, esp. the Pirtis card with the Pirtininkas toggle.
+
+## 2026-11-11 — Calculator WAKE cards match Pirtis / Keturračiai
+
+- **Why:** Owner asked for the Pramogos cards to match each other.
+- **Changed:** `entertainment-section.tsx` (descriptions on both WAKE cards), changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted.
+- **Next:** Check at 375 / 768 / 1024 px; confirm the copy.
+
+## 2026-11-11 — Accepting calculator inquiries books cabins
+
+- **Why:** Owner wants accepted skaičiuoklė inquiries to take the quoted cabins so /rezervacija can't sell them.
+- **Changed:** migration `20261111180000_inquiry_stay_holds.sql` (unapplied), hand-edited `database.types.ts`, `acceptInquiry` / `releaseInquiry` actions and store methods, `Inquiry.stays` mapping, inquiry sheet and card UI, ADR-0060, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; migration not applied.
+- **Next:** Apply migration, regenerate types, test accept / release.
+
+## 2026-11-11 — Namukai admin and data-driven cabins
+
+- **Why:** Owner found no way to manage cabins (add homes, types) in the admin.
+- **Changed:** new `/admin/namukai` (owner only) with `stay-types-card` / `stay-type-dialog`; `lib/cabin.ts` rewritten around `StayType`; public booking, reservation flow, service pricing, calculator and admin booking helpers switched from hard-coded sizes to `stay_types`; server actions `saveStayType` / `deleteStayType` / `loadStayTypes`; ADR-0059, changelog, catalog, AGENTS.md rule 5.
+- **Status:** `tsc`/`eslint` clean; `/embed/miegas` and `/nakvyne` checked in the browser; admin page unchecked; uncommitted; no migration.
+- **Next:** Owner login check of `/admin/namukai`; one test stay booking; decide whether types need reordering or named individual cabins.
+
+## 2026-11-11 — Food tab hover text fix
+
+- **Why:** Owner reported the active Gėrimai tab's text vanished on hover.
+- **Changed:** `food-section.tsx` (added `data-active:hover:text-dust`), changelog.
+- **Status:** Not browser-checked; uncommitted.
+- **Next:** Browser-check hover on the calculator food tabs.
+
 ## 2026-11-11 — Switches removed from Pirtys and Priedai rows
 
 - **Why:** Owner asked to remove the switches right after the lists were rebuilt.
