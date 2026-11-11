@@ -12,7 +12,7 @@ export function PricePreview({ rates }: { rates: SaunaRates | null }) {
         <CardTitle>Kaip atrodys kaina</CardTitle>
         <CardDescription>
           {rates
-            ? `Iki ${rates.smallGroupMax} asm. ir ${rates.smallGroupMax + 1}–${rates.maxParty} asm., be papildomų paslaugų.`
+            ? `Iki ${rates.smallGroupMax} asm. ir ${rates.smallGroupMax + 1}–${rates.maxParty} asm., be priedų.`
             : "Ištaisykite klaidas formoje, kad matytumėte kainas."}
         </CardDescription>
       </CardHeader>

@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 /** Which extras from the shared catalogue this sauna offers. */
 export function SaunaUpsellsField({ control }: { control: Control<SaunaValues> }) {
   const { upsells } = useAdmin();
-  if (!upsells.length) return <p className="text-sm text-muted-foreground">Papildomų paslaugų dar nėra: sukurkite jas žemiau, sąraše „Papildomos paslaugos“.</p>;
+  if (!upsells.length) return <p className="text-sm text-muted-foreground">Priedų dar nėra: sukurkite juos žemiau, sąraše „Priedai“.</p>;
 
   return (
     <Controller

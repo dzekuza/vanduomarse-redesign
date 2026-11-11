@@ -1,3 +1,164 @@
+## 2026-11-11 — Switches removed from Pirtys and Priedai rows
+
+- **Why:** Owner asked to remove the switches right after the lists were rebuilt.
+- **Changed:** `sauna-row.tsx`, `upsell-row.tsx`, `saunas-card.tsx`, `upsells-card.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** Decide whether Programos should lose its switch too, for consistency.
+
+## 2026-11-11 — Pirtys and Priedai back to lists
+
+- **Why:** Owner sent a reference image of the list style and asked for Pirtys and Priedai in it.
+- **Changed:** new `sauna-row.tsx`, `upsell-row.tsx`; `sauna-tile.tsx` and `upsell-tile.tsx` deleted; `saunas-card.tsx`, `upsells-card.tsx`; common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted.
+- **Next:** Check the 30 % column at 1024 / 1440 px (thumbnail + switch + menu in a narrow row).
+
+## 2026-11-11 — Sauna card menu: edit in, move out
+
+- **Why:** Owner asked to remove move up / down and put an edit action in the dropdown.
+- **Changed:** `sauna-tile.tsx`, `saunas-card.tsx` (reorder code removed), common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted. Sauna order can no longer be changed in the UI.
+- **Next:** Decide whether the website sauna order needs a control somewhere (e.g. a sort field in the sauna editor).
+
+## 2026-11-11 — Section header stacks in narrow columns
+
+- **Why:** Screenshot showed "Naujas priedas" squeezing the Priedai note into a thin column.
+- **Changed:** `admin-section.tsx` (container query), common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** Check Priedai at 1024 / 1440 px and Programos / coupon catalogue still keep the button beside the heading.
+
+## 2026-11-11 — Programos button in the tabs row
+
+- **Why:** Screenshot showed a gap above the tabs with the button on its own row.
+- **Changed:** `programs-card.tsx` (button inside the tabs row), `admin-section.tsx` (no header row when nothing to show), common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Programos heading and note removed
+
+- **Why:** Owner asked to remove the Programos title and description block.
+- **Changed:** `admin-section.tsx` (`hideHeading`), `programs-card.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Section action button beside the heading
+
+- **Why:** Screenshot showed "Naujas seansas" wrapping under the Programos heading and note.
+- **Changed:** `admin-section.tsx` (header layout), common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** Check at 1024 px, where the Priedai column is narrow and its button may squeeze the note.
+
+## 2026-11-11 — Sauna card: edit icon on top, switch removed
+
+- **Why:** Owner asked for an edit icon in the card header and no show / hide switch.
+- **Changed:** `sauna-tile.tsx` (rewritten), `saunas-card.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Sauna card label and arrows removed
+
+- **Why:** Owner asked to remove "Rodoma" and the arrows from the sauna cards.
+- **Changed:** `sauna-tile.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Sauna card cover removed
+
+- **Why:** Owner asked to remove the cover image thumbnail from the sauna cards.
+- **Changed:** `sauna-tile.tsx`, common catalog, changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — /admin/pirtis 70/30 layout
+
+- **Why:** Owner asked to stack Pirtys and Priedai as a 30 % column next to Programos.
+- **Changed:** `sauna-view.tsx` (10-column grid), `saunas-card.tsx` / `upsells-card.tsx` (one column at `lg`), `programs-card.tsx` (3 columns max), common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked; uncommitted.
+- **Next:** Check at 1024 / 1440 px: the narrow column may be tight for the sauna cards' bottom row (switch, arrows, menu).
+
+## 2026-11-11 — Card background restored on /admin/pirtis sections
+
+- **Why:** Owner asked to restore the background wrapper around each of the three sections.
+- **Changed:** `admin-section.tsx` (`framed`), `saunas-card.tsx`, `upsells-card.tsx`, `programs-card.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted.
+- **Next:** Check /admin/pirtis at 375 / 1024 / 1440 px (cards inside a card).
+
+## 2026-11-11 — "Nauja pirtis" header button removed
+
+- **Why:** Owner asked to remove the button from the /admin/pirtis header.
+- **Changed:** `sauna-view.tsx`, changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted. No UI entry to `/admin/pirtis/nauja` remains.
+- **Next:** Decide where creating a sauna should live (e.g. a button in the Pirtys section).
+
+## 2026-11-11 — "Žr. klientus" link removed
+
+- **Why:** Owner asked to remove the link at the bottom of /admin/pirtis.
+- **Changed:** `sauna-view.tsx`, changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Priedai heading restored
+
+- **Why:** Owner asked for the Priedai heading to be as it was.
+- **Changed:** `upsells-card.tsx`, `admin-section.tsx` (`compact` removed), common catalog, changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Priedai made compact
+
+- **Why:** Screenshot showed the Priedai cards too large for what they hold.
+- **Changed:** `upsell-tile.tsx` (slim card), `upsells-card.tsx` (compact section, outline button), `admin-section.tsx` (`compact`), common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted.
+- **Next:** Compare with the screenshot in the browser.
+
+## 2026-11-11 — Seansai tab first and open by default
+
+- **Why:** Owner asked to make Seansai the main tab on Programos.
+- **Changed:** `programs-card.tsx` (default tab and tab order), common catalog, changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — Programos first on /admin/pirtis
+
+- **Why:** Owner asked to move Programos to the top of the page.
+- **Changed:** `sauna-view.tsx` (order), common catalog, changelog.
+- **Status:** `tsc` clean; not browser-checked; uncommitted.
+- **Next:** none.
+
+## 2026-11-11 — /admin/pirtis list items as cards, Priedai rename
+
+- **Why:** Owner asked for card blocks in each of the three sections and to rename Papildomos paslaugos to Priedai.
+- **Changed:** new `sauna-tile.tsx`, `upsell-tile.tsx`, `program-tile.tsx`; `saunas-card.tsx`, `upsells-card.tsx`, `programs-card.tsx`, `admin-section.tsx` (AdminRow removed); rename in sauna-view / sauna-form / sauna-upsells-field / price-preview / permissions / pricing-view; common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted with the other coupon and pirtis changes.
+- **Next:** Check /admin/pirtis at 375 / 1024 / 1440 px (cover images, the 2-column row); commit and push.
+
+## 2026-11-11 — /admin/pirtis sections unwrapped, two columns
+
+- **Why:** Owner asked to unwrap the three sections from the card background and put Pirtys and Papildomos paslaugos side by side.
+- **Changed:** new `admin-section.tsx`; `saunas-card.tsx`, `upsells-card.tsx`, `programs-card.tsx`, `sauna-view.tsx`, `coupon-products-card.tsx`; common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted with the other coupon changes.
+- **Next:** Check /admin/pirtis at 375 / 1024 / 1440 px (the 2-column row, long names, the arrows in each sauna row); commit and push.
+
+## 2026-11-11 — Coupon products unwrapped from the outer card
+
+- **Why:** Owner asked to unwrap the product cards from the bg-card div.
+- **Changed:** `coupon-products-card.tsx` (section instead of Card), common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted with the other coupon changes.
+- **Next:** Check /admin/kuponai at 375 / 768 / 1280 px; commit and push.
+
+## 2026-11-11 — Coupon products as card blocks
+
+- **Why:** Owner asked to replace the list items in "Parduodami kuponai" with card blocks.
+- **Changed:** new `coupon-product-tile.tsx`, `coupon-products-card.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted (together with the earlier filter removal).
+- **Next:** Check /admin/kuponai at 375 / 768 / 1024 px; commit and push.
+
+## 2026-11-11 — Coupon list service and date filters removed
+
+- **Why:** Owner pasted the service select and date pickers on /admin/kuponai and asked to remove them.
+- **Changed:** `coupons-view.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked; uncommitted (the previous push did not include it).
+- **Next:** none.
+
 ## 2026-11-11 — Sales charts removed
 
 - **Why:** Owner pasted the two chart cards and asked to remove them.

@@ -1,19 +1,18 @@
 "use client";
 
-import { DotsThreeIcon, PlusIcon } from "@phosphor-icons/react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
+import { AdminSection } from "../admin-section";
 import { EventDialog } from "../events/event-dialog";
 import { ProgramDialog } from "./program-dialog";
+import { ProgramTile } from "./program-tile";
 import { SaunaSessionsList } from "./sauna-sessions-list";
 import type { ManagedEvent } from "@/lib/admin/types";
-import { PROGRAM_KIND_LABEL, programPriceLine, type SaunaProgram } from "@/lib/sauna-programs";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Editing = { program?: SaunaProgram } | null;
@@ -21,80 +20,60 @@ type Editing = { program?: SaunaProgram } | null;
 /** Pirties programos (skirtukas „Programos“) ir jų seansai (skirtukas „Seansai“). */
 export function ProgramsCard() {
   const { programs, events, saveProgram, deleteProgram } = useAdmin();
-  const [tab, setTab] = useState("programos");
+  const [tab, setTab] = useState("seansai");
   const [editing, setEditing] = useState<Editing>(null);
   const [sessionEditing, setSessionEditing] = useState<{ event?: ManagedEvent } | null>(null);
   const [deleting, setDeleting] = useState<SaunaProgram | null>(null);
   const sessions = (id: string) => events.filter((e) => e.programId === id).length;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Programos</CardTitle>
-        <CardDescription>Bendra, moterų, vyrų, šeimos ir privačios pirties programos su kainomis. Seansus kuriate skirtuke „Seansai“.</CardDescription>
-        <CardAction>
-          {tab === "programos" ? (
-            <Button onClick={() => setEditing({})}>
-              <PlusIcon size={18} /> <span className="hidden sm:inline">Nauja programa</span>
-              <span className="sr-only sm:hidden">Nauja programa</span>
-            </Button>
-          ) : (
-            <Button onClick={() => setSessionEditing({})}>
-              <PlusIcon size={18} /> <span className="hidden sm:inline">Naujas seansas</span>
-              <span className="sr-only sm:hidden">Naujas seansas</span>
-            </Button>
-          )}
-        </CardAction>
-      </CardHeader>
-      <CardContent>
+    <AdminSection
+      framed
+      hideHeading
+      title="Programos"
+    >
+      <div>
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
-            <TabsTrigger value="programos" className="min-h-11 px-4">Programos</TabsTrigger>
-            <TabsTrigger value="seansai" className="min-h-11 px-4">Seansai</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <TabsList>
+              <TabsTrigger value="seansai" className="min-h-11 px-4">Seansai</TabsTrigger>
+              <TabsTrigger value="programos" className="min-h-11 px-4">Programos</TabsTrigger>
+            </TabsList>
+            {tab === "programos" ? (
+              <Button onClick={() => setEditing({})}>
+                <PlusIcon size={18} /> <span className="hidden sm:inline">Nauja programa</span>
+                <span className="sr-only sm:hidden">Nauja programa</span>
+              </Button>
+            ) : (
+              <Button onClick={() => setSessionEditing({})}>
+                <PlusIcon size={18} /> <span className="hidden sm:inline">Naujas seansas</span>
+                <span className="sr-only sm:hidden">Naujas seansas</span>
+              </Button>
+            )}
+          </div>
           <TabsContent value="programos" className="mt-4">
-            <div className="divide-y">
-            {programs.length === 0 ? <p className="py-3 text-sm text-muted-foreground">Programų nėra.</p> : null}
-            {programs.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 py-3 first:pt-0">
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate text-sm font-medium ${p.active ? "" : "text-muted-foreground line-through"}`}>{p.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{programPriceLine(p)}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {PROGRAM_KIND_LABEL[p.kind]}
-                    {p.kind === "session" ? ` · seansų: ${sessions(p.id)}` : ""}
-                  </p>
-                </div>
-                <Switch
-                  checked={p.active}
-                  aria-label={`Rodyti „${p.name}“ rezervacijoje`}
-                  onCheckedChange={(v) => {
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {programs.length === 0 ? <p className="text-sm text-muted-foreground sm:col-span-2 xl:col-span-3">Programų nėra.</p> : null}
+              {programs.map((p) => (
+                <ProgramTile
+                  key={p.id}
+                  program={p}
+                  sessions={sessions(p.id)}
+                  onToggle={(v) => {
                     saveProgram({ ...p, active: v });
                     toast.success(v ? `${p.name}: rodoma` : `${p.name}: paslėpta`);
                   }}
+                  onEdit={() => setEditing({ program: p })}
+                  onDelete={() => setDeleting(p)}
                 />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-sm" aria-label={`Veiksmai: ${p.name}`}>
-                      <DotsThreeIcon size={20} weight="bold" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setEditing({ program: p })}>Redaguoti</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onSelect={() => setDeleting(p)}>
-                      Ištrinti
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
+              ))}
             </div>
           </TabsContent>
           <TabsContent value="seansai" className="mt-4">
             <SaunaSessionsList onEdit={(event) => setSessionEditing({ event })} />
           </TabsContent>
         </Tabs>
-      </CardContent>
+      </div>
 
       {sessionEditing ? (
         <EventDialog key={sessionEditing.event?.id ?? "new"} open event={sessionEditing.event} presetCategory="pirtis" onOpenChange={(o) => !o && setSessionEditing(null)} />
@@ -125,6 +104,6 @@ export function ProgramsCard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </AdminSection>
   );
 }

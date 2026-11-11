@@ -17,7 +17,7 @@ export function PricingView() {
       <div className="flex gap-3 border border-line bg-muted p-4 text-sm">
         <InfoIcon size={20} className="mt-0.5 shrink-0 text-rust" />
         <p>
-          Kainos išsaugomos duomenų bazėje, bet svetainės ir skaičiuoklės kainų kol kas nekeičia. Pirties kainos ir papildomos paslaugos –{" "}
+          Kainos išsaugomos duomenų bazėje, bet svetainės ir skaičiuoklės kainų kol kas nekeičia. Pirties kainos ir priedai –{" "}
           <Link href="/admin/pirtis" className="underline underline-offset-4 hover:text-rust">
             skiltyje „Pirtis“
           </Link>

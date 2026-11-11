@@ -63,7 +63,7 @@ export function SaunaForm({ sauna }: { sauna?: Sauna }) {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Papildomos paslaugos</CardTitle>
+              <CardTitle>Priedai</CardTitle>
               <CardDescription>Kurias paslaugas galima užsisakyti su šia pirtimi.</CardDescription>
             </CardHeader>
             <CardContent>
