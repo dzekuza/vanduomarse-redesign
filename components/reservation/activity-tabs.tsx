@@ -1,45 +1,35 @@
-"use client";
+import { WavesIcon } from "@phosphor-icons/react";
+import { FilterChip } from "@/components/events/filter-chip";
 
-import type { ReactNode } from "react";
-import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
-import { ACTIVITY_ICON } from "./activity-icons";
+const ACTIVITIES = [
+  { id: "session", label: "Pirties seansai" },
+  { id: "private", label: "Privati pirtis" },
+  { id: "nakvyne", label: "Nakvynė" },
+  { id: "keturraciai", label: "Keturračiai" },
+  { id: "wake", label: "Wake" },
+] as const;
+
+export type ReservationTab = (typeof ACTIVITIES)[number]["id"];
 
 interface ActivityTabsProps {
-  ids: ActivityId[];
-  active: ActivityId;
-  /** Activities already in the plan get a coral dot. */
-  included: ActivityId[];
-  /** A separate dialog trigger for each segment. */
-  renderDetails: (id: ActivityId, active: boolean) => ReactNode;
-  onChange: (id: ActivityId) => void;
+  active: ReservationTab;
+  included: ReservationTab[];
+  disabled: boolean;
+  onChange: (id: ReservationTab) => void;
 }
 
-/** Pirtis / Nakvynė / Keturračiai tab row; each tab edits one activity of the plan. */
-export function ActivityTabs({ ids, active, included, renderDetails, onChange }: ActivityTabsProps) {
+export function ActivityTabs({ active, included, disabled, onChange }: ActivityTabsProps) {
   return (
-    <div role="tablist" aria-label="Veikla" className="flex divide-x divide-line border border-line">
-      {ids.map((id) => {
-        const Icon = ACTIVITY_ICON[id];
-        const on = id === active;
-        return (
-          <div key={id} className={`flex min-w-0 flex-1 flex-col sm:flex-row ${on ? "bg-ink text-dust" : "text-ink"}`}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={on}
-              onClick={() => onChange(id)}
-              className={`relative flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1.5 px-1 pt-3 pb-0 text-center text-xs transition-colors duration-150 ease-out-strong sm:flex-row sm:gap-2 sm:px-2 sm:py-5 sm:text-sm ${
-                on ? "" : "hover:text-rust"
-              }`}
-            >
-              <span aria-hidden className="shrink-0"><Icon size={22} /></span>
-              <span className="min-w-0 max-w-full wrap-break-word">{ACTIVITY_TITLE[id]}</span>
-              {included.includes(id) ? <span aria-label="Įtraukta" className="absolute right-2 top-2 size-2 rounded-full bg-rust" /> : null}
-            </button>
-            {renderDetails(id, on)}
-          </div>
-        );
-      })}
-    </div>
+    <fieldset disabled={disabled} className="min-w-0">
+      <legend className="mb-3 flex items-center gap-2 text-sm font-bold"><WavesIcon size={18} aria-hidden /> Tipas</legend>
+      <div className="flex flex-wrap gap-2">
+        {ACTIVITIES.map(({ id, label }) => (
+          <FilterChip key={id} active={id === active} onClick={() => onChange(id)} className="justify-center px-3 text-center font-bold">
+            {label}
+            {included.includes(id) ? <span aria-label="Įtraukta į planą" className="size-2 shrink-0 rounded-full bg-rust" /> : null}
+          </FilterChip>
+        ))}
+      </div>
+    </fieldset>
   );
 }

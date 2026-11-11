@@ -8,14 +8,15 @@ export interface Contact {
 
 /** The park's main line, shown in the top bar. */
 export const MAIN_CONTACT: Contact = { name: "Vanduo Marse", email: "info@vanduomarse.lt", phone: "+370 630 80 444" };
+export const SAUNA_CONTACT: Contact = { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" };
 
 const RESTAURANT_CONTACT: Contact = { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" };
-const ACADEMY_CONTACT: Contact = { name: "Marso Akademija", email: MAIN_CONTACT.email, phone: MAIN_CONTACT.phone };
-const EVENTS_EMAIL = "renginiai@vanduomarse.lt";
+export const ACADEMY_CONTACT: Contact = { name: "Marso Akademija", email: MAIN_CONTACT.email, phone: MAIN_CONTACT.phone };
+export const EVENTS_EMAIL = "renginiai@vanduomarse.lt";
 
 export const CONTACTS: Contact[] = [
   MAIN_CONTACT,
-  { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" },
+  SAUNA_CONTACT,
   RESTAURANT_CONTACT,
   ACADEMY_CONTACT,
 ];

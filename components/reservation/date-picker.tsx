@@ -19,7 +19,6 @@ interface DatePickerProps {
   initialView?: View;
   /** Use the same views in a narrow booking panel. */
   compact?: boolean;
-  lightCalendarDays?: boolean;
   /** Inquiries can select future dates beyond the dates in the strip. */
   allowFutureDates?: boolean;
   /** `selected` is the arrival. The end defaults to the following day. */
@@ -32,7 +31,7 @@ const VIEWS: { id: View; label: string; Icon: typeof RowsIcon }[] = [
 ];
 
 /** A scrolling strip or a month calendar, switched with the toggle above it. */
-export function DatePicker({ days, selected, onSelect, icons, dayDetails, initialView = "strip", compact, lightCalendarDays, allowFutureDates, range }: DatePickerProps) {
+export function DatePicker({ days, selected, onSelect, icons, dayDetails, initialView = "strip", compact, allowFutureDates, range }: DatePickerProps) {
   const [view, setView] = useState(initialView);
   const [browsedMonth, setBrowsedMonth] = useState<Date>();
   const [preview, setPreview] = useState<{ start: string; end: string }>();
@@ -109,7 +108,6 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
           range={selection}
           reserveIconSpace={reserveIconSpace}
           compact={compact}
-          lightDays={lightCalendarDays}
           month={calendarMonth}
           onMonthChange={(month) => {
             setPreview(undefined);

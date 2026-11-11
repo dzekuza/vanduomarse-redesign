@@ -64,3 +64,8 @@ export function freeStayUnits(availability: CabinAvailability, checkIn: Date, ni
 export function freeCabins(availability: CabinAvailability, checkIn: Date, nights: number, size: CabinSize): number {
   return freeStayUnits(availability, checkIn, nights, size);
 }
+
+/** Cabins of either size that are free for every night of the stay. */
+export function freeCabinsTotal(availability: CabinAvailability, checkIn: Date, nights: number): number {
+  return CABIN_SIZES.reduce((total, { id }) => total + freeCabins(availability, checkIn, nights, id), 0);
+}

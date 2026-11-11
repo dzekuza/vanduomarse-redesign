@@ -70,7 +70,7 @@ export function SaunaServicePrivateOptions({ venues, venueId, programId, duratio
 
   return (
     <div className="space-y-5">
-      <fieldset disabled={disabled}>
+      <fieldset disabled={disabled} className="disabled:opacity-50">
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
           <WavesIcon size={18} aria-hidden /> Pirtis
         </legend>

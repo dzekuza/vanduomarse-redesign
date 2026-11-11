@@ -2,9 +2,11 @@ import { CaretUpIcon, XIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import type { ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
+import { ServiceBookingHelp } from "@/components/services/service-booking-help";
 import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
+import { MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { PlanDetails, type PlanDetailsProps } from "./plan-panel";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
 import { activityPhotos } from "./activity-photos";
@@ -52,7 +54,8 @@ export function MobilePlanDock({ activity, photos = activityPhotos(activity), wh
           </span>
           <span className="flex shrink-0 items-center gap-1 sm:gap-3">
             <span aria-live="polite" className="font-display text-figure font-bold">
-              <span className="sr-only">Preliminari kaina: </span>{details.total} €
+              <span className="sr-only">Preliminari kaina: </span>
+              {details.preliminaryTotal ? `${details.preliminaryTotal.weekday}–${details.preliminaryTotal.weekend}` : details.total} €
             </span>
             <CaretUpIcon aria-hidden className="size-5" />
           </span>
@@ -80,14 +83,15 @@ export function MobilePlanDock({ activity, photos = activityPhotos(activity), wh
             <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />
             <PlanDetails {...details} />
           </div>
-          {enabledContinueAction ? (
-            <SheetFooter className="shrink-0 px-gutter py-3">
+          <SheetFooter className="shrink-0 gap-0 px-gutter py-3">
+            {enabledContinueAction ? (
               <PlanActions
                 continueAction={{ ...enabledContinueAction, onClick: () => choose(enabledContinueAction) }}
                 secondaryAction={secondaryAction ? { ...secondaryAction, onClick: () => choose(secondaryAction) } : undefined}
               />
-            </SheetFooter>
-          ) : null}
+            ) : null}
+            <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: MAIN_CONTACT.email }} />
+          </SheetFooter>
         </SheetContent>
       </Sheet>
       {enabledContinueAction ? (

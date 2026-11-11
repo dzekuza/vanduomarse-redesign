@@ -8,7 +8,7 @@ export function SaunaSessionDayIndicator({ rows }: { rows: SessionRow[] }) {
   const remaining = rows.length - SESSION_PREVIEW_LIMIT;
   return (
     <span className="@container block">
-      <span className="block divide-y divide-line text-calendar-status group-aria-pressed/day:divide-line-on-ink">
+      <span className="block divide-y divide-line text-calendar-status">
         {rows.slice(0, SESSION_PREVIEW_LIMIT).map(({ key, time, maxPeople, capacity }) => (
           <span key={key} className="flex flex-wrap items-center justify-center gap-x-1 py-0.5">
             <span className="font-medium whitespace-nowrap tabular-nums">{time.split("–")[0]}</span>

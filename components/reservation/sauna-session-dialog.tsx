@@ -47,7 +47,9 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onConfirm
         }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
-          if (confirmed.current && onConfirmedClose) onConfirmedClose();
+          const shouldContinue = confirmed.current;
+          confirmed.current = false;
+          if (shouldContinue && onConfirmedClose) onConfirmedClose();
           else if (returnFocus.current?.isConnected) returnFocus.current.focus({ preventScroll: true });
         }}
       >

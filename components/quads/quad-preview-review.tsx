@@ -6,13 +6,14 @@ import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { PlanSummary } from "@/components/reservation/plan-summary";
 import type { PlanLine } from "@/lib/reservation";
 
-export function QuadPreviewReview({ open, onClose, onReturnFocus, lines, total, inquiryHref }: {
+export function QuadPreviewReview({ open, onClose, onReturnFocus, lines, total, inquiryHref, payOnSite }: {
   open: boolean;
   onClose: () => void;
   onReturnFocus?: () => void;
   lines: PlanLine[];
   total: number;
   inquiryHref?: string;
+  payOnSite?: boolean;
 }) {
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
@@ -25,9 +26,10 @@ export function QuadPreviewReview({ open, onClose, onReturnFocus, lines, total, 
         } : undefined}
       >
         <DialogPhotoClose />
-        <DialogTitle className="pr-14 font-display text-heading font-bold">{inquiryHref ? "Keturračių rezervacijos užklausa" : "Tavo planas Marse."}</DialogTitle>
+        <DialogTitle className="pr-14 font-display text-heading font-bold">{inquiryHref ? "Keturračių rezervacijos užklausa" : "Keturračių pasirinkimas"}</DialogTitle>
         <DialogDescription className="text-copy">{inquiryHref ? "Patikrink pasirinktą turą. Rezervaciją patvirtins komanda." : "Interaktyvi dizaino peržiūra."}</DialogDescription>
         <PlanSummary lines={lines} total={total} />
+        {inquiryHref && payOnSite ? <p className="text-sm text-copy">Atsiskaitymas vietoje grynais.</p> : null}
         {inquiryHref ? <Cta tone="dark" small href={inquiryHref}>Atidaryti el. laišką</Cta> : <Cta tone="dark" small onClick={onClose}>Tęsti peržiūrą</Cta>}
       </DialogContent>
     </Dialog>

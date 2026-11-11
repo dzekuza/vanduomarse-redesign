@@ -4,17 +4,18 @@ import { HouseIcon } from "@phosphor-icons/react";
 import { useState, type ComponentProps } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import { FilterChip } from "@/components/events/filter-chip";
-import { CABIN_SIZES, MAX_STAY_NIGHTS, MAX_STAY_UNITS, STAY_TYPES, freeStayUnits, roomLabel, roomPrice, type StayUnitType } from "@/lib/cabin";
+import { CABIN_SIZES, MAX_STAY_NIGHTS, MAX_STAY_UNITS, STAY_TYPES, roomLabel, roomPrice, type StayUnitType } from "@/lib/cabin";
 import type { CabinPageData } from "@/lib/data/public-types";
 import type { StayPick, StayPlan } from "@/lib/reservation";
 import { longDateLabel } from "@/lib/sauna";
-import { ServiceDateField } from "./service-date-field";
+import { DateField } from "@/components/reservation/date-field";
+import { stayDayDetails } from "@/components/reservation/stay-day-details";
 
 interface StayServiceBookingProps {
   data: CabinPageData;
   days: Date[];
   date: Date | null;
-  range: NonNullable<ComponentProps<typeof ServiceDateField>["range"]>;
+  range: NonNullable<ComponentProps<typeof DateField>["range"]>;
   nights: number;
   draft?: StayPlan | null;
   busy: boolean;
@@ -48,7 +49,7 @@ export function StayServiceBooking({ data, days, date, range, nights, draft, bus
             const { roomId, size } = unitChoice(choice);
             const active = choice === type;
             return (
-              <FilterChip key={choice} active={active} onClick={() => chooseType(choice)} className={`min-h-16 min-w-0 flex-col items-start justify-between gap-1 px-2 py-2 text-left leading-snug ${active ? "" : "bg-dust"}`}>
+              <FilterChip key={choice} active={active} onClick={() => chooseType(choice)} className="min-h-16 min-w-0 flex-col items-start justify-between gap-1 px-2 py-2 text-left leading-snug">
                 <span className="wrap-anywhere font-bold">{roomLabel(roomId, size)}</span>
                 <span><span className="whitespace-nowrap">{roomPrice(roomId, size)} €</span> / naktį</span>
               </FilterChip>
@@ -57,7 +58,7 @@ export function StayServiceBooking({ data, days, date, range, nights, draft, bus
         </div>
       </fieldset>
       {type === "kemperis" ? <p className="text-xs text-copy">Viena vieta vienai transporto priemonei, su elektra.</p> : null}
-      <ServiceDateField
+      <DateField
         date={date}
         days={days}
         range={range}
@@ -66,10 +67,7 @@ export function StayServiceBooking({ data, days, date, range, nights, draft, bus
         open={calendarOpen}
         onOpenChange={setCalendarOpen}
         onSelect={onDate}
-        icons={type === undefined ? undefined : (day) => {
-          const available = freeStayUnits(data.availability, day, 1, type) > 0;
-          return [{ Icon: HouseIcon, on: available, label: available ? "Nakvynė laisva" : "Nakvynė užimta" }];
-        }}
+        dayDetails={(day) => stayDayDetails(data.availability, day, type)}
         footer={range.selectingEnd ? <p className="text-xs text-copy">Jei nori likti ilgiau, pasirink išvykimo datą. Galima iki {MAX_STAY_NIGHTS} naktų.</p> : null}
       />
       {date && draft ? (

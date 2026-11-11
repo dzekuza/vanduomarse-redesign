@@ -1,4 +1,22 @@
+- 2026-11-11 Matched the spacing before the first field in the stay booking panel to the quad panel.
+- 2026-11-11 Unified the help heading, contact typography and spacing beneath the actions in public booking panels.
+- 2026-11-11 Standardized the sauna, stay, quad and WAKE booking footers. Inline service forms show the applicable total without a separate plan block and use the same contact links below the actions.
+- 2026-11-11 Matched the sauna booking email typography to the phone number and switched the link to the events inbox.
+- 2026-11-11 Added the public sauna email beside the phone number in the sauna booking panel.
+- 2026-11-11 Added the shared booking and cash-on-site buttons to the quad sidebar. Cash on site is included as a preference in the existing inquiry draft.
+- 2026-11-11 Shortened the sauna cancellation reminder to 24 hours before the start.
+- 2026-11-11 Replaced the private sauna start-time dropdown with a compact grid of available times and a dark selected state.
+- 2026-11-11 Matched available dates in the quad booking panel to the private sauna’s green “Laisva” label.
+- 2026-11-11 Clarified that the quad cancellation deadline is 48 hours before the start.
+- 2026-11-11 Changed the selected sauna session to a full dark card with light controls and a contrasting availability count. The fill indicates selection without an extra label.
+- 2026-11-11 Marked the automatically selected sauna session on its card. The selected card now contains the rate, information link and compact seat controls.
+- 2026-11-11 Split the main reservation selector into sauna sessions, private sauna, stay, quads and Wake. The sauna tabs reuse the service booking forms and Wake opens the selected coupon order. The sauna venue cards on /pirtis appear disabled before the booking type is chosen.
+- 2026-11-11 Added free/total cabin counts to the calendar and strip in public stay reservation forms. The service panel shows the chosen cabin size. The combined reservation starts with the total across both sizes. The stay embed shows availability across its current number of nights.
+- 2026-11-11 Unified public booking and calculator date fields on the expandable sauna form design. The shared field opens a month calendar with a strip option and preserves overnight ranges and unavailable day markers. Standalone schedules stay visible.
 - 2026-11-11 Added 13 optimized WAKE photos to the shared gallery with Lithuanian alt text and image sitemap URLs.
+- 2026-11-11 Moved the private sauna group-size slider below the date and time fields.
+- 2026-11-11 Replaced the sauna session time dropdown with a list of the selected date’s sessions. A single available session is automatically selected when the date is chosen.
+- 2026-11-11 Standardized public date tiles on the light sauna schedule style across service schedules, booking panels, the main reservation form, the calculator and widget date strips. Preserved each flow’s date, range and availability behavior.
 - 2026-11-11 Renamed the private sauna group-size slider to “Asmenų skaičius”. The plan shows live I–IV and V–VII estimates before the date, then the applicable total.
 - 2026-11-11 Made the session details action on `/pirtis` open reservation checkout with the chosen quantity. The available seat count uses the same green as the calendar.
 - 2026-11-11 Added a WAKE order panel to `/vandenlentes` with individual rides and season passes. The selected offer opens the existing coupon order with its catalogue price. The season passes require catalogue migration `20261111130000`. See ADR-0059.

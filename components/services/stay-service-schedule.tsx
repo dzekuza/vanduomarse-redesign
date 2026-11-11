@@ -1,6 +1,6 @@
 "use client";
 
-import { CABIN_SIZES, CABIN_TOTAL, freeStayUnits, roomLabel } from "@/lib/cabin";
+import { CABIN_SIZES, CABIN_TOTAL, freeCabinsTotal, freeStayUnits, roomLabel } from "@/lib/cabin";
 import type { CabinPageData } from "@/lib/data/public-types";
 import { AvailabilityCount } from "./availability-count";
 import { ServiceAvailabilityCalendar } from "./service-availability-calendar";
@@ -15,7 +15,7 @@ export function StayServiceSchedule({ data }: { data: CabinPageData }) {
       countLabel="Laisvų namelių"
       datePrefix="Viena naktis nuo "
       getCount={(date) => ({
-        free: CABIN_SIZES.reduce((total, { id }) => total + freeStayUnits(data.availability, date, 1, id), 0),
+        free: freeCabinsTotal(data.availability, date, 1),
         capacity: CABIN_TOTAL,
       })}
       renderDetails={(date) => {

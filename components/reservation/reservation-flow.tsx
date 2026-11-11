@@ -12,6 +12,9 @@ import { QuadPreviewComplete } from "@/components/quads/quad-preview-complete";
 import { quadPreviewPlan, quadPreviewStarts, type QuadPreviewPick } from "@/components/quads/quad-preview-plan";
 import { SaunaServiceBooking } from "@/components/services/sauna-service-booking";
 import { StayServiceBooking } from "@/components/services/stay-service-booking";
+import { WakeServiceBooking } from "@/components/services/wake-service-booking";
+import { ACADEMY_CONTACT } from "@/lib/contacts";
+import type { CouponProduct } from "@/lib/coupons";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
@@ -20,12 +23,10 @@ import {
   RESERVATION_DAYS,
   bookable,
   chosen,
-  ACTIVITY_TAB_ORDER,
   ACTIVITY_TITLE,
   dayAvailability,
   defaultPick,
   describePlans,
-  offered,
   planAll,
   planHours,
   privateStarts,
@@ -42,13 +43,14 @@ import type { AccountValues } from "./account-step";
 import { ActivitiesStep } from "./activities-step";
 import { ACTIVITY_ICON } from "./activity-icons";
 import { ActivityAbout } from "./activity-about";
-import { ActivityTabs } from "./activity-tabs";
+import { ActivityTabs, type ReservationTab } from "./activity-tabs";
 import { activityPhotos } from "./activity-photos";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
 import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
 import { ReservationAccountDialog } from "./reservation-account-dialog";
+import { stayDayDetails } from "./stay-day-details";
 import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
 import { WhenStep, type StayDatePhase } from "./when-step";
 
@@ -64,7 +66,8 @@ const LAST = 1;
 export function ReservationFlow({
   header,
   data,
-  initialTab,
+  initialTab = "session",
+  wakeProducts = [],
   initialDay,
   activity,
   payments,
@@ -72,7 +75,8 @@ export function ReservationFlow({
 }: {
   header: ReactNode;
   data: ReservationData;
-  initialTab?: ActivityId;
+  initialTab?: ReservationTab;
+  wakeProducts?: CouponProduct[];
   initialDay?: string;
   /** On a service page the booking is limited to that activity. */
   activity?: "pirtis" | "nakvyne";
@@ -87,11 +91,12 @@ export function ReservationFlow({
   const [payOnSite, setPayOnSite] = useState(false);
   const selectionHeader = useRef<HTMLDivElement>(null);
   const inlinePlan = useRef<HTMLElement>(null);
-  const offer = offered(data);
-  const tabs = activity ? [activity] : ACTIVITY_TAB_ORDER.filter((id) => offer[id]);
-  const [selectedTab, setTab] = useState<ActivityId>(initialTab && tabs.includes(initialTab) ? initialTab : tabs[0]);
+  const [selectedTab, setTab] = useState(initialTab);
   const sessionId = useSearchParams().get("seansas");
-  const tab = activity ?? (sessionId && offer.pirtis ? "pirtis" : selectedTab);
+  const reservationTab = sessionId ? "session" : selectedTab;
+  const saunaMode = reservationTab === "private" || reservationTab === "session" ? reservationTab : null;
+  const tab: ActivityId = activity ?? (reservationTab === "nakvyne" || reservationTab === "keturraciai" ? reservationTab : "pirtis");
+  const isWake = !activity && reservationTab === "wake";
   const [date, setDate] = useState(() => days.find((candidate) => dateKey(candidate) === initialDay) ?? days[0]);
   const [saunaDayChosen, setSaunaDayChosen] = useState(() => days.some((candidate) => dateKey(candidate) === initialDay));
   const [draftNights, setDraftNights] = useState(1);
@@ -142,17 +147,20 @@ export function ReservationFlow({
   const dayIcons = (d: Date): DayIcon[] => {
     const key = dateKey(d);
     const free = dayAvailability(data, key, people, stayEnd ? stayNights : 1);
-    if (free.keturraciai && offer.keturraciai) {
+    if (free.keturraciai) {
       free.keturraciai = QUAD_PREVIEW_ROUTES.some(({ hours }) =>
         quadPreviewStarts(data.quads, key, hours).some(({ free }) => free >= QUAD_PREVIEW_MIN_UNITS));
     }
-    return tabs.map((id) => ({
+    return (["pirtis", "nakvyne", "keturraciai"] as const).map((id) => ({
       Icon: ACTIVITY_ICON[id],
       label: `${ACTIVITY_TITLE[id]}. ${free[id] ? "Yra laisvų vietų" : "Laisvų vietų ar laikų nėra"}`,
       on: free[id],
     }));
   };
-  const inPlan = tabs.filter((id) => picks[id] !== undefined || (id === "keturraciai" && previewQuad !== null));
+  const inPlan: ReservationTab[] = [];
+  if (picks.pirtis) inPlan.push(picks.pirtis.eventId ? "session" : "private");
+  if (picks.nakvyne) inPlan.push("nakvyne");
+  if (picks.keturraciai || previewQuad) inPlan.push("keturraciai");
   const selectionReady = previewQuad === null
     ? bookable(plans)
     : Boolean(quadTour?.ok && (chosen(plans).length === 0 || bookable(plans)));
@@ -355,113 +363,156 @@ export function ReservationFlow({
   const continueAction = { label: "Rezervuoti", disabled: !selectionReady || busy, onClick: () => next(false) };
   const secondaryAction = { label: "Atsiskaitysiu vietoj grynais", disabled: !selectionReady || busy, onClick: () => next(true) };
   const photos = activityPhotos(tab, data);
+  const showPlan = !isWake || lines.length > 0;
+  const quadHours = [...planHours(plans.keturraciai), ...(quadTour?.hours ?? [])];
+
   function renderPlan(estimate?: SaunaHireEstimate) {
     return <PlanPanel ref={activity ? inlinePlan : undefined} activity={tab} photos={photos} inline={Boolean(activity)}
-      continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails}
-      total={typeof estimate === "number" ? estimate : total} preliminaryTotal={typeof estimate === "object" ? estimate : undefined} />;
+      {...checkoutActions(estimate)} {...planDetails} {...displayTotals(estimate)} />;
   }
+
+  function checkoutActions(estimate?: SaunaHireEstimate) {
+    if (estimate === undefined) return { continueAction, secondaryAction };
+    return {
+      continueAction: { ...continueAction, disabled: true },
+      secondaryAction: { ...secondaryAction, disabled: true },
+    };
+  }
+
+  function displayTotals(estimate?: SaunaHireEstimate) {
+    if (typeof estimate === "number") return { total: total + estimate };
+    if (estimate) return { total, preliminaryTotal: { weekday: total + estimate.weekday, weekend: total + estimate.weekend } };
+    return { total };
+  }
+
+  function continueFromForm(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    next();
+  }
+
+  function renderBooking(saunaControls?: ReactNode, estimate?: SaunaHireEstimate) {
+    const activeEstimate = plans.pirtis ? undefined : estimate;
+    if (activity === "pirtis") return (
+      <form onSubmit={continueFromForm} noValidate className="space-y-5">
+        {saunaControls}
+        {renderPlan(activeEstimate)}
+      </form>
+    );
+
+    return (
+      <>
+        <form onSubmit={(event) => {
+          if (activeEstimate === undefined) continueFromForm(event);
+          else event.preventDefault();
+        }} noValidate className={activity ? undefined : "px-gutter pt-10 pb-16 md:pt-14 md:pb-24"}>
+          <div className={activity ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
+            <div className={activity ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
+              {header ? <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div> : null}
+              <div className={activity ? "space-y-5" : "space-y-5 border border-line bg-foam p-4 sm:p-6"}>
+                {activity ? null : (
+                  <div className="flex items-end justify-between gap-2">
+                    <ActivityTabs active={reservationTab} included={inPlan} disabled={busy} onChange={(id) => {
+                      setTab(id);
+                      setStep(0);
+                    }} />
+                    {isWake ? null : <ActivityAbout id={tab} data={data} active={false} />}
+                  </div>
+                )}
+                {isWake ? <WakeServiceBooking products={wakeProducts} contact={ACADEMY_CONTACT} />
+                  : !activity && saunaMode ? saunaControls
+                  : activity === "nakvyne" ? <StayServiceBooking
+                    data={data.cabin}
+                    days={days}
+                    date={stayEnd ? date : null}
+                    range={{ end: stayEnd, selectingEnd: stayDatePhase === "selectingEnd", lastEnd: stayDates[MAX_STAY_NIGHTS] }}
+                    nights={stayNights}
+                    draft={stayDraft}
+                    busy={busy}
+                    onDate={selectStayDate}
+                    onPick={(nakvyne) => editPicks((current) => ({ ...current, nakvyne }))}
+                  /> : <>
+                    <WhenStep
+                      days={days}
+                      date={date}
+                      onDate={selectDate}
+                      icons={dayIcons}
+                      unavailableOnly
+                      stay={tab === "nakvyne" ? {
+                        phase: stayDatePhase,
+                        end: stayEnd,
+                        lastEnd: stayDates[MAX_STAY_NIGHTS],
+                        onSelect: selectStayDate,
+                        dayDetails: (day) => stayDayDetails(data.cabin.availability, day, stayDraft?.roomId === "kemperis" ? "kemperis" : stayDraft?.size),
+                      } : undefined}
+                    />
+                    {tab !== "pirtis" ? <ActivitiesStep
+                      data={data}
+                      when={when}
+                      tab={tab}
+                      picks={picks}
+                      plans={plans}
+                      stayNights={stayEnd ? stayNights : null}
+                      previewQuad={previewQuad}
+                      onQuadPreview={(next) => {
+                        if (busy) return;
+                        setStep(0);
+                        setPreviewQuad(next);
+                        if (next) setPicks((current) => {
+                          const remaining = { ...current };
+                          delete remaining.keturraciai;
+                          return remaining;
+                        });
+                      }}
+                      onRemove={removeActivity}
+                      onPick={editPicks}
+                    /> : null}
+                  </>}
+              </div>
+            </div>
+            {showPlan ? renderPlan(activeEstimate) : null}
+          </div>
+        </form>
+        {!activity && showPlan ? <MobilePlanDock activity={tab} photos={photos}
+          whenLabel={saunaMode && !saunaDayChosen && !lines.length ? "Pasirink datą" : whenLabel}
+          {...checkoutActions(activeEstimate)} {...planDetails} {...displayTotals(activeEstimate)} /> : null}
+      </>
+    );
+  }
+
   return (
     <FormProvider {...form}>
-      <form onSubmit={(event) => {
-        event.preventDefault();
-        next();
-      }} noValidate className={activity ? undefined : "px-gutter pt-10 pb-16 md:pt-14 md:pb-24"}>
-        <div className={activity ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
-          <div className={activity ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
-            {activity === "pirtis" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
-            {activity ? null : <ActivityTabs
-              ids={tabs}
-              active={tab}
-              included={inPlan}
-              renderDetails={(id, active) => <ActivityAbout id={id} data={data} active={active} />}
-              onChange={(id) => {
-                if (busy) return;
-                setTab(id);
-                setStep(0);
-              }}
-            />}
-            {activity === "pirtis" ? <SaunaServiceBooking
-              data={data.sauna}
-              days={days}
-              date={saunaDayChosen ? date : null}
-              plan={plans.pirtis}
-              pick={picks.pirtis ?? defaultPick("pirtis", data)}
-              people={people}
-              busy={busy}
-              sessionId={sessionId}
-              onDate={(next) => {
-                if (busy) return;
-                setSaunaDayChosen(true);
-                if (dateKey(next) !== day) removeActivity("pirtis");
-                selectDate(next);
-              }}
-              onPick={(pirtis, count) => {
-                editPicks((current) => ({ ...current, pirtis }));
-                if (count !== undefined) editPeople(count);
-              }}
-              onPeople={editPeople}
-              onRemove={() => removeActivity("pirtis")}
-              onCheckout={() => {
-                if (selectionReady && !busy) next(false);
-                else inlinePlan.current?.focus();
-              }}
-              renderPlan={renderPlan}
-            /> : activity === "nakvyne" ? <StayServiceBooking
-              data={data.cabin}
-              days={days}
-              date={stayEnd ? date : null}
-              range={{ end: stayEnd, selectingEnd: stayDatePhase === "selectingEnd", lastEnd: stayDates[MAX_STAY_NIGHTS] }}
-              nights={stayNights}
-              draft={stayDraft}
-              busy={busy}
-              onDate={selectStayDate}
-              onPick={(nakvyne) => editPicks((current) => ({ ...current, nakvyne }))}
-            /> : <>
-              <WhenStep
-                days={days}
-                date={date}
-                onDate={selectDate}
-                icons={dayIcons}
-                unavailableOnly
-                stay={tab === "nakvyne" ? { phase: stayDatePhase, end: stayEnd, lastEnd: stayDates[MAX_STAY_NIGHTS], onSelect: selectStayDate } : undefined}
-              />
-              <ActivitiesStep
-                data={data}
-                when={when}
-                tab={tab}
-                sessionId={sessionId}
-                onSessionDay={(key) => {
-                  const next = days.find((candidate) => dateKey(candidate) === key);
-                  if (next && !busy) {
-                    setTab("pirtis");
-                    selectDate(next);
-                  }
-                }}
-                picks={picks}
-                plans={plans}
-                stayNights={stayEnd ? stayNights : null}
-                previewQuad={previewQuad}
-                quadPreviewHours={quadTour?.hours ?? []}
-                onQuadPreview={(next) => {
-                  if (busy) return;
-                  setStep(0);
-                  setPreviewQuad(next);
-                  if (next) setPicks((current) => {
-                    const remaining = { ...current };
-                    delete remaining.keturraciai;
-                    return remaining;
-                  });
-                }}
-                onRemove={removeActivity}
-                onPick={editPicks}
-                onPeople={editPeople}
-              />
-            </>}
-          </div>
-          {activity === "pirtis" ? null : renderPlan()}
-        </div>
-      </form>
-      {activity ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
+      {activity === "pirtis" || !activity ? <SaunaServiceBooking
+        data={data.sauna}
+        days={days}
+        date={saunaDayChosen ? date : null}
+        plan={activity || plans.pirtis?.mode === saunaMode ? plans.pirtis : undefined}
+        pick={picks.pirtis ?? defaultPick("pirtis", data)}
+        people={people}
+        busy={busy}
+        sessionId={sessionId}
+        mode={activity ? undefined : saunaMode}
+        busyOnDate={(key) => key === day ? quadHours : []}
+        onDate={(next) => {
+          if (busy) return;
+          setSaunaDayChosen(true);
+          if (dateKey(next) !== day) removeActivity("pirtis");
+          selectDate(next);
+        }}
+        onPick={(pirtis, count) => {
+          if (!activity && pirtis.eventId) setTab("session");
+          editPicks((current) => ({ ...current, pirtis }));
+          if (count !== undefined) editPeople(count);
+        }}
+        onPeople={editPeople}
+        onRemove={() => {
+          if (activity || plans.pirtis?.mode === saunaMode) removeActivity("pirtis");
+        }}
+        onCheckout={() => {
+          if (selectionReady && !busy) next(false);
+          else inlinePlan.current?.focus();
+        }}
+        renderBooking={renderBooking}
+      /> : renderBooking()}
       <ReservationAccountDialog
         open={step === LAST}
         onClose={() => { if (!busy) setStep(0); }}

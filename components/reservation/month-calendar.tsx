@@ -17,7 +17,6 @@ interface MonthCalendarProps {
   range?: DateRangeSelection;
   reserveIconSpace?: boolean;
   compact?: boolean;
-  lightDays?: boolean;
   month: Date;
   onMonthChange: (month: Date) => void;
 }
@@ -39,7 +38,7 @@ function keyboardDate(date: Date, key: string): Date | undefined {
 }
 
 /** A month grid of the same day cells; days that can't be booked are greyed out. */
-export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, allowFutureDates, range, reserveIconSpace, compact, lightDays, month, onMonthChange }: MonthCalendarProps) {
+export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, allowFutureDates, range, reserveIconSpace, compact, month, onMonthChange }: MonthCalendarProps) {
   const grid = useRef<HTMLDivElement>(null);
   const moveFocus = useRef(false);
   const [focusedKey, setFocusedKey] = useState<string>();
@@ -54,10 +53,12 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
   const offset = (month.getDay() + 6) % 7;
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
   const count = monthEnd.getDate();
-  const cells = [...Array.from({ length: offset }, () => null), ...Array.from({ length: count }, (_, i) => new Date(month.getFullYear(), month.getMonth(), i + 1))];
+  const cells = [
+    ...Array.from({ length: offset }, () => null),
+    ...Array.from({ length: count }, (_, i) => dayState(new Date(month.getFullYear(), month.getMonth(), i + 1))),
+  ];
   const shift = (by: number) => onMonthChange(new Date(month.getFullYear(), month.getMonth() + by, 1));
-  const unavailable = (key: string) => !canSelectDate(key, allowFutureDates && today ? key >= today : bookable.has(key), range);
-  const enabledKeys = cells.flatMap((date) => date && !unavailable(dateKey(date)) ? [dateKey(date)] : []);
+  const enabledKeys = cells.flatMap((cell) => cell && !cell.disabled ? [cell.key] : []);
   const preferredKey = focusedKey ?? range?.end ?? selectedKey ?? today;
   const tabStop = preferredKey && enabledKeys.includes(preferredKey) ? preferredKey : enabledKeys[0];
 
@@ -67,6 +68,14 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
     grid.current?.querySelector<HTMLButtonElement>(`[data-date="${focusedKey}"]`)?.focus();
   }, [focusedKey, month]);
 
+  function dayState(date: Date) {
+    const key = dateKey(date);
+    const canSelect = canSelectDate(key, allowFutureDates && today ? key >= today : bookable.has(key), range);
+    const showDetails = canSelect && (!departure || key <= departure.start);
+    const details = showDetails ? dayDetails?.(date) : undefined;
+    return { date, key, showDetails, details, disabled: !canSelect || details?.disabled === true };
+  }
+
   function navigateDays(event: KeyboardEvent<HTMLDivElement>) {
     const key = event.target instanceof HTMLButtonElement ? event.target.dataset.date : undefined;
     if (!key) return;
@@ -75,7 +84,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
     event.preventDefault();
     if (range && firstDay && event.key === "PageUp" && next.getTime() === first.getTime()) next = firstDay;
     const nextKey = dateKey(next);
-    if (nextKey === key || unavailable(nextKey)) return;
+    if (nextKey === key || dayState(next).disabled) return;
     const nextMonth = monthStart(next);
     if (nextMonth.getTime() !== month.getTime()) {
       moveFocus.current = true;
@@ -108,17 +117,14 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
             {h}
           </span>
         ))}
-        {cells.map((date, i) => {
-          if (!date) return <span key={`blank-${i}`} aria-hidden />;
-          const key = dateKey(date);
-          const disabled = unavailable(key);
-          const showDetails = !disabled && (!departure || key <= departure.start);
+        {cells.map((cell, i) => {
+          if (!cell) return <span key={`blank-${i}`} aria-hidden />;
+          const { date, key, disabled, showDetails, details } = cell;
           return (
             <DayCell
               key={key}
               fluid
               compact={compact}
-              light={lightDays}
               date={date}
               active={key === selectedKey}
               rangePart={rangePart(key, range)}
@@ -126,7 +132,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
               disabled={disabled}
               tabIndex={key === tabStop ? 0 : -1}
               icons={showDetails ? icons?.(date) : undefined}
-              details={showDetails ? dayDetails?.(date) : undefined}
+              details={details}
               reserveIconSpace={reserveIconSpace}
               onSelect={(date) => {
                 setFocusedKey(key);

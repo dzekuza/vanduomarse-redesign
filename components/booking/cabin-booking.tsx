@@ -4,13 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { createStayBooking } from "@/app/actions/requests";
+import { DateField } from "@/components/reservation/date-field";
+import { stayDayDetails } from "@/components/reservation/stay-day-details";
 import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal, type BookingStep } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { ContactStep } from "./contact-step";
 import { CabinSizePicker } from "./cabin-size-picker";
 import { CouponField } from "./coupon-field";
-import { DayPicker, type DayNote } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
 import { StepLabel } from "./step-label";
 import { Stepper } from "./stepper";
@@ -19,8 +20,8 @@ import {
   CAMPER_MAX_GUESTS,
   cabinStayType,
   freeCabins,
+  freeCabinsTotal,
   roomPrice,
-  type CabinAvailability,
   type CabinSize,
   type RoomTypeId,
 } from "@/lib/cabin";
@@ -29,16 +30,11 @@ import type { CabinPageData } from "@/lib/data/public-types";
 import { contactSchema, type ContactInput } from "@/lib/request-schema";
 import { dateKey, nextDays } from "@/lib/sauna";
 
-/** Cabins of any size free for every night of the stay. */
-function freeAll(availability: CabinAvailability, checkIn: Date, nights: number): number {
-  return CABIN_SIZES.reduce((sum, s) => sum + freeCabins(availability, checkIn, nights, s.id), 0);
-}
-
 export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; days: number }) {
   const { availability } = data;
   const days = useMemo(() => nextDays(data.today, dayCount), [data.today, dayCount]);
   const [nights, setNights] = useState(2);
-  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeAll(availability, d, 2) > 0) ?? days[0]);
+  const [checkIn, setCheckIn] = useState(() => days.find((d) => freeCabinsTotal(availability, d, 2) > 0) ?? days[0]);
   const [guests, setGuests] = useState(2);
   const [roomId, setRoomId] = useState<RoomTypeId>("namelis");
   const [preferredSize, setPreferredSize] = useState<CabinSize>(2);
@@ -60,12 +56,6 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
   const subtotal = roomPrice(roomId, size) * nights;
   const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
   const total = subtotal - discount;
-
-  function dayNote(d: Date): DayNote | undefined {
-    if (!cabin) return undefined;
-    const left = freeAll(availability, d, nights);
-    return { text: left > 0 ? `liko ${left}` : "Užimta", disabled: left === 0 };
-  }
 
   /** Stored as a pending request: the database prices it and re-checks the free cabins. */
   const submit = form.handleSubmit(async (contact) => {
@@ -109,7 +99,10 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
       content: (
         <div>
           <StepLabel step={1}>Atvykimo diena</StepLabel>
-          <DayPicker days={days} selected={checkIn} onSelect={setCheckIn} note={dayNote} />
+          <DateField days={days} date={checkIn} onSelect={setCheckIn} dayDetails={(day) => {
+            const details = stayDayDetails(availability, day, cabin ? undefined : "kemperis", nights);
+            return { ...details, disabled: cabin && !details.available };
+          }} />
         </div>
       ),
     },

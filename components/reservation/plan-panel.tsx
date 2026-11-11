@@ -2,8 +2,8 @@ import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useRef, type Ref } from "react";
 import type { ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
-import { PhoneHelp } from "@/components/phone-help";
-import { RESERVATION_PHONE } from "@/lib/contacts";
+import { ServiceBookingHelp } from "@/components/services/service-booking-help";
+import { EVENTS_EMAIL, MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
 import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
 import type { HireBandPrices } from "@/lib/sauna-hire";
@@ -16,7 +16,6 @@ export type { PlanContinueAction } from "./plan-actions";
 export interface PlanDetailsProps extends PlanLinesProps {
   total: number;
   preliminaryTotal?: HireBandPrices;
-  saunaCancellation?: boolean;
 }
 
 interface PlanPanelProps extends PlanDetailsProps {
@@ -30,20 +29,52 @@ interface PlanPanelProps extends PlanDetailsProps {
 
 /** Side panel that follows the visitor: activity photos and the running reservation total. */
 export function PlanPanel({ activity, photos = activityPhotos(activity), inline, ref, continueAction, secondaryAction, ...details }: PlanPanelProps) {
+  if (inline) {
+    const sauna = activity === "pirtis";
+    const { total, preliminaryTotal } = details;
+    return (
+      <section ref={ref} tabIndex={-1} aria-label="Rezervacijos veiksmai" className="scroll-mt-32 border-t border-line pt-4">
+        <div className="space-y-4">
+          <div aria-live="polite" aria-atomic="true" className="empty:hidden">
+            {preliminaryTotal ? (
+              <>
+                <p className="text-micro uppercase text-copy">Iš viso, su PVM</p>
+                <PlanBandTotals prices={preliminaryTotal} />
+              </>
+            ) : total > 0 || (details.lines.length > 0 && !continueAction?.disabled) ? (
+              <p className="flex items-baseline justify-between gap-3">
+                <span className="text-xs text-copy">Iš viso, su PVM</span>
+                <strong className="text-figure">{formatEuro(total)}</strong>
+              </p>
+            ) : null}
+          </div>
+          {sauna ? (
+            <p className="flex items-start gap-3 text-xs text-copy"><ClockCounterClockwiseIcon size={18} aria-hidden className="shrink-0" /> Nemokamas atšaukimas likus bent 24 val. iki pradžios.</p>
+          ) : null}
+          {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
+        </div>
+        <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: sauna ? EVENTS_EMAIL : MAIN_CONTACT.email }} />
+      </section>
+    );
+  }
+
   return (
-    <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline ? "scroll-mt-32 border-t border-line" : "hidden border border-line bg-foam/15 lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
-      {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
-      <div className={inline ? "space-y-4 pt-4" : "space-y-6 p-5 sm:p-8"}>
-        <h2 className={inline ? "text-item font-bold" : "text-tile font-bold"}>{inline ? "Tavo planas" : "Rezervuoti"}</h2>
-        <PlanDetails {...details} saunaCancellation={inline && activity === "pirtis"} />
-        {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
+    <aside aria-label="Rezervuoti" className="hidden border border-line bg-foam/15 lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto">
+      <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />
+      <div className="p-5 sm:p-8">
+        <div className="space-y-6">
+          <h2 className="text-tile font-bold">Rezervuoti</h2>
+          <PlanDetails {...details} />
+          {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
+        </div>
+        <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: MAIN_CONTACT.email }} />
       </div>
     </aside>
   );
 }
 
 /** The live plan shown in both the desktop panel and the mobile summary sheet. */
-export function PlanDetails({ lines, total, preliminaryTotal, quantities, saunaTime, busy, onRemove, saunaCancellation }: PlanDetailsProps) {
+export function PlanDetails({ lines, total, preliminaryTotal, quantities, saunaTime, busy, onRemove }: PlanDetailsProps) {
   const totalRef = useRef<HTMLParagraphElement>(null);
 
   return (
@@ -55,27 +86,28 @@ export function PlanDetails({ lines, total, preliminaryTotal, quantities, saunaT
       <div className="border-t border-line pt-4">
         <p ref={totalRef} tabIndex={-1} className="text-micro uppercase text-copy">Iš viso, su PVM</p>
         <div aria-live="polite" aria-atomic="true">
-          {preliminaryTotal ? (
-            <>
-              <dl className="mt-2 grid grid-cols-2 gap-3">
-                <div>
-                  <dt className="text-xs text-copy">I–IV</dt>
-                  <dd className="font-display text-heading font-bold">{formatEuro(preliminaryTotal.weekday)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-copy">V–VII</dt>
-                  <dd className="font-display text-heading font-bold">{formatEuro(preliminaryTotal.weekend)}</dd>
-                </div>
-              </dl>
-              <p className="mt-1 text-xs text-copy">Preliminari suma iki datos pasirinkimo.</p>
-            </>
-          ) : <p className="font-display text-total font-bold">{total} €</p>}
+          {preliminaryTotal ? <PlanBandTotals prices={preliminaryTotal} /> : <p className="font-display text-total font-bold">{total} €</p>}
         </div>
-        {saunaCancellation ? (
-          <p className="mt-1 flex items-center gap-2 text-xs text-copy"><ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" /> Nemokamas atšaukimas likus bent 24 val. iki pirties pradžios.</p>
-        ) : <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>}
+        <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>
       </div>
-      <PhoneHelp label="Turite klausimų?" phone={RESERVATION_PHONE} />
+    </>
+  );
+}
+
+function PlanBandTotals({ prices }: { prices: HireBandPrices }) {
+  return (
+    <>
+      <dl className="mt-2 grid grid-cols-2 gap-3">
+        <div>
+          <dt className="text-xs text-copy">I–IV</dt>
+          <dd className="font-display text-heading font-bold">{formatEuro(prices.weekday)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-copy">V–VII</dt>
+          <dd className="font-display text-heading font-bold">{formatEuro(prices.weekend)}</dd>
+        </div>
+      </dl>
+      <p className="mt-1 text-xs text-copy">Preliminari suma iki datos pasirinkimo.</p>
     </>
   );
 }
