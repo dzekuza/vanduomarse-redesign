@@ -14,6 +14,7 @@ import { dateKey, FULL_DAY_HOURS } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
+import { AvailabilityCount } from "./availability-count";
 import { SaunaServiceSessions } from "./sauna-service-sessions";
 import { SaunaServiceTime } from "./sauna-service-time";
 
@@ -140,9 +141,16 @@ export function SaunaServiceBooking({
           masterId={masterId} onMaster={setMaster} disabled={busy} />
       ) : null}
       <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
-        icons={(day) => {
-          const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
-          return [{ Icon: WavesIcon, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];
+        dayDetails={(day) => {
+          const rowsOfDay = rowsFor(dateKey(day));
+          // Private hire counts free start times; sessions count the sessions that still have room.
+          const free = mode === "private" ? (rowsOfDay[0]?.startHours?.length ?? 0) : rowsOfDay.filter(({ blocked }) => !blocked).length;
+          const label = mode === "private" ? `Laisvų laikų: ${free}` : `Laisvų seansų: ${free}`;
+          return {
+            label,
+            available: free > 0,
+            indicator: <span className="block text-calendar-status"><AvailabilityCount free={free} binary /></span>,
+          };
         }}
       />
       {mode === "session" && date ? (
