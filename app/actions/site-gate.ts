@@ -1,7 +1,8 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { GATE_COOKIE, GATE_COOKIE_MAX_AGE, gateCode, gatePassToken, sameToken, siteGateOn } from "@/lib/site-gate";
+import { GATE_COOKIE, GATE_COOKIE_MAX_AGE, gateCode, gatePassToken, sameToken } from "@/lib/site-gate";
+import { siteGateOn } from "@/lib/site-gate-flag";
 import { gateCodeSchema } from "@/lib/site-gate-schema";
 
 export type GateResult = { ok: true } | { error: string };
@@ -11,7 +12,7 @@ export async function enterSiteGate(input: unknown): Promise<GateResult> {
   const parsed = gateCodeSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Neteisingas kodas." };
   const code = gateCode();
-  if (!siteGateOn() || !code) return { error: "Peržiūra šiuo metu išjungta." };
+  if (!(await siteGateOn()) || !code) return { error: "Peržiūra šiuo metu išjungta." };
 
   const [typed, expected] = await Promise.all([gatePassToken(parsed.data.code), gatePassToken(code)]);
   if (!sameToken(typed, expected)) {

@@ -1,6 +1,6 @@
 /**
- * "Coming soon" gate for the whole public site. On when SITE_GATE=1 (read per request; on Vercel an
- * env change still needs a redeploy). /admin, /api and static files are never gated (proxy.ts matcher).
+ * "Coming soon" gate for the whole public site. On/off is `site_settings.coming_soon`, switched by owners
+ * at /admin/svetaine (`lib/site-gate-flag.ts`). /admin, /api and static files are never gated (proxy.ts matcher).
  * With SITE_GATE_CODE set, the gate page shows a code field; the right code sets GATE_COOKIE and the
  * proxy lets that browser through. Changing the code signs every browser out of the preview.
  */
@@ -8,7 +8,6 @@ export const GATE_PATH = "/netrukus";
 export const GATE_COOKIE = "vm_gate_pass";
 export const GATE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
-export const siteGateOn = () => process.env.SITE_GATE?.trim() === "1";
 export const gateCode = () => process.env.SITE_GATE_CODE?.trim() ?? "";
 
 /** Paths that stay open while the gate is on: staff dashboard and the gate page itself. */
