@@ -16,6 +16,7 @@ import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
 import { SaunaServiceSessions } from "./sauna-service-sessions";
 import { SaunaServiceTime } from "./sauna-service-time";
+import { saunaSessionDayDetails } from "./sauna-session-day-details";
 
 interface SaunaServiceBookingProps {
   data: SaunaPageData;
@@ -30,7 +31,7 @@ interface SaunaServiceBookingProps {
   onPick: (pick: SaunaPick, people?: number) => void;
   onPeople: (people: number) => void;
   onRemove: () => void;
-  onSelectedFocus: () => void;
+  onReserve: () => void;
   /** Chosen outside (the /rezervacija type chips); the form then hides its own type choice. Remount it (key) when this changes. */
   mode?: SaunaMode;
 }
@@ -48,7 +49,7 @@ const TYPES: { id: Mode; title: string }[] = [
 
 /** Type, date and time lead into the existing reservation plan. */
 export function SaunaServiceBooking({
-  data, days, date, plan, pick, people, busy, sessionId, onDate, onPick, onPeople, onRemove, onSelectedFocus, mode: lockedMode,
+  data, days, date, plan, pick, people, busy, sessionId, onDate, onPick, onPeople, onRemove, onReserve, mode: lockedMode,
 }: SaunaServiceBookingProps) {
   const [ownMode, setMode] = useState<Mode | null>(() => sessionId ? "session" : null);
   const mode = lockedMode ?? ownMode;
@@ -139,7 +140,10 @@ export function SaunaServiceBooking({
       ) : null}
       <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
         dayDetails={(day) => {
-          const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
+          const dayRows = rowsFor(dateKey(day));
+          if (mode === "session") return saunaSessionDayDetails(dayRows);
+
+          const available = dayRows.some(({ blocked }) => !blocked);
           const label = available ? "Laisva" : "Pilna";
           const color = available ? "text-availability-open" : "text-rust-ink";
           return {
@@ -195,7 +199,8 @@ export function SaunaServiceBooking({
           },
         } : undefined}
         onClose={closeSessionInfo}
-        onSelectedFocus={onSelectedFocus}
+        actionLabel="Rezervuoti"
+        onSelectedFocus={onReserve}
         onSelect={() => {
           if (!dialogRow || dialogRow.blocked || !eventDate) return;
           if (!dialogSelected) {

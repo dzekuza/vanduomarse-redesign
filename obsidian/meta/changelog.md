@@ -1,3 +1,7 @@
+- 2026-11-12 The sauna session details dialog uses Rezervuoti and opens the reservation checkout with the chosen session and seat count. The free-seat count uses the same green or red as the calendar.
+- 2026-11-12 Moved the sauna session rate beside its time and the free-seat count beside the selected card’s quantity controls.
+- 2026-11-12 Removed the general Google Maps link below the sauna reviews. Individual review source links remain.
+- 2026-11-12 The sauna session booking calendar and date strip show session start times and free seats. Dates without sessions have no visible availability badge.
 - 2026-11-12 Matched the sauna booking type labels to the venue card title size.
 - 2026-11-12 Shortened the sauna cancellation note to “Nemokamas atšaukimas likus bent 24 val. iki pradžios.”
 - 2026-11-12 Sauna duration tiles show their base price for the selected day, or the starting price before a date is chosen. The selected base price remains beneath the tiles.

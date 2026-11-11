@@ -423,7 +423,10 @@ export function ReservationFlow({
               }}
               onPeople={editPeople}
               onRemove={() => removeActivity("pirtis")}
-              onSelectedFocus={() => inlinePlan.current?.focus()}
+              onReserve={() => {
+                if (selectionReady) next(false);
+                else (inline ? inlinePlan.current : selectionHeader.current)?.focus();
+              }}
             /> : tab === "keturraciai" ? <QuadServiceBooking
               data={data.quads}
               days={days}
