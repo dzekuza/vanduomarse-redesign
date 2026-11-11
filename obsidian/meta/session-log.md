@@ -1,3 +1,10 @@
+## 2026-11-11 — SEO audit of prod + local, fixes
+
+- **Why:** `/openseo-seo-audit` showed prod is behind the site gate (503 + noindex); a local squirrelscan audit found missing canonicals/OG, no JSON-LD, no privacy/contact pages, orphan service pages.
+- **Changed:** `lib/seo.ts`, `lib/structured-data.ts`, `components/json-ld.tsx`, `components/footer-links.tsx`, `components/legal/*`, `components/contact/*`, `/kontaktai`, `/privatumo-politika`, `public/llms.txt`, sitemap, page metadata, `site-header.tsx` aria-controls. See changelog and ADR-0063.
+- **Status:** uncommitted; production build passes; checked with curl and squirrelscan, not by eye in a browser.
+- **Next:** owner reviews the privacy text and company details, decides on About page and thin-page copy, then turns `SITE_GATE` off at launch.
+
 ## 2026-11-11 — my_riders: account phone compared as plain digits (applied)
 
 - **Why:** Security review: `normalize_phone` was also applied to `auth.users.phone`, so a foreign 9-digit account number starting 8/6 could be rewritten to 370… and match a rider.

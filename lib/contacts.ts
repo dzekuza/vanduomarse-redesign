@@ -42,6 +42,8 @@ export const MAIN_CONTACT = CONTACTS[0];
 /** Customer enquiries from the home hero and the reservation summary. */
 export const RESERVATION_PHONE = "+370 640 57504";
 
+export const INSTAGRAM_URL = "https://www.instagram.com/vanduo_marse/";
+
 export const MAPS_URL = "https://goo.gl/maps/dZJ74iwj3UiChd5FA";
 
 /** "+370 630 80 444" → "tel:+37063080444". */

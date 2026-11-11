@@ -10,6 +10,15 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0063 — One metadata helper and JSON-LD built from site constants
+
+- **Status:** Accepted 2026-11-11.
+- **Context:** Only the [service] pages had a canonical and Open Graph tags; the audit also found no structured data.
+- **Decision:** every public page builds its metadata with `pageMetadata()` (`lib/seo.ts`); JSON-LD comes from `lib/structured-data.ts` using `PARK_ADDRESS`, `CONTACTS` and `SITE_URL`, with only facts already published on the site.
+- **Consequences:** new public pages must call `pageMetadata()` and be added to `app/sitemap.ts`. Opening hours, geo and price range are left out until the owner confirms them.
+
+---
+
 ## ADR-0062 — Customers see their wakeboard plan through `my_riders()`, matched by confirmed contact
 
 - **Status:** Accepted 2026-11-11. Migration `20261111210000_my_rider.sql` applied 2026-11-11 to the live project (`mwngljhcvqkvncwbmgeo`, MCP slot `supabase-project-3`) once the owner asked for it; the first attempt was blocked by the permission classifier. Verified: `anon` cannot execute `my_riders()`, `authenticated` can. Types in `database.types.ts` were edited by hand.

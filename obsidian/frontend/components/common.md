@@ -189,3 +189,11 @@ feature components in `components/<feature>/`. Admin screens build on
 ## Related
 
 [[component-conventions]] · [[components/ui]]
+
+## SEO and text pages (2026-11-11)
+
+- `JsonLd` (`components/json-ld.tsx`): one schema.org JSON-LD script; build the data in `lib/structured-data.ts`.
+- `FooterLinks` (`components/footer-links.tsx`): crawlable link row to every service page, contacts and privacy; rendered in `FooterBar`.
+- `LegalPage` (`components/legal/legal-page.tsx`): booking-style header plus titled sections; copy in `components/legal/privacy-content.ts`.
+- `ContactDetails` (`components/contact/contact-details.tsx`): address, map link and all contacts for `/kontaktai`.
+- Metadata for any public page: `pageMetadata()` / `metaDescription()` in `lib/seo.ts`.

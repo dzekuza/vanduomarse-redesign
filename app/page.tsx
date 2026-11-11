@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/json-ld";
+import { pageMetadata } from "@/lib/seo";
+import { localBusinessSchema } from "@/lib/structured-data";
 import { MainHeader } from "@/components/main-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LandingActivities } from "@/components/landing/landing-activities";
@@ -12,15 +15,18 @@ import { LandingPlace } from "@/components/landing/landing-place";
 import { LandingProvider } from "@/components/landing/landing-provider";
 import { LandingTicker } from "@/components/landing/landing-ticker";
 
-export const metadata: Metadata = {
-  title: "Vanduo Marse | Užsuk į Marsą",
+export const metadata: Metadata = pageMetadata({
+  title: "Vanduo Marse | Pirtis, keturračiai ir vandenlentės prie Kauno",
+  absoluteTitle: true,
   description:
-    "Pirtis, keturračiai, vandenlentės, šventės ir nakvynė prie vandens Kauno rajone. Susiplanuok dieną Vanduo Marse.",
-};
+    "Pirtis, keturračiai, kabelinis vandenlenčių parkas, šventės ir nakvynė prie vandens Žemaitkiemyje, Kauno rajone. Susiplanuok dieną Vanduo Marse.",
+  path: "/",
+});
 
 export default function Home() {
   return (
     <LandingProvider>
+      <JsonLd data={localBusinessSchema()} />
       <a href="#kryptys" className="sr-only focus:not-sr-only focus:fixed focus:top-2.5 focus:left-5 focus:z-50 focus:bg-dust focus:p-3">
         Pereiti prie veiklų
       </a>
