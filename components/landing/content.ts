@@ -74,7 +74,7 @@ export const SERVICES: Record<ServiceId, Service> = {
     description:
       "Žvyras, miškas ir visai kitas maršrutas. Važiuok su Ciongo, o po trasos pratęsk dieną Marse. Vienu keturračiu galima važiuoti dviese.",
     facts: [
-      "Važiavimas trunka apie 1,5–2 val., priklausomai nuo tempo ir įgūdžių.",
+      "Trukmę ir atstumą matysi pasirinkęs trasą.",
       "Vienu keturračiu važiuoja iki 2 žmonių.",
       "Pirtis, maistas ir nakvynė užsakomi bei apmokami atskirai.",
     ],
@@ -180,10 +180,10 @@ export interface ActivityCard {
 }
 
 export const ACTIVITY_CARDS: ActivityCard[] = [
-  { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Sauna · iki 20 asm.", "Malkinė pirtis jau netrukus!"] },
+  { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Privati pirtis", "ir bendri seansai."] },
   { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Po pasivažinėjimų –", "į pirtį atsigauti."] },
   { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "KUPOLAS · RESTORANAS · TERASA", num: "03 / ŠVĘSK", title: "ŠVENTĖS MARSE.", note: ["Vestuvės, gimtadieniai,", "įmonių renginiai."] },
-  { id: "cabins", categories: ["rest"], alt: CABINS_COVER.alt, tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Apsistokite jaukiuose", "nameliuose prie vandens."] },
+  { id: "cabins", categories: ["rest"], alt: CABINS_COVER.alt, tag: "NAMELIAI PRIE VANDENS", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Apsistokite jaukiuose", "nameliuose prie vandens."] },
   { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKEBOARD", note: ["Wake grupinės treniruotės", "kartu su Handle The Watter."] },
   { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "RESTORANAS · MAITINIMAS", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Geras maistas", "kiekvienai progai."] },
 ];

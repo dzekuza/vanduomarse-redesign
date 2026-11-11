@@ -14,7 +14,7 @@ import { paymentsEnabled } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Keturračių turai Marse. Dizaino peržiūra",
-  description: "Mini, Midi ir Maxi keturračių trasos. Interaktyvi Vanduo Marse dizaino peržiūra.",
+  description: "Keturračių trasos su gidu, artimiausi išvykimo laikai ir rezervacija Vanduo Marse parke.",
   robots: { index: false, follow: false },
 };
 
@@ -23,6 +23,11 @@ export default async function QuadsPreviewPage() {
   const [sauna, cabin, data, customer] = await Promise.all([
     getSaunaPageData(availabilityWindow), getCabinPageData(availabilityWindow), getQuadPageData(availabilityWindow), getCustomer(),
   ]);
+  const distances = data.tourRoutes.map(({ kilometres }) => kilometres);
+  const shortest = Math.min(...distances);
+  const longest = Math.max(...distances);
+  const distanceLabel = shortest === longest ? `${shortest} km` : `${shortest}–${longest} km`;
+
   return (
     <BookingPage>
       <div className="theme-reservation">
@@ -31,7 +36,7 @@ export default async function QuadsPreviewPage() {
             <span className="inline-flex min-h-11 items-center border border-line px-3 text-micro uppercase">Dizaino peržiūra · Vanduo Marse × Ciongo</span>
             <BookingHeader crumb="Keturračiai" title={["Mažiau asfalto.", "Daugiau Marso."]} intro="Miškas, posūkiai ir gera kompanija. Išvažiuojam iš Marso, grįžtam su istorijomis." />
             <div className="flex flex-wrap gap-3 text-micro uppercase text-copy">
-              <span>20–50 km</span><span aria-hidden>✳</span><span>Su gidu</span><span aria-hidden>✳</span><span>Visais sezonais</span>
+              {distances.length > 0 ? <><span>{distanceLabel}</span><span aria-hidden>✳</span></> : null}<span>Su gidu</span><span aria-hidden>✳</span><span>Visais sezonais</span>
             </div>
             <Cta tone="dark" href="#trasos">Planuok turą</Cta>
           </div>

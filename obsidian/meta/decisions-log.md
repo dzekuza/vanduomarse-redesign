@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0071 — Public booking facts use the booking catalogue
+
+- **Context:** Fixed capacity, route and minimum-group claims could disagree with the admin settings. The public sauna reader also replaced legacy seed copy.
+- **Decision:** The service pages use the same sauna, stay and tour rows as the booking forms. The homepage uses descriptive copy for those activities. Contacts use the shared contact configuration and event estimates use the shared pricing sheet.
+- **Consequences:** `20261112170000_correct_seeded_sauna_copy.sql` corrects the original seeded sauna display text when it still matches. The booking reader and calculator display the stored record.
+
+---
+
 ## ADR-0070 — Publish private event dates without event details
 
 - **Date:** 2026-11-11

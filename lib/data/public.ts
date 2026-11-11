@@ -110,18 +110,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
     nowHour: vilniusHour(now),
     saunas: must(saunas, "Saunas").map((r) => {
       const sauna = toSauna(r, r.sauna_upsell_links, url);
-      const upsellIds = sauna.upsellIds.filter((id) => offered.has(id));
-      if (sauna.id !== "pirtis-marse") return { ...sauna, upsellIds };
-      // The existing reservation venue is the Finnish sauna. Correct only the seeded display copy.
-      return {
-        ...sauna,
-        upsellIds,
-        name: sauna.name === "Pirtis Marse" ? "Suomiška sauna" : sauna.name,
-        description: sauna.description === "Malkomis kūrenama pirtis prie pat ežero kranto."
-          ? "Suomiška sauna prie ežero su panoraminiais langais."
-          : sauna.description,
-        features: sauna.features.filter((feature) => feature !== "Kūrenama malkomis"),
-      };
+      return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
     }),
     upsells: activeUpsells,
     masters: must(masters, "Sauna masters").map(toSaunaMaster),
