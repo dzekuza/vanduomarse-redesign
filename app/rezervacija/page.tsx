@@ -6,11 +6,13 @@ import { ACTIVITY_ORDER, RESERVATION_DAYS } from "@/lib/reservation";
 import { getCabinPageData, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { getCustomer } from "@/lib/customer";
 import { paymentsEnabled } from "@/lib/stripe";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Rezervacija - Vanduo Marse",
-  description: "Pasirink dieną, laiką ir žmonių skaičių, tada pirtį, keturračius ir nakvynę vienoje užklausoje. Patvirtinsime telefonu ar el. paštu.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Rezervacija: pirtis, nakvynė ir keturračiai",
+  description: "Pasirink dieną, laiką ir žmonių skaičių, tada pirtį, keturračius ir nakvynę Kauno rajone vienoje užklausoje. Patvirtinsime telefonu ar el. paštu.",
+  path: "/rezervacija",
+});
 
 /** One request for the whole visit: day and group first, then any mix of sauna, stay and quads. */
 export default async function ReservationPage({ searchParams }: { searchParams: Promise<{ veikla?: string; seansas?: string | string[] }> }) {

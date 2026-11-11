@@ -19,7 +19,7 @@ const termina = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Vanduo Marse - kabelinis vandenlenčių parkas",
+  title: { default: "Vanduo Marse - kabelinis vandenlenčių parkas", template: "%s | Vanduo Marse" },
   description:
     "Vanduo Marse: kabelinis vandenlenčių parkas prie ežero. Plaukimas, Marso akademija, Pirtis Marse, Miegas Marse ir Skoniai Marse.",
 };

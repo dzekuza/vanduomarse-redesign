@@ -4,11 +4,13 @@ import { BookingPage } from "@/components/booking/booking-page";
 import { EventsAside } from "@/components/events/events-aside";
 import { EventsBoard } from "@/components/events/events-board";
 import { getParkEvents } from "@/lib/data/public";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Renginiai Marse",
-  description: "Artimiausi Vanduo Marse renginiai: pirties ritualai, vakarai prie ežero, Marso Akademija ir šventės.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Renginiai Marse: pirties ritualai ir vakarai prie ežero",
+  description: "Artimiausi Vanduo Marse renginiai Kauno rajone: pirties ritualai, vakarai prie ežero, Marso Akademijos treniruotės ir šventės.",
+  path: "/renginiai",
+});
 
 export default async function RenginiaiPage() {
   const events = await getParkEvents();

@@ -72,7 +72,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
           type="button"
           aria-label={menuOpen ? "Uždaryti meniu" : "Atidaryti meniu"}
           aria-expanded={menuOpen}
-          aria-controls="menu-panel"
+          aria-controls={menuOpen ? "menu-panel" : undefined}
           onClick={() => setMenuOpen((o) => !o)}
           className={cn("grid size-11 place-content-center gap-1.75 border transition-[scale] duration-150 ease-out-strong motion-safe:active:scale-95 md:w-12", menuOpen ? "border-ink/30" : "border-line-on-ink")}
         >

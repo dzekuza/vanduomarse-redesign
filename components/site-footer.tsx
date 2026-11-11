@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { SectionKicker } from "@/components/section-kicker";
 import { StarMark } from "@/components/star-mark";
-import { CONTACTS, MAIN_CONTACT, telHref, type Contact } from "@/lib/contacts";
+import { FooterLinks } from "@/components/footer-links";
+import { CONTACTS, INSTAGRAM_URL, MAIN_CONTACT, telHref, type Contact } from "@/lib/contacts";
 
-const INSTAGRAM_URL = "https://www.instagram.com/vanduo_marse/";
 const LINK = "inline-flex min-h-11 items-center";
 
 /** The giant "Susitinkam Marse" closing line. */
@@ -25,22 +25,25 @@ export function FooterWord() {
 /** Logo, link row and copyright. `topHref` is where "Į viršų" jumps to. */
 export function FooterBar({ topHref }: { topHref: string }) {
   return (
-    <div className="grid grid-cols-2 items-center gap-x-9 border-t border-line pt-6.5 text-xs md:flex">
-      <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 md:w-30" />
-      <a href={`mailto:${MAIN_CONTACT.email}`} className={LINK}>
-        {MAIN_CONTACT.email}
-      </a>
-      <Link href="/kuponai" className={LINK}>
-        Dovanoti Marsą
-      </Link>
-      <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className={LINK}>
-        Instagram
-      </a>
-      <a href={topHref} className={LINK}>
-        Į viršų ↑
-      </a>
-      <span className="col-span-2 md:ml-auto">© {new Date().getFullYear()} VANDUO MARSE</span>
-    </div>
+    <>
+    <FooterLinks />
+      <div className="grid grid-cols-2 items-center gap-x-9 border-t border-line pt-6.5 text-xs md:flex">
+        <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 md:w-30" />
+        <a href={`mailto:${MAIN_CONTACT.email}`} className={LINK}>
+          {MAIN_CONTACT.email}
+        </a>
+        <Link href="/kuponai" className={LINK}>
+          Dovanoti Marsą
+        </Link>
+        <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className={LINK}>
+          Instagram
+        </a>
+        <a href={topHref} className={LINK}>
+          Į viršų ↑
+        </a>
+        <span className="col-span-2 md:ml-auto">© {new Date().getFullYear()} VANDUO MARSE</span>
+      </div>
+    </>
   );
 }
 

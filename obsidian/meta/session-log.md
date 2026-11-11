@@ -1,16 +1,23 @@
+## 2026-11-11 — SEO audit of prod + local, fixes
+
+- **Why:** `/openseo-seo-audit` showed prod is behind the site gate (503 + noindex); a local squirrelscan audit found missing canonicals/OG, no JSON-LD, no privacy/contact pages, orphan service pages.
+- **Changed:** `lib/seo.ts`, `lib/structured-data.ts`, `components/json-ld.tsx`, `components/footer-links.tsx`, `components/legal/*`, `components/contact/*`, `/kontaktai`, `/privatumo-politika`, `public/llms.txt`, sitemap, page metadata, `site-header.tsx` aria-controls. See changelog and ADR-0063.
+- **Status:** uncommitted; production build passes; checked with curl and squirrelscan, not by eye in a browser.
+- **Next:** owner reviews the privacy text and company details, decides on About page and thin-page copy, then turns `SITE_GATE` off at launch.
+
 ## 2026-11-11 — my_riders: account phone compared as plain digits (applied)
 
 - **Why:** Security review: `normalize_phone` was also applied to `auth.users.phone`, so a foreign 9-digit account number starting 8/6 could be rewritten to 370… and match a rider.
 - **Changed:** new migration `20261111230000_my_rider_account_phone_plain.sql`; changelog entry.
 - **Status:** applied to `mwngljhcvqkvncwbmgeo` via `supabase db query --linked -f` and verified (function body contains the new logic). `db push` is blocked by remote history timestamps that differ from local (earlier MCP applies); needs `migration repair` someday.
-- **Next:** merge the branch.
+- **Next:** nothing pending; merged to `main` in PR #19.
 
 ## 2026-11-11 — my_riders exact phone match (applied)
 
 - **Why:** Security review: matching on the last 8 digits could match foreign numbers.
 - **Changed:** new migration `20261111220000_my_rider_exact_phone.sql`; ADR-0062 and changelog notes. Applied to the live project (project URL checked) and verified; committed on a branch.
 - **Status:** the live DB now matches normalised phones exactly.
-- **Next:** Merge the branch when ready.
+- **Next:** done; merged in PR #19.
 
 ## 2026-11-11 — Sidebar badge centring (robust)
 

@@ -4,11 +4,13 @@ import { BookingPage } from "@/components/booking/booking-page";
 import { CouponShop } from "@/components/coupons/coupon-shop";
 import { COUPON_VALID_MONTHS } from "@/lib/coupons";
 import { getCouponProducts } from "@/lib/data/public";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Dovanų kuponai - Vanduo Marse",
-  description: "Padovanok dieną Marse: dovanų kuponai plaukimui, pirčiai ar nakvynei. Kodas ateina el. paštu, galioja 12 mėnesių.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Dovanų kuponai pirčiai, nakvynei ir plaukimui",
+  description: "Padovanok dieną Marse: dovanų kuponai plaukimui, pirčiai ar nakvynei Kauno rajone. Kodas ateina el. paštu, kuponas galioja 12 mėnesių.",
+  path: "/kuponai",
+});
 
 export default async function CouponsPage() {
   const products = await getCouponProducts();
