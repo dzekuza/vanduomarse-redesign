@@ -5,7 +5,7 @@ import { useState } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
 import { FilterChip } from "@/components/events/filter-chip";
 import { SaunaSessionDialog } from "@/components/reservation/sauna-session-dialog";
-import { closeSessionInfo, SessionInfoLink } from "@/components/reservation/session-info-link";
+import { closeSessionInfo } from "@/components/reservation/session-info-link";
 import type { SaunaPageData } from "@/lib/data/public-types";
 import { UpsellPicker } from "@/components/booking/upsell-picker";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
@@ -14,6 +14,7 @@ import { dateKey } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
+import { SaunaServiceSessions } from "./sauna-service-sessions";
 import { SaunaServiceTime } from "./sauna-service-time";
 
 interface SaunaServiceBookingProps {
@@ -98,6 +99,14 @@ export function SaunaServiceBooking({
     onPick(pickForRow(row, pick, null), count);
   }
 
+  /** A day with a single free session picks it at once. */
+  function chooseDate(next: Date) {
+    onDate(next);
+    if (mode !== "session") return;
+    const free = sessionRows(data, dateKey(next)).filter((row) => row.mode === "session" && !row.blocked);
+    if (free.length === 1) selectSession(free[0], 1);
+  }
+
   return (
     <div className="space-y-5">
       {lockedMode ? null : <fieldset disabled={busy}>
@@ -130,16 +139,24 @@ export function SaunaServiceBooking({
         <SaunaServiceHourly sauna={sauna} masters={data.masters} day={date ? dateKey(date) : null} hours={wantedHours} onHours={setHours}
           masterId={masterId} onMaster={setMaster} disabled={busy} />
       ) : null}
-      <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={onDate}
+      <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
         icons={(day) => {
           const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
           return [{ Icon: WavesIcon, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];
         }}
       />
-      <SaunaServiceTime rows={rows} value={time} busy={busy} dateSelected={Boolean(date) && canPickDate} onSelect={(row, hour) => {
-        if (row.mode === "session") selectSession(row, 1);
-        else onPick({ ...pick, programId: null, eventId: null, children: 0, saunaId: venueId ?? pick.saunaId, startHour: hour, hours: draft.hours, masterId: draft.masterId }, people);
-      }} />
+      {mode === "session" && date ? (
+        <SaunaServiceSessions rows={rows} selectedKey={selectedRow?.key} busy={busy} onSelect={(row) => selectSession(row, 1)}
+          quantity={selectedRow && plan?.mode === "session" ? { value: people, max: maxPeople(selectedRow), onChange: onPeople } : undefined}
+          familyControls={plan?.mode === "session" && plan.program?.pricing === "family"
+            ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable />
+            : null} />
+      ) : (
+            <SaunaServiceTime rows={rows} value={time} busy={busy} dateSelected={Boolean(date) && canPickDate} onSelect={(row, hour) => {
+          if (row.mode === "session") selectSession(row, 1);
+          else onPick({ ...pick, programId: null, eventId: null, children: 0, saunaId: venueId ?? pick.saunaId, startHour: hour, hours: draft.hours, masterId: draft.masterId }, people);
+        }} />
+      )}
       {mode === "private" && sauna?.rates && venue?.hasPrices ? <SaunaServicePeople sauna={sauna} people={people} onPeople={onPeople} disabled={busy} /> : null}
       {hourly && hourly.upsells.length ? (
         <fieldset disabled={busy}>
@@ -147,16 +164,6 @@ export function SaunaServiceBooking({
           <UpsellPicker upsells={hourly.upsells} quantities={hourly.extras} partySize={people} hours={hourly.hours}
             onChange={(id, qty) => onPick({ ...pick, extras: { ...hourly.extras, [id]: qty } })} />
         </fieldset>
-      ) : null}
-      {selectedRow?.eventId && plan?.mode === "session" ? (
-        <div className="space-y-3">
-          <p className="text-xs text-copy">{selectedRow.rate} · {selectedRow.seats}</p>
-          <SessionInfoLink id={selectedRow.eventId} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Daugiau informacijos</SessionInfoLink>
-          <fieldset disabled={busy} className="space-y-3">
-            <CompactStepper label="Vietų skaičius" min={1} max={maxPeople(selectedRow)} value={people} onChange={onPeople} editable />
-            {plan.program?.pricing === "family" ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable /> : null}
-          </fieldset>
-        </div>
       ) : null}
       <SaunaSessionDialog
         open={Boolean(sessionId) && !busy}

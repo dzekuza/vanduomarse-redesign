@@ -1,3 +1,11 @@
+## 2026-11-12 — Rest of front-updates
+
+- **Why:** user asked to add the remaining front-updates changes.
+- **Tried:** merging the original tip with `-X ours` gave dozens of type errors (mixes the old quad/sauna model with main's), aborted.
+- **Changed:** ported by hand: `SaunaServiceSessions` (session cards, auto-select of a single session), `stayDayDetails` (cabin free/total on /rezervacija).
+- **Skipped on purpose:** ATV preview checkout, Finnish tariff tables + migration, private start-time grid, header calculator-link removal.
+- **Status:** `tsc`/eslint clean; browser-checked at 375 px; nothing submitted.
+
 ## 2026-11-12 — /rezervacija rework on main
 
 - **Why:** the rebased `front-updates` left /rezervacija on the old tab layout; user asked to use the rework.

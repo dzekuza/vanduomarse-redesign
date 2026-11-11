@@ -48,6 +48,7 @@ import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
 import { ReservationAccountDialog } from "./reservation-account-dialog";
 import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
+import { stayDayDetails } from "./stay-day-details";
 import type { ReservationDayDetails } from "./day-cell";
 import { WhenStep, type StayDatePhase } from "./when-step";
 
@@ -149,7 +150,11 @@ export function ReservationFlow({
     const key = dateKey(d);
     const available = dayAvailability(data, key, people, stayEnd ? stayNights : 1)[tab];
     const status = `${ACTIVITY_TITLE[tab]} ${available ? "laisva" : "užimta"}`;
-    if (tab === "nakvyne") return { label: status, available };
+    if (tab === "nakvyne") {
+      const cabins = stayDayDetails(data.cabin.stayTypes, data.cabin.availability, d, stayEnd ? stayNights : 1);
+      // The count covers cabins only; `available` also counts camper pitches.
+      return cabins ? { ...cabins, available } : { label: status, available };
+    }
     const count = tab === "pirtis" ? data.sauna.events.filter((e) => e.date === key).length : data.quads.departures.filter((x) => x.date === key).length;
     // An empty marker keeps every day the same height, with or without sessions.
     if (count === 0) return { label: status, available, indicator: <span className="block h-3" /> };
