@@ -10,9 +10,19 @@ updated: 2026-11-07
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-11
+**Last updated:** 2026-11-12
+
+**Sauna pricing per length (2026-11-12, ADR-0066): code done, `tsc`/eslint clean; migration `20261112090000_sauna_duration_pricing.sql` APPLIED to the live database (verified). Still to do: browser-check /pirtis, /rezervacija, /admin/pirtis at 375/768/1024 px and place one test booking before merging; the live site runs the old code until then, so its pirtis booking will fail against the new columns.**
+
+**Admin Renginiai (2026-11-12): tickets section removed; bulk select + "Ištrinti pasirinktus" in the events table; tsc/eslint clean, not browser-checked.**
+
+**Admin label (2026-11-12): `/admin/keturraciai` "Parkas" tab and fleet card renamed "Inventorius" (`?tab=inventorius`); `tsc` clean, not browser-checked.**
 
 ## Current focus
+
+**Composition and load pass (2026-11-12, ADR-0065): `Stepper`/`ServiceSchedule`/`EstimateSummary` split into explicit variants, lazy home drawers, `/rezervacija` streamed behind `Suspense`, `React.cache` on public readers; `tsc`, eslint and build clean, checked in the browser at 375 px; uncommitted. Open: `Suspense` on `/[service]`, dark/compact stepper not compared by eye, design-tell cleanups (numbered `01 /` labels) left as a brand decision.**
+
+**Supabase hardening (2026-11-12, ADR-0064): migration `20261111174736_security_hardening.sql` applied and verified; not committed. Open: leaked-password protection (Auth dashboard), re-run `/registracija` once.**
 
 **SEO follow-up (2026-11-11): main landmark and skip link on inner pages, security headers; committed on `fix/seo-a11y-headers`, not pushed. Still open: thin-page copy, About page, CSP, image weight, `SITE_GATE` off at launch.**
 

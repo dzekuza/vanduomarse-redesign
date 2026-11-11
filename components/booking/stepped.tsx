@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, use, type ReactNode } from "react";
 
 const SteppedContext = createContext(false);
 const InStepContext = createContext(false);
@@ -11,11 +11,11 @@ export function SteppedBooking({ children }: { children: ReactNode }) {
 }
 
 /** True when booking flows should run as a stepper instead of one long form. */
-export const useSteppedBooking = () => useContext(SteppedContext);
+export const useSteppedBooking = () => use(SteppedContext);
 
 /** Marks the content of the current step, so its own numbered `StepLabel` hides (the stepper header shows it). */
 export function StepFrame({ children }: { children: ReactNode }) {
   return <InStepContext value>{children}</InStepContext>;
 }
 
-export const useInStep = () => useContext(InStepContext);
+export const useInStep = () => use(InStepContext);

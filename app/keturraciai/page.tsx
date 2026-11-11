@@ -29,7 +29,7 @@ export default async function QuadsPreviewPage() {
             <Cta tone="dark" href="#trasos">Planuok turą</Cta>
           </div>
           <div className="relative aspect-video bg-dust-soft lg:aspect-square">
-            <Image src="/quads/ciongo/forest-pair.webp" alt="Keturračiai miško trasoje" fill priority quality={90} sizes="(min-width: 1024px) 48vw, 92vw" className="object-cover" />
+            <Image src="/quads/ciongo/forest-pair.webp" alt="Keturračiai miško trasoje" fill loading="eager" fetchPriority="high" quality={90} sizes="(min-width: 1024px) 48vw, 92vw" className="object-cover" />
             <span className="absolute bottom-4 left-4 bg-dust px-3 py-2 text-micro uppercase text-ink">Startas iš Marso</span>
           </div>
         </section>

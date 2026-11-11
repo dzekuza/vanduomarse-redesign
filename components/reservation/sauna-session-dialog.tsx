@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { ArrowButton } from "@/components/booking/arrow-button";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { SessionRow } from "@/lib/reservation";
 import { toSaunaEvent, type SaunaEventData } from "@/lib/sauna-events";
@@ -80,7 +80,7 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
             <div className="space-y-3 border-t border-line pt-4">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <p className="text-item font-bold">{details.row.rate}</p>
-                {!details.row.blocked ? <Stepper label="Vietų skaičius" {...details.quantity} min={1} editable compact /> : null}
+                {!details.row.blocked ? <CompactStepper label="Vietų skaičius" {...details.quantity} min={1} editable /> : null}
               </div>
               {details.row.blocked ? (
                 <p className="text-xs text-rust-ink">{details.event.spotsLeft > 0 ? "Seanso laikas kertasi su tavo planu." : "Laisvų vietų nebeliko."}</p>

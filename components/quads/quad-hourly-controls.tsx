@@ -2,7 +2,7 @@
 
 import { ClockIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { ACTIVITY_ICON } from "@/components/reservation/activity-icons";
 import { ServiceDateField } from "@/components/services/service-date-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -66,7 +66,7 @@ export function QuadHourlyControls({ data, days, date, pick, busy, onDate, onPic
           {(() => { const Icon = ACTIVITY_ICON.keturraciai; return <Icon size={18} aria-hidden />; })()} Keturračiai
         </legend>
         {types.map((type) => (
-          <Stepper
+          <CompactStepper
             key={type.id}
             label={`${type.name} (${type.pricePerHour} € / val.)`}
             value={quantities[type.id] ?? 0}
@@ -74,7 +74,6 @@ export function QuadHourlyControls({ data, days, date, pick, busy, onDate, onPic
             max={type.units}
             onChange={(units) => setQuantity(type.id, units)}
             editable
-            compact
           />
         ))}
       </fieldset>

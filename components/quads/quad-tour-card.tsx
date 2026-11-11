@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { Cta } from "@/components/cta";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -103,7 +103,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
         {slot ? (
           <>
             <div className="space-y-2">
-              <Stepper label={`Kiekis: ${route.name}`} value={choice.units} min={route.minUnits} max={slot.free} onChange={(units) => onDraft({ ...choice, units })} editable compact />
+              <CompactStepper label={`Kiekis: ${route.name}`} value={choice.units} min={route.minUnits} max={slot.free} onChange={(units) => onDraft({ ...choice, units })} editable />
               <p className={`text-xs ${copy}`}>Bent {route.minUnits} keturračiai.</p>
             </div>
             <QuadAccessories catalogue={catalogue} title={title} selected={selected} quantities={choice.accessories ?? {}} onChange={(accessories) => onDraft({ ...choice, accessories })} />

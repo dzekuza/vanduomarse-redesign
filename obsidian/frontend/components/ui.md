@@ -35,6 +35,7 @@ files are listed in the last column; re-running `shadcn add` would overwrite the
 | Skeleton | `components/ui/skeleton.tsx` | — | — |
 | Sonner | `components/ui/sonner.tsx` | `Toaster` | — (admin passes `theme="light"`) |
 | Switch | `components/ui/switch.tsx` | `checked`, `onCheckedChange` | — |
+| Checkbox | `components/ui/checkbox.tsx` | `checked` (`true`/`false`/`"indeterminate"`), `onCheckedChange`; 44 px tap area | `EventsView` bulk select |
 | Table | `components/ui/table.tsx` | table parts | — |
 | Tabs | `components/ui/tabs.tsx` | Radix tabs | list height auto (was h-11); `bg-muted` on both variants |
 | Textarea | `components/ui/textarea.tsx` | native textarea props | `bg-card` |

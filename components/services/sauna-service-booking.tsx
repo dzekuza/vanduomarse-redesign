@@ -2,7 +2,7 @@
 
 import { WavesIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { FilterChip } from "@/components/events/filter-chip";
 import { SaunaSessionDialog } from "@/components/reservation/sauna-session-dialog";
 import { closeSessionInfo, SessionInfoLink } from "@/components/reservation/session-info-link";
@@ -107,8 +107,8 @@ export function SaunaServiceBooking({
           <p className="text-xs text-copy">{selectedRow.rate} · {selectedRow.seats}</p>
           <SessionInfoLink id={selectedRow.eventId} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Daugiau informacijos</SessionInfoLink>
           <fieldset disabled={busy} className="space-y-3">
-            <Stepper label="Vietų skaičius" min={1} max={maxPeople(selectedRow)} value={people} onChange={onPeople} editable compact />
-            {plan.program?.pricing === "family" ? <Stepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable compact /> : null}
+            <CompactStepper label="Vietų skaičius" min={1} max={maxPeople(selectedRow)} value={people} onChange={onPeople} editable />
+            {plan.program?.pricing === "family" ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable /> : null}
           </fieldset>
         </div>
       ) : null}

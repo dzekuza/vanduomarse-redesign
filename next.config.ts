@@ -15,7 +15,11 @@ const nextConfig: NextConfig = {
   // 127.0.0.1 for browser automation tools that can't resolve "localhost".
   allowedDevOrigins: ["100.66.120.126", "127.210.108.239", "127.0.0.1"],
   // Sauna photos are compressed in the browser first; this is headroom for large originals.
-  experimental: { serverActions: { bodySizeLimit: "4mb" } },
+  experimental: {
+    serverActions: { bodySizeLimit: "4mb" },
+    // ~100 files import icons from the package root; this keeps only the icons actually used.
+    optimizePackageImports: ["@phosphor-icons/react"],
+  },
   images: {
     // 90 for galleries and photo tiles, 75 (the default) for everything else.
     qualities: [75, 90],

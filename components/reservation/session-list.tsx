@@ -2,7 +2,7 @@
 
 import { InfoIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { StepperControls } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SessionRow } from "@/lib/reservation";
@@ -119,7 +119,7 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
         {(selected || !blocked) && (
           <div className="flex w-full max-w-full flex-wrap items-end gap-2">
             {!blocked && quantity ? (
-              <div className="text-left"><Stepper label="Kiekis" {...quantity} min={1} editable compact hideLabel /></div>
+              <div className="text-left"><StepperControls label="Kiekis" {...quantity} min={1} editable tone="current" /></div>
             ) : null}
             <button
               type="button"

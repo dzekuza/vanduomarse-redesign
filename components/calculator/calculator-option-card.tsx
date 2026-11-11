@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { Panel } from "@/components/panel";
 
@@ -63,7 +63,7 @@ export function CalculatorQuantityCard({ label, value, min = 1, max, onChange, c
   return (
     <CalculatorOptionCard {...card} selected={selected} onToggle={() => onChange(selected ? 0 : quantity)}>
       <div className="flex flex-wrap items-start gap-4">
-        <Stepper label={label} value={quantity} onChange={selected ? onChange : setDraft} min={min} max={max} editable compact />
+        <CompactStepper label={label} value={quantity} onChange={selected ? onChange : setDraft} min={min} max={max} editable />
         {children}
       </div>
     </CalculatorOptionCard>

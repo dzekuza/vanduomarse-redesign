@@ -1,6 +1,6 @@
 import { ArrowDownIcon, TrashSimpleIcon } from "@phosphor-icons/react/dist/ssr";
 import { useId, useState } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ActivityId, PlanLine } from "@/lib/reservation";
 import { formatHour } from "@/lib/sauna";
@@ -106,7 +106,7 @@ export function PlanLines({ lines, quantities, saunaTime, busy, onRemove }: Plan
                     </div>
                   ) : null}
                   {editing ? fields?.map((field) => (
-                    <Stepper key={field.id} label={field.label} value={field.value} onChange={field.onChange} min={field.min ?? 1} max={field.max} editable compact />
+                    <CompactStepper key={field.id} label={field.label} value={field.value} onChange={field.onChange} min={field.min ?? 1} max={field.max} editable />
                   )) : null}
                 </fieldset>
               ) : null}

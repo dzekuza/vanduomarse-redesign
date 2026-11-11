@@ -1,4 +1,5 @@
 import { WarningIcon } from "@phosphor-icons/react/dist/ssr";
+import type { ReactNode } from "react";
 import { InquiryForm } from "./inquiry-form";
 import { formatMoney, type Estimate, type EstimateInput, type EstimateLine, type Money } from "@/lib/event-pricing";
 
@@ -11,31 +12,55 @@ interface EstimateSummaryProps {
   spaceLabel: string;
   /** Typical per-guest range from the price sheet for the chosen event type. */
   typical: { label: string; perGuest: Money } | null;
-  /** The drawer shows the total in its own header, so it can drop the one here. */
-  showTotal?: boolean;
 }
 
-/** Live breakdown of the estimate, grouped like the price sheet, with an inquiry CTA. */
-export function EstimateSummary({ estimate, input, guests, spaceLabel, typical, showTotal = true }: EstimateSummaryProps) {
-  return (
-    <div className="border border-line bg-foam/15">
-      {showTotal ? (
-      <div className="border-b border-line px-6 py-5">
-        <p className="text-micro uppercase text-copy">Preliminari kaina</p>
-        <p className="font-display mt-1 text-total font-bold">{formatMoney(estimate.total)}</p>
-        {estimate.perGuest ? (
-          <p className="mt-1 text-sm text-copy">
-            ≈ {formatMoney(estimate.perGuest)} vienam svečiui · {guests} asm.
-          </p>
-        ) : null}
-        {typical ? (
-          <p className="mt-2 text-xs text-copy">
-            {typical.label}: įprastai {formatMoney(typical.perGuest)} / asm.
-          </p>
-        ) : null}
-      </div>
-      ) : null}
+/** Boxed surface shared by the full summary and the breakdown-only variant. */
+function EstimateFrame({ children }: { children: ReactNode }) {
+  return <div className="border border-line bg-foam/15">{children}</div>;
+}
 
+/** Total, per-guest and typical-range header. */
+function EstimateTotal({ estimate, guests, typical }: Pick<EstimateSummaryProps, "estimate" | "guests" | "typical">) {
+  return (
+    <div className="border-b border-line px-6 py-5">
+      <p className="text-micro uppercase text-copy">Preliminari kaina</p>
+      <p className="font-display mt-1 text-total font-bold">{formatMoney(estimate.total)}</p>
+      {estimate.perGuest ? (
+        <p className="mt-1 text-sm text-copy">
+          ≈ {formatMoney(estimate.perGuest)} vienam svečiui · {guests} asm.
+        </p>
+      ) : null}
+      {typical ? (
+        <p className="mt-2 text-xs text-copy">
+          {typical.label}: įprastai {formatMoney(typical.perGuest)} / asm.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Live breakdown of the estimate with its total header, grouped like the price sheet, with an inquiry CTA. */
+export function EstimateSummary(props: EstimateSummaryProps) {
+  return (
+    <EstimateFrame>
+      <EstimateTotal estimate={props.estimate} guests={props.guests} typical={props.typical} />
+      <EstimateBody {...props} />
+    </EstimateFrame>
+  );
+}
+
+/** The breakdown without the total header, for surfaces that already show the total (the home page drawer). */
+export function EstimateBreakdown(props: EstimateSummaryProps) {
+  return (
+    <EstimateFrame>
+      <EstimateBody {...props} />
+    </EstimateFrame>
+  );
+}
+
+function EstimateBody({ estimate, input, guests, spaceLabel, typical }: EstimateSummaryProps) {
+  return (
+    <>
       <div className="space-y-5 px-6 py-5">
         {estimate.lines.length === 0 ? <p className="text-xs text-copy">Pasirink renginio tipą ar erdvę, ir čia matysi preliminarią sąmatą.</p> : null}
         {GROUPS.map((group) => {
@@ -77,6 +102,6 @@ export function EstimateSummary({ estimate, input, guests, spaceLabel, typical, 
           <p className="text-xs text-copy">Pasirink erdvę ir dieną, kad galėtum siųsti užklausą.</p>
         )}
       </div>
-    </div>
+    </>
   );
 }

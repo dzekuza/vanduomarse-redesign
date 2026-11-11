@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { MAX_STAY_UNITS, type StayType } from "@/lib/cabin";
 import type { StayPick, StayPlan } from "@/lib/reservation";
@@ -79,14 +79,13 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
       {free !== null ? <div className="mt-auto space-y-4">
         {max > 0 && (
           <div>
-            <Stepper
+            <CompactStepper
               label="Kiekis"
               value={count}
               onChange={(next) => (selected ? onChange : setDraft)(Math.min(next, max))}
               min={1}
               max={max}
               editable
-              compact
             />
           </div>
         )}

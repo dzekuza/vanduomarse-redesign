@@ -6,7 +6,7 @@ import { loadCalculatorCatalog } from "@/app/actions/booking-data";
 import { BookingCard, type BookingStep } from "@/components/booking/booking-card";
 import { SteppedBooking } from "@/components/booking/stepped";
 import { CALCULATOR_SECTIONS } from "@/components/calculator/calculator-sections";
-import { EstimateSummary } from "@/components/calculator/estimate-summary";
+import { EstimateBreakdown } from "@/components/calculator/estimate-summary";
 import { useEventCalculator } from "@/components/calculator/use-event-calculator";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,13 +30,12 @@ function CalculatorPanel() {
       id: "summary",
       label: "Suvestinė",
       content: (
-        <EstimateSummary
+        <EstimateBreakdown
           estimate={result}
           input={input}
           guests={guests}
           spaceLabel={space?.label ?? ""}
           typical={preset ? { label: preset.label, perGuest: preset.perGuest } : null}
-          showTotal={false}
         />
       ),
     },

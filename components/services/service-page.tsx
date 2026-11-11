@@ -17,7 +17,7 @@ import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "./service
 import { ServicePhotoMosaic } from "./service-photo-mosaic";
 import { ServicePricing } from "./service-pricing";
 import { ServiceReviews } from "./service-reviews";
-import { ServiceSchedule } from "./service-schedule";
+import { CalendarSchedule, InquirySchedule } from "./service-schedule";
 
 const SECTIONS = [
   { id: "aprasymas", label: "Aprašymas" },
@@ -115,7 +115,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
             </Section>
             <Section id="kainos"><ServicePricing slug={slug} sauna={sauna} quads={quads} stayTypes={stayTypes} /></Section>
             <Section id="galerija"><ServicePhotoMosaic photos={gallery} label={`${copy.label}: galerija`} /></Section>
-            <Section id="tvarkarastis">{schedule ?? <ServiceSchedule wake={wake} note={copy.availabilityNote} hasCalendar={Boolean(booking)} />}</Section>
+            <Section id="tvarkarastis">{schedule ?? (booking ? <CalendarSchedule wake={wake} note={copy.availabilityNote} /> : <InquirySchedule wake={wake} note={copy.availabilityNote} />)}</Section>
             <Section id="atsiliepimai"><ServiceReviews service={copy.service} /></Section>
             <Section id="duk">
               <LandingAccordion rows={copy.questions.map((question, index) => ({ ...question, id: `${slug}-${index}` }))} variant="faq" mode="multiple" />

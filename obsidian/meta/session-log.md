@@ -1,3 +1,57 @@
+## 2026-11-12 — Sauna pricing per session length
+
+- **Why:** user sent the owner's sheet (2/3/4 h with fixed prices, weekday vs Fri–Sun, pirtininkas +250 € min 3 h, 10 guests included then +15 €/person, 1 h gap between sessions) and asked to update the pirtis settings and storefront. Answers: weekday 4 h = 240 €, both saunas, 1 h gap, pirtininkas any day.
+- **Changed:** migration `20261112090000_sauna_duration_pricing.sql`, `lib/sauna.ts`, mappers, `database.types.ts`, admin rates form/preview/upsell dialog, storefront booking and `/rezervacija` plan, calculator pricing, ADR-0066, utils/common/database/changelog notes.
+- **Status:** `tsc` and eslint clean. Migration applied to the live database via MCP (user asked) and verified. Not browser-checked, no test booking placed.
+- **Next:** check /pirtis, /rezervacija and /admin/pirtis at 375 / 768 / 1024 px and place one test booking (weekday 3 h, weekend, with pirtininkas, 12 guests).
+
+
+## 2026-11-12 — Deleted vakarai / akademija / sventes events
+
+- **Why:** user asked to remove those categories from the events list.
+- **Changed:** live `events` rows only (4, no tickets or quad rentals attached); changelog.
+- **Status:** done and verified by re-query; remaining events are all category `pirtis`.
+- **Next:** none.
+
+
+## 2026-11-12 — Drop tickets section from admin Renginiai
+
+- **Why:** user pasted the "Bilietai ir registracijos" section and said "remove".
+- **Changed:** `events-view.tsx` (section and its now-unused imports/state); changelog.
+- **Status:** `tsc`/eslint clean; not browser-checked. The earlier request to delete all events except 2x Pirties ritualas was NOT run: no live data was deleted; the keep-which question was left open.
+- **Next:** confirm which two Pirties ritualas to keep before any live delete.
+
+
+## 2026-11-12 — Bulk delete on admin Renginiai
+
+- **Why:** user asked for a bulk select option to remove selected events.
+- **Changed:** `events-view.tsx`, new `delete-events-dialog.tsx`, new `ui/checkbox.tsx`; ui/common/changelog notes.
+- **Status:** `tsc`/eslint clean; not browser-checked (needs staff login). Deletes call the existing per-event action in parallel.
+- **Next:** check in the browser; consider a server-side bulk action if lists grow.
+
+
+## 2026-11-12 — Rename admin "Parkas" tab to "Inventorius"
+
+- **Why:** user asked (screenshot of /admin/keturraciai) to rename Parkas to Inventorius.
+- **Changed:** `quads-view.tsx` (tab label, id `inventorius`, `?tab=inventorius`), `quad-types-card.tsx` title; routing, components/common and changelog notes.
+- **Status:** `tsc` clean; not browser-checked. No ADR (label rename).
+- **Next:** none.
+
+
+## 2026-11-12 — Composition and load pass on public pages
+
+- **Why:** user asked to apply vercel-composition-patterns, frontend-design and vercel-react-best-practices to the storefront pages (dev server on 3001), then "fix all whats needed".
+- **Changed:** stepper, schedule and estimate components split into variants (21 `Stepper` call sites migrated); `LandingProvider` lazy drawers; `/rezervacija` `Suspense`; `React.cache` in `lib/data/public.ts`; image `priority` → `loading="eager"` + `fetchPriority`; `use()` / ref-as-prop; `next.config.ts`; catalog, changelog, ADR-0065.
+- **Status:** `tsc`, eslint, build clean. Cold-cache script transfer: `/` 306→320 KB, `/rezervacija` 374→330, `/renginiai` 332→246. First attempt without lazy drawers gave no change anywhere, so the drawers stayed lazy. The Next dev LCP warning on `wake.webp` is a false positive (same src used lazily lower down). Not committed.
+- **Next:** `Suspense` on `/[service]`; eyeball the compact and dark steppers; decide on the numbered `01 /` labels.
+
+## 2026-11-12 — Supabase audit and hardening
+
+- **Why:** user asked for a security audit of storefront and admin (Supabase side), then "fix all".
+- **Changed:** migration `20261111174736_security_hardening.sql` (applied via MCP slot `project-3`, which is the Vanduo project); ADR-0064; changelog; database.md. No app code.
+- **Status:** applied and verified as `anon`. Admin RPCs `accept_inquiry_stays`, `release_inquiry_stays`, `discount_code_usage` already check page permissions. Not browser-checked; `/registracija` not re-run end to end.
+- **Next:** enable leaked-password protection in Auth dashboard (not possible via MCP); test `/registracija` once; merging the 23 duplicate permissive policies left out on purpose (risk > gain).
+
 ## 2026-11-11 — SEO follow-up: landmarks, skip link, security headers
 
 - **Why:** squirrelscan flagged missing main landmark/skip link on inner pages, no clickjacking header, label-in-name on day cells.

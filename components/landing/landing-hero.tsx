@@ -22,7 +22,7 @@ export function LandingHero() {
       <HeroOrbits />
 
       <div className="absolute top-82 right-0 bottom-36 w-full overflow-hidden bg-lake-soft clip-hero-narrow md:top-35 md:bottom-24 md:w-3/4 md:clip-hero-wide lg:w-2/3">
-        <Image src="/landing/wake.webp" alt="Vandenlentininkas šuolyje virš Marso vandens" fill priority sizes="(min-width: 1024px) 67vw, 100vw" className="object-cover object-center saturate-80 motion-safe:animate-in motion-safe:zoom-in-105 motion-safe:duration-1000 motion-safe:ease-out-strong" />
+        <Image src="/landing/wake.webp" alt="Vandenlentininkas šuolyje virš Marso vandens" fill loading="eager" fetchPriority="high" sizes="(min-width: 1024px) 67vw, 100vw" className="object-cover object-center saturate-80 motion-safe:animate-in motion-safe:zoom-in-105 motion-safe:duration-1000 motion-safe:ease-out-strong" />
         <div aria-hidden className="absolute inset-0 bg-linear-to-t from-ink/85 to-transparent to-70% md:bg-linear-to-r md:from-ink/80 md:via-ink/10 md:to-transparent" />
       </div>
 

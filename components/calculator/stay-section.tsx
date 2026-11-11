@@ -1,7 +1,7 @@
 "use client";
 
 import { StepLabel } from "@/components/booking/step-label";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { guestsLabel, stayTypesOf } from "@/lib/cabin";
 import { PRICES } from "@/lib/event-pricing";
@@ -38,7 +38,7 @@ function CabinOptions({ calc: { input, set, setCabinUnits, stayTypes } }: { calc
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-        <Stepper label="Naktys" value={nights} onChange={(next) => set("cabinNights", next)} min={1} max={14} editable compact />
+        <CompactStepper label="Naktys" value={nights} onChange={(next) => set("cabinNights", next)} min={1} max={14} editable />
         <div aria-live="polite" className="space-y-1 text-xs text-copy">
           {dates ? (
             <>

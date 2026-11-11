@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { connection } from "next/server";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -147,11 +148,14 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
 }
 
 /** Active stay types (cabin sizes, camper pitches) in display order; RLS lets anon read inactive rows too, so filter here. */
-export async function getStayTypes(): Promise<StayType[]> {
+async function loadStayTypes(): Promise<StayType[]> {
   await connection();
   const supabase = createPublicClient();
   return must(await supabase.from("stay_types").select("*").eq("active", true).order("sort_order"), "Stay types").map(toStayType);
 }
+
+/** Memoised per request, so pages and readers that share it query Supabase once. */
+export const getStayTypes = cache(loadStayTypes);
 
 /** Active saunas for the event calculator: the same rows and rates as /pirtis, so quotes match real prices. */
 async function getActiveSaunas(): Promise<Sauna[]> {
@@ -184,10 +188,13 @@ async function getActiveUpsells(): Promise<Upsell[]> {
 }
 
 /** Everything the event calculator reads from the database: cabin sizes, saunas and their private programs. */
-export async function getCalculatorCatalog(): Promise<CalculatorCatalog> {
+async function loadCalculatorCatalog(): Promise<CalculatorCatalog> {
   const [stayTypes, saunas, programs, upsells] = await Promise.all([getStayTypes(), getActiveSaunas(), getPrivatePrograms(), getActiveUpsells()]);
   return { stayTypes, saunas, programs, upsells };
 }
+
+/** Memoised per request, so pages and readers that share it query Supabase once. */
+export const getCalculatorCatalog = cache(loadCalculatorCatalog);
 
 export async function getCabinPageData(availabilityWindow?: AvailabilityWindow): Promise<CabinPageData> {
   await connection();
@@ -214,7 +221,7 @@ export async function getCabinPageData(availabilityWindow?: AvailabilityWindow):
   return { today, stayTypes, availability };
 }
 
-export async function getParkEvents(): Promise<ParkEventData[]> {
+async function loadParkEvents(): Promise<ParkEventData[]> {
   await connection();
   const supabase = createPublicClient();
   const today = todayKey();
@@ -249,12 +256,18 @@ export async function getParkEvents(): Promise<ParkEventData[]> {
   }));
 }
 
+/** Memoised per request, so pages and readers that share it query Supabase once. */
+export const getParkEvents = cache(loadParkEvents);
+
 /** Active coupon products for /kuponai (RLS limits anon to active rows). */
-export async function getCouponProducts(): Promise<CouponProduct[]> {
+async function loadCouponProducts(): Promise<CouponProduct[]> {
   await connection();
   const supabase = createPublicClient();
   return must(await supabase.from("coupon_products").select("*").eq("active", true).order("sort_order"), "Coupon products").map(toCouponProduct);
 }
+
+/** Memoised per request, so pages and readers that share it query Supabase once. */
+export const getCouponProducts = cache(loadCouponProducts);
 
 /** Days of guided tours the quad page lists. */
 const TOUR_DAYS = 60;

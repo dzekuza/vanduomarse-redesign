@@ -2,7 +2,7 @@
 
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import { programHours, type SaunaPick } from "@/lib/event-pricing";
 import { formatHour, sessionPrice, type Sauna } from "@/lib/sauna";
 import { durationLabel, programTotal, type SaunaProgram } from "@/lib/sauna-programs";
@@ -118,14 +118,13 @@ export function CalculatorSaunaCard({ sauna, guests, programs, upsells, pick, on
                   const ctx = { partySize: guests, hours: program ? programHours(program) : Math.max(rates.minHours, pick.hours) };
                   const setExtra = (qty: number) => onChange({ ...pick, extras: { ...pick.extras, [u.id]: qty } });
                   return u.unit === "vienetui" ? (
-                    <Stepper
+                    <CompactStepper
                       key={u.id}
                       label={`${u.name} (+${u.price} ${UPSELL_UNIT_SHORT[u.unit]})`}
                       value={pick.extras[u.id] ?? 0}
                       onChange={setExtra}
                       min={0}
                       max={upsellMax(u, guests)}
-                      compact
                     />
                   ) : (
                     <div key={u.id} className="min-w-0 bg-dust">

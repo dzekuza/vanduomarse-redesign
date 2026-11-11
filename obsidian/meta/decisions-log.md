@@ -10,6 +10,29 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0066 — Sauna sessions are priced per length, by weekday or Fri–Sun, with a guest fee and a turnaround
+
+- **Context:** the owner's booking sheet (2026-11-11): choose 2/3/4 h with a fixed price each (160 / 220 / 240 € weekdays; 250 / 320 € Fri–Sun, where 3 h is the minimum), a "pirtininkas" extra (+250 €, minimum 3 h), a base price for up to 10 people and +15 € per extra guest, and 1–1.5 h kept free between sessions. The old model (hourly rate by group size plus a package) could not express this.
+- **Decision:** `saunas` gets `weekday_prices` / `weekend_prices` (jsonb `{"<hours>": price}`; the keys are the lengths on offer), `included_guests`, `extra_guest_fee` and `turnaround_hours`; the old group-rate and package columns are nullable and unused, `min_hours` / `max_hours` stay as the shortest and longest length (the app derives them on save). `sauna_upsells.min_hours` makes an extra raise the minimum session; the master is the `pirtininkas` extra (250 € per booking, 3 h). `private.sauna_prices(sauna, date)` picks the table (ISO weekday 5–7 = weekend). `create_sauna_booking` and `accept_inquiry_stays` price from it and `create_sauna_booking` rejects a length not on offer (`sauna_duration`) or a session closer than the turnaround to another booking (`sauna_booked`); `sauna_taken` pads booked hours by the turnaround on both sides so the picker hides them. Migration `20261112090000_sauna_duration_pricing.sql`.
+- **Consequences:** `lib/sauna.ts` (`SaunaRates`, `sessionPrice(hours, party, rates, day?)`, `sessionLengths`, `minHoursFor`) is the one TypeScript copy of the rule, mirrored in SQL. Admin `/admin/pirtis` edits a price field per length (empty = not sold) for each day type. The turnaround is not enforced for staff-entered bookings or private programs (flat price); the 1 h gap is a setting, not the owner's 1–1.5 h (the grid is whole hours). Whether the pirtininkas can be booked on any day or only Fri–Sun, and how far ahead, is unconfirmed (open question on the sheet): no restriction is built.
+
+---
+
+## ADR-0065 — Explicit component variants instead of boolean props; drawers load at idle
+
+- **Status:** accepted (2026-11-12)
+- **Context:** `Stepper` had three layout flags (`editable`, `compact`, `hideLabel`) of which only a few combinations were used; `ServiceSchedule` and `EstimateSummary` each switched copy or layout on one boolean. Separately, the home page imported both drawers (booking flows, calculator) statically, so that code also landed in chunks other routes load. A production build showed `/renginiai` and `/rezervacija` shipping 86 and 44 KB more script than needed.
+- **Decision:** layout and content variants are separate exported components that share one implementation (`Stepper` / `CompactStepper` / `StepperControls`, `CalendarSchedule` / `InquirySchedule`, `EstimateSummary` / `EstimateBreakdown`). Behaviour that is orthogonal (`editable`) stays a prop. The home drawers are `next/dynamic` imports mounted when the browser is idle, or immediately if opened first. `/rezervacija` streams its data-dependent flow inside `Suspense`.
+- **Consequences:** callers name the variant they want and no dead flag combinations exist. The home page transfers about 14 KB more script in total (separate chunks) but off the first render path; other routes drop. The deferral off the critical path was inferred from the idle mount, not measured separately. `/[service]` still awaits its data before rendering, because its gallery and schedule need it.
+
+---
+
+## ADR-0064 — Anon gets SELECT only on policy-backed tables; public registration is throttled
+
+- **Context:** the 2026-11-11 Supabase audit found `anon` holding INSERT/UPDATE/DELETE grants on many tables (RLS blocked them, but nothing else did), an unthrottled `register_rider_public`, a `finalize_rider_registration_public` that stored any path it was given, and `rls_auto_enable()` callable through the API.
+- **Decision:** `anon` keeps table privileges only as `SELECT` on the 13 tables that have an anon read policy; every anon write goes through a `security definer` RPC. `register_rider_public` validates birth date and terms version and caps unfinished registrations at 3 per contact per 24 h and 100 per hour park-wide; `finalize_rider_registration_public` only accepts `<rider_id>/avatar.(jpg|png|webp)` / `<rider_id>/signature.png` that exist in Storage. `rls_auto_enable()` is revoked from API roles.
+- **Consequences:** a new table must not be granted to `anon` unless it has an anon read policy. A burst above 100 self-registrations an hour fails with `too_many_registrations` (the form shows its generic error). Migration `20261111174736_security_hardening.sql`.
+
 ## ADR-0063 — One metadata helper and JSON-LD built from site constants
 
 - **Status:** Accepted 2026-11-11.

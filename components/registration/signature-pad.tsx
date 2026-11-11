@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { useImperativeHandle, useRef, useState, type Ref } from "react";
 
 export interface SignaturePadHandle {
   clear: () => void;
@@ -9,10 +9,11 @@ export interface SignaturePadHandle {
 
 interface SignaturePadProps {
   onChange?: (hasInk: boolean) => void;
+  ref?: Ref<SignaturePadHandle>;
 }
 
 /** A plain pointer-events canvas signature pad — no library, just draw-to-canvas. */
-export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function SignaturePad({ onChange }, ref) {
+export function SignaturePad({ onChange, ref }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [hasInk, setHasInk] = useState(false);
@@ -83,4 +84,4 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(fu
       className="h-[150px] w-full touch-none rounded-lg border border-border bg-background"
     />
   );
-});
+}

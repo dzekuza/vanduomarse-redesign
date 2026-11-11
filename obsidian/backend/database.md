@@ -56,7 +56,7 @@ repo). After connecting, the database is the source of truth for prices.
 |-------|---------|-------|-----|
 | `staff` | — | `user_id` → `auth.users`, `display_name`, `email`, `role_id`, `active`. A row = an admin login; its role says which pages (ADR-0012) | own row, or all for an owner; owners write |
 | `staff_roles` | `StaffRole` | `name` (unique, case-insensitive), `is_owner` (exactly one: "Savininkas", all pages + staff), `permissions text[]` of page keys, check-constrained to the known keys | active staff read; owners write |
-| `saunas` | `Sauna` | Slug id; name, description, `features text[]`, `photos text[]` (paths in the public `sauna-photos` bucket, array order = display order), the rate/limit columns with the `rates-schema.ts` cross-checks, `active`, `sort_order` (ADR-0017) | anon reads `active`; `pirtis` writes |
+| `saunas` | `Sauna` | Slug id; name, description, `features text[]`, `photos text[]` (paths in the public `sauna-photos` bucket, array order = display order), `weekday_prices` / `weekend_prices` (jsonb length → price, ADR-0066), `included_guests`, `extra_guest_fee`, `turnaround_hours`, `max_party`, `open_hour` / `close_hour`, `min_hours` / `max_hours` (shortest / longest length, kept by the app; the old group-rate and package columns are unused), `active`, `sort_order` (ADR-0017) | anon reads `active`; `pirtis` writes |
 | `sauna_programs` | `SaunaProgram` (not built yet) | Slug id; name, label, description, `kind` (session/private), `pricing` (person/family/group), price, child price, duration, capacity, `sauna_id` (private only), `active`, `sort_order`; seeded with six programs. `events.program_id`, `bookings.program_id`, `event_tickets.children`; RPCs `create_program_ticket`, `create_program_booking` (ADR-0022). Applied 2026-11-03 | anon reads `active`; `pirtis` writes |
 | `sauna_upsell_links` | `Sauna.upsellIds` | (`sauna_id`, `upsell_id`): which extras a sauna offers | public read; `pirtis` writes |
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
@@ -178,6 +178,7 @@ There is no new payment-method column, migration or cash-specific notification. 
 
 | File | Date | What it does |
 |------|------|--------------|
+| `20261111174736_security_hardening.sql` | 2026-11-12 | ADR-0064, applied to the live project. `register_rider_public` throttled (3 unfinished per contact per 24 h, 100 per hour) and validated; `finalize_rider_registration_public` accepts only the rider's own existing Storage paths; `rls_auto_enable()` revoked from API roles; `anon` table privileges reduced to SELECT on the 13 tables with an anon read policy; indexes on 7 foreign keys. |
 | `20261021230415_init_schema.sql` | 2026-10-22 | Enums, all tables, checks, indexes, `updated_at` triggers |
 | `20261021230446_business_rules.sql` | 2026-10-22 | Reference sequences, overlap/capacity triggers, `sold` sync, availability RPCs |
 | `20261021230515_rls.sql` | 2026-10-22 | `is_staff()`, RLS on every table, policies, `materialize_sauna_events()` |

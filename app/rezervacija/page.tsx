@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ACTIVITY_ORDER, RESERVATION_DAYS } from "@/lib/reservation";
 import { getCabinPageData, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { getCustomer } from "@/lib/customer";
@@ -14,8 +16,34 @@ export const metadata: Metadata = pageMetadata({
   path: "/rezervacija",
 });
 
+type SearchParams = Promise<{ veikla?: string; seansas?: string | string[] }>;
+
+const header = <BookingHeader crumb="Rezervacija" title={["Rezervacija"]} />;
+
 /** One request for the whole visit: day and group first, then any mix of sauna, stay and quads. */
-export default async function ReservationPage({ searchParams }: { searchParams: Promise<{ veikla?: string; seansas?: string | string[] }> }) {
+export default function ReservationPage({ searchParams }: { searchParams: SearchParams }) {
+  return (
+    <BookingPage>
+      <div className="theme-reservation">
+        <Suspense fallback={<ReservationFallback />}>
+          <ReservationContent searchParams={searchParams} />
+        </Suspense>
+      </div>
+    </BookingPage>
+  );
+}
+
+/** Header and a placeholder while the availability queries run, so the page shell is not blocked on them. */
+function ReservationFallback() {
+  return (
+    <>
+      {header}
+      <Skeleton className="mx-auto mt-6 h-96 w-full max-w-6xl" />
+    </>
+  );
+}
+
+async function ReservationContent({ searchParams }: { searchParams: SearchParams }) {
   const { veikla, seansas } = await searchParams;
   const sessionId = Array.isArray(seansas) ? seansas[0] : seansas;
   const initialTab = sessionId ? "pirtis" : ACTIVITY_ORDER.find((id) => id === veikla);
@@ -27,20 +55,14 @@ export default async function ReservationPage({ searchParams }: { searchParams: 
     getCustomer(),
   ]);
 
-  const header = <BookingHeader crumb="Rezervacija" title={["Rezervacija"]} />;
-
   return (
-    <BookingPage>
-      <div className="theme-reservation">
-        <ReservationFlow
-          header={header}
-          data={{ sauna, cabin, quads }}
-          initialTab={initialTab}
-          initialDay={sauna.events.find((event) => event.key === sessionId)?.date}
-          payments={paymentsEnabled()}
-          initialCustomer={customer}
-        />
-      </div>
-    </BookingPage>
+    <ReservationFlow
+      header={header}
+      data={{ sauna, cabin, quads }}
+      initialTab={initialTab}
+      initialDay={sauna.events.find((event) => event.key === sessionId)?.date}
+      payments={paymentsEnabled()}
+      initialCustomer={customer}
+    />
   );
 }

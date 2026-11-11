@@ -111,10 +111,10 @@ export function MomentsGallery() {
         }}
         className={cn("scrollbar-none flex touch-auto gap-3.5 overflow-x-auto overscroll-x-contain select-none md:gap-6", dragging ? "cursor-grabbing snap-none" : "cursor-grab snap-x snap-mandatory")}
       >
-        {GALLERY_SLIDES.map((slide, i) => (
+        {GALLERY_SLIDES.map((slide) => (
           <figure key={slide.src} className="min-w-0 shrink-0 basis-11/12 snap-start md:basis-5/6">
             <div className="relative h-92 md:h-112 lg:h-140">
-              <Image src={slide.src} alt={slide.alt} fill quality={90} sizes="(min-width: 768px) 83vw, 92vw" priority={i === 0} draggable={false} className="object-cover" />
+              <Image src={slide.src} alt={slide.alt} fill quality={90} sizes="(min-width: 768px) 83vw, 92vw" draggable={false} className="object-cover" />
             </div>
             <figcaption className="pt-4.5 text-xs tracking-wider">
               {slide.caption}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Stepper } from "@/components/booking/stepper";
+import { CompactStepper } from "@/components/booking/stepper";
 import type { QuadTourAccessory } from "@/lib/quads";
 import { QUAD_TOUR_MAX_ACCESSORIES, quadTourAccessories } from "./quad-tour-plan";
 
@@ -28,7 +28,7 @@ export function QuadAccessories({ catalogue, title, selected, quantities, onChan
       </div>
       <div className="space-y-4">
         {catalogue.map((accessory) => (
-          <Stepper
+          <CompactStepper
             key={accessory.id}
             label={`${accessory.name} (${accessory.price} € / vnt.)`}
             value={quantities[accessory.id] ?? 0}
@@ -36,7 +36,6 @@ export function QuadAccessories({ catalogue, title, selected, quantities, onChan
             max={QUAD_TOUR_MAX_ACCESSORIES}
             onChange={(units) => onChange({ ...quantities, [accessory.id]: units })}
             editable
-            compact
           />
         ))}
       </div>

@@ -2,16 +2,21 @@ import { Cta } from "@/components/cta";
 import { toParkEvent, type ParkEventData } from "@/lib/park-events";
 import { longDateLabel } from "@/lib/sauna";
 
-export function ServiceSchedule({ wake, note, hasCalendar }: {
+interface ScheduleProps {
   wake?: ParkEventData[];
+  /** Overrides the default sentence above the list. */
   note?: string;
-  hasCalendar: boolean;
-}) {
+}
+
+interface ScheduleBodyProps extends ScheduleProps {
+  note: string;
+  ctaLabel: string;
+}
+
+function ScheduleBody({ wake, note, ctaLabel }: ScheduleBodyProps) {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-copy">{note ?? (hasCalendar
-        ? "Laisvas datas ir pasirinkimus rasi šio puslapio rezervacijos kalendoriuje."
-        : "Užimtumą patikslinsime gavę norimą renginio datą, svečių skaičių ir informaciją apie erdvę.")}</p>
+      <p className="text-sm text-copy">{note}</p>
       {wake && (wake.length ? (
         <ul className="divide-y divide-line border-y border-line">
           {wake.map((entry) => {
@@ -25,7 +30,17 @@ export function ServiceSchedule({ wake, note, hasCalendar }: {
           })}
         </ul>
       ) : <p className="text-sm text-copy">Marso Akademijos renginių kol kas nepaskelbta.</p>)}
-      <Cta small tone="dark" href="#rezervuoti">{hasCalendar ? "Rinktis datą" : "Susisiekti dėl datos"}</Cta>
+      <Cta small tone="dark" href="#rezervuoti">{ctaLabel}</Cta>
     </div>
   );
+}
+
+/** For services with a booking calendar on the page: points to it. */
+export function CalendarSchedule({ wake, note }: ScheduleProps) {
+  return <ScheduleBody wake={wake} note={note ?? "Laisvas datas ir pasirinkimus rasi šio puslapio rezervacijos kalendoriuje."} ctaLabel="Rinktis datą" />;
+}
+
+/** For services booked by inquiry: availability is confirmed after the request. */
+export function InquirySchedule({ wake, note }: ScheduleProps) {
+  return <ScheduleBody wake={wake} note={note ?? "Užimtumą patikslinsime gavę norimą renginio datą, svečių skaičių ir informaciją apie erdvę."} ctaLabel="Susisiekti dėl datos" />;
 }

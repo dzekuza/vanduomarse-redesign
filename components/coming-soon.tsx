@@ -31,7 +31,7 @@ export function ComingSoon({ withCode }: { withCode: boolean }) {
       <div aria-hidden className="absolute inset-0 bg-grid-hero opacity-10" />
       <div aria-hidden className="pointer-events-none absolute rounded-full border border-line-on-ink orbit-round" />
 
-      <Image src="/brand/logo-light.svg" alt="Vanduo Marse" width={134} height={51} priority className="relative h-auto w-26 md:w-30" />
+      <Image src="/brand/logo-light.svg" alt="Vanduo Marse" width={134} height={51} loading="eager" fetchPriority="high" className="relative h-auto w-26 md:w-30" />
 
       <section aria-labelledby="gate-title" className="relative">
         <p className={`flex items-center gap-2.5 text-micro uppercase ${ENTER} motion-safe:delay-100`}>
