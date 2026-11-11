@@ -1,4 +1,5 @@
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
+import { PARK_ADDRESS } from "@/components/landing/content";
 import { Cta } from "@/components/cta";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
@@ -34,12 +35,12 @@ export function QuadInformation({ accessories }: { accessories: readonly QuadTou
           <div className="space-y-2 border border-line p-5">
             <h3 className="text-sm font-bold">Išvykimo vieta</h3>
             <a href={MAPS_URL} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center text-xs leading-relaxed text-copy underline underline-offset-4 hover:text-ink">
-              Sausinės g. 20, Žemaitkiemio k.
+              {PARK_ADDRESS.compact}
             </a>
           </div>
           <div className="space-y-2 border border-line p-5">
             <h3 className="text-sm font-bold">Kartu smagiau</h3>
-            <p className="text-xs leading-relaxed text-copy">Turai nuo trijų keturračių. Kelią rodo gidas.</p>
+            <p className="text-xs leading-relaxed text-copy">Kelią rodo gidas. Mažiausią keturračių skaičių matysi pasirinkęs trasą.</p>
           </div>
         </div>
       </section>

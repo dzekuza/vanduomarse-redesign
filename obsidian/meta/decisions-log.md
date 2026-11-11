@@ -14,8 +14,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 - **Date:** 2026-11-12
 - **Context:** ADR-0055 sold the Mini / Midi / Maxi products only on dated departures staff published (events with `tour_route_id`). The owner wants guests to book a tour whenever the fleet is free, with a group of at least 5 quads, and no "Turų datos" to maintain.
-- **Decision:** the public booking offers every start hour the free fleet covers for the whole route (`quadTourStarts`, from `quad_taken`, with at least the route's `min_units` free) and files the request with route, date and start hour. `createQuadTourRental` calls `create_quad_tour_rental` directly (it already prices from the route and gear rows, checks opening hours, the 120-day window, the rate limit and the fleet, and rejects fewer than `min_units`); migration `20261112170000_quad_tours_any_time.sql` grants it to `anon` / `authenticated` again (ADR-0055 hardening had revoked it) and sets every route's `min_units` to 5. The admin loses the "Turų datos" card, the "Pridėti turą" button and `TourDepartureDialog`; `saveEvent` no longer writes `tour_route_id`.
+- **Decision:** the public booking offers every start hour the free fleet covers for the whole route (`quadTourStarts`, from `quad_taken`, with at least the route's `min_units` free) and files the request with route, date and start hour. `createQuadTourRental` calls `create_quad_tour_rental` directly (it already prices from the route and gear rows, checks opening hours, the 120-day window, the rate limit and the fleet, and rejects fewer than `min_units`); migration `20261112171000_quad_tours_any_time.sql` grants it to `anon` / `authenticated` again (ADR-0055 hardening had revoked it) and sets every route's `min_units` to 5. The admin loses the "Turų datos" card, the "Pridėti turą" button and `TourDepartureDialog`; `saveEvent` no longer writes `tour_route_id`.
 - **Consequences:** a tour no longer reserves capacity on an event, so two tours can overlap as long as the fleet has the quads; the fleet check in the function, under advisory locks, is the only limit. `QuadPageData.departures` and `QuadDeparture` are gone. The `events.tour_route_id` / `quad_rentals.tour_event_id` columns, `create_quad_tour_departure_rental` and `reject_departure_tickets` stay in the database, unused; old departure events (none exist) would still be listed in the admin calendar. The per-person guided tours (`tourTickets`, events without a route) are unchanged. The group minimum is per route and editable in /admin/keturraciai.
+
+---
+
+## ADR-0072 — Public booking facts use the booking catalogue
+
+- **Context:** Fixed capacity, route and minimum-group claims could disagree with the admin settings. The public sauna reader also replaced legacy seed copy.
+- **Decision:** The service pages use the same sauna, stay and tour rows as the booking forms. The homepage uses descriptive copy for those activities. Contacts use the shared contact configuration and event estimates use the shared pricing sheet.
+- **Consequences:** `20261112170000_correct_seeded_sauna_copy.sql` corrects the original seeded sauna display text when it still matches. The booking reader and calculator display the stored record.
 
 ---
 

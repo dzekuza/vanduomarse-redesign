@@ -7,7 +7,7 @@ import { PARK_ADDRESS, SERVICE_GALLERY, SERVICES, type ServicePhoto } from "@/co
 import { LandingAccordion } from "@/components/landing/landing-accordion";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { CONTACTS, MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
-import type { StayType } from "@/lib/cabin";
+import { guestsLabel, type StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,18 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
   wake?: ParkEventData[];
 }) {
   const copy: ServicePageCopy = SERVICE_PAGES[slug];
+  const facts = [
+    ...(sauna?.saunas ?? []).map(({ id, name, description, rates }) => ({
+      id, label: name, value: [description, `Iki ${rates.maxParty} žmonių.`].filter(Boolean).join(" "),
+    })),
+    ...(quads?.tourRoutes ?? []).map(({ id, name, kilometres, minUnits }) => ({
+      id, label: name, value: `${kilometres} km · Mažiausias keturračių skaičius – ${minUnits}.`,
+    })),
+    ...(stayTypes ?? []).map(({ id, label, maxGuests, note }) => ({
+      id, label, value: [guestsLabel(maxGuests), note].filter(Boolean).join(" · "),
+    })),
+    ...copy.facts.map((fact) => ({ ...fact, id: fact.label })),
+  ];
   const gallery = photos ?? SERVICE_GALLERY[copy.service];
   const contact = CONTACTS.find(({ name }) => name === SERVICES[copy.service].contact) ?? MAIN_CONTACT;
   const isCelebration = copy.service === "party";
@@ -105,8 +117,8 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
             </Section>
             <Section id="informacija">
               <dl className="grid gap-2 lg:grid-cols-2">
-                {copy.facts.map(({ label, value }) => (
-                  <div key={label} className="space-y-2 border border-line bg-card p-4">
+                {facts.map(({ id, label, value }) => (
+                  <div key={id} className="space-y-2 border border-line bg-card p-4">
                     <dt className="text-xs font-bold">{label}</dt>
                     <dd className="text-xs leading-relaxed text-copy">{value}</dd>
                   </div>
