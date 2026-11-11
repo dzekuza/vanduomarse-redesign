@@ -1,3 +1,4 @@
+- 2026-11-11 Added 13 optimized WAKE photos to the shared gallery with Lithuanian alt text and image sitemap URLs.
 - 2026-11-11 Renamed the private sauna group-size slider to “Asmenų skaičius”. The plan shows live I–IV and V–VII estimates before the date, then the applicable total.
 - 2026-11-11 Made the session details action on `/pirtis` open reservation checkout with the chosen quantity. The available seat count uses the same green as the calendar.
 - 2026-11-11 Added a WAKE order panel to `/vandenlentes` with individual rides and season passes. The selected offer opens the existing coupon order with its catalogue price. The season passes require catalogue migration `20261111130000`. See ADR-0059.

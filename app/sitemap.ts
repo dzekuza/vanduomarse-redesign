@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SERVICE_GALLERY } from "@/components/landing/content";
 import { SERVICE_PAGES } from "@/components/services/service-content";
 import { SITE_URL } from "@/lib/site";
 
@@ -13,5 +14,10 @@ const PAGES: { path: string; priority: number }[] = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return PAGES.map(({ path, priority }) => ({ url: `${SITE_URL}${path}`, changeFrequency: "weekly", priority }));
+  return PAGES.map(({ path, priority }) => ({
+    url: `${SITE_URL}${path}`,
+    changeFrequency: "weekly",
+    priority,
+    images: path === "/vandenlentes" ? SERVICE_GALLERY.wake.map(({ src }) => `${SITE_URL}${src}`) : undefined,
+  }));
 }

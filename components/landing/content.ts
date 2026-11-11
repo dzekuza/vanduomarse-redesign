@@ -128,7 +128,7 @@ export const SERVICES: Record<ServiceId, Service> = {
     label: "05 / ŠILTASIS SEZONAS",
     title: "DAR VIENĄ\nRATĄ.",
     photo: "/landing/wake.webp",
-    alt: "Vandenlentininkas Marso parke",
+    alt: "Vandenlentininkas šoka virš baltos figūros Vanduo Marse kabelinėje trasoje",
     description:
       "Pirmas startas ant vandens ar triukas, kurį seniai norisi pagauti? Marso vandenlenčių parkas laukia šiltuoju sezonu.",
     facts: [
@@ -264,6 +264,19 @@ export const SERVICE_GALLERY: Record<ServiceId, ServicePhoto[]> = {
   ],
   wake: [
     { src: "/landing/wake.webp", alt: SERVICES.wake.alt },
+    { src: "/landing/vandenlentes/suolis-virs-trasos-kliuties.webp", alt: "Vandenlentininkas šoka virš pilkos trasos kliūties vandens pursluose" },
+    { src: "/landing/vandenlentes/du-vandenlentininkai-prie-poilsio-nameliu.webp", alt: "Du vandenlentininkai plaukia pro poilsio namelius prie ežero" },
+    { src: "/landing/vandenlentes/vandenlentininkas-is-virsaus.webp", alt: "Vaizdas iš viršaus į vandenlentininką ir baltą purslų juostą" },
+    { src: "/landing/vandenlentes/vandenlentininku-grupe-prie-trasos.webp", alt: "Vandenlentininkų grupė su lentomis prie Vanduo Marse kabelinės trasos" },
+    { src: "/landing/vandenlentes/suolis-vandenlente-pries-ziurovus.webp", alt: "Vandenlentininkas ore priešais trasą stebinčius žiūrovus" },
+    { src: "/landing/vandenlentes/gultai-prie-vandenlenciu-trasos.webp", alt: "Mediniai gultai ir šiaudiniai skėčiai prie vandenlenčių trasos" },
+    { src: "/landing/vandenlentes/vandenlentininkas-virs-baltos-rampos.webp", alt: "Vandenlentininkas ore virš plačios baltos rampos" },
+    { src: "/landing/vandenlentes/plaukimas-pro-balta-trasos-figura.webp", alt: "Plaukimas su raudonu šalmu pro baltą trasos figūrą" },
+    { src: "/landing/vandenlentes/vandenlentininkas-pursluose-prie-kranto.webp", alt: "Vandenlentininkas suka prie ežero kranto ir pakelia vandens purslus" },
+    { src: "/landing/vandenlentes/grupe-su-vandenlentemis-po-stogine.webp", alt: "Grupė su šalmais ir vandenlentėmis po parko stogine" },
+    { src: "/landing/vandenlentes/dalyve-prie-vandenlenciu-trasos.webp", alt: "Besišypsanti dalyvė su kepure prie vandenlenčių trasos" },
+    { src: "/landing/vandenlentes/vandenlentininkes-ant-kranto.webp", alt: "Dvi vandenlentininkės apsikabina ant žolėto kranto" },
+    { src: "/landing/vandenlentes/dalyviai-ir-ziurovai-terasoje.webp", alt: "Vandenlenčių renginio dalyviai ir žiūrovai ant medinės terasos" },
     { src: "/landing/wake-dusk.webp", alt: "Vandenlentininkas šuolyje vakaro šviesoje" },
   ],
   food: [
