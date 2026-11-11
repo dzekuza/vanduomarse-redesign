@@ -1,3 +1,11 @@
+## 2026-11-12 — ATV booking from front-updates
+
+- **Why:** user wants the friend's UI on main, including the new ATV booking, live.
+- **Found:** the friend's quad UI was a preview on hard-coded Ciongo prices; main's QuadTourCard already is the live version. The real gap: /keturraciai only linked out, and /rezervacija used a chip form.
+- **Changed:** `QuadServiceBooking` = DateField + QuadTourCard; `ReservationFlow` `wide` prop; /keturraciai embeds the flow; `quad-availability.tsx` deleted.
+- **Status:** tsc/eslint clean; browser-checked at 1280/375 px with fake departures on a temporary page (deleted). Live DB has 0 quad departures.
+- **Next:** staff add departures; decide on free-choice start times (friend's preview) vs scheduled departures.
+
 ## 2026-11-12 — Rest of front-updates
 
 - **Why:** user asked to add the remaining front-updates changes.

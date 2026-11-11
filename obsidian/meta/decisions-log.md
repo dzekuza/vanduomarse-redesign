@@ -19,6 +19,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0070 — The quad booking is route cards on live departures, embedded on /keturraciai
+
+- **Status:** accepted (2026-11-12).
+- **Context:** the friend's ATV booking was a design preview with hard-coded routes and prices that booked nothing; `main` already had route cards on database routes, but only inside the old tab layout, while the new /rezervacija used a route-chip form and /keturraciai only linked out.
+- **Decision:** one quad form everywhere: a date, then `QuadTourCard`s on live routes and scheduled departures (RLS-readable rows; prices stay in `quad_tour_routes`, never in components). /keturraciai embeds the real flow in a wide layout (`wide` prop) so the page books for real.
+- **Consequences:** a tour sells only on a scheduled departure, so with no departures the page shows "no tours" until staff add them. The friend's free-choice start times (any free hour) are not offered; that would need a different request model and is a product decision.
+
 ## ADR-0069 — WAKE season pass orders use the coupon catalogue
 
 - **Date:** 2026-11-11
