@@ -28,6 +28,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0069 — /rezervacija reuses the service booking forms behind "Tipas" chips
+
+- **Status:** accepted (2026-11-12).
+- **Context:** the rebase of `front-updates` kept `main`'s older /rezervacija (tab bar, date strip, filters, program list) while /pirtis already had the newer service forms, so the two screens booked the same sauna in different ways.
+- **Decision:** on /rezervacija the left column is one panel with chips for Pirties seansai, Privati pirtis, Nakvynė, Keturračiai and Wake; each opens the same form the service page uses (`SaunaServiceBooking` with a `mode`, `QuadServiceBooking`, `WakeServiceBooking`), and the plan stays in the right column. The sauna form is remounted (`key`) on a chip change so its draft state resets.
+- **Consequences:** one place to change sauna booking. The older date-strip list for the sauna is gone from /rezervacija (still used for stays). Cabin availability counts and the ATV preview from the original branch were not ported.
+
 ## ADR-0068 — The "coming soon" gate is a database switch owners flip in /admin/svetaine
 
 - **Status:** accepted (2026-11-12); migration applied; grant-tightening follow-up applied.
