@@ -1,3 +1,129 @@
+## 2026-11-11 — Sales charts removed
+
+- **Why:** Owner pasted the two chart cards and asked to remove them.
+- **Changed:** `sales-chart.tsx` and `sales-breakdown.tsx` deleted, `sales-stats.tsx`, `lib/admin/sales-stats.ts` trimmed, catalogs, ADR-0058, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked.
+- **Next:** none.
+
+## 2026-11-11 — Period line removed from sales stats
+
+- **Why:** Owner asked to remove the dates / compared-with line above the stat cards.
+- **Changed:** `sales-stats.tsx`, common catalog, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** none.
+
+## 2026-11-11 — Sales filters reduced to tabs, all dates
+
+- **Why:** Owner pasted the period buttons and the date / status / search row and asked to remove them and just show all dates.
+- **Changed:** `sales-filters.tsx` (tabs only), `use-sales.ts` (empty range), common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked. With all dates, the "% prieš ankstesnį laikotarpį" lines no longer show.
+- **Next:** Decide whether the table needs a search back once the sale list grows.
+
+## 2026-11-11 — Week calendar removed from Apžvalga
+
+- **Why:** Owner asked to remove the Kalendorius card too.
+- **Changed:** `week-calendar.tsx` deleted, `overview.tsx`, common catalog, changelog, status.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** none.
+
+## 2026-11-11 — Reikia dėmesio removed
+
+- **Why:** Owner asked to remove the attention tiles from Apžvalga.
+- **Changed:** `attention-strip.tsx` deleted, `overview.tsx`, common catalog, changelog, status.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** none.
+
+## 2026-11-11 — Week calendar spacing
+
+- **Why:** Screenshot showed too much gap above the list and list rows with no side padding.
+- **Changed:** `week-calendar.tsx` (row style, gaps), changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** Compare against the screenshot in the browser.
+
+## 2026-11-11 — Week calendar on Apžvalga
+
+- **Why:** Owner sent a week-strip reference and asked to replace the schedule and inquiries cards with a calendar.
+- **Changed:** new `week-calendar.tsx`; `today-schedule.tsx`, `latest-inquiries.tsx` deleted; `overview.tsx`; common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked.
+- **Next:** Check the strip at 375 px (7 chips plus the three header buttons) and click a booking, a rental and an event row.
+
+## 2026-11-11 — Apžvalga UI/UX fixes
+
+- **Why:** Owner asked to fix everything from the Apžvalga review.
+- **Changed:** new `attention-strip.tsx`, `today-schedule.tsx`, `latest-inquiries.tsx`; `overview.tsx` rewritten; `sales-stats.tsx`, `sales-chart.tsx`, `sales-table.tsx`, `lib/admin/sales.ts`, `sales-stats.ts`; common + utils catalogs, ADR-0058, changelog, status.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked (staff sign-in).
+- **Next:** Sign in and check `/admin` at 375 / 768 / 1024 px; confirm with the owner that coupons stay out of revenue.
+
+## 2026-11-11 — Sales stats first on Apžvalga
+
+- **Why:** Owner sent a screenshot of the stats block and asked to place it first on Apžvalga.
+- **Changed:** new `use-sales.ts`, `overview.tsx`, `sales-table.tsx` (controlled), common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked. The filters stay in the Pardavimai card at the bottom while the stats on top follow them.
+- **Next:** Decide whether the date range / category filters should also sit above the stats.
+
+## 2026-11-11 — Coupon list with filters
+
+- **Why:** The coupon cards grid on /admin/kuponai does not scale to many orders.
+- **Changed:** new `coupon-list.tsx`, `coupons-view.tsx` (service + date filters), `coupon-card.tsx` deleted, common catalog, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked (staff sign-in).
+- **Next:** Check /admin/kuponai at 375 / 768 / 1024 px.
+
+## 2026-11-11 — Artimiausi renginiai card removed
+
+- **Why:** Owner asked to remove it from Apžvalga.
+- **Changed:** `overview.tsx`, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** none.
+
+## 2026-11-11 — Apyrankės heading renamed
+
+- **Why:** Owner asked for the Apžvalga section heading to read Vandenlentės.
+- **Changed:** `overview.tsx` heading, changelog.
+- **Status:** copy only; not browser-checked.
+- **Next:** none.
+
+## 2026-11-11 — Sales rows open their record
+
+- **Why:** Owner wants to press a Pardavimai row to open its booking, sale or drawer.
+- **Changed:** `lib/admin/sales.ts` (`target`), `sales-table.tsx` (clickable rows, three sheets, router), catalogs, changelog.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked (staff sign-in).
+- **Next:** Click one row of each kind and check that the drawer or page opens; tickets have no drawer yet and only link to their page.
+
+## 2026-11-11 — Two Apyrankės stat cards removed
+
+- **Why:** Owner asked to remove "Apyrankės priskirtos" and "Naudotojai iš viso" from Apžvalga.
+- **Changed:** `overview.tsx`, changelog.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** Check `/admin` at 375 / 768 / 1024 px.
+
+## 2026-11-11 — Top stat cards removed from Apžvalga
+
+- **Why:** Owner pasted the top four-card row and asked to remove it.
+- **Changed:** `components/admin/overview/overview.tsx` (row and its unused values/imports), changelog, status.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** Check `/admin` at 375 / 768 / 1024 px.
+
+## 2026-11-11 — Sales stats moved below the card
+
+- **Why:** Owner asked for the stat cards below the Pardavimai section.
+- **Changed:** `sales-table.tsx` (stats rendered after the card), common catalog, changelog, status.
+- **Status:** `tsc`/`eslint` clean; not browser-checked.
+- **Next:** Check `/admin` at 375 / 768 / 1024 px.
+
+## 2026-11-11 — Sales stats and charts
+
+- **Why:** Owner asked for stat cards and charts inside Pardavimai for an overview and to see improvement.
+- **Changed:** `lib/admin/sales-stats.ts`, `components/admin/overview/sales-stats.tsx` / `sales-chart.tsx` / `sales-breakdown.tsx`, `sales-table.tsx`, common + utils catalogs, ADR-0058, changelog, status.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked (staff sign-in); no chart dependency added.
+- **Next:** Check `/admin` at 375 / 768 / 1024 px, especially the chart caption on a phone.
+
+## 2026-11-11 — Apžvalga sales table
+
+- **Why:** Owner wants to see all sales on the dashboard and filter by service and date range.
+- **Changed:** `lib/admin/sales.ts` (new), `components/admin/overview/sales-table.tsx` + `sales-filters.tsx` (new), `overview.tsx`, changelog, status.
+- **Status:** `tsc`/`eslint`/`design:check` clean; not browser-checked (staff sign-in). Date range filters the sale date (`createdAt`; coupons `paidAt`), not the service date.
+- **Next:** Sign in and check `/admin` at 375 / 768 / 1024 px; decide whether a service-date filter is also wanted.
+
 ## 2026-11-10 — Big Shoulders removed
 
 - **Why:** Dev log warned about Big Shoulders on every compile and the user does not use it.

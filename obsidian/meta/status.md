@@ -10,9 +10,11 @@ updated: 2026-11-07
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-10
+**Last updated:** 2026-11-11
 
 ## Current focus
+
+**Apžvalga rework (2026-11-11): built on `main`, uncommitted, not browser-checked.** `/admin` is now only the Pardavimai section with the category tabs, three stat cards (coupons excluded from revenue) and the table; rows open drawers or pages. Next: sign in and check 375 / 768 / 1024 px; confirm the coupon rule.
 
 **Design docs (2026-11-10): `obsidian/frontend/design-brief.md` and a root `DESIGN.md` (zero-slop-design plugin, draft, lint valid) written; docs only, no code changed.** Decisions: four Termina weights; admin dark mode exists (ADR-0008). `review-design-md` done and its defects fixed (lint valid). Decided: coral buttons take dark text (`#171317`); The coral `Cta` now uses `text-on-rust` (new `--on-rust` token, uncommitted, not browser-checked); every other ink-on-coral surface now uses it too (menu panel, ticker, hero sticker, all-in band, TOP badge, coral hovers); only the booking-tabs count badge (`text-foam`) is left. Weights note in `design-system.md` fixed. Drift check on `/` (1280 px): 6 of 8 values match; band text fixed in `DESIGN.md`. The running dev server on :3000 serves CSS from before `--on-rust` (coral buttons show dust text there until it restarts). Design checks in place (`pnpm design:check`, 0 errors; CI not wired, needs approval); focus rings are full opacity and coral-ink on light surfaces (5.1:1); focus on ink bands is unmeasured and input borders are unverified. Big Shoulders removed (ADR-0057); the coming-soon wordmark is unchecked visually. Next: restart `pnpm dev`, browser-check the coral surfaces at 375 / 768 / 1024 px, decide the booking-tabs badge, then `/zero-slop-design:review-design-drift` and browser-check.
 

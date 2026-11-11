@@ -38,6 +38,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0058 — Apžvalga sales table: one client-side `Sale` list over existing admin data, no new query or permission
+
+- **Decision:** `lib/admin/sales.ts` maps data `useAdmin()` already holds (bookings, quad rentals, tour/event tickets, coupons, purchases) into one `Sale` list; the table filters it in the browser.
+- **Why:** Same approach as ADR-0054 (Kalendorius): no new table, RPC or permission, and rules 5 and 6 stay intact (no prices computed, no data outside `useAdmin()`).
+- **Charts:** The inline-SVG charts added first (no chart library, `fill-chart-*` classes) were removed again on the owner's request; the stat cards stay. If charts return, keep them as SVG attributes, not `style={{}}`.
+- **Coupons are not revenue here:** a gift coupon is validated at booking time and redeemed by staff later; the booking keeps its full `total`. Adding the coupon sale (face value) and the booking would count the same euros twice, so `salesRevenue` leaves coupons out unless the Kuponai tab is chosen, and the stats show "parduota kuponų už X €" as a separate line.
+- **Consequences:** The date range is the sale date (`createdAt`, coupons `paidAt`), not the service date. Sources a role cannot read arrive empty, so its sales are missing from that role's table.
+
 ## ADR-0054 — Kalendorius: one client-side calendar over the existing booking tables, no new permission
 
 - **Status:** Accepted 2026-11-10. Code only, no migration. `tsc`/`eslint` clean; not browser-checked.
