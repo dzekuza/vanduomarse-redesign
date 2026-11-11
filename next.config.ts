@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+/** Basic hardening for every page except the booking widgets, which proxy.ts frames for allowed origins only. */
+const SECURITY_HEADERS = [
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // /registracija takes a photo with the camera; nothing else needs a sensor.
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+];
+
 const nextConfig: NextConfig = {
   cacheComponents: false,
   // LAN/Tailscale hosts used to open the dev server from other devices, plus
@@ -16,6 +25,9 @@ const nextConfig: NextConfig = {
       // Sauna photos uploaded in /admin/pirtis (public `sauna-photos` bucket).
       { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/sauna-photos/**" },
     ],
+  },
+  async headers() {
+    return [{ source: "/((?!embed).*)", headers: SECURITY_HEADERS }];
   },
   turbopack: {
     rules: {

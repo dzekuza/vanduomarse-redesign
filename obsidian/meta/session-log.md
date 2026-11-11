@@ -1,3 +1,10 @@
+## 2026-11-11 — SEO follow-up: landmarks, skip link, security headers
+
+- **Why:** squirrelscan flagged missing main landmark/skip link on inner pages, no clickjacking header, label-in-name on day cells.
+- **Changed:** `booking-page.tsx`, `keturraciai/page.tsx`, `service-page.tsx`, `next.config.ts`, `day-cell.tsx`, `landing-hero.tsx`; changelog.
+- **Status:** committed on `fix/seo-a11y-headers`, not pushed. The day-cell label-in-name warning remains: the label contains the visible words, the tool wants them with no space.
+- **Next:** owner decisions on thin-page copy, About page, postal code; CSP with nonces; image compression; turn `SITE_GATE` off at launch.
+
 ## 2026-11-11 — SEO audit of prod + local, fixes
 
 - **Why:** `/openseo-seo-audit` showed prod is behind the site gate (503 + noindex); a local squirrelscan audit found missing canonicals/OG, no JSON-LD, no privacy/contact pages, orphan service pages.

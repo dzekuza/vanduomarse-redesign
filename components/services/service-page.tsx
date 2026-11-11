@@ -60,7 +60,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
 
   return (
     <BookingPage>
-      <main className="theme-reservation space-y-5 px-gutter pt-8 pb-16 md:pt-10 lg:pb-24">
+      <div className="theme-reservation space-y-5 px-gutter pt-8 pb-16 md:pt-10 lg:pb-24">
         <BookingBreadcrumb crumb={copy.label} />
         <div className="grid items-start gap-y-8 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-12">
           <header className="min-w-0 space-y-5 lg:col-span-8 lg:col-start-1 lg:row-start-1">
@@ -122,7 +122,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
             </Section>
           </div>
         </div>
-      </main>
+      </div>
     </BookingPage>
   );
 }
