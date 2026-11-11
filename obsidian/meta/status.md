@@ -12,6 +12,8 @@ updated: 2026-11-07
 
 **Last updated:** 2026-11-12
 
+**Rest of front-updates (2026-11-12): branch `feat/front-updates-rest` stacked on #29: sauna session cards + auto-select, cabin free/total counts; not ported on purpose: ATV preview checkout, Finnish tariff tables, private start-time grid, header calculator-link removal.**
+
 **/rezervacija rework (2026-11-12, ADR-0069): branch `feat/rezervacija-rework`, "Tipas" chips + the service booking forms; tsc/eslint clean, checked at 375 px, no booking submitted; not committed/PR yet unless noted below. Original branch tip kept locally as `front-updates-original`.**
 
 **front-updates (PR #27, 2026-11-12): rebased onto `main`, build/tsc/lint pass, overflow fix on `/rezervacija`; its migrations `20261111130000_wake_season_passes.sql` and `20261111200001_private_event_calendar.sql` are APPLIED to the live project and verified (2 coupon products active; `events.calendar_private` + `private_event_dates()` readable by anon, 0 private rows yet). Open: merge PR #27 (not merged), then browser-check checkout and the celebration calendar with a real private date. The migration files live on that branch, not on `main` yet.**
