@@ -3,11 +3,15 @@
 import { ClockIcon } from "@phosphor-icons/react";
 import { useId } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimeSelectContent, TimeSelectOption } from "@/components/booking/time-select";
+import { AvailabilityCount } from "@/components/services/availability-count";
+import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { hourLabel, type QuadTourRoute } from "@/lib/quads";
 import { QuadAccessories } from "./quad-accessories";
 import { quadTourAccessories, quadTourStarts, type QuadTourPick } from "./quad-tour-plan";
+
+const timeLabel = (route: QuadTourRoute, hour: number) => `${hourLabel(hour)}-${hourLabel(hour + route.hours)}`;
 
 interface QuadTourFieldsProps {
   data: QuadPageData;
@@ -41,10 +45,12 @@ export function QuadTourFields({ data, route, day, busy, pick, onChange }: QuadT
       <div className="space-y-2">
         <label htmlFor={id} data-disabled={disabled || undefined} className="flex items-center gap-2 text-sm font-bold data-disabled:opacity-50"><ClockIcon size={18} aria-hidden /> Laikas</label>
         <Select value={current ? String(current.startHour) : ""} disabled={disabled} onValueChange={(value) => start(Number(value))}>
-          <SelectTrigger id={id} className="w-full rounded-none border-line bg-transparent"><SelectValue placeholder="Pasirink laiką" /></SelectTrigger>
-          <SelectContent position="popper">
-            {route ? starts.map(({ hour }) => <SelectItem key={hour} value={String(hour)} className="min-h-11">{hourLabel(hour)}-{hourLabel(hour + route.hours)}</SelectItem>) : null}
-          </SelectContent>
+          <SelectTrigger id={id} className="w-full rounded-none border-line bg-transparent"><SelectValue placeholder="Pasirink laiką">{route && current ? timeLabel(route, current.startHour) : undefined}</SelectValue></SelectTrigger>
+          <TimeSelectContent>
+            {route ? starts.map(({ hour, free }) => (
+              <TimeSelectOption key={hour} value={String(hour)} time={timeLabel(route, hour)} status={<span>Laisvų keturračių · <AvailabilityCount free={free} /></span>} />
+            )) : null}
+          </TimeSelectContent>
         </Select>
         {route && day && starts.length === 0 ? <p role="status" className="text-xs text-copy">Šią dieną turų nėra. Pasirink kitą datą.</p> : null}
       </div>

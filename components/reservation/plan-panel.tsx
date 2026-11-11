@@ -33,7 +33,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
     <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline ? "scroll-mt-32 border-t border-line" : "hidden border border-line bg-foam/15 lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
       {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
       <div className={inline ? "space-y-4 pt-4" : "space-y-6 p-5 sm:p-8"}>
-        <h2 className={inline ? "text-item font-bold" : "text-tile font-bold"}>{inline ? "Tavo planas" : "Rezervuoti"}</h2>
+        {inline ? null : <h2 className="text-tile font-bold">Rezervuoti</h2>}
         <PlanDetails {...details} saunaCancellation={inline && activity === "pirtis"} hideHelp={inline && activity === "keturraciai"} />
         {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
       </div>
