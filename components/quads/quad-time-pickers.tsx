@@ -1,5 +1,7 @@
 "use client";
 
+import { TimeSelectContent, TimeSelectOption } from "@/components/booking/time-select";
+import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChoiceTile } from "@/components/booking/choice-tile";
 import { fleetRentalPrice, hourLabel, longestForFleet, type QuadRentalItem, type QuadSettings, type QuadTaken } from "@/lib/quads";
 import { hoursLabel } from "@/lib/sauna";
@@ -24,21 +26,30 @@ interface StartGridProps extends PickerContext {
 export function StartGrid({ items, settings, taken, day, busy, pastHour, selected, onSelect }: StartGridProps) {
   const hours = Array.from({ length: settings.closeHour - settings.openHour }, (_, i) => settings.openHour + i);
   return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-      {hours.map((h) => {
-        const longest = h <= pastHour ? 0 : longestForFleet(items, taken, day, h, settings, busy);
-        return (
-          <ChoiceTile
-            key={h}
-            primary={hourLabel(h)}
-            secondary={longest === 0 ? (busy?.includes(h) ? "Šiuo metu būsite užimti" : "Užimta") : `iki ${hoursLabel(longest)}`}
-            active={selected === h}
-            disabled={longest === 0}
-            onClick={() => onSelect(h)}
-          />
-        );
-      })}
-    </div>
+    <Select value={selected === null ? "" : String(selected)} onValueChange={(value) => onSelect(Number(value))}>
+      <SelectTrigger aria-label="Pradžios laikas" className="w-full rounded-none border-line bg-transparent">
+        <SelectValue placeholder="Pasirink laiką">{selected === null ? null : hourLabel(selected)}</SelectValue>
+      </SelectTrigger>
+      <TimeSelectContent>
+        {hours.map((hour) => {
+          const past = hour <= pastHour;
+          const longest = past ? 0 : longestForFleet(items, taken, day, hour, settings, busy);
+          return (
+            <TimeSelectOption
+              key={hour}
+              value={String(hour)}
+              time={hourLabel(hour)}
+              disabled={longest === 0}
+              status={past ? "Praėjo" : longest > 0 ? (
+                <span className="font-bold text-availability-open!">Laisva · iki {hoursLabel(longest)}</span>
+              ) : (
+                <span className="font-bold text-rust-ink!">{busy?.includes(hour) ? "Kertasi su planu" : "Užimta"}</span>
+              )}
+            />
+          );
+        })}
+      </TimeSelectContent>
+    </Select>
   );
 }
 

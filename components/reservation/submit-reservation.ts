@@ -1,4 +1,3 @@
-import { quadTourGear, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { fileRequest } from "@/lib/file-request";
 import { cabinStayType } from "@/lib/cabin";
 import { discountCovers, type CheckedDiscount } from "@/lib/discount-codes";
@@ -20,17 +19,13 @@ export interface Outcome {
 }
 
 /** The request an activity of the plan turns into (without the contact details), or null when it has no bookable time yet. */
-function requestFor(id: ActivityId, plans: Plans, when: When, tour: QuadTourPick | null): ReservationRequest | null {
+function requestFor(id: ActivityId, plans: Plans, when: When): ReservationRequest | null {
   const { pirtis, keturraciai, nakvyne } = plans;
-  // A Mini / Midi / Maxi tour replaces an hourly rental; the database prices it from the route and gear rows.
-  if (id === "keturraciai" && tour) {
-    return { type: "quadTourRental", input: { routeId: tour.routeId, eventId: tour.eventId, date: when.day, startHour: tour.startHour, units: tour.units, accessories: quadTourGear(tour.accessories), note: "" } };
-  }
   if (id === "pirtis" && pirtis?.mode === "session" && pirtis.session) {
     return { type: "programTicket", input: { eventId: pirtis.session.key, adults: pirtis.adults, children: pirtis.children } };
   }
   if (id === "pirtis" && pirtis?.mode === "private" && pirtis.startHour !== null) {
-    return { type: "programBooking", input: { programId: pirtis.program.id, date: when.day, startHour: pirtis.startHour, party: when.people } };
+    return { type: "programBooking", input: { programId: pirtis.program.id, date: when.day, startHour: pirtis.startHour, party: when.people, hireDuration: pirtis.hireDuration } };
   }
   if (id === "pirtis" && pirtis?.mode === "hourly" && pirtis.startHour !== null) {
     return {
@@ -56,9 +51,9 @@ function requestFor(id: ActivityId, plans: Plans, when: When, tour: QuadTourPick
 }
 
 /** Every request of the plan, in activity order. */
-export function requestsFor(plans: Plans, when: When, tour: QuadTourPick | null = null): ReservationRequest[] {
+export function requestsFor(plans: Plans, when: When): ReservationRequest[] {
   return ACTIVITY_ORDER.flatMap((id) => {
-    const request = requestFor(id, plans, when, tour);
+    const request = requestFor(id, plans, when);
     return request ? [request] : [];
   });
 }
@@ -69,11 +64,11 @@ export function requestsFor(plans: Plans, when: When, tour: QuadTourPick | null 
  * after a failure never books anything twice. Used when online payment is off.
  * The discount code goes only with the activities it covers (the database refuses it for the rest).
  */
-export async function submitReservation(plans: Plans, when: When, contact: ContactInput, already: Sent, discount: CheckedDiscount | null = null, tour: QuadTourPick | null = null): Promise<Outcome> {
+export async function submitReservation(plans: Plans, when: When, contact: ContactInput, already: Sent, discount: CheckedDiscount | null = null): Promise<Outcome> {
   const sent: Sent = { ...already };
   for (const id of ACTIVITY_ORDER) {
     if (sent[id]) continue;
-    const request = requestFor(id, plans, when, tour);
+    const request = requestFor(id, plans, when);
     if (!request) continue;
     const result = await fileRequest(request, { ...contact, discountCode: discountCovers(discount, id) ? discount?.code : undefined });
     if ("error" in result) return { sent, error: { activity: id, message: result.error.message, code: result.error.code } };

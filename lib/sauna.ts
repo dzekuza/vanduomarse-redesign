@@ -1,3 +1,5 @@
+import type { SaunaHireTariff } from "./sauna-hire";
+
 /**
  * Private hire is sold by the hour: pick a start, then 2-6 hours.
  *
@@ -75,6 +77,7 @@ export interface Sauna {
   /** In display order; the first is the cover. */
   photos: SaunaPhoto[];
   rates: SaunaRates;
+  hireTariff?: SaunaHireTariff;
   /** `sauna_upsells` ids this sauna offers. */
   upsellIds: string[];
   active: boolean;

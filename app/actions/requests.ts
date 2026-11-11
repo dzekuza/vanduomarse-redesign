@@ -235,6 +235,7 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
 
   const { data, error } = await supabase.rpc("create_program_booking", {
     p_program_id: v.programId,
+    p_hire_duration: v.hireDuration,
     p_date: v.date,
     p_start_hour: v.startHour,
     p_party: v.party,

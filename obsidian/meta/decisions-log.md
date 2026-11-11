@@ -10,6 +10,24 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0059 — WAKE season pass orders use the coupon catalogue
+
+- **Date:** 2026-11-11
+- **Context:** The wakeboarding page offers individual rides and two season passes.
+- **Decision:** Use active `kabelis` coupon products for the public offers and the existing order and payment confirmation workflow. The stable `wake-abonementas-` product IDs identify season passes. Staff set prices and availability in `/admin/kuponai`.
+- **Fulfillment:** Customers receive a code after payment confirmation. Staff redeem the paid pass code once and activate the corresponding season pass at the park. Individual ride buyers arrange a time with Marso Akademija.
+
+---
+
+## ADR-0058 — Finnish sauna hire tariffs and changeover
+
+- **Date:** 2026-11-11
+- **Context:** Finnish sauna hire needs four durations, rates by day of the week and per-group supplements.
+- **Decision:** Store the tariff in `saunas.hire_tariff`. Public pricing and slot selection read it through the sauna catalog, and the booking RPC recalculates the price from the same tariff. A full day covers the venue's operating hours. The hosted option requires at least three hours.
+- **Consequences:** The Finnish sauna keeps a one-hour changeover between reservations and published sessions. Availability and conflict checks both account for it. Existing callers can continue submitting fixed programs without a duration. The staff interface stays on its existing catalog and booking controls.
+
+---
+
 ## ADR-0057 — Termina is the only font; Big Shoulders is removed
 
 - **Context:** `app/layout.tsx` loaded Big Shoulders from Google Fonts only as the non-themed `font-display` fallback and for the `Wordmark`. Next logged "Failed to find font override values" on every compile, and `theme-marse` already mapped the display face to Termina.

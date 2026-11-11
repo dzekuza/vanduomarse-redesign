@@ -19,6 +19,7 @@ interface DatePickerProps {
   initialView?: View;
   /** Use the same views in a narrow booking panel. */
   compact?: boolean;
+  lightCalendarDays?: boolean;
   /** Inquiries can select future dates beyond the dates in the strip. */
   allowFutureDates?: boolean;
   /** `selected` is the arrival. The end defaults to the following day. */
@@ -30,10 +31,8 @@ const VIEWS: { id: View; label: string; Icon: typeof RowsIcon }[] = [
   { id: "calendar", label: "Kalendorius", Icon: CalendarBlankIcon },
 ];
 
-const MONTH_LABEL = new Intl.DateTimeFormat("lt-LT", { month: "long" });
-
 /** A scrolling strip or a month calendar, switched with the toggle above it. */
-export function DatePicker({ days, selected, onSelect, icons, dayDetails, initialView = "strip", compact, allowFutureDates, range }: DatePickerProps) {
+export function DatePicker({ days, selected, onSelect, icons, dayDetails, initialView = "strip", compact, lightCalendarDays, allowFutureDates, range }: DatePickerProps) {
   const [view, setView] = useState(initialView);
   const [browsedMonth, setBrowsedMonth] = useState<Date>();
   const [preview, setPreview] = useState<{ start: string; end: string }>();
@@ -48,6 +47,7 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
   const calendarStart = range?.end ?? selected ?? days[0];
   const calendarMonth = browsedMonth ?? (calendarStart && monthStart(calendarStart));
   const detailsForView = dayDetails && ((date: Date) => dayDetails(date, view));
+  const reserveIconSpace = Boolean(range && (icons || dayDetails));
 
   function selectDay(date: Date) {
     if (range && view === "calendar" && calendarMonth) setBrowsedMonth(calendarMonth);
@@ -76,16 +76,11 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
     ? "mb-2 flex flex-wrap items-center justify-between gap-2"
     : view === "strip"
       ? "absolute top-0 right-0 z-10 flex h-12 items-center bg-dust pl-3"
-      : "mb-4 flex items-center justify-between gap-2";
+      : "mb-4 flex justify-end";
 
   return (
-    <div data-view={compact ? undefined : view} onPointerOver={selection?.selectingEnd ? previewDeparture : undefined} onPointerLeave={selection?.selectingEnd ? () => setPreview(undefined) : undefined} className="relative">
+    <div onPointerOver={selection?.selectingEnd ? previewDeparture : undefined} onPointerLeave={selection?.selectingEnd ? () => setPreview(undefined) : undefined} className="relative">
       <div className={controlsClass}>
-        {view === "calendar" && calendarMonth && (
-          <p aria-live="polite" className="text-micro font-bold uppercase text-copy">
-            {MONTH_LABEL.format(calendarMonth)} <span className="whitespace-nowrap">{calendarMonth.getFullYear()}</span>
-          </p>
-        )}
         <div role="group" aria-label="Datos rodinys" className={`inline-flex shrink-0 border border-line ${compact ? "ml-auto" : ""}`}>
           {VIEWS.map(({ id, label, Icon }) => (
             <button
@@ -102,7 +97,7 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
         </div>
       </div>
       {view === "strip" ? (
-        <DateStrip days={days} selected={selected} onSelect={selectDay} icons={icons} dayDetails={detailsForView} range={selection} reserveIconSpace={Boolean(range && icons)} compact={compact} />
+        <DateStrip days={days} selected={selected} onSelect={selectDay} icons={icons} dayDetails={detailsForView} range={selection} reserveIconSpace={reserveIconSpace} compact={compact} />
       ) : calendarMonth && (
         <MonthCalendar
           days={days}
@@ -112,8 +107,9 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
           dayDetails={detailsForView}
           allowFutureDates={allowFutureDates}
           range={selection}
-          reserveIconSpace={Boolean(range && icons)}
+          reserveIconSpace={reserveIconSpace}
           compact={compact}
+          lightDays={lightCalendarDays}
           month={calendarMonth}
           onMonthChange={(month) => {
             setPreview(undefined);

@@ -1,12 +1,9 @@
 "use client";
 
-import { CalendarBlankIcon } from "@phosphor-icons/react";
-import { useId, useState } from "react";
 import type { DayIcon } from "@/components/booking/day-picker";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
-import { DatePicker } from "./date-picker";
 import type { ReservationDayDetails } from "./day-cell";
+import { DatePicker } from "./date-picker";
 
 export type StayDatePhase = "idle" | "selectingEnd" | "complete";
 
@@ -14,11 +11,9 @@ interface WhenStepProps {
   days: Date[];
   date: Date;
   onDate: (date: Date) => void;
-  compact?: boolean;
-  /** Availability icons under each day (not used by /rezervacija, which marks days through `dayDetails`). */
-  icons?: (date: Date) => DayIcon[];
-  /** Extra per-day marks, e.g. where scheduled sessions or tours are. */
-  dayDetails?: (date: Date) => ReservationDayDetails | undefined;
+  /** Availability icons under each day. */
+  icons: (date: Date) => DayIcon[];
+  unavailableOnly?: boolean;
   stay?: {
     phase: StayDatePhase;
     end: Date | null;
@@ -29,56 +24,38 @@ interface WhenStepProps {
 
 const STAY_DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { day: "numeric", month: "long" });
 
+function unavailableDayDetails(icons: DayIcon[], size: number): ReservationDayDetails {
+  const unavailable = icons.filter(({ on }) => !on);
+  return {
+    available: icons.some(({ on }) => on),
+    label: unavailable.map(({ label }) => label).join(". ") || "Visos veiklos turi laisvų vietų",
+    indicator: (
+      <span className="flex h-3 items-center justify-center gap-px text-rust-ink group-aria-pressed/day:text-rust">
+        {unavailable.map(({ Icon, label }) => <Icon key={label} size={size} aria-hidden />)}
+      </span>
+    ),
+  };
+}
+
 /** Select the activity day or the arrival and departure of a stay. */
-export function WhenStep({ days, date, onDate, icons, dayDetails, stay, compact }: WhenStepProps) {
-  const dateId = useId();
-  const [open, setOpen] = useState(false);
+export function WhenStep({ days, date, onDate, icons, unavailableOnly, stay }: WhenStepProps) {
   const selected = stay?.phase === "idle" ? null : date;
   const select = stay?.onSelect ?? onDate;
   const stayLabel = stay?.end ? `Nuo ${STAY_DATE_LABEL.format(date)} iki ${STAY_DATE_LABEL.format(stay.end)}` : null;
-  const picker = (
-    <DatePicker
-      days={days}
-      selected={selected}
-      onSelect={compact ? (next) => {
-        select(next);
-        if (!stay || (stay.phase === "selectingEnd" && next > date)) setOpen(false);
-      } : select}
-      icons={icons}
-      dayDetails={dayDetails}
-      initialView={compact ? "calendar" : undefined}
-      range={stay ? { end: stay.end, selectingEnd: stay.phase === "selectingEnd", lastEnd: stay.lastEnd } : undefined}
-    />
-  );
-
   return (
     <section aria-label={stay ? "Nakvynės datos" : "Data"} className="min-w-0 space-y-4">
-      {compact ? (
-        <div className="space-y-2">
-          <label htmlFor={dateId} className="flex items-center gap-2 text-sm font-bold">
-            <CalendarBlankIcon size={18} aria-hidden /> {stay ? "Datos" : "Data"}
-          </label>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <button id={dateId} type="button" className="flex min-h-11 w-full items-center justify-between gap-3 border border-line px-3 py-2 text-left text-sm hover:border-ink">
-                <span>{stayLabel ?? (selected ? STAY_DATE_LABEL.format(selected) : "Pasirink atvykimo datą")}</span>
-                <CalendarBlankIcon size={18} className="shrink-0" aria-hidden />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-96 max-w-(--radix-popover-content-available-width) p-2 sm:p-3" aria-label={stay ? "Nakvynės kalendorius" : "Pirties kalendorius"}>
-              {picker}
-              {stay && stayLabel ? (
-                <button type="button" onClick={() => setOpen(false)} className="mt-3 flex min-h-11 w-full items-center justify-center bg-ink px-3 text-xs font-bold text-dust">
-                  Rodyti pasirinkimus
-                </button>
-              ) : null}
-            </PopoverContent>
-          </Popover>
-        </div>
-      ) : picker}
+      <DatePicker
+        days={days}
+        selected={selected}
+        onSelect={select}
+        icons={unavailableOnly ? undefined : icons}
+        dayDetails={unavailableOnly ? (day, view) => unavailableDayDetails(icons(day), view === "calendar" ? 10 : 12) : undefined}
+        range={stay ? { end: stay.end, selectingEnd: stay.phase === "selectingEnd", lastEnd: stay.lastEnd } : undefined}
+      />
+      {unavailableOnly ? <p className="text-xs text-copy">Raudona ikona žymi veiklą be laisvų vietų ar laikų.</p> : null}
       {stay ? (
         <div role="status" className="space-y-1 text-xs">
-          {compact ? <span className="sr-only">{stayLabel}</span> : stayLabel ? (
+          {stayLabel ? (
             <p className="font-bold">{stayLabel}</p>
           ) : (
             <p className="text-copy">Pasirink atvykimo datą.</p>

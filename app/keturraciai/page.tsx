@@ -3,9 +3,10 @@ import Image from "next/image";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { Cta } from "@/components/cta";
+import { QuadBookingPreview } from "@/components/quads/quad-booking-preview";
 import { QuadInformation } from "@/components/quads/quad-information";
-import { QUAD_TOUR_SOURCE } from "@/components/quads/quad-tour-content";
-import { QuadTourGallery } from "@/components/quads/quad-tour-gallery";
+import { QUAD_PREVIEW_ACCESSORIES, QUAD_PREVIEW_SOURCE } from "@/components/quads/quad-preview-content";
+import { QuadPreviewGallery } from "@/components/quads/quad-preview-gallery";
 import { getQuadPageData } from "@/lib/data/public";
 
 export const metadata: Metadata = {
@@ -34,14 +35,10 @@ export default async function QuadsPreviewPage() {
           </div>
         </section>
         <section aria-label="Keturračių turo peržiūra" className="px-gutter pb-16 lg:pb-24">
-          <div className="space-y-4 border border-line bg-card p-6">
-            <h2 className="text-heading font-bold">Rezervuok turą</h2>
-            <p className="text-sm text-copy">Rinkis trasą, datą ir laiką, mokėk iš karto. Kainos ir laisvi laikai rodomi rezervacijos puslapyje.</p>
-            <Cta tone="dark" href="/keturraciu-nuoma#rezervuoti">Rezervuoti turą</Cta>
-          </div>
+          <QuadBookingPreview data={data} />
         </section>
         <section className="grid gap-10 px-gutter pb-16 lg:grid-cols-2 lg:gap-16 lg:pb-24">
-          <QuadInformation accessories={data.tourAccessories} />
+          <QuadInformation accessories={QUAD_PREVIEW_ACCESSORIES} />
           <div className="space-y-6">
             <figure>
               <div className="relative aspect-video bg-dust-soft"><Image src="/quads/ciongo/loncin-quad.webp" alt="Loncin dvivietis keturratis" fill sizes="(min-width: 1024px) 45vw, 90vw" className="object-cover" /></div>
@@ -57,8 +54,8 @@ export default async function QuadsPreviewPage() {
           </div>
         </section>
         <div className="space-y-8 px-gutter pb-16 lg:pb-24">
-          <QuadTourGallery />
-          <p className="text-xs text-copy">Peržiūros trasų informacija ir laikinos nuotraukos iš <a href={QUAD_TOUR_SOURCE} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline underline-offset-4">Ciongo</a>.</p>
+          <QuadPreviewGallery />
+          <p className="text-xs text-copy">Peržiūros trasų informacija ir laikinos nuotraukos iš <a href={QUAD_PREVIEW_SOURCE} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline underline-offset-4">Ciongo</a>.</p>
         </div>
       </main>
     </BookingPage>

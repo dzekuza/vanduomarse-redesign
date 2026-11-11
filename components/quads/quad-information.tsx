@@ -2,7 +2,7 @@ import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import { Cta } from "@/components/cta";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
-import type { QuadTourAccessory } from "@/lib/quads";
+import type { QuadAccessory } from "./quad-preview-content";
 
 const QUESTIONS = [
   {
@@ -24,7 +24,7 @@ const QUESTIONS = [
 ];
 
 /** Practical route information shared by the booking page and activity dialog. */
-export function QuadInformation({ accessories }: { accessories: readonly QuadTourAccessory[] }) {
+export function QuadInformation({ accessories }: { accessories: QuadAccessory[] }) {
   return (
     <div className="space-y-8">
       <section className="border-t border-line pt-6">

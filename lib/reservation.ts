@@ -16,8 +16,7 @@ import {
   type StayUnitType,
 } from "@/lib/cabin";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "@/lib/data/public-types";
-import { quadTourStarts } from "@/components/quads/quad-tour-plan";
-import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
+import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, freeAt, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
 import {
   formatHour,
   hoursLabel,
@@ -29,6 +28,7 @@ import {
   sessionPrice,
   type Sauna,
 } from "@/lib/sauna";
+import { hireHours, hirePrice, type HireDuration } from "@/lib/sauna-hire";
 import type { SaunaEventData } from "@/lib/sauna-events";
 import { durationLabel, programRateLine, programTotal, type SaunaProgram } from "@/lib/sauna-programs";
 import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-upsells";
@@ -74,6 +74,7 @@ export interface SaunaPick {
   /** null until the visitor picks a start. */
   startHour: number | null;
   hours: number;
+  hireDuration?: HireDuration;
   /** Upsell id -> item count (counted extras) or 1 (on/off extras). */
   extras: Record<string, number>;
 }
@@ -122,7 +123,7 @@ interface ProgramPlanDetails {
 }
 export type ProgramPlan = ProgramPlanDetails & (
   | { mode: "session"; program: SaunaProgram | null; session: SaunaEventData | null }
-  | { mode: "private"; program: SaunaProgram }
+  | { mode: "private"; program: SaunaProgram; hireDuration?: HireDuration }
 );
 export type PirtisPlan = SaunaPlan | ProgramPlan;
 
@@ -238,13 +239,20 @@ function planSession(pick: SaunaPick, program: SaunaProgram | null, data: SaunaP
 
 function planPrivate(pick: SaunaPick, program: SaunaProgram, data: SaunaPageData, when: When, busy: readonly number[]): ProgramPlan {
   const sauna = data.saunas.find((s) => s.id === program.saunaId) ?? null;
-  const hours = program.durationMinutes / 60;
+  const duration = pick.hireDuration;
+  const tariff = sauna?.hireTariff;
+  const hosted = program.id === tariff?.hostedProgram;
+  const hours = duration && sauna ? hireHours(duration, sauna) : program.durationMinutes / 60;
   const start = pick.startHour;
-  const fits = sauna !== null && when.people <= Math.min(program.capacity ?? 0, sauna.rates.maxParty);
-  const ok = fits && start !== null && programStartOpen(sauna, hours, [...saunaTaken(data, sauna.id, when.day), ...busy], pastHourOn(when.day, data.today, data.nowHour), start);
+  const fits = sauna !== null && (duration
+    ? tariff && (hosted || program.id === tariff.unhostedProgram)
+      && (!hosted || hours >= 3) && when.people <= sauna.rates.maxParty
+    : when.people <= Math.min(program.capacity ?? 0, sauna.rates.maxParty));
+  const ok = Boolean(fits && sauna && start !== null && privateStarts(program, sauna, data, when.day, busy, duration).includes(start));
+  const price = duration && tariff ? hirePrice(tariff, duration, when.day, when.people, hosted) : program.price;
   return {
-    kind: "pirtis", mode: "private", program, sauna, startHour: start, hours,
-    adults: when.people, children: 0, ok, price: ok ? program.price : 0,
+    kind: "pirtis", mode: "private", program, sauna, startHour: start, hours, hireDuration: duration,
+    adults: when.people, children: 0, ok, price: ok ? price : 0,
   };
 }
 
@@ -259,6 +267,7 @@ export interface SessionRow {
   rate: string;
   seats: string;
   maxPeople: number;
+  capacity?: number;
   blocked: boolean;
   programId: string | null;
   eventId: string | null;
@@ -266,8 +275,8 @@ export interface SessionRow {
   startHours?: number[];
 }
 
-function privateStarts(program: SaunaProgram, sauna: Sauna, data: SaunaPageData, day: string, busy: readonly number[] = []): number[] {
-  const hours = program.durationMinutes / 60;
+export function privateStarts(program: SaunaProgram, sauna: Sauna, data: SaunaPageData, day: string, busy: readonly number[] = [], duration?: HireDuration): number[] {
+  const hours = duration ? hireHours(duration, sauna) : program.durationMinutes / 60;
   const taken = [...saunaTaken(data, sauna.id, day), ...busy];
   const past = pastHourOn(day, data.today, data.nowHour);
   return programStartHours(sauna, hours).filter((start) => programStartOpen(sauna, hours, taken, past, start));
@@ -290,7 +299,7 @@ export function sessionRows(data: SaunaPageData, day: string, busy: readonly num
       title: event.title, label: program?.label ?? "Seansas", description: event.blurb,
       rate: program ? programRateLine(program) : `${event.pricePerPerson.toLocaleString("lt-LT")} € / asm.`,
       seats: overlaps ? "Kertasi su jūsų planu" : `Liko vietų: ${event.spotsLeft}${event.capacity ? `/${event.capacity}` : ""}`,
-      maxPeople: event.spotsLeft, programId: event.programId, eventId: event.key,
+      maxPeople: event.spotsLeft, capacity: event.capacity, programId: event.programId, eventId: event.key,
       host: event.hostName, blocked: overlaps || event.spotsLeft < 1,
     });
   }
@@ -319,7 +328,7 @@ export function rowSelected(row: SessionRow, plan: PirtisPlan): boolean {
 }
 
 export function pickForRow(row: SessionRow, pick: SaunaPick, startHour: number | null): SaunaPick {
-  return { ...pick, programId: row.programId, eventId: row.eventId, children: 0, startHour };
+  return { ...pick, programId: row.programId, eventId: row.eventId, children: 0, startHour, hireDuration: undefined };
 }
 
 /** The pick that produced a plan, so a card can change one field of it. */
@@ -335,6 +344,7 @@ export function pickFromPlan(plan: PirtisPlan, data: SaunaPageData): SaunaPick {
     saunaId: first?.id ?? "",
     startHour: plan.mode === "private" ? plan.startHour : null,
     hours: first?.rates.minHours ?? 2,
+    hireDuration: plan.mode === "private" ? plan.hireDuration : undefined,
     extras: {},
   };
 }
@@ -408,8 +418,14 @@ export function dayAvailability(data: ReservationData, day: string, people: numb
     return sauna && Math.min(program.capacity ?? 0, sauna.rates.maxParty) > 0
       && privateStarts(program, sauna, data.sauna, day).length > 0;
   });
-  // Tours are sold on scheduled departures only, so a day is open when a route has one with enough free quads.
-  const keturraciai = data.quads.tourRoutes.some((route) => quadTourStarts(data.quads, day, route).length > 0);
+  const { settings, types, taken } = data.quads;
+  let keturraciai = false;
+  for (let h = Math.max(settings.openHour, past + 1); h < settings.closeHour; h++) {
+    if (types.some((type) => freeAt(type, taken, day, h) > 0)) {
+      keturraciai = true;
+      break;
+    }
+  }
   const checkIn = nextDays(day, 1)[0];
   const hasStay = (type: StayUnitType) => freeStayUnits(data.cabin.availability, checkIn, nights, type) > 0;
   const nakvyne = hasStay("kemperis") || CABIN_SIZES.some(({ id }) => hasStay(id));
@@ -457,7 +473,7 @@ export function describePlans(plans: Plans, when: When): PlanLine[] {
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${clock(start)}–${clock(start + pirtis.hours * 60)}`;
     const title = (pirtis.mode === "session" ? pirtis.session?.title : pirtis.program.name) ?? pirtis.program?.name ?? "Pirties seansas";
     const date = pirtis.mode === "session" && pirtis.session ? longDateLabel(nextDays(pirtis.session.date, 1)[0]) : dayLabel;
-    lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : hoursLabel(pirtis.hours), schedule: `${date}, ${time}`, price: pirtis.price });
+    lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : pirtis.hireDuration ? `${hoursLabel(pirtis.hours)}, ${who}` : hoursLabel(pirtis.hours), schedule: `${date}, ${time}`, price: pirtis.price });
   }
   if (nakvyne) {
     const departure = longDateLabel(nextDays(when.day, nakvyne.nights + 1)[nakvyne.nights]);

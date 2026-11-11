@@ -1,3 +1,4 @@
+import { saunaHireTariff } from "@/lib/sauna-hire";
 import "server-only";
 import { connection } from "next/server";
 import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaProgram, toUpsell } from "@/lib/admin/mappers";
@@ -103,7 +104,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
     today,
     nowHour: vilniusHour(now),
     saunas: must(saunas, "Saunas").map((r) => {
-      const sauna = toSauna(r, r.sauna_upsell_links, url);
+      const sauna = { ...toSauna(r, r.sauna_upsell_links, url), hireTariff: saunaHireTariff.safeParse(r.hire_tariff).data };
       const upsellIds = sauna.upsellIds.filter((id) => offered.has(id));
       if (sauna.id !== "pirtis-marse") return { ...sauna, upsellIds };
       // The existing reservation venue is the Finnish sauna. Correct only the seeded display copy.
@@ -136,6 +137,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         capacity: e.capacity ?? 0,
         spotsLeft: spotsLeft(e) ?? 0,
         blurb: e.blurb,
+        description: "description" in e && typeof e.description === "string" ? e.description : undefined,
         programId: e.program_id,
       };
     }),

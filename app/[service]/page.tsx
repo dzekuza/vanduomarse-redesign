@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import { SERVICE_GALLERY, SERVICES } from "@/components/landing/content";
 import { activityPhotos } from "@/components/reservation/activity-photos";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
-import { QuadSchedule } from "@/components/services/quad-schedule";
+import { QuadServiceSchedule, QuadServiceSidebar, QuadServiceTools } from "@/components/services/quad-service-tools";
 import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
 import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
 import { ServicePage } from "@/components/services/service-page";
+import { StayServiceSchedule } from "@/components/services/stay-service-schedule";
+import { WakeServiceBooking } from "@/components/services/wake-service-booking";
+import { CONTACTS, MAIN_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
-import { getCabinPageData, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { getCabinPageData, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { paymentsEnabled } from "@/lib/stripe";
 
@@ -20,13 +23,14 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
-  const { title, summary, service: id } = SERVICE_PAGES[service];
+  const { title, summary, metaDescription, service: id }: ServicePageCopy = SERVICE_PAGES[service];
   const path = `/${service}`;
+  const description = metaDescription ?? summary;
   return {
     title: `${title} | Vanduo Marse`,
-    description: summary,
+    description,
     alternates: { canonical: path },
-    openGraph: { title, description: summary, url: path, images: [{ url: SERVICES[id].photo, alt: SERVICES[id].alt }] },
+    openGraph: { title, description, url: path, images: [{ url: SERVICES[id].photo, alt: SERVICES[id].alt }] },
   };
 }
 
@@ -36,6 +40,15 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   const copy: ServicePageCopy = SERVICE_PAGES[service];
   const activity = copy.activity;
   const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
+
+  if (activity === "keturraciai") {
+    const quads = await getQuadPageData(availabilityWindow);
+    return (
+      <QuadServiceTools data={quads}>
+        <ServicePage slug={service} photos={activityPhotos(activity)} booking={<QuadServiceSidebar />} schedule={<QuadServiceSchedule />} />
+      </QuadServiceTools>
+    );
+  }
 
   if (activity) {
     const { seansas } = await searchParams;
@@ -52,14 +65,21 @@ export default async function ActivityPage({ params, searchParams }: Props) {
       <ServicePage
         slug={service}
         sauna={activity === "pirtis" ? sauna : undefined}
-        quads={activity === "keturraciai" ? quads : undefined}
         photos={photos}
         booking={<ReservationFlow activity={activity} header={null} data={data} initialDay={saunaDay} payments={paymentsEnabled()} initialCustomer={customer} />}
-        schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : activity === "keturraciai" ? <QuadSchedule data={quads} /> : undefined}
+        schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : <StayServiceSchedule data={cabin} />}
       />
     );
   }
 
-  const wake = service === "vandenlentes" ? (await getParkEvents()).filter(({ category }) => category === "akademija") : undefined;
-  return <ServicePage slug={service} wake={wake} />;
+  if (service === "vandenlentes") {
+    const [events, products] = await Promise.all([getParkEvents(), getCouponProducts()]);
+    const contact = CONTACTS.find(({ name }) => name === SERVICES.wake.contact) ?? MAIN_CONTACT;
+    return (
+      <ServicePage slug={service} wake={events.filter(({ category }) => category === "akademija")}
+        booking={<WakeServiceBooking products={products.filter(({ service }) => service === "kabelis")} contact={contact} />} />
+    );
+  }
+
+  return <ServicePage slug={service} />;
 }

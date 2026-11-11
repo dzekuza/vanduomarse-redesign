@@ -10,13 +10,16 @@ export const metadata: Metadata = {
   description: "Padovanok dieną Marse: dovanų kuponai plaukimui, pirčiai ar nakvynei. Kodas ateina el. paštu, galioja 12 mėnesių.",
 };
 
-export default async function CouponsPage() {
-  const products = await getCouponProducts();
+export default async function CouponsPage({ searchParams }: PageProps<"/kuponai">) {
+  const [params, products] = await Promise.all([searchParams, getCouponProducts()]);
+  const initialProductId = typeof params.produktas === "string" ? params.produktas : undefined;
   return (
     <BookingPage>
       <div className="theme-reservation px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
         <CouponShop
+          key={initialProductId}
           products={products}
+          initialProductId={initialProductId}
           header={
             <BookingHeader
               crumb="Dovanų kuponai"

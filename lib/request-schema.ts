@@ -1,3 +1,4 @@
+import { hireDuration } from "@/lib/sauna-hire";
 import { z } from "zod";
 import { MAX_STAY_NIGHTS, MAX_STAY_UNITS } from "@/lib/cabin";
 import { contactError, contactFields, needsContact, tourContactSchema } from "@/lib/quad-schema";
@@ -54,6 +55,7 @@ export const programBookingSchema = refined(
     date: z.iso.date(),
     startHour: z.number().int().min(0).max(23),
     party: z.number().int().min(1).max(100),
+    hireDuration: hireDuration.optional(),
   }),
 );
 export type ProgramBookingInput = z.infer<typeof programBookingSchema>;

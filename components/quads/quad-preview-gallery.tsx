@@ -4,11 +4,11 @@ import Image from "next/image";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
-import { QUAD_TOUR_GALLERY } from "./quad-tour-content";
+import { QUAD_PREVIEW_GALLERY } from "./quad-preview-content";
 
-export function QuadTourGallery() {
+export function QuadPreviewGallery() {
   const [index, setIndex] = useState<number | null>(null);
-  const photo = index === null ? null : QUAD_TOUR_GALLERY[index];
+  const photo = index === null ? null : QUAD_PREVIEW_GALLERY[index];
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -16,7 +16,7 @@ export function QuadTourGallery() {
         <p className="text-micro uppercase text-copy">Akimirkos iš trasos</p>
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        {QUAD_TOUR_GALLERY.map((image, position) => (
+        {QUAD_PREVIEW_GALLERY.map((image, position) => (
           <button key={image.src} type="button" aria-label={`Peržiūrėti nuotrauką ${position + 1}: ${image.alt}`} onClick={() => setIndex(position)} className="group relative aspect-square min-h-11 overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
             <Image src={image.src} alt={image.alt} fill sizes="(min-width: 1024px) 18vw, 44vw" className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105" />
           </button>

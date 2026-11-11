@@ -1,25 +1,24 @@
 import { CABIN_SIZES, roomPrice } from "@/lib/cabin";
-import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
+import type { SaunaPageData } from "@/lib/data/public-types";
 import { SPACES, formatMoney } from "@/lib/event-pricing";
+import { HIRE_DURATIONS, type SaunaHireTariff } from "@/lib/sauna-hire";
 import { programPriceLine } from "@/lib/sauna-programs";
+import { QUAD_PREVIEW_ROUTES } from "@/components/quads/quad-preview-content";
 import type { ServiceSlug } from "./service-content";
 
-function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData) {
-  if (slug === "pirtis") return sauna?.programs.map((program) => ({
+function prices(slug: ServiceSlug, sauna?: SaunaPageData) {
+  if (slug === "pirtis") return sauna?.programs.filter(({ kind }) => kind === "private").map((program) => ({
     label: program.name,
     price: programPriceLine(program),
-    note: program.kind === "private" && program.capacity
+    note: program.capacity
       ? `Iki ${program.capacity} žmonių. ${program.description}`
       : program.description,
   })) ?? [];
-  if (slug === "keturraciu-nuoma") return [
-    ...(quads?.tourRoutes ?? []).map((route) => ({
-      label: `${route.name} turas`,
-      price: `${route.price} € / keturračiui`,
-      note: `${route.kilometres} km · ${route.hours} val. · bent ${route.minUnits} keturračiai`,
-    })),
-    ...(quads?.tourAccessories ?? []).map((gear) => ({ label: gear.name, price: `${gear.price} € / vnt.`, note: "Papildoma įranga" })),
-  ];
+  if (slug === "keturraciu-nuoma") return QUAD_PREVIEW_ROUTES.map((route) => ({
+    label: route.name,
+    price: `${route.price} € / keturračiui`,
+    note: `${route.kilometres} km · ${route.hours} val.`,
+  }));
   if (slug === "nakvyne") return [
     ...CABIN_SIZES.map((cabin) => ({ label: cabin.name, price: `${cabin.pricePerNight} € / naktį`, note: cabin.label })),
     { label: "Kemperio aikštelė", price: `${roomPrice("kemperis", 2)} € / naktį`, note: "Viena transporto priemonė, su elektra." },
@@ -43,8 +42,39 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData) 
   });
 }
 
-export function ServicePricing({ slug, sauna, quads }: { slug: ServiceSlug; sauna?: SaunaPageData; quads?: QuadPageData }) {
-  const rows = prices(slug, sauna, quads);
+function SaunaHirePrices({ tariff }: { tariff: SaunaHireTariff }) {
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-bold">Suomiška sauna</h3>
+      <table className="w-full border-y border-line text-left text-xs">
+        <thead>
+          <tr className="border-b border-line">
+            <th scope="col" className="py-3 pr-2">Trukmė</th>
+            <th scope="col" className="py-3 pr-2">I–IV</th>
+            <th scope="col" className="py-3">V–VII</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {HIRE_DURATIONS.map(({ id, label }) => (
+            <tr key={id}>
+              <th scope="row" className="py-3 pr-2 font-medium">{label}</th>
+              <td className="py-3 pr-2 font-bold">{tariff.weekday[id]} €</td>
+              <td className="py-3 font-bold">{tariff.weekend[id]} €</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-xs text-copy">Bazinė kaina galioja iki {tariff.includedGuests} žmonių. Už kiekvieną papildomą svečią +{tariff.extraGuestPrice} €.</p>
+      <p className="text-xs text-copy">Pirtininkas +{tariff.hostPrice} €. Su pirtininku mažiausia rezervacijos trukmė 3 val.</p>
+      <p className="text-xs text-copy">Suplanuotų seansų kainos ir laisvos vietos nurodytos tvarkaraštyje.</p>
+    </div>
+  );
+}
+
+export function ServicePricing({ slug, sauna }: { slug: ServiceSlug; sauna?: SaunaPageData }) {
+  const tariff = slug === "pirtis" ? sauna?.saunas.find(({ hireTariff }) => hireTariff)?.hireTariff : undefined;
+  if (tariff) return <SaunaHirePrices tariff={tariff} />;
+  const rows = prices(slug, sauna);
   return (
     <div className="space-y-3">
       {rows.length ? (
@@ -65,7 +95,7 @@ export function ServicePricing({ slug, sauna, quads }: { slug: ServiceSlug; saun
             : "Dėl privačios nuomos kainų susisiek su Pirtis Marse komanda."}</p>
       )}
       {slug === "pirtis" ? <p className="text-xs text-copy">Suplanuotų seansų kainos ir laisvos vietos nurodytos tvarkaraštyje.</p> : null}
-      {slug === "keturraciu-nuoma" ? <p className="text-xs text-copy">Kainos su PVM. Kaina už keturratį, vienam ar dviem keleiviams ta pati.</p> : null}
+      {slug === "keturraciu-nuoma" ? <p className="text-xs text-copy">Orientacinės turų kainos. Dėl galutinės kainos ir datos susisiek su komanda.</p> : null}
       {["sventes", "vestuves", "imoniu-renginiai", "gimtadieniai"].includes(slug) ? <p className="text-xs text-copy">Orientacinės erdvių kainos ir minimalios sąskaitos pavyzdžiai 20 svečių grupei. Galutinė sąmata priklauso nuo datos, svečių skaičiaus ir paslaugų.</p> : null}
     </div>
   );

@@ -34,7 +34,7 @@ export function ActivityAbout({ id, data, active }: { id: ActivityId; data: Rese
         <div className="min-h-0 space-y-6 overflow-y-auto p-6">
           <header className="space-y-2">
             <DialogTitle className="font-display text-heading leading-tight font-bold">{title}</DialogTitle>
-            <DialogDescription className="text-copy">{activityBlurb(id, data)}</DialogDescription>
+            <DialogDescription className="text-copy">{activityBlurb(id)}</DialogDescription>
           </header>
           <ActivityDetails id={id} data={data} />
         </div>

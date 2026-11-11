@@ -1676,6 +1676,7 @@ export type Database = {
           created_at: string
           description: string
           features: string[]
+          hire_tariff: Json | null
           id: string
           large_group_rate: number
           max_hours: number
@@ -1697,6 +1698,7 @@ export type Database = {
           created_at?: string
           description?: string
           features?: string[]
+          hire_tariff?: Json | null
           id: string
           large_group_rate: number
           max_hours: number
@@ -1718,6 +1720,7 @@ export type Database = {
           created_at?: string
           description?: string
           features?: string[]
+          hire_tariff?: Json | null
           id?: string
           large_group_rate?: number
           max_hours?: number
@@ -1978,6 +1981,7 @@ export type Database = {
           p_date: string
           p_discount_code?: string
           p_email?: string
+          p_hire_duration?: string
           p_name: string
           p_note?: string
           p_party: number

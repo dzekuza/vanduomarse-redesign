@@ -26,6 +26,7 @@ export interface SaunaEventData {
   capacity?: number;
   spotsLeft: number;
   blurb: string;
+  description?: string;
   /** Set for sessions of a sauna program (priced from the program, booked through it). */
   programId: string | null;
 }

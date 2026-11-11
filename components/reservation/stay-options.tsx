@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
-import { CABIN_SIZES, MAX_STAY_UNITS, roomLabel, roomPrice, type StayUnitType } from "@/lib/cabin";
+import { MAX_STAY_UNITS, STAY_TYPES, roomLabel, roomPrice } from "@/lib/cabin";
 import type { StayPick, StayPlan } from "@/lib/reservation";
 import { OptionGroupLabel } from "./option-card";
-import { StayTypeDialog } from "./stay-type-dialog";
 
 interface StayOptionsProps {
   plan: StayPlan;
@@ -15,8 +14,6 @@ interface StayOptionsProps {
   onChange: (pick: StayPick) => void;
   onRemove: () => void;
 }
-
-const STAY_TYPES: StayUnitType[] = [...CABIN_SIZES.map(({ id }) => id), "kemperis"];
 
 /** One unit type for the chosen dates, with a count independent of the activity group size. */
 export function StayOptions({ plan, datesSelected, included, onChange, onRemove }: StayOptionsProps) {
@@ -37,7 +34,6 @@ export function StayOptions({ plan, datesSelected, included, onChange, onRemove 
                 key={type}
                 title={roomLabel(choice.roomId, choice.size)}
                 price={roomPrice(choice.roomId, choice.size)}
-                type={type}
                 camper={camper}
                 free={datesSelected ? plan.free(type) : null}
                 selected={selected}
@@ -58,8 +54,7 @@ export function StayOptions({ plan, datesSelected, included, onChange, onRemove 
   );
 }
 
-function StayUnitCard({ type, title, price, camper, free, selected, units, onChange, onRemove }: {
-  type: StayUnitType;
+function StayUnitCard({ title, price, camper, free, selected, units, onChange, onRemove }: {
   title: string;
   price: number;
   camper: boolean;
@@ -72,11 +67,11 @@ function StayUnitCard({ type, title, price, camper, free, selected, units, onCha
   const [draft, setDraft] = useState(1);
   const max = free === null ? 0 : Math.min(MAX_STAY_UNITS, free);
   const count = selected ? units : Math.min(draft, max);
+  const line = selected ? "border-line-on-ink" : "border-line";
   const copy = selected ? "text-dust/80" : "text-copy";
 
   return (
-    <article aria-label={title} className={`relative flex flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
-      <StayTypeDialog type={type} title={title} price={price} className="absolute top-2 right-2" />
+    <article aria-label={title} className={`flex flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
       <div className="space-y-2">
         <p className={`text-micro uppercase ${copy}`}>{free === null ? "Nakvynė" : free === 0 ? "Užimta" : Number.isFinite(free) ? `Liko: ${free}` : "Nakvynė"}</p>
         <h3 className="text-item font-bold">{title}</h3>
@@ -85,7 +80,7 @@ function StayUnitCard({ type, title, price, camper, free, selected, units, onCha
       </div>
       {free !== null ? <div className="mt-auto space-y-4">
         {max > 0 && (
-          <div>
+          <div className={`border-t pt-3 ${line}`}>
             <Stepper
               label="Kiekis"
               value={count}

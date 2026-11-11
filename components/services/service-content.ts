@@ -7,6 +7,7 @@ export interface ServicePageCopy {
   label: string;
   title: string;
   summary: string;
+  metaDescription?: string;
   description: string;
   facts: { label: string; value: string }[];
   questions: { title: string; body: string }[];
@@ -19,11 +20,12 @@ export const SERVICE_PAGES = {
     service: "sauna",
     label: "Pirtis Marse",
     title: "Pirties nuoma ir seansai Kauno rajone",
-    summary: "Suomiška sauna prie vandens. Rezervuok sauną savo kompanijai arba vietą pirties seanse.",
-    description: "Suomiška sauna įsikūrusi Vanduo Marse parke, Žemaitkiemyje, maždaug 20 minučių nuo Kauno centro. Sauną gali išsinuomoti visai kompanijai su pirtininko programa arba be jos. Artimiausius pirties seansus rasi tvarkaraštyje.",
+    summary: "Suomiška sauna prie ežero įsikūrusi Vanduo Marse parke Žemaitkiemyje, maždaug 20 minučių nuo Kauno centro. Čia gali rezervuoti visą sauną savo kompanijai su pirtininku arba be jo, o jei nori prisijungti prie grupės, rinkis pirties seansą. Netrukus parke atsidarys ir iki 25 svečių talpinanti malkinė pirtis su išskirtine krosnimi.",
+    metaDescription: "Pirties nuoma ir seansai Kauno rajone. Suomiška sauna prie ežero Žemaitkiemyje, netrukus atsidarys malkinė pirtis su išskirtine krosnimi.",
+    description: "Suomiškoje saunoje telpa iki 20 žmonių, o pro panoraminius langus matyti ežeras. Priešpirtyje telpa iki 30 žmonių. Dėl šios erdvės naudojimo susitark rezervuodamas. Tvarkaraštyje prie kiekvieno pirties seanso rasi pradžios laiką, kainą ir laisvų vietų skaičių. Malkinė pirtis dar įrengiama ir netrukus atsidarys. Joje tilps iki 25 žmonių.",
     facts: [
-      { label: "Malkinė pirtis", value: "Dar įrengiama. Talpins iki 25 žmonių." },
       { label: "Suomiška sauna", value: "Iki 20 žmonių. Pro panoraminius langus matyti vanduo." },
+      { label: "Malkinė pirtis", value: "Netrukus atsidarys. Talpins iki 25 žmonių." },
       { label: "Priešpirtis", value: "Iki 30 žmonių. Dėl naudojimo susitark rezervuodamas." },
       { label: "Rezervacijos formatai", value: "Pirties seansai ir privati nuoma su pirtininku arba be jo." },
     ],
@@ -40,8 +42,9 @@ export const SERVICE_PAGES = {
     title: "Keturračių nuoma ir turai prie Kauno",
     summary: "Mini, Midi ir Maxi išvykos keturračiais. Apžiūrėk „Vanduo Marse“ ir „Ciongo“ turų pasiūlymą bei palygink trasas.",
     description: "Trumpesnė trasa tinka pirmai pažinčiai su keturračiu, ilgesnė skirta tiems, kurie nori daugiau laiko miške ir bekelėje. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Dėl išvykos iš Vanduo Marse susitark su komanda.",
-    // The routes and the group minimum come from the database: see quad-service-facts.ts.
     facts: [
+      { label: "Trasos", value: "Mini, Midi ir Maxi" },
+      { label: "Grupė", value: "Turui reikia bent 3 keturračių." },
       { label: "Apranga", value: "Rinkis judėti patogią aprangą pagal oro sąlygas." },
       { label: "Partneris", value: "Ciongo" },
     ],
@@ -59,7 +62,7 @@ export const SERVICE_PAGES = {
     description: "Rinkis dvivietį ar keturvietį namelį. Jei atvyksti savo kemperiu, yra vietų su elektros įvadu. Nakvynę galima užsakyti kelioms naktims.",
     facts: [{ label: "Nameliai", value: "2 arba 4 asmenims" }, { label: "Kemperiai", value: "Aikštelė su elektros įvadu" }],
     questions: [
-      { title: "Kaip patikrinti namelių užimtumą?", body: "Pasirink atvykimo ir išvykimo datas. Prie kiekvieno tipo pamatysi, kiek vienetų liko laisvų visai viešnagei." },
+      { title: "Kaip patikrinti namelių užimtumą?", body: "Pasirink nakvynės tipą, atvykimo ir išvykimo datas. Galėsi pasirinkti tiek namelių, kiek jų laisva visai viešnagei." },
       { title: "Ar galima užsakyti kelis namelius?", body: "Taip. Pasirink norimo tipo namelių kiekį pagal užimtumą. Dėl skirtingų tipų vienai grupei susisiek su Miegas Marse komanda." },
     ],
     activity: "nakvyne",
