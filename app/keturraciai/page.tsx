@@ -6,7 +6,11 @@ import { Cta } from "@/components/cta";
 import { QuadInformation } from "@/components/quads/quad-information";
 import { QUAD_TOUR_SOURCE } from "@/components/quads/quad-tour-content";
 import { QuadTourGallery } from "@/components/quads/quad-tour-gallery";
-import { getQuadPageData } from "@/lib/data/public";
+import { ReservationFlow } from "@/components/reservation/reservation-flow";
+import { getCustomer } from "@/lib/customer";
+import { getCabinPageData, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { RESERVATION_DAYS } from "@/lib/reservation";
+import { paymentsEnabled } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Keturračių turai Marse. Dizaino peržiūra",
@@ -15,7 +19,10 @@ export const metadata: Metadata = {
 };
 
 export default async function QuadsPreviewPage() {
-  const data = await getQuadPageData({ days: 60, now: new Date() });
+  const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
+  const [sauna, cabin, data, customer] = await Promise.all([
+    getSaunaPageData(availabilityWindow), getCabinPageData(availabilityWindow), getQuadPageData(availabilityWindow), getCustomer(),
+  ]);
   return (
     <BookingPage>
       <div className="theme-reservation">
@@ -33,12 +40,9 @@ export default async function QuadsPreviewPage() {
             <span className="absolute bottom-4 left-4 bg-dust px-3 py-2 text-micro uppercase text-ink">Startas iš Marso</span>
           </div>
         </section>
-        <section aria-label="Keturračių turo peržiūra" className="px-gutter pb-16 lg:pb-24">
-          <div className="space-y-4 border border-line bg-card p-6">
-            <h2 className="text-heading font-bold">Rezervuok turą</h2>
-            <p className="text-sm text-copy">Rinkis trasą, datą ir laiką, mokėk iš karto. Kainos ir laisvi laikai rodomi rezervacijos puslapyje.</p>
-            <Cta tone="dark" href="/keturraciu-nuoma#rezervuoti">Rezervuoti turą</Cta>
-          </div>
+        <section id="trasos" aria-label="Keturračių turo rezervacija" className="scroll-mt-32 space-y-6 px-gutter pb-16 lg:pb-24">
+          <h2 className="text-heading font-bold">Kada susitinkam?</h2>
+          <ReservationFlow activity="keturraciai" wide header={null} data={{ sauna, cabin, quads: data }} payments={paymentsEnabled()} initialCustomer={customer} />
         </section>
         <section className="grid gap-10 px-gutter pb-16 lg:grid-cols-2 lg:gap-16 lg:pb-24">
           <QuadInformation accessories={data.tourAccessories} />

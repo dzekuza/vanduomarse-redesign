@@ -12,6 +12,8 @@ updated: 2026-11-07
 
 **Last updated:** 2026-11-12
 
+**ATV booking (2026-11-12, ADR-0070): branch `feat/atv-booking-ui`: route cards on live departures embedded on /keturraciai; checked with fake departures; NO real departures exist, staff must add them in /admin/keturraciai before tours can be sold.**
+
 **Rest of front-updates (2026-11-12): branch `feat/front-updates-rest` stacked on #29: sauna session cards + auto-select, cabin free/total counts; not ported on purpose: ATV preview checkout, Finnish tariff tables, private start-time grid, header calculator-link removal.**
 
 **/rezervacija rework (2026-11-12, ADR-0069): branch `feat/rezervacija-rework`, "Tipas" chips + the service booking forms; tsc/eslint clean, checked at 375 px, no booking submitted; not committed/PR yet unless noted below. Original branch tip kept locally as `front-updates-original`.**

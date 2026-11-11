@@ -68,6 +68,7 @@ export function ReservationFlow({
   wakeProducts,
   initialDay,
   activity,
+  wide = false,
   payments,
   initialCustomer,
 }: {
@@ -78,6 +79,8 @@ export function ReservationFlow({
   initialDay?: string;
   /** On a service page the booking is limited to that activity. */
   activity?: "pirtis" | "nakvyne" | "keturraciai";
+  /** An activity booking on a full-width page: the plan sits beside the form, with the phone dock, like /rezervacija. */
+  wide?: boolean;
   /** Pay at submit through Stripe Checkout; off when Stripe is not configured. */
   payments: boolean;
   /** Already signed in (a returning customer); otherwise the account step asks for a code. */
@@ -122,6 +125,8 @@ export function ReservationFlow({
   const onCheckingCode = useCallback((checking: boolean) => setCheckingCode(checking), []);
 
   const day = dateKey(date);
+  /** An activity form squeezed into a service page's card: the plan stacks below it. */
+  const inline = Boolean(activity) && !wide;
   const stayNights = picks.nakvyne?.nights ?? draftNights;
   const stayDates = nextDays(day, MAX_STAY_NIGHTS + 1);
   const stayEnd = stayDatePhase !== "idle" ? stayDates[stayNights] : null;
@@ -371,8 +376,8 @@ export function ReservationFlow({
         event.preventDefault();
         next();
       }} noValidate className={activity ? undefined : "px-gutter pt-10 pb-16 md:pt-14 md:pb-24"}>
-        <div className={activity ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
-          <div className={activity ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
+        <div className={inline ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
+          <div className={inline ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
             {activity === "pirtis" || activity === "keturraciai" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
             <div className={activity ? "space-y-5" : "space-y-5 border border-line bg-foam p-4 sm:p-6"}>
             {activity ? null : <ReservationTypeChips
@@ -422,6 +427,7 @@ export function ReservationFlow({
               days={days}
               date={dayChosen ? date : null}
               pick={tourPick}
+              busyHours={planHours(plans.pirtis)}
               busy={busy}
               onDate={(next) => {
                 if (busy) return;
@@ -487,14 +493,14 @@ export function ReservationFlow({
             </>}
             </div>
           </div>
-          {(!wake || lines.length > 0) && <PlanPanel ref={activity ? inlinePlan : undefined} activity={tab} photos={photos} inline={Boolean(activity)} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
+          {(!wake || lines.length > 0) && <PlanPanel ref={inline ? inlinePlan : undefined} activity={tab} photos={photos} inline={inline} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
         </div>
       </form>
-      {activity || (wake && lines.length === 0) ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
+      {inline || (wake && lines.length === 0) ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
       <ReservationAccountDialog
         open={step === LAST}
         onClose={() => { if (!busy) setStep(0); }}
-        onReturnToPlan={() => (activity ? inlinePlan.current : selectionHeader.current)?.focus({ preventScroll: true })}
+        onReturnToPlan={() => (inline ? inlinePlan.current : selectionHeader.current)?.focus({ preventScroll: true })}
         customer={customer}
         onCustomer={setCustomer}
         lines={lines}
