@@ -1,3 +1,10 @@
+## 2026-11-12 — /rezervacija rework on main
+
+- **Why:** the rebased `front-updates` left /rezervacija on the old tab layout; user asked to use the rework.
+- **Changed:** new `ReservationTypeChips`, `SaunaServiceBooking` `mode` prop + `saunaHasSessions`, `reservation-flow.tsx` renders the boxed chip panel with the per-type forms; `ActivityTabs` deleted.
+- **Status:** `tsc`/eslint clean; browser-checked at 375 px (all chips, private booking to a plan). Nothing submitted.
+- **Next:** PR; decide on cabin availability counts and the ATV preview from the original branch.
+
 ## 2026-11-12 — front-updates migrations applied
 
 - **Why:** user asked to apply the two migrations of the rebased `front-updates` branch (PR #27).

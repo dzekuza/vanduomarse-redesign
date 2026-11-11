@@ -30,9 +30,15 @@ interface SaunaServiceBookingProps {
   onPeople: (people: number) => void;
   onRemove: () => void;
   onSelectedFocus: () => void;
+  /** Chosen outside (the /rezervacija type chips); the form then hides its own type choice. Remount it (key) when this changes. */
+  mode?: SaunaMode;
 }
 
-type Mode = SessionRow["mode"];
+export type SaunaMode = SessionRow["mode"];
+type Mode = SaunaMode;
+
+/** Whether the venue offers shared sessions next to private hire. */
+export const saunaHasSessions = (data: SaunaPageData) => data.events.length > 0 || data.programs.some((program) => program.active && program.kind === "session");
 
 const TYPES: { id: Mode; title: string; hint: string }[] = [
   { id: "private", title: "Privati pirtis", hint: "Visa pirtis jūsų grupei" },
@@ -41,16 +47,17 @@ const TYPES: { id: Mode; title: string; hint: string }[] = [
 
 /** Type, date and time lead into the existing reservation plan. */
 export function SaunaServiceBooking({
-  data, days, date, plan, pick, people, busy, sessionId, onDate, onPick, onPeople, onRemove, onSelectedFocus,
+  data, days, date, plan, pick, people, busy, sessionId, onDate, onPick, onPeople, onRemove, onSelectedFocus, mode: lockedMode,
 }: SaunaServiceBookingProps) {
-  const [mode, setMode] = useState<Mode | null>(() => sessionId ? "session" : null);
+  const [ownMode, setMode] = useState<Mode | null>(() => sessionId ? "session" : null);
+  const mode = lockedMode ?? ownMode;
   const [venueId, setVenueId] = useState<string>();
   /** Length and pirtininkas asked before a time is chosen; once a time is picked they live in `pick`. */
   const [draft, setDraft] = useState<{ hours: number; masterId: string | null }>({ hours: 0, masterId: null });
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [dialogQuantity, setDialogQuantity] = useState<{ eventId: string; people: number }>();
   const venues = saunaServiceVenues(data);
-  const hasSessions = data.events.length > 0 || data.programs.some((program) => program.active && program.kind === "session");
+  const hasSessions = saunaHasSessions(data);
   const venue = venues.find(({ id }) => id === venueId);
   const sauna = data.saunas.find(({ id }) => id === venueId);
   const hourly = plan?.mode === "hourly" ? plan : null;
@@ -93,7 +100,7 @@ export function SaunaServiceBooking({
 
   return (
     <div className="space-y-5">
-      <fieldset disabled={busy}>
+      {lockedMode ? null : <fieldset disabled={busy}>
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold"><WavesIcon size={18} aria-hidden /> Tipas</legend>
         <div className="grid grid-cols-2 gap-2">
           {TYPES.filter(({ id }) => id === "private" || hasSessions).map(({ id, title, hint }) => (
@@ -108,7 +115,7 @@ export function SaunaServiceBooking({
             </FilterChip>
           ))}
         </div>
-      </fieldset>
+      </fieldset>}
       {mode === "private" ? (
         <SaunaServicePrivateOptions venues={venues} venueId={venueId} disabled={busy}
           onVenue={(id) => {

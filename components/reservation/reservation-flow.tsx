@@ -12,7 +12,7 @@ import { ACADEMY_CONTACT } from "@/lib/contacts";
 import type { CouponProduct } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
-import { SaunaServiceBooking } from "@/components/services/sauna-service-booking";
+import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
@@ -40,10 +40,10 @@ import { dateKey, longDateLabel, nextDays } from "@/lib/sauna";
 import type { AccountValues } from "./account-step";
 import { ActivitiesStep } from "./activities-step";
 import { ActivityAbout } from "./activity-about";
-import { ActivityTabs, type ReservationTab } from "./activity-tabs";
 import { activityPhotos } from "./activity-photos";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
+import { ReservationTypeChips, type ReservationTab, type ReservationType } from "./reservation-type-chips";
 import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
 import { ReservationAccountDialog } from "./reservation-account-dialog";
@@ -96,6 +96,10 @@ export function ReservationFlow({
   const activeTab = activity ?? (sessionId && offer.pirtis ? "pirtis" : selectedTab);
   const wake = activeTab === "wake" && wakeProducts;
   const tab = activeTab === "wake" ? tabs[0] : activeTab;
+  /** The sauna's two ways to book are separate chips on /rezervacija; session when there are any, otherwise private hire. */
+  const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
+  const chipTypes: ReservationType[] = availableTabs.flatMap<ReservationType>((id) => id === "pirtis" ? [...(saunaHasSessions(data.sauna) ? ["session" as const] : []), "private"] : [id]);
+  const activeChip: ReservationType = activeTab === "pirtis" ? saunaMode : activeTab;
   const [date, setDate] = useState(() => days.find((candidate) => dateKey(candidate) === initialDay) ?? days[0]);
   const [dayChosen, setDayChosen] = useState(() => days.some((candidate) => dateKey(candidate) === initialDay));
   const [draftNights, setDraftNights] = useState(1);
@@ -162,6 +166,7 @@ export function ReservationFlow({
     };
   };
   const inPlan = tabs.filter((id) => picks[id] !== undefined || (id === "keturraciai" && tourPick !== null));
+  const includedChips = inPlan.map<ReservationType>((id) => id === "pirtis" ? (picks.pirtis?.eventId ? "session" : "private") : id);
   const selectionReady = tourPick === null
     ? bookable(plans)
     : Boolean(quadTour?.ok && (chosen(plans).length === 0 || bookable(plans)));
@@ -364,18 +369,28 @@ export function ReservationFlow({
         <div className={activity ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
           <div className={activity ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
             {activity === "pirtis" || activity === "keturraciai" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
-            {activity ? null : <ActivityTabs
-              ids={availableTabs}
-              active={activeTab}
-              included={inPlan}
-              renderDetails={(id, active) => <ActivityAbout id={id} data={data} active={active} />}
-              onChange={(id) => {
+            <div className={activity ? "space-y-5" : "space-y-5 border border-line bg-foam p-4 sm:p-6"}>
+            {activity ? null : <ReservationTypeChips
+              types={chipTypes}
+              active={activeChip}
+              included={includedChips}
+              disabled={busy}
+              details={wake ? null : <ActivityAbout id={tab} data={data} active={false} />}
+              onChange={(type) => {
                 if (busy) return;
-                setTab(id);
+                if (type === "session" || type === "private") {
+                  if (type !== saunaMode) removeActivity("pirtis");
+                  setSaunaMode(type);
+                  setTab("pirtis");
+                } else {
+                  setTab(type);
+                }
                 setStep(0);
               }}
             />}
-            {wake ? <WakeServiceBooking products={wake} contact={ACADEMY_CONTACT} /> : activity === "pirtis" ? <SaunaServiceBooking
+            {wake ? <WakeServiceBooking products={wake} contact={ACADEMY_CONTACT} /> : tab === "pirtis" ? <SaunaServiceBooking
+              key={activity ? "service" : saunaMode}
+              mode={activity ? undefined : saunaMode}
               data={data.sauna}
               days={days}
               date={dayChosen ? date : null}
@@ -397,7 +412,7 @@ export function ReservationFlow({
               onPeople={editPeople}
               onRemove={() => removeActivity("pirtis")}
               onSelectedFocus={() => inlinePlan.current?.focus()}
-            /> : activity === "keturraciai" ? <QuadServiceBooking
+            /> : tab === "keturraciai" ? <QuadServiceBooking
               data={data.quads}
               days={days}
               date={dayChosen ? date : null}
@@ -465,6 +480,7 @@ export function ReservationFlow({
                 </div>
               </div>
             </>}
+            </div>
           </div>
           {(!wake || lines.length > 0) && <PlanPanel ref={activity ? inlinePlan : undefined} activity={tab} photos={photos} inline={Boolean(activity)} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
         </div>
