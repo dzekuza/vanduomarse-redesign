@@ -40,6 +40,7 @@ export const PARK_ADDRESS = {
 
 const restaurant = CONTACTS.find((c) => c.name === "Skoniai Marse") ?? MAIN_CONTACT;
 const SAUNA_COVER = { src: "/landing/pirtis-02.webp", alt: "Pirties panoraminiai langai su vaizdu į ežerą ir lankytojus terasoje" };
+const CABINS_COVER = { src: "/landing/nameliai-fasadai.webp", alt: "Du Vanduo Marse nameliai su panoraminiais langais ir terasomis" };
 
 export const SERVICES: Record<ServiceId, Service> = {
   sauna: {
@@ -107,8 +108,8 @@ export const SERVICES: Record<ServiceId, Service> = {
     glyph: "⌂",
     label: "04 / DAR NE NAMO",
     title: "PASILIK.\nRYTAS MARSE.",
-    photo: "/landing/cabins.webp",
-    alt: "Marso nameliai prie vandens",
+    photo: CABINS_COVER.src,
+    alt: CABINS_COVER.alt,
     description:
       "Po veiksmo, po šventės ar tiesiog vietoj dar vieno vakaro mieste. Jei pasiliksi namelyje prie vandens, ryte niekur nereikės lėkti.",
     facts: [
@@ -182,7 +183,7 @@ export const ACTIVITY_CARDS: ActivityCard[] = [
   { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Sauna · iki 20 asm.", "Malkinė pirtis jau netrukus!"] },
   { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Po pasivažinėjimų –", "į pirtį atsigauti."] },
   { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "KUPOLAS · RESTORANAS · TERASA", num: "03 / ŠVĘSK", title: "ŠVENTĖS MARSE.", note: ["Vestuvės, gimtadieniai,", "įmonių renginiai."] },
-  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Apsistokite jaukiuose", "nameliuose prie vandens."] },
+  { id: "cabins", categories: ["rest"], alt: CABINS_COVER.alt, tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Apsistokite jaukiuose", "nameliuose prie vandens."] },
   { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKEBOARD", note: ["Wake grupinės treniruotės", "kartu su Handle The Watter."] },
   { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "RESTORANAS · MAITINIMAS", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Geras maistas", "kiekvienai progai."] },
 ];
@@ -221,7 +222,7 @@ export const GALLERY_SLIDES = [
   { src: "/landing/aerial.webp", alt: "Vanduo Marse parkas iš drono: ežeras, sala, nameliai ir kupolas", caption: "01 / VISAS PARKAS" },
   { src: "/landing/wake-dusk.webp", alt: "Vandenlentininkas šuolyje vakaro šviesoje", caption: "02 / VANDENLENTĖS" },
   { ...SAUNA_COVER, caption: "03 / SUOMIŠKA PIRTIS" },
-  { src: "/landing/cabins.webp", alt: "Nameliai prie vandens ir lėtas rytas", caption: "04 / NAMELIAI" },
+  { ...CABINS_COVER, caption: "04 / NAMELIAI" },
 ] as const;
 
 export interface ServicePhoto {
@@ -248,8 +249,18 @@ export const SERVICE_GALLERY: Record<ServiceId, ServicePhoto[]> = {
     { src: "/landing/food.webp", alt: "Maistas šventės stalui" },
   ],
   cabins: [
-    { src: "/landing/cabins.webp", alt: SERVICES.cabins.alt },
-    { src: "/landing/aerial.webp", alt: "Parkas iš oro: nameliai prie vandens" },
+    CABINS_COVER,
+    { src: "/landing/nameliai-kambarys-su-vaizdu.webp", alt: "Namelio miegamasis su panoraminiu vaizdu į ežerą" },
+    { src: "/landing/nameliai-terasa-ir-kambarys.webp", alt: "Namelio terasa su kėdėmis ir atviromis durimis į miegamąjį" },
+    { src: "/landing/nameliai-isore.webp", alt: "Vanduo Marse poilsio namelių eilė prie vejos" },
+    { src: "/landing/nameliai-vonios-kambarys.webp", alt: "Namelio vonios kambarys su dušu" },
+    { src: "/landing/nameliai-terasa-prie-vandens.webp", alt: "Medinė terasa su kėdėmis prie ežero" },
+    { src: "/landing/nameliai-miegamasis.webp", alt: "Dvigulė lova šviesiame namelio miegamajame" },
+    { src: "/landing/nameliai-panoraminiai-langai.webp", alt: "Namelio trikampiai panoraminiai langai į ežerą" },
+    { src: "/landing/nameliai-vidaus-erdve.webp", alt: "Namelio vidaus erdvė su stiklinėmis durimis" },
+    { src: "/landing/nameliai-miegamojo-erdve.webp", alt: "Namelio miegamasis šalia vonios kambario ir drabužių kabyklos" },
+    { src: "/landing/nameliai-medine-terasa.webp", alt: "Namelio medinė terasa su lauko kėdėmis prie vejos" },
+    { src: "/landing/nameliai-vaizdas-nuo-terasos.webp", alt: "Vaizdas nuo namelio terasos į Vanduo Marse ežerą ir trasą" },
   ],
   wake: [
     { src: "/landing/wake.webp", alt: SERVICES.wake.alt },

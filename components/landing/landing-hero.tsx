@@ -50,6 +50,7 @@ export function LandingHero() {
       <div className="absolute top-90 left-7 z-5 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:duration-700 motion-safe:delay-500 motion-safe:ease-out-strong motion-safe:fill-mode-both md:top-45 md:right-gutter md:left-auto lg:top-hero-kicker lg:mt-7.5">
         <Link
           href="/rezervacija"
+          aria-label="Rezervuok laiką Marse"
           className="@container grid size-30 rotate-12 place-items-center rounded-full border border-ink bg-rust text-center font-bold text-on-rust ring-7 ring-rust motion-safe:transition-[rotate,scale] motion-safe:duration-150 motion-safe:ease-out-strong motion-safe:hover:rotate-0 motion-safe:active:scale-95 md:size-32 lg:size-41"
         >
           <span className="grid justify-items-center gap-hero-sticker-gap text-hero-sticker whitespace-nowrap">

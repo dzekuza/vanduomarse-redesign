@@ -23,6 +23,11 @@ export interface CouponProduct {
   active: boolean;
 }
 
+/** Season passes use the same checkout and are activated in person from the paid coupon code. */
+export function isWakeSeasonPass(product: CouponProduct): boolean {
+  return product.service === "kabelis" && product.id.startsWith("wake-abonementas-");
+}
+
 /** What a customer learns about a code: its remaining balance and scope, nothing about the buyer. */
 export interface CheckedCoupon {
   /** Normalised, 12 characters. */

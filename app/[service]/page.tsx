@@ -8,8 +8,11 @@ import { QuadSchedule } from "@/components/services/quad-schedule";
 import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
 import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
 import { ServicePage } from "@/components/services/service-page";
+import { StayServiceSchedule } from "@/components/services/stay-service-schedule";
+import { WakeServiceBooking } from "@/components/services/wake-service-booking";
+import { CONTACTS, MAIN_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
-import { getCabinPageData, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { getCabinPageData, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { metaDescription, pageMetadata } from "@/lib/seo";
 import { serviceSchema } from "@/lib/structured-data";
@@ -56,17 +59,27 @@ export default async function ActivityPage({ params, searchParams }: Props) {
           stayTypes={activity === "nakvyne" ? cabin.stayTypes : undefined}
           photos={photos}
           booking={<ReservationFlow activity={activity} header={null} data={data} initialDay={saunaDay} payments={paymentsEnabled()} initialCustomer={customer} />}
-          schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : activity === "keturraciai" ? <QuadSchedule data={quads} /> : undefined}
+          schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : activity === "keturraciai" ? <QuadSchedule data={quads} /> : <StayServiceSchedule data={cabin} />}
         />
       </>
     );
   }
 
-  const wake = service === "vandenlentes" ? (await getParkEvents()).filter(({ category }) => category === "akademija") : undefined;
+  if (service === "vandenlentes") {
+    const [events, products] = await Promise.all([getParkEvents(), getCouponProducts()]);
+    const contact = CONTACTS.find(({ name }) => name === SERVICES.wake.contact) ?? MAIN_CONTACT;
+    return (
+      <>
+        {schema}
+        <ServicePage slug={service} wake={events.filter(({ category }) => category === "akademija")}
+          booking={<WakeServiceBooking products={products.filter(({ service }) => service === "kabelis")} contact={contact} />} />
+      </>
+    );
+  }
   return (
     <>
       {schema}
-      <ServicePage slug={service} wake={wake} />
+      <ServicePage slug={service} />
     </>
   );
 }

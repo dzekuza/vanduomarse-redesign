@@ -7,6 +7,7 @@ export interface ServicePageCopy {
   label: string;
   title: string;
   summary: string;
+  metaDescription?: string;
   description: string;
   facts: { label: string; value: string }[];
   questions: { title: string; body: string }[];
@@ -40,8 +41,9 @@ export const SERVICE_PAGES = {
     title: "Keturračių nuoma ir turai prie Kauno",
     summary: "Mini, Midi ir Maxi išvykos keturračiais. Apžiūrėk „Vanduo Marse“ ir „Ciongo“ turų pasiūlymą bei palygink trasas.",
     description: "Trumpesnė trasa tinka pirmai pažinčiai su keturračiu, ilgesnė skirta tiems, kurie nori daugiau laiko miške ir bekelėje. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Dėl išvykos iš Vanduo Marse susitark su komanda.",
-    // The routes and the group minimum come from the database: see quad-service-facts.ts.
     facts: [
+      { label: "Trasos", value: "Mini, Midi ir Maxi" },
+      { label: "Grupė", value: "Turui reikia bent 3 keturračių." },
       { label: "Apranga", value: "Rinkis judėti patogią aprangą pagal oro sąlygas." },
       { label: "Partneris", value: "Ciongo" },
     ],
@@ -59,7 +61,7 @@ export const SERVICE_PAGES = {
     description: "Rinkis dvivietį ar keturvietį namelį. Jei atvyksti savo kemperiu, yra vietų su elektros įvadu. Nakvynę galima užsakyti kelioms naktims.",
     facts: [{ label: "Nameliai", value: "2 arba 4 asmenims" }, { label: "Kemperiai", value: "Aikštelė su elektros įvadu" }],
     questions: [
-      { title: "Kaip patikrinti namelių užimtumą?", body: "Pasirink atvykimo ir išvykimo datas. Prie kiekvieno tipo pamatysi, kiek vienetų liko laisvų visai viešnagei." },
+      { title: "Kaip patikrinti namelių užimtumą?", body: "Pasirink nakvynės tipą, atvykimo ir išvykimo datas. Galėsi pasirinkti tiek namelių, kiek jų laisva visai viešnagei." },
       { title: "Ar galima užsakyti kelis namelius?", body: "Taip. Pasirink norimo tipo namelių kiekį pagal užimtumą. Dėl skirtingų tipų vienai grupei susisiek su Miegas Marse komanda." },
     ],
     activity: "nakvyne",

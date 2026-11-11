@@ -159,12 +159,20 @@ export const SPACES: Space[] = [
 
 export type CateringId = "none" | "bufetas-20" | "bufetas-25" | "bufetas-30" | "bufetas-35" | "marmitai";
 
+export const BUFFET_OPTIONS = ([
+  { id: "bufetas-20", perAdult: 20, hotDishes: 2 },
+  { id: "bufetas-25", perAdult: 25, hotDishes: 2 },
+  { id: "bufetas-30", perAdult: 30, hotDishes: 3 },
+  { id: "bufetas-35", perAdult: 35, hotDishes: 3 },
+] as const).map((option) => ({
+  ...option,
+  label: "Švediškas stalas",
+  hint: `${option.hotDishes} karštieji · ${option.perAdult} €/asm.`,
+}));
+
 export const CATERING: { id: CateringId; label: string; hint: string; perAdult: number }[] = [
   { id: "none", label: "Be maitinimo", hint: "Arba užsakysite vietoje", perAdult: 0 },
-  { id: "bufetas-20", label: "Švediškas stalas", hint: "2 karštieji · 20 €/asm.", perAdult: 20 },
-  { id: "bufetas-25", label: "Švediškas stalas", hint: "2 karštieji · 25 €/asm.", perAdult: 25 },
-  { id: "bufetas-30", label: "Švediškas stalas", hint: "3 karštieji · 30 €/asm.", perAdult: 30 },
-  { id: "bufetas-35", label: "Švediškas stalas", hint: "3 karštieji · 35 €/asm.", perAdult: 35 },
+  ...BUFFET_OPTIONS,
   { id: "marmitai", label: "Pietūs marmituose", hint: "Furšetui · 12 €/asm.", perAdult: 12 },
 ];
 

@@ -197,6 +197,8 @@ There is no new payment-method column, migration or cash-specific notification. 
 | `20261028130000_public_requests.sql` | 2026-10-28 | `create_sauna_booking`, `create_stay_booking`, `create_event_ticket`, `register_for_event`, `create_inquiry` (public bookings, tickets and inquiries are stored instead of staying in the browser) |
 | `20261028150024_pending_request_limits.sql` | 2026-10-28 | `expire_pending_requests()` + pg_cron job (48 h expiry of unanswered web requests), per-contact pending caps via triggers |
 | `20261028150255_contact_limit_hardening.sql` | 2026-10-28 | canonical phone compare, 8-digit minimum, advisory locks on the per-contact caps |
+| `20261111130000_wake_season_passes.sql` | 2026-11-11 | Adds two WAKE season passes to `coupon_products` for staff fulfillment from paid coupon codes. See ADR-0059. |
+| `20261111120000_finnish_sauna_hire.sql` | 2026-11-11 | Finnish sauna tariff, duration-aware program booking, one-hour changeover in availability and conflict checks |
 | `20261030100000_saunas.sql` | 2026-10-30 | `saunas`, `sauna_upsell_links`, `sauna_id` on bookings + blocks (backfilled into "Pirtis Marse"), per-sauna overlap/closed-hour rules, `sauna_taken()`, new `create_sauna_booking` overload, RLS, `sauna-photos` bucket + policies |
 | `20261028090200_quad_reference_data.sql` | 2026-10-28 | **Placeholder** fleet (2 types) and settings (10-20 h, max 3 h, no deposit, 18+, no rules text) |
 | `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |

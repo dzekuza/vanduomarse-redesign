@@ -17,12 +17,14 @@ interface MonthCalendarProps {
   range?: DateRangeSelection;
   reserveIconSpace?: boolean;
   compact?: boolean;
+  lightDays?: boolean;
   month: Date;
   onMonthChange: (month: Date) => void;
 }
 
 /** Monday-first weekday headings, matching the grid below. */
 const HEADINGS = ["Pr", "An", "Tr", "Kt", "Pn", "Št", "Sk"];
+const MONTH_LABEL = new Intl.DateTimeFormat("lt-LT", { month: "long" });
 const BOOKING_DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "long", day: "numeric" });
 const BROWSE_MONTHS = 12;
 
@@ -37,7 +39,7 @@ function keyboardDate(date: Date, key: string): Date | undefined {
 }
 
 /** A month grid of the same day cells; days that can't be booked are greyed out. */
-export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, allowFutureDates, range, reserveIconSpace, compact, month, onMonthChange }: MonthCalendarProps) {
+export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, allowFutureDates, range, reserveIconSpace, compact, lightDays, month, onMonthChange }: MonthCalendarProps) {
   const grid = useRef<HTMLDivElement>(null);
   const moveFocus = useRef(false);
   const [focusedKey, setFocusedKey] = useState<string>();
@@ -86,11 +88,14 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
 
   return (
     <div className={`border border-line bg-foam/15 px-1 py-4 ${compact ? "" : "sm:p-5"}`}>
-      <div role="group" aria-label="Mėnesio navigacija" className="mb-3 flex items-center justify-between">
-        <button type="button" aria-label="Ankstesnis mėnuo" disabled={month <= first} onClick={() => shift(-1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
+      <div role="group" aria-label="Mėnesio navigacija" className="mb-3 flex items-center justify-between gap-2">
+        <button type="button" aria-label="Ankstesnis mėnuo" disabled={month <= first} onClick={() => shift(-1)} className="flex size-11 shrink-0 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
           <CaretLeftIcon size={18} aria-hidden />
         </button>
-        <button type="button" aria-label="Kitas mėnuo" disabled={!allowFutureDates && month >= last} onClick={() => shift(1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
+        <p aria-live="polite" className="text-center text-micro font-bold uppercase text-copy">
+          {MONTH_LABEL.format(month)} <span className="whitespace-nowrap">{month.getFullYear()}</span>
+        </p>
+        <button type="button" aria-label="Kitas mėnuo" disabled={!allowFutureDates && month >= last} onClick={() => shift(1)} className="flex size-11 shrink-0 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
           <CaretRightIcon size={18} aria-hidden />
         </button>
       </div>
@@ -113,6 +118,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
               key={key}
               fluid
               compact={compact}
+              light={lightDays}
               date={date}
               active={key === selectedKey}
               rangePart={rangePart(key, range)}

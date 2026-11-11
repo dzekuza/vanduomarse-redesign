@@ -9,6 +9,7 @@ updated: 2026-11-05
 
 - Metadata via the App Router `metadata` export / `generateMetadata`.
 - Every route sets `title` and `description`; templates live in the root layout.
+- Activity pages can use `metaDescription` to keep search and Open Graph descriptions concise. `/pirtis` uses it for sauna hire and sessions in Žemaitkiemis, Kaunas district, and the upcoming wood-fired sauna with its distinctive stove.
 - Open Graph + Twitter card images per route where it matters.
 - `sitemap.ts` and `robots.ts` in `app/`.
 - Canonical URLs from a single `siteUrl` config value, never hardcoded.
