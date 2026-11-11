@@ -14,6 +14,8 @@ export type { PlanContinueAction } from "./plan-actions";
 export interface PlanDetailsProps extends PlanLinesProps {
   total: number;
   saunaCancellation?: boolean;
+  /** Hide the "Reikalinga pagalba?" block: the quad service page shows its own beside the plan. */
+  hideHelp?: boolean;
 }
 
 interface PlanPanelProps extends PlanDetailsProps {
@@ -32,7 +34,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
       {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
       <div className={inline ? "space-y-4 pt-4" : "space-y-6 p-5 sm:p-8"}>
         <h2 className={inline ? "text-item font-bold" : "text-tile font-bold"}>{inline ? "Tavo planas" : "Rezervuoti"}</h2>
-        <PlanDetails {...details} saunaCancellation={inline && activity === "pirtis"} />
+        <PlanDetails {...details} saunaCancellation={inline && activity === "pirtis"} hideHelp={inline && activity === "keturraciai"} />
         {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
       </div>
     </aside>
@@ -40,7 +42,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
 }
 
 /** The live plan shown in both the desktop panel and the mobile summary sheet. */
-export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemove, saunaCancellation }: PlanDetailsProps) {
+export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemove, saunaCancellation, hideHelp }: PlanDetailsProps) {
   const totalRef = useRef<HTMLParagraphElement>(null);
 
   return (
@@ -58,7 +60,7 @@ export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemov
           <p className="mt-1 flex items-center gap-2 text-xs text-copy"><ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" /> Nemokamas atšaukimas likus bent 24 val. iki pirties pradžios.</p>
         ) : <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>}
       </div>
-      <ServiceBookingHelp contact={{ ...MAIN_CONTACT, phone: RESERVATION_PHONE }} />
+      {hideHelp ? null : <ServiceBookingHelp contact={{ ...MAIN_CONTACT, phone: RESERVATION_PHONE }} />}
     </>
   );
 }
