@@ -9,7 +9,8 @@ interface BookingHeaderProps {
   tagline?: string;
   /** One or two lines; the second is coral. */
   title: [string] | [string, string];
-  intro?: string;
+  /** One paragraph, or several as an array. */
+  intro?: string | string[];
 }
 
 export function BookingBreadcrumb({ crumb }: { crumb: string }) {
@@ -45,7 +46,11 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingH
           </>
         ) : null}
       </h1>
-      {intro ? <p className="max-w-xl text-xs leading-loose text-copy md:text-sm">{intro}</p> : null}
+      {[intro ?? []].flat().map((paragraph) => (
+        <p key={paragraph} className="max-w-xl text-xs leading-loose text-copy md:text-sm">
+          {paragraph}
+        </p>
+      ))}
     </header>
   );
 }

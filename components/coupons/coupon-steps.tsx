@@ -1,7 +1,7 @@
 const STEPS = [
-  { title: "Pasirink", text: "Euro vertės kuponą arba konkrečią patirtį." },
-  { title: "Užsakyk", text: "Įrašyk savo ir gavėjo vardą, palinkėjimą. Susisieksime dėl apmokėjimo." },
-  { title: "Gauk kodą", text: "Patvirtinę apmokėjimą atsiųsime kodą el. paštu." },
+  { title: "Pasirinkite", text: "Kupono vertę arba konkrečią patirtį." },
+  { title: "Užsisakykite", text: "Įrašyk savo ir gavėjo vardą, palinkėjimą." },
+  { title: "Gaukite dovanų kuponą", text: "Gavę apmokėjimą atsiųsime dovanų kuponą nurodytu el. paštu." },
 ] as const;
 
 /** The three steps of buying a coupon, as a hairline-separated row. */

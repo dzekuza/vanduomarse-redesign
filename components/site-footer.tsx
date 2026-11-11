@@ -71,7 +71,7 @@ export function SiteFooter() {
   return (
     <footer className="bg-dust px-gutter pt-14 pb-6.5 md:pt-19">
       <Reveal>
-        <SectionKicker left="KONTAKTAI" right="VISI MARSO SEKTORIAI" />
+        <SectionKicker left="KONTAKTAI" right="LAUKSIME JŪSŲ" />
         <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {CONTACTS.map((c) => (
             <ContactItem key={c.name} contact={c} title={c === MAIN_CONTACT ? "Vanduo Marse ir renginiai" : undefined} />

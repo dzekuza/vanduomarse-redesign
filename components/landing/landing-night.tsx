@@ -17,7 +17,7 @@ export function LandingNight() {
         </Reveal>
         <Reveal className="mt-auto md:flex md:items-end md:justify-between md:gap-8 delay-150">
           <p className="max-w-xl text-xs leading-loose">
-            Mūsų neriboja garsas, tad Jūsų gimtadienis, vestuvės ar įmonės šventė čia gali skambėti garsiai. Švęskit iki ryto savų žmonių rate.
+            Mūsų neriboja garsas, tad Jūsų gimtadienis, vestuvės ar įmonės šventės čia gali skambėti garsiai! Švęskit iki ryto savų žmonių rate.
           </p>
           <Cta tone="cream" href="/skaiciuokle" className="mt-6 max-w-full md:mt-0">
             Skaičiuoti šventės kainą

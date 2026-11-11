@@ -2,7 +2,7 @@ import { OptionCard, OptionGroupLabel } from "@/components/reservation/option-ca
 import { COUPON_SERVICE_LABEL, formatEuro, type CouponKind, type CouponProduct } from "@/lib/coupons";
 
 const GROUPS: { kind: CouponKind; title: string }[] = [
-  { kind: "verte", title: "Vertės kuponai" },
+  { kind: "verte", title: "Pasirinkite dovanų kuponą" },
   { kind: "paslauga", title: "Patirtys" },
 ];
 

@@ -18,14 +18,14 @@ export const SERVICE_PAGES = {
   pirtis: {
     service: "sauna",
     label: "Pirtis Marse",
-    title: "Pirties nuoma ir seansai Kauno rajone",
-    summary: "Suomiška sauna prie vandens. Rezervuok sauną savo kompanijai arba vietą pirties seanse.",
-    description: "Suomiška sauna įsikūrusi Vanduo Marse parke, Žemaitkiemyje, maždaug 20 minučių nuo Kauno centro. Sauną gali išsinuomoti visai kompanijai su pirtininko programa arba be jos. Artimiausius pirties seansus rasi tvarkaraštyje.",
+    title: "Pirties nuoma ir seansai šalia Kauno",
+    summary: "Malkinė pirtis arba suomiška sauna prie vandens. Rezervuok vietą savo kompanijai arba pirties seansui.",
+    description: "Malkinė pirtis ir suomiška sauna įsikūrusios Vanduo Marse parke, Žemaitkiemyje, maždaug 20 minučių nuo Kauno centro. Pirtį galima išsinuomoti visai kompanijai su pirtininko programa arba be jos. Artimiausius pirties seansus rasite kalendoriuje.",
     facts: [
-      { label: "Malkinė pirtis", value: "Dar įrengiama. Talpins iki 25 žmonių." },
-      { label: "Suomiška sauna", value: "Iki 20 žmonių. Pro panoraminius langus matyti vanduo." },
+      { label: "Malkinė pirtis", value: "Tikra malkinė pirtis Kaune – natūrali šiluma, autentiška patirtis. Iki 25 žmonių." },
+      { label: "Suomiška sauna", value: "Šiluma, vanduo ir besileidžianti saulė. Sauna su panoraminiais langais, pro kuriuos atsiveria vaizdas į wake parką. Iki 20 žmonių." },
       { label: "Priešpirtis", value: "Iki 30 žmonių. Dėl naudojimo susitark rezervuodamas." },
-      { label: "Rezervacijos formatai", value: "Pirties seansai ir privati nuoma su pirtininku arba be jo." },
+      { label: "Privatus renginys pirtyje?", value: "Nuo gongų terapijos ir jogos pirtyje iki moterų ritualų. Turite idėją? Susisiekite, o mes padėsime ją įgyvendinti." },
     ],
     questions: [
       { title: "Ar galima rezervuoti visą pirtį?", body: "Taip. Pasirink suomišką sauną, nuomą su pirtininku arba be jo, tada datą ir laisvą pradžios laiką." },
