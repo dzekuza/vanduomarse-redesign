@@ -322,9 +322,10 @@ const eventInput = z.object({
   price: z.number().min(0).nullable(),
   capacity: z.number().int().min(0).nullable(),
   published: z.boolean(),
+  calendarPrivate: z.boolean().optional(),
   programId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
   tourRouteId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
-});
+}).refine((event) => !(event.published && event.calendarPrivate));
 
 /** Events are managed with `renginiai`; staff with only `keturraciai` manage the quad tour departures (RLS limits them to category keturratis). */
 const EVENT_STAFF = ["renginiai", "keturraciai"] as const;
@@ -347,6 +348,7 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     price: e.price,
     capacity: e.capacity,
     published: e.published,
+    ...(e.calendarPrivate === undefined ? {} : { calendar_private: e.calendarPrivate }),
     program_id: e.programId ?? null,
     tour_route_id: e.category === "keturratis" ? (e.tourRouteId ?? null) : null,
   });

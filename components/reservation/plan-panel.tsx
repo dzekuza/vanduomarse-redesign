@@ -1,8 +1,9 @@
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useRef, type Ref } from "react";
 import type { ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
-import { PhoneHelp } from "@/components/phone-help";
-import { RESERVATION_PHONE } from "@/lib/contacts";
+import { ServiceBookingHelp } from "@/components/services/service-booking-help";
+import { MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
 import { PlanLines, type PlanLinesProps } from "./plan-lines";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
@@ -12,6 +13,7 @@ export type { PlanContinueAction } from "./plan-actions";
 
 export interface PlanDetailsProps extends PlanLinesProps {
   total: number;
+  saunaCancellation?: boolean;
 }
 
 interface PlanPanelProps extends PlanDetailsProps {
@@ -30,7 +32,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
       {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
       <div className={inline ? "space-y-4 pt-4" : "space-y-6 p-5 sm:p-8"}>
         <h2 className={inline ? "text-item font-bold" : "text-tile font-bold"}>{inline ? "Tavo planas" : "Rezervuoti"}</h2>
-        <PlanDetails {...details} />
+        <PlanDetails {...details} saunaCancellation={inline && activity === "pirtis"} />
         {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
       </div>
     </aside>
@@ -38,7 +40,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
 }
 
 /** The live plan shown in both the desktop panel and the mobile summary sheet. */
-export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemove }: PlanDetailsProps) {
+export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemove, saunaCancellation }: PlanDetailsProps) {
   const totalRef = useRef<HTMLParagraphElement>(null);
 
   return (
@@ -49,10 +51,14 @@ export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemov
       }} />
       <div className="border-t border-line pt-4">
         <p ref={totalRef} tabIndex={-1} className="text-micro uppercase text-copy">Iš viso, su PVM</p>
-        <p aria-live="polite" className="font-display text-total font-bold">{total} €</p>
-        <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>
+        <div aria-live="polite" aria-atomic="true">
+          <p className="font-display text-total font-bold">{total} €</p>
+        </div>
+        {saunaCancellation ? (
+          <p className="mt-1 flex items-center gap-2 text-xs text-copy"><ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" /> Nemokamas atšaukimas likus bent 24 val. iki pirties pradžios.</p>
+        ) : <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p>}
       </div>
-      <PhoneHelp label="Turite klausimų?" phone={RESERVATION_PHONE} />
+      <ServiceBookingHelp contact={{ ...MAIN_CONTACT, phone: RESERVATION_PHONE }} />
     </>
   );
 }

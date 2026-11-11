@@ -4,7 +4,7 @@ import { ClockCounterClockwiseIcon, MapTrifoldIcon } from "@phosphor-icons/react
 import Link from "next/link";
 import { useState } from "react";
 import { ACTIVITY_ICON } from "@/components/reservation/activity-icons";
-import { ServiceDateField } from "@/components/services/service-date-field";
+import { DateField } from "@/components/reservation/date-field";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { dateKey } from "@/lib/sauna";
 import { cn } from "@/lib/utils";
@@ -76,7 +76,7 @@ export function QuadServiceBooking({ data, days, date, pick, busy, onDate, onPic
           <Link href="#kainos" className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Daugiau apie trasas</Link>
         )}
       </fieldset>
-      <ServiceDateField
+      <DateField
         date={date}
         days={days}
         disabled={busy || !route}

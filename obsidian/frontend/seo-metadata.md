@@ -39,7 +39,7 @@ updated: 2026-11-05
 
 - `SITE_URL` in `lib/site.ts`: env `SITE_URL`, default `https://www.vanduomarse.lt` (the apex 308-redirects to www). Root layout `metadataBase` uses it.
 - `app/robots.ts`: allow `/`, disallow `/admin`, `/paskyra`, `/embed`, `/api`, `/rezervacija/mokejimas`; points at the sitemap.
-- `app/sitemap.ts` includes the public service routes from the content allowlist. The noindex quad design preview `/keturraciai` stays out.
+- `app/sitemap.ts` includes the public service routes from the content allowlist. The `/vandenlentes` entry lists the original URLs of all images in the shared WAKE gallery. The new photos use descriptive Lithuanian filenames, scene-specific alt text, and WebP exports with a maximum edge of 1920 px. The noindex quad design preview `/keturraciai` stays out.
 
 ## Related
 

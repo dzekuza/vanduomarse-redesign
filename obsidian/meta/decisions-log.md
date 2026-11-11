@@ -10,6 +10,24 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0070 — Publish private event dates without event details
+
+- **Date:** 2026-11-11
+- **Context:** The public celebration calendar needs to show private dates alongside published events.
+- **Decision:** Staff choose draft, public or private visibility through the existing event permissions. Private events remain unpublished. A bounded public RPC returns only distinct dates marked private. The published feed supplies public event details.
+- **Consequences:** Existing drafts remain hidden. The public calendar can show a private marker on the same date as a public event without receiving any private event details.
+
+---
+
+## ADR-0069 — WAKE season pass orders use the coupon catalogue
+
+- **Date:** 2026-11-11
+- **Context:** The wakeboarding page offers individual rides and two season passes.
+- **Decision:** Use active `kabelis` coupon products for the public offers and the existing order and payment confirmation workflow. The stable `wake-abonementas-` product IDs identify season passes. Staff set prices and availability in `/admin/kuponai`.
+- **Fulfillment:** Customers receive a code after payment confirmation. Staff redeem the paid pass code once and activate the corresponding season pass at the park. Individual ride buyers arrange a time with Marso Akademija.
+
+---
+
 ## ADR-0068 — The "coming soon" gate is a database switch owners flip in /admin/svetaine
 
 - **Status:** accepted (2026-11-12); migration applied; grant-tightening follow-up applied.

@@ -68,7 +68,7 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_blocks` | `Block` | `sauna_id`; unique (`sauna_id`, `date`, `hour`) | staff only (public via RPC) |
 | `inquiries` + `inquiry_notes` | `Inquiry` | `estimate_min/max` both null or both set; `calculator_input jsonb` | staff only |
 | `sauna_event_templates` | `lib/sauna-events.ts` templates | weekday, start, duration, price/person, capacity | staff only |
-| `events` | `ManagedEvent` | `tour_route_id` (quad tour departures, ADR-0055), `start_time` (`time`), `duration_minutes`, `sold` kept by trigger, `template_id` + `date` unique | anon reads `published`; staff all |
+| `events` | `ManagedEvent` | `tour_route_id` (quad tour departures, ADR-0055), `start_time` (`time`), `duration_minutes`, `sold` kept by trigger, `template_id` + `date` unique | anon reads `published`; staff manage private calendar visibility through the existing event permissions. The public calendar reads only dates for marked private events (ADR-0070). |
 | `event_tickets` | `TourTicket` | Per-person tickets for scheduled events: sauna sessions (`PR-`) and quad tours (`KZ-`, public ones start `laukia`); nullable `rider_id` → `riders` (ADR-0042) | staff only |
 | `coupon_products` | `CouponProduct` | Catalogue: `kind` (`verte` / `paslauga`), `service` (`visi` iff `verte`), `value`; seeded from sauna rate x min hours and the cabin price | anon reads `active`; staff all |
 | `coupons` | `Coupon` | One row per order and issued coupon. `code` (12 chars, 60 bits) null until paid; snapshots of product name/kind/service/value; `balance` 0..`face_value`; `KP-` reference; status `laukia_apmokejimo` → `aktyvus` → `panaudotas` / `atsauktas`; nullable `rider_id` → `riders`, the buyer (ADR-0042) | staff only |
@@ -197,6 +197,8 @@ There is no new payment-method column, migration or cash-specific notification. 
 | `20261028130000_public_requests.sql` | 2026-10-28 | `create_sauna_booking`, `create_stay_booking`, `create_event_ticket`, `register_for_event`, `create_inquiry` (public bookings, tickets and inquiries are stored instead of staying in the browser) |
 | `20261028150024_pending_request_limits.sql` | 2026-10-28 | `expire_pending_requests()` + pg_cron job (48 h expiry of unanswered web requests), per-contact pending caps via triggers |
 | `20261028150255_contact_limit_hardening.sql` | 2026-10-28 | canonical phone compare, 8-digit minimum, advisory locks on the per-contact caps |
+| `20261111200001_private_event_calendar.sql` | 2026-11-11 | Adds explicit private visibility to events and a date-only public calendar RPC. Drafts remain hidden. |
+| `20261111130000_wake_season_passes.sql` | 2026-11-11 | Adds two WAKE season passes to `coupon_products` for staff fulfillment from paid coupon codes. See ADR-0069. |
 | `20261030100000_saunas.sql` | 2026-10-30 | `saunas`, `sauna_upsell_links`, `sauna_id` on bookings + blocks (backfilled into "Pirtis Marse"), per-sauna overlap/closed-hour rules, `sauna_taken()`, new `create_sauna_booking` overload, RLS, `sauna-photos` bucket + policies |
 | `20261028090200_quad_reference_data.sql` | 2026-10-28 | **Placeholder** fleet (2 types) and settings (10-20 h, max 3 h, no deposit, 18+, no rules text) |
 | `20261028120000_staff_roles.sql` | 2026-10-28 | `staff_roles`, `staff.role_id/email/active` (existing staff become owners), permission helpers, last-owner and owner-role guards, 35 policies replaced by per-page ones, definer triggers, permission checks in `activate_coupon` / `materialize_sauna_events` |

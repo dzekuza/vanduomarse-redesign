@@ -10,9 +10,9 @@ import { CONTACTS, MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
 import type { StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
+import { cn } from "@/lib/utils";
 import { CELEBRATION_LINKS } from "./celebration-content";
-import { QuadServiceHelp } from "./quad-service-help";
-import { quadFacts } from "./quad-service-facts";
+import { ServiceBookingHelp } from "./service-booking-help";
 import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "./service-content";
 import { ServicePhotoMosaic } from "./service-photo-mosaic";
 import { ServicePricing } from "./service-pricing";
@@ -40,7 +40,7 @@ function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; childr
 
 export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake }: {
   slug: ServiceSlug;
-  booking?: ReactNode;
+  booking?: ReactNode | ((header: ReactNode) => ReactNode);
   schedule?: ReactNode;
   sauna?: SaunaPageData;
   quads?: QuadPageData;
@@ -53,10 +53,17 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
   const gallery = photos ?? SERVICE_GALLERY[copy.service];
   const contact = CONTACTS.find(({ name }) => name === SERVICES[copy.service].contact) ?? MAIN_CONTACT;
   const isCelebration = copy.service === "party";
-  // The routes and the group minimum come from the database rows, not from copy.
-  const facts = slug === "keturraciu-nuoma" && quads ? [...quadFacts(quads), ...copy.facts] : copy.facts;
-  const bookingTitle = booking ? "Rezervuoti" : isCelebration ? "Gauk šventės pasiūlymą"
+  const bookingTitle = slug === "vandenlentes" ? "Užsakyti" : slug === "sventes" ? "Šventės skaičiuoklė"
+    : booking ? "Rezervuoti" : isCelebration ? "Gauk šventės pasiūlymą"
     : slug === "restoranas" ? "Rezervuok staliuką" : "Sužinok plaukimo laikus";
+  const bookingHeader = (
+    <div className="mb-5 space-y-2">
+      <p className="text-micro uppercase text-copy">{copy.label}</p>
+      <h2 id="service-booking-title" className="text-tile font-bold">{bookingTitle}</h2>
+      {copy.bookingIntro ? <p className="text-xs leading-relaxed text-copy">{copy.bookingIntro}</p> : null}
+    </div>
+  );
+  const customBookingLayout = typeof booking === "function";
 
   return (
     <BookingPage>
@@ -64,24 +71,21 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
         <BookingBreadcrumb crumb={copy.label} />
         <div className="grid items-start gap-y-8 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-12">
           <header className="min-w-0 space-y-5 lg:col-span-8 lg:col-start-1 lg:row-start-1">
-            <ServiceGallery photos={gallery} variant="hero" wideHero={slug === "pirtis"} label={`${copy.label}: nuotraukos`} />
+            <ServiceGallery photos={gallery} variant="hero" label={`${copy.label}: nuotraukos`} />
             <h1 className="text-total font-bold tracking-tighter uppercase sm:text-title">{copy.title}</h1>
-            <p className="max-w-2xl text-sm leading-loose text-copy">{copy.summary}</p>
+            <p className={cn("text-sm leading-loose text-copy", slug !== "pirtis" && "max-w-2xl")}>{copy.summary}</p>
             <nav aria-label="Puslapio skiltys" className="flex flex-wrap gap-2">
               {SECTIONS.map(({ id, label }) => (
                 <Link key={id} href={`#${id}`} className="inline-flex min-h-11 items-center border border-line px-3 text-xs hover:border-ink hover:bg-foam">{label}</Link>
               ))}
             </nav>
           </header>
-          <aside id="rezervuoti" aria-labelledby="service-booking-title" className="min-w-0 scroll-mt-32 border border-line bg-card p-4 sm:p-6 lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto">
-            <div className="mb-5 space-y-2">
-              <p className="text-micro uppercase text-copy">{copy.label}</p>
-              <h2 id="service-booking-title" className="text-tile font-bold">{bookingTitle}</h2>
-              {slug === "pirtis" ? <p className="text-xs leading-relaxed text-copy">Rinkis privačią pirtį savo kompanijai arba vietą pirties seanse.</p> : null}
-              {slug === "keturraciu-nuoma" ? <p className="text-xs leading-relaxed text-copy">Rinkis turą ir laiką. Rezervaciją patvirtins komanda.</p> : null}
-            </div>
-            {booking}
-            {slug === "keturraciu-nuoma" ? <QuadServiceHelp contact={contact} /> : !booking && (
+          <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn(
+            "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
+            customBookingLayout ? "lg:flex lg:flex-col" : "p-4 sm:p-6 lg:overflow-y-auto",
+          )}>
+            {customBookingLayout ? booking(bookingHeader) : <>{bookingHeader}{booking}</>}
+            {slug === "keturraciu-nuoma" ? <ServiceBookingHelp contact={contact} /> : !booking && (
               <div className="space-y-3 border-t border-line pt-4">
                 {isCelebration ? <Cta tone="dark" small className="w-full" href="/skaiciuokle">Skaičiuoti šventės kainą</Cta> : (
                   <Cta tone="dark" small className="w-full" href={telHref(contact.phone)}>{contact.phone}</Cta>
@@ -101,7 +105,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
             </Section>
             <Section id="informacija">
               <dl className="grid gap-2 lg:grid-cols-2">
-                {facts.map(({ label, value }) => (
+                {copy.facts.map(({ label, value }) => (
                   <div key={label} className="space-y-2 border border-line bg-card p-4">
                     <dt className="text-xs font-bold">{label}</dt>
                     <dd className="text-xs leading-relaxed text-copy">{value}</dd>

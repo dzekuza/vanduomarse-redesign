@@ -1,7 +1,8 @@
 import { ArrowDownIcon, TrashSimpleIcon } from "@phosphor-icons/react/dist/ssr";
 import { useId, useState } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TimeSelectContent, TimeSelectOption } from "@/components/booking/time-select";
+import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ActivityId, PlanLine } from "@/lib/reservation";
 import { formatHour } from "@/lib/sauna";
 import { ACTIVITY_ICON } from "./activity-icons";
@@ -98,9 +99,9 @@ export function PlanLines({ lines, quantities, saunaTime, busy, onRemove }: Plan
                         <SelectTrigger aria-label={`Pradžios laikas: ${l.title}`} className="w-full rounded-none border-line bg-transparent">
                           <SelectValue placeholder="Pasirink laiką" />
                         </SelectTrigger>
-                        <SelectContent position="popper">
-                          {time.starts.map((hour) => <SelectItem key={hour} value={String(hour)} className="min-h-11">{formatHour(hour)}</SelectItem>)}
-                        </SelectContent>
+                        <TimeSelectContent>
+                          {time.starts.map((hour) => <TimeSelectOption key={hour} value={String(hour)} time={formatHour(hour)} />)}
+                        </TimeSelectContent>
                       </Select>
                       {time.starts.length === 0 ? <p role="status" className="text-xs text-rust-ink">Šią dieną laisvų laikų nėra. Pasirink kitą dieną.</p> : null}
                     </div>

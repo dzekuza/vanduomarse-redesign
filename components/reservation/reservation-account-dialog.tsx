@@ -74,8 +74,8 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
             <p className="text-micro uppercase text-copy">01 / Kontaktai</p>
             <AccountStep customer={customer} onCustomer={onCustomer} />
           </section>
-          <section aria-label="Tavo planas" className="space-y-3">
-            <p className="text-micro uppercase text-copy">02 / Tavo planas</p>
+          <section aria-label="Rezervacijos suvestinė" className="space-y-3">
+            <p className="text-micro uppercase text-copy">02 / Rezervacijos suvestinė</p>
             <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
             <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
           </section>

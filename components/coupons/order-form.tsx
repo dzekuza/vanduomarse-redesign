@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
-import { formatEuro, type CouponProduct } from "@/lib/coupons";
+import { formatEuro, isWakeSeasonPass, type CouponProduct } from "@/lib/coupons";
 import { CouponVerificationDialog } from "./coupon-verification-dialog";
 
 const MESSAGE_MAX = 300;
@@ -108,7 +108,8 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       <ArrowButton type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Siunčiama..." : "Užsakyti kuponą"}
       </ArrowButton>
-      <p className="text-xs text-copy">Kainos nurodytos su PVM. Visas detales atsiųsime ir el. paštu.</p>
+      <p className="text-xs text-copy">Kainos nurodytos su 21% PVM. Apmokėjimo detales atsiųsime el. paštu.</p>
+      {isWakeSeasonPass(product) ? <p className="text-xs text-copy">Apmokėtą kupono kodą pateik komandai parke, kad ji aktyvuotų abonementą.</p> : null}
     </form>
     </Panel>
     <CouponVerificationDialog open={verifying} phone={phone} busy={isSubmitting} error={errors.root?.message} onClose={() => setVerifying(false)} onSubmit={() => void submit()} />

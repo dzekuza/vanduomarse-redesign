@@ -8,7 +8,7 @@ export function DialogPhotoClose({ disabled = false }: { disabled?: boolean } = 
       type="button"
       disabled={disabled}
       aria-label="Uždaryti"
-      className="absolute top-3 right-3 z-10 grid size-11 place-items-center bg-ink/60 text-dust transition-colors duration-150 ease-out-strong hover:bg-rust hover:text-on-rust disabled:opacity-50"
+      className="absolute top-3 right-3 z-10 grid size-11 place-items-center bg-ink/60 text-dust transition-colors duration-150 ease-out-strong hover:bg-rust hover:text-ink disabled:opacity-50"
     >
       <XIcon size={18} aria-hidden />
     </DialogClose>

@@ -51,12 +51,12 @@ export function CategoryEventsList({ category, emptyText, extra, onEdit }: Categ
               {[extra?.(e), e.price === null ? "Nemok." : formatEur(e.price), e.capacity ? `${e.sold} / ${e.capacity} vietų` : "Vietos neribotos"].filter(Boolean).join(" · ")}
             </p>
             {!e.published ? (
-              <Badge variant="outline" className="mt-1 sm:hidden">
-                Paslėptas
+              <Badge variant="outline" className={e.calendarPrivate ? "mt-1" : "mt-1 sm:hidden"}>
+                {e.calendarPrivate ? "Privatus" : "Paslėptas"}
               </Badge>
             ) : null}
           </div>
-          <Switch checked={e.published} aria-label={`Rodyti „${e.title}“ svetainėje`} onCheckedChange={() => togglePublished(e)} />
+          <Switch checked={e.published} disabled={e.calendarPrivate} aria-label={`Rodyti „${e.title}“ svetainėje`} onCheckedChange={() => togglePublished(e)} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm" aria-label={`Veiksmai: ${e.title}`}>

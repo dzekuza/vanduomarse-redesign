@@ -1,6 +1,6 @@
 ---
 tags: [workflow, ai, stable]
-updated: 2026-10-19
+updated: 2026-11-11
 ---
 
 # AI Agent Guide
@@ -47,6 +47,32 @@ targets, Lithuanian copy, prices only from `lib/`, admin data only through
 
 If a lesson is about this codebase, it goes in the vault. If it is about how the
 user wants to work, it goes in cross-project memory. Never swap the two.
+
+## Branch, commit, and PR workflow
+
+Start each new task from an up-to-date `main`. Use the branch name the owner
+requests, or `feat/<short-description>` when no name is specified.
+
+```bash
+git switch main
+git pull
+git switch -c feat/short-description
+```
+
+Keep iterating on that branch until the owner says the task is done. A request
+for a checkpoint commit authorizes a local commit at that point. Once the task
+is ready, run the checks and stage the files for the task.
+
+```bash
+pnpm lint && npx tsc --noEmit
+git add <files>
+git commit -m "feat: describe the change"
+git push -u origin feat/short-description
+gh pr create --fill
+```
+
+Use Conventional Commits. Push and open the PR after the owner gives the
+completion signal. Use the actual branch name in the push command.
 
 ## After making changes
 

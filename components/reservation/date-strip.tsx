@@ -73,6 +73,7 @@ export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, 
                 const day = dateKey(date);
                 const arrivalAvailable = !lastKey || day <= lastKey;
                 const showDetails = arrivalAvailable && (!range?.selectingEnd || day <= range.start);
+                const details = showDetails ? dayDetails?.(date) : undefined;
                 return (
                   <DayCell
                     key={day}
@@ -80,9 +81,9 @@ export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, 
                     active={day === selectedKey}
                     rangePart={rangePart(day, range)}
                     isToday={date === today}
-                    disabled={!canSelectDate(day, arrivalAvailable, range)}
+                    disabled={!canSelectDate(day, arrivalAvailable, range) || details?.disabled === true}
                     icons={showDetails ? icons?.(date) : undefined}
-                    details={showDetails ? dayDetails?.(date) : undefined}
+                    details={details}
                     reserveIconSpace={reserveIconSpace}
                     compact={compact}
                     onSelect={onSelect}

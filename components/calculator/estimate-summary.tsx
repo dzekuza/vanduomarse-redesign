@@ -10,6 +10,7 @@ interface EstimateSummaryProps {
   input: EstimateInput;
   guests: number;
   spaceLabel: string;
+  compact?: boolean;
   /** Typical per-guest range from the price sheet for the chosen event type. */
   typical: { label: string; perGuest: Money } | null;
 }
@@ -58,10 +59,11 @@ export function EstimateBreakdown(props: EstimateSummaryProps) {
   );
 }
 
-function EstimateBody({ estimate, input, guests, spaceLabel, typical }: EstimateSummaryProps) {
+function EstimateBody({ estimate, input, guests, spaceLabel, typical, compact = false }: EstimateSummaryProps) {
+  const padding = compact ? "p-3" : "px-6 py-5";
   return (
     <>
-      <div className="space-y-5 px-6 py-5">
+      <div className={`space-y-5 ${padding}`}>
         {estimate.lines.length === 0 ? <p className="text-xs text-copy">Pasirink renginio tipą ar erdvę, ir čia matysi preliminarią sąmatą.</p> : null}
         {GROUPS.map((group) => {
           const lines = estimate.lines.filter((l) => l.group === group);
@@ -81,7 +83,7 @@ function EstimateBody({ estimate, input, guests, spaceLabel, typical }: Estimate
       </div>
 
       {estimate.warnings.length ? (
-        <ul className="space-y-1.5 border-t border-line px-6 py-4">
+        <ul className={`space-y-1.5 border-t border-line ${compact ? "p-3" : "px-6 py-4"}`}>
           {estimate.warnings.map((w) => (
             <li key={w} className="flex gap-2 text-xs text-ink/80">
               <WarningIcon size={14} className="mt-px shrink-0 text-rust" />
@@ -91,7 +93,7 @@ function EstimateBody({ estimate, input, guests, spaceLabel, typical }: Estimate
         </ul>
       ) : null}
 
-      <div className="space-y-3 border-t border-line px-6 py-5">
+      <div className={`space-y-3 border-t border-line ${padding}`}>
         <p className="text-xs text-copy">
           Kainos su 21% PVM, galioja iki 2027-12-31. Erdvei taikomas 100% avansas, galutinis meniu tvirtinamas prieš 14 d.
           Tai orientacinė sąmata, ne pasiūlymas.

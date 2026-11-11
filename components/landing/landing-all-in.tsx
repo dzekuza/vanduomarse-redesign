@@ -9,7 +9,7 @@ const ROWS = EVENT_OPTIONS.map((e) => ({ id: e.n, index: e.n, title: e.title, bo
 /** Coral "everything in one orbit" block: statement left, event options accordion right. */
 export function LandingAllIn() {
   return (
-    <section aria-labelledby="allin-title" className="relative overflow-hidden bg-rust px-gutter py-14 text-on-rust md:py-19">
+    <section aria-labelledby="allin-title" className="relative overflow-hidden bg-rust px-gutter py-14 text-ink md:py-19">
       <div aria-hidden className="pointer-events-none absolute -bottom-88 -left-82 size-162 rounded-full border border-ink/25" />
       <SectionKicker left="03 / RŪPESČIUS PALIKITE MUMS" right="DAUGIAU LAIKO KARTU" />
       <div className="relative mt-9 grid items-start gap-10 md:mt-16 md:grid-cols-2 md:gap-22">

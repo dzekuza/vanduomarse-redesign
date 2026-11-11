@@ -11,7 +11,7 @@ import { UpsellPicker } from "@/components/booking/upsell-picker";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { hourlyStartHours, MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
 import { dateKey } from "@/lib/sauna";
-import { ServiceDateField } from "./service-date-field";
+import { DateField } from "@/components/reservation/date-field";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
 import { SaunaServiceTime } from "./sauna-service-time";
@@ -123,7 +123,7 @@ export function SaunaServiceBooking({
         <SaunaServiceHourly sauna={sauna} masters={data.masters} day={date ? dateKey(date) : null} hours={wantedHours} onHours={setHours}
           masterId={masterId} onMaster={setMaster} disabled={busy} />
       ) : null}
-      <ServiceDateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={onDate}
+      <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={onDate}
         icons={(day) => {
           const available = rowsFor(dateKey(day)).some(({ blocked }) => !blocked);
           return [{ Icon: WavesIcon, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];

@@ -6,11 +6,26 @@ export interface Contact {
   phone: string;
 }
 
+/** The park's main line, shown in the top bar. */
+export const MAIN_CONTACT: Contact = { name: "Vanduo Marse", email: "info@vanduomarse.lt", phone: "+370 630 80 444" };
+export const SAUNA_CONTACT: Contact = { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" };
+
+const RESTAURANT_CONTACT: Contact = { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" };
+export const ACADEMY_CONTACT: Contact = { name: "Marso Akademija", email: MAIN_CONTACT.email, phone: MAIN_CONTACT.phone };
+export const EVENTS_EMAIL = "renginiai@vanduomarse.lt";
+
 export const CONTACTS: Contact[] = [
-  { name: "Vanduo Marse", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
-  { name: "Pirtis Marse", email: "pirtis@vanduomarse.lt", phone: "+370 630 80 444" },
-  { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" },
-  { name: "Marso Akademija", email: "info@vanduomarse.lt", phone: "+370 630 80 444" },
+  MAIN_CONTACT,
+  SAUNA_CONTACT,
+  RESTAURANT_CONTACT,
+  ACADEMY_CONTACT,
+];
+
+export const FOOTER_CONTACTS: Contact[] = [
+  MAIN_CONTACT,
+  { name: "Renginiai Marse", email: EVENTS_EMAIL, phone: MAIN_CONTACT.phone },
+  RESTAURANT_CONTACT,
+  ACADEMY_CONTACT,
 ];
 
 /**
@@ -20,8 +35,8 @@ export const CONTACTS: Contact[] = [
 export type NotifyService = "pirtis" | "keturraciai" | "nakvyne" | "kita";
 
 export const STAFF_INBOX: Partial<Record<NotifyService, string>> = {
-  pirtis: "renginiai@vanduomarse.lt",
-  keturraciai: "renginiai@vanduomarse.lt",
+  pirtis: EVENTS_EMAIL,
+  keturraciai: EVENTS_EMAIL,
   nakvyne: "miegas@vanduomarse.lt",
 };
 
@@ -35,9 +50,6 @@ export function serviceOfReference(reference: string): NotifyService {
   if (reference.startsWith("PM-") || reference.startsWith("PR-")) return "pirtis";
   return "kita";
 }
-
-/** The park's main line, shown in the top bar. */
-export const MAIN_CONTACT = CONTACTS[0];
 
 /** Customer enquiries from the home hero and the reservation summary. */
 export const RESERVATION_PHONE = "+370 640 57504";

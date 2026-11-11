@@ -265,6 +265,7 @@ export interface SessionRow {
   rate: string;
   seats: string;
   maxPeople: number;
+  capacity?: number;
   blocked: boolean;
   programId: string | null;
   eventId: string | null;
@@ -296,7 +297,7 @@ export function sessionRows(data: SaunaPageData, day: string, busy: readonly num
       title: event.title, label: program?.label ?? "Seansas", description: event.blurb,
       rate: program ? programRateLine(program) : `${event.pricePerPerson.toLocaleString("lt-LT")} € / asm.`,
       seats: overlaps ? "Kertasi su jūsų planu" : `Liko vietų: ${event.spotsLeft}${event.capacity ? `/${event.capacity}` : ""}`,
-      maxPeople: event.spotsLeft, programId: event.programId, eventId: event.key,
+      maxPeople: event.spotsLeft, capacity: event.capacity, programId: event.programId, eventId: event.key,
       host: event.hostName, blocked: overlaps || event.spotsLeft < 1,
     });
   }

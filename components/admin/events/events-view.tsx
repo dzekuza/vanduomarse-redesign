@@ -109,7 +109,7 @@ export function EventsView() {
                 <TableCell className="max-w-40 sm:max-w-none">
                   <p className="truncate font-medium">{e.title}</p>
                   <p className="truncate text-xs text-muted-foreground">{e.place}</p>
-                  {!e.published ? <Badge variant="outline" className="mt-1 sm:hidden">Paslėptas</Badge> : null}
+                  {!e.published ? <Badge variant="outline" className={e.calendarPrivate ? "mt-1" : "mt-1 sm:hidden"}>{e.calendarPrivate ? "Privatus" : "Paslėptas"}</Badge> : null}
                 </TableCell>
                 <TableCell className="hidden xl:table-cell"><CategoryTag category={e.category} /></TableCell>
                 <TableCell className="hidden xl:table-cell">
@@ -131,6 +131,7 @@ export function EventsView() {
                 <TableCell className="hidden sm:table-cell">
                   <Switch
                     checked={e.published}
+                    disabled={e.calendarPrivate}
                     aria-label={`Rodyti „${e.title}“ svetainėje`}
                     onCheckedChange={() => togglePublished(e)}
                   />
@@ -144,7 +145,7 @@ export function EventsView() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onSelect={() => setEditing({ mode: "edit", event: e })}>Redaguoti</DropdownMenuItem>
-                      <DropdownMenuItem className="sm:hidden" onSelect={() => togglePublished(e)}>
+                      <DropdownMenuItem className="sm:hidden" disabled={e.calendarPrivate} onSelect={() => togglePublished(e)}>
                         {e.published ? "Paslėpti" : "Paskelbti"}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive" onSelect={() => setDeleting(e)}>

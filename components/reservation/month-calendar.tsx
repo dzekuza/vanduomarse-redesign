@@ -23,6 +23,7 @@ interface MonthCalendarProps {
 
 /** Monday-first weekday headings, matching the grid below. */
 const HEADINGS = ["Pr", "An", "Tr", "Kt", "Pn", "Št", "Sk"];
+const MONTH_LABEL = new Intl.DateTimeFormat("lt-LT", { month: "long" });
 const BOOKING_DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "long", day: "numeric" });
 const BROWSE_MONTHS = 12;
 
@@ -52,10 +53,12 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
   const offset = (month.getDay() + 6) % 7;
   const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
   const count = monthEnd.getDate();
-  const cells = [...Array.from({ length: offset }, () => null), ...Array.from({ length: count }, (_, i) => new Date(month.getFullYear(), month.getMonth(), i + 1))];
+  const cells = [
+    ...Array.from({ length: offset }, () => null),
+    ...Array.from({ length: count }, (_, i) => dayState(new Date(month.getFullYear(), month.getMonth(), i + 1))),
+  ];
   const shift = (by: number) => onMonthChange(new Date(month.getFullYear(), month.getMonth() + by, 1));
-  const unavailable = (key: string) => !canSelectDate(key, allowFutureDates && today ? key >= today : bookable.has(key), range);
-  const enabledKeys = cells.flatMap((date) => date && !unavailable(dateKey(date)) ? [dateKey(date)] : []);
+  const enabledKeys = cells.flatMap((cell) => cell && !cell.disabled ? [cell.key] : []);
   const preferredKey = focusedKey ?? range?.end ?? selectedKey ?? today;
   const tabStop = preferredKey && enabledKeys.includes(preferredKey) ? preferredKey : enabledKeys[0];
 
@@ -65,6 +68,14 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
     grid.current?.querySelector<HTMLButtonElement>(`[data-date="${focusedKey}"]`)?.focus();
   }, [focusedKey, month]);
 
+  function dayState(date: Date) {
+    const key = dateKey(date);
+    const canSelect = canSelectDate(key, allowFutureDates && today ? key >= today : bookable.has(key), range);
+    const showDetails = canSelect && (!departure || key <= departure.start);
+    const details = showDetails ? dayDetails?.(date) : undefined;
+    return { date, key, showDetails, details, disabled: !canSelect || details?.disabled === true };
+  }
+
   function navigateDays(event: KeyboardEvent<HTMLDivElement>) {
     const key = event.target instanceof HTMLButtonElement ? event.target.dataset.date : undefined;
     if (!key) return;
@@ -73,7 +84,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
     event.preventDefault();
     if (range && firstDay && event.key === "PageUp" && next.getTime() === first.getTime()) next = firstDay;
     const nextKey = dateKey(next);
-    if (nextKey === key || unavailable(nextKey)) return;
+    if (nextKey === key || dayState(next).disabled) return;
     const nextMonth = monthStart(next);
     if (nextMonth.getTime() !== month.getTime()) {
       moveFocus.current = true;
@@ -86,11 +97,14 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
 
   return (
     <div className={`border border-line bg-foam/15 px-1 py-4 ${compact ? "" : "sm:p-5"}`}>
-      <div role="group" aria-label="Mėnesio navigacija" className="mb-3 flex items-center justify-between">
-        <button type="button" aria-label="Ankstesnis mėnuo" disabled={month <= first} onClick={() => shift(-1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
+      <div role="group" aria-label="Mėnesio navigacija" className="mb-3 flex items-center justify-between gap-2">
+        <button type="button" aria-label="Ankstesnis mėnuo" disabled={month <= first} onClick={() => shift(-1)} className="flex size-11 shrink-0 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
           <CaretLeftIcon size={18} aria-hidden />
         </button>
-        <button type="button" aria-label="Kitas mėnuo" disabled={!allowFutureDates && month >= last} onClick={() => shift(1)} className="flex size-11 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
+        <p aria-live="polite" className="text-center text-micro font-bold uppercase text-copy">
+          {MONTH_LABEL.format(month)} <span className="whitespace-nowrap">{month.getFullYear()}</span>
+        </p>
+        <button type="button" aria-label="Kitas mėnuo" disabled={!allowFutureDates && month >= last} onClick={() => shift(1)} className="flex size-11 shrink-0 items-center justify-center border border-line hover:border-rust disabled:opacity-30">
           <CaretRightIcon size={18} aria-hidden />
         </button>
       </div>
@@ -103,11 +117,9 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
             {h}
           </span>
         ))}
-        {cells.map((date, i) => {
-          if (!date) return <span key={`blank-${i}`} aria-hidden />;
-          const key = dateKey(date);
-          const disabled = unavailable(key);
-          const showDetails = !disabled && (!departure || key <= departure.start);
+        {cells.map((cell, i) => {
+          if (!cell) return <span key={`blank-${i}`} aria-hidden />;
+          const { date, key, disabled, showDetails, details } = cell;
           return (
             <DayCell
               key={key}
@@ -120,7 +132,7 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
               disabled={disabled}
               tabIndex={key === tabStop ? 0 : -1}
               icons={showDetails ? icons?.(date) : undefined}
-              details={showDetails ? dayDetails?.(date) : undefined}
+              details={details}
               reserveIconSpace={reserveIconSpace}
               onSelect={(date) => {
                 setFocusedKey(key);

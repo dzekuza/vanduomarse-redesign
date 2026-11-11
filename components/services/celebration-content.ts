@@ -11,6 +11,7 @@ export const CELEBRATION_PAGES = {
     service: "party",
     label: "Šventės Marse",
     title: "Šventės ir renginiai prie vandens",
+    bookingIntro: "Susidėliok šventės planą ir matyk preliminarią kainą. Atsiųsk užklausą, kad komanda parengtų pasiūlymą.",
     summary: "Vieta vestuvėms, gimtadieniams ir įmonių šventėms Kauno rajone. Erdvę, maistą, pramogas ir nakvynę suplanuok vienoje vietoje.",
     description: "Vanduo Marse gali rinktis kupolą, restoraną, terasą arba didesnę parko erdvę. Pasiūlymą parengsime pagal renginio pobūdį, datą ir svečių skaičių.",
     facts: [{ label: "Erdvės", value: "Kupolas, restoranas, terasa ir parko teritorija." }],

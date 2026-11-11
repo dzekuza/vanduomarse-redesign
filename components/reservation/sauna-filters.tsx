@@ -1,33 +1,54 @@
 import { FilterChip } from "@/components/events/filter-chip";
 import type { SessionRow } from "@/lib/reservation";
 
-export type SaunaFilter = "private" | "sessions";
+const SESSION_PROGRAMS = {
+  women: "moteru-pirtis",
+  men: "vyru-pirtis",
+} as const;
 
-const FILTERS: { id: SaunaFilter; label: string }[] = [
-  { id: "private", label: "Privati pirtis" },
+export type SaunaFilter = "all" | "private" | "attendant" | "sessions" | keyof typeof SESSION_PROGRAMS;
+
+const FILTERS: { id: Exclude<SaunaFilter, "attendant">; label: string }[] = [
+  { id: "all", label: "Visi" },
+  { id: "private", label: "Privati" },
   { id: "sessions", label: "Seansai" },
+  { id: "women", label: "Moterų" },
+  { id: "men", label: "Vyrų" },
 ];
 
+/** Match the published program IDs, which stay stable when staff edit the names. */
 export function matchesSaunaFilter(row: SessionRow, filter: SaunaFilter): boolean {
-  return row.mode === (filter === "private" ? "private" : "session");
+  if (filter === "all") return true;
+  if (filter === "private") return row.mode === "private";
+  if (filter === "attendant") return row.mode === "private" && row.programId === "privati-pirtis-su-programa";
+  return row.mode === "session" && (filter === "sessions" || row.programId === SESSION_PROGRAMS[filter]);
 }
 
-/** The two ways to book the sauna, the same split as the single /pirtis page: a private sauna or a place in a session. */
 export function SaunaFilters({ rows, filter, onChange }: {
   rows: SessionRow[];
   filter: SaunaFilter;
   onChange: (filter: SaunaFilter) => void;
 }) {
+  const privateActive = filter === "private" || filter === "attendant";
   const available = rows.filter((row) => !row.blocked);
   const count = (id: SaunaFilter) => available.filter((row) => matchesSaunaFilter(row, id)).length;
 
   return (
-    <div role="group" aria-label="Pirties tipai" className="flex flex-wrap gap-2 p-px">
-      {FILTERS.map(({ id, label }) => (
-        <FilterChip key={id} active={id === filter} count={count(id)} onClick={() => onChange(id)} className="shrink-0 whitespace-nowrap">
-          {label}
-        </FilterChip>
-      ))}
+    <div className="space-y-3">
+      <div role="group" aria-label="Pirties tipai" className="scrollbar-ink flex gap-2 overflow-x-auto overscroll-x-contain pb-2">
+        {FILTERS.map(({ id, label }) => (
+          <FilterChip key={id} active={id === filter || (id === "private" && privateActive)} count={count(id)} onClick={() => onChange(id)} className="shrink-0 whitespace-nowrap">
+            {label}
+          </FilterChip>
+        ))}
+      </div>
+      {privateActive && (
+        <div role="group" aria-label="Privačios pirties programa" className="flex flex-wrap gap-2">
+          <FilterChip active={filter === "attendant"} count={count("attendant")} onClick={() => onChange(filter === "attendant" ? "private" : "attendant")}>
+            Su pirtininku
+          </FilterChip>
+        </div>
+      )}
     </div>
   );
 }
