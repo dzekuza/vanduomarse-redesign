@@ -14,7 +14,7 @@ updated: 2026-11-07
 
 ## Current focus
 
-**my_riders account phone (2026-11-11): migration `20261111230000_my_rider_account_phone_plain.sql` written after a second security review, applied and verified.**
+**my_riders account phone (2026-11-11): migration `20261111230000_my_rider_account_phone_plain.sql` written after a second security review, applied, verified and merged to `main` (PR #19).**
 
 **my_riders exact phone match (2026-11-11): migration `20261111220000_my_rider_exact_phone.sql` written after a security review, applied and verified; `my_riders()` now matches normalised phones exactly.**
 

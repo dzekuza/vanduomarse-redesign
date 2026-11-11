@@ -3,14 +3,14 @@
 - **Why:** Security review: `normalize_phone` was also applied to `auth.users.phone`, so a foreign 9-digit account number starting 8/6 could be rewritten to 370… and match a rider.
 - **Changed:** new migration `20261111230000_my_rider_account_phone_plain.sql`; changelog entry.
 - **Status:** applied to `mwngljhcvqkvncwbmgeo` via `supabase db query --linked -f` and verified (function body contains the new logic). `db push` is blocked by remote history timestamps that differ from local (earlier MCP applies); needs `migration repair` someday.
-- **Next:** merge the branch.
+- **Next:** nothing pending; merged to `main` in PR #19.
 
 ## 2026-11-11 — my_riders exact phone match (applied)
 
 - **Why:** Security review: matching on the last 8 digits could match foreign numbers.
 - **Changed:** new migration `20261111220000_my_rider_exact_phone.sql`; ADR-0062 and changelog notes. Applied to the live project (project URL checked) and verified; committed on a branch.
 - **Status:** the live DB now matches normalised phones exactly.
-- **Next:** Merge the branch when ready.
+- **Next:** done; merged in PR #19.
 
 ## 2026-11-11 — Sidebar badge centring (robust)
 
