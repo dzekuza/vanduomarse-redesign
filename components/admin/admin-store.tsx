@@ -136,7 +136,7 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, prices: state.prices.map((p) => next.get(p.id) ?? p) };
     }
     case "sauna/active":
-      return { ...state, saunas: state.saunas.map((s) => (s.id === action.id ? { ...s, active: action.active } : s)) };
+      return { ...state, saunas: state.saunas.map((s) => (s.id === action.id ? { ...s, active: action.active, comingSoon: false } : s)) };
     case "sauna/order": {
       const at = new Map(action.ids.map((id, i) => [id, i]));
       return { ...state, saunas: [...state.saunas].sort((a, b) => (at.get(a.id) ?? 0) - (at.get(b.id) ?? 0)) };

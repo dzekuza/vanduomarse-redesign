@@ -15,6 +15,8 @@ export interface SaunaPageData {
   nowHour: number;
   /** Active saunas in display order; `upsellIds` only lists active extras. */
   saunas: Sauna[];
+  /** Announced saunas ("Netrukus atsidarys"): shown in the picker, never bookable, no prices. */
+  comingSoonSaunas: Sauna[];
   /** Active extras catalogue; each sauna offers a subset. */
   upsells: Upsell[];
   /** Active sauna masters (pirtininkai) a booking can add. */

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_SAUNA_FEATURES } from "@/lib/sauna";
+import { MAX_SAUNA_FEATURES, SAUNA_STATUSES } from "@/lib/sauna";
 import { ratesSchema } from "./rates-schema";
 
 /** A sauna's details, rates and offered extras; validated in the form and again in `saveSauna`. */
@@ -11,7 +11,7 @@ export const saunaSchema = z.object({
     .max(MAX_SAUNA_FEATURES, `Daugiausia ${MAX_SAUNA_FEATURES} savybių.`),
   rates: ratesSchema,
   upsellIds: z.array(z.string().regex(/^[a-z0-9-]+$/).max(60)).max(50),
-  active: z.boolean(),
+  status: z.enum(SAUNA_STATUSES),
 });
 
 export type SaunaValues = z.infer<typeof saunaSchema>;

@@ -21,7 +21,7 @@ export function SaunaRow({ sauna: s, onDelete }: SaunaRowProps) {
         <span className="min-w-0">
           <span className={`block truncate text-sm font-medium ${s.active ? "" : "text-muted-foreground"}`}>
             {s.name}
-            {s.active ? null : " (paslėpta)"}
+            {s.active ? null : s.comingSoon ? " (netrukus)" : " (paslėpta)"}
           </span>
           <span className="block text-xs text-muted-foreground">
             nuo {fromPrice(s.rates)} € · iki {s.rates.maxParty} žm. · {s.photos.length} nuotr.
