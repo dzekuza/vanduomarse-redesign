@@ -1,3 +1,10 @@
+## 2026-11-12 — Favicon
+
+- **Why:** user supplied a new favicon SVG/PNG.
+- **Changed:** `app/icon.svg` added; `icon.png`, `apple-icon.png`, `favicon.ico` regenerated from it (sharp; the ICO is built by hand from PNGs).
+- **Status:** URLs return 200 and the head links are right; uncommitted.
+- **Next:** commit; hard-reload to see it (browsers cache favicons).
+
 ## 2026-11-12 — Coming-soon switch in admin
 
 - **Why:** user asked for a setting in the admin dashboard to enable or disable the coming-soon gate.
