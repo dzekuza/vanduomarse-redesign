@@ -21,8 +21,8 @@ updated: 2026-11-05
 | `/` | Vanduo Marse - kabelinis vandenlenčių parkas | site default (root layout) | — |
 | `/netrukus` | Netrukus - Vanduo Marse | yes | noindex, nofollow; served with 503 + `Retry-After` while gated |
 | `/renginiai` | Renginiai Marse | yes | — |
-| `/skaiciuokle` | Renginio kainos skaičiuoklė - Vanduo Marse | yes | — |
-| Public activity pages | Service-specific title and description with natural Lithuanian locality terms | yes | Activity cover |
+| `/skaiciuokle` | Renginio kainos skaičiuoklė - Vanduo Marse | yes | `/og/renginiai.jpg` |
+| Public activity pages | Service-specific title and description with natural Lithuanian locality terms | yes | Designed 1200x630 image from `SERVICE_OG_IMAGES` (`lib/seo.ts`) where one exists: `/pirtis` -> `/og/pirtis.jpg`, `/nakvyne` -> `/og/nameliai.jpg`, the celebration pages (`/sventes`, `/vestuves`, `/imoniu-renginiai`, `/gimtadieniai`) -> `/og/renginiai.jpg`; the others use their activity cover |
 | `/admin/*` | "%s · Vanduo Marse valdymas" | — | noindex, nofollow |
 
 ## Gaps

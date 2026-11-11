@@ -16,7 +16,7 @@ import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
 import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
-import { metaDescription, pageMetadata } from "@/lib/seo";
+import { SERVICE_OG_IMAGES, metaDescription, pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
 import { paymentsEnabled } from "@/lib/stripe";
 
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
   const { title, summary, description, metaDescription: custom, service: id }: ServicePageCopy = SERVICE_PAGES[service];
-  return pageMetadata({ title, description: custom ?? metaDescription([summary, description]), path: `/${service}`, image: { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
+  return pageMetadata({ title, description: custom ?? metaDescription([summary, description]), path: `/${service}`, image: SERVICE_OG_IMAGES[id] ?? { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
 }
 
 export default async function ActivityPage({ params, searchParams }: Props) {

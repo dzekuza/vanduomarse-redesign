@@ -5,12 +5,13 @@ import { BookingPage } from "@/components/booking/booking-page";
 import { EventCalculator } from "@/components/calculator/event-calculator";
 import { getCalculatorCatalog } from "@/lib/data/public";
 import { todayKey } from "@/lib/sauna";
-import { pageMetadata } from "@/lib/seo";
+import { EVENTS_OG_IMAGE, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Renginio kainos skaičiuoklė",
   description: "Apskaičiuokite preliminarią vestuvių, gimtadienio, įmonės renginio ar konferencijos kainą Vanduo Marse parke prie Kauno per kelias minutes.",
   path: "/skaiciuokle",
+  image: EVENTS_OG_IMAGE,
 });
 
 export default async function SkaiciuoklePage() {
