@@ -18,6 +18,7 @@ import { Stepper } from "./stepper";
 import {
   dateKey,
   formatHour,
+  FULL_DAY_HOURS,
   guestSurcharge,
   hoursLabel,
   isOpenStart,
@@ -219,7 +220,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
               <DurationPicker lengths={lengths} price={(h) => sessionPrice(h, partySize, rates, dateK)} startHour={startHour} maxHours={maxHours} selected={hours} onSelect={setWantedHours} />
               {!startFits ? (
                 <p className="mt-2 text-sm text-rust">Su pasirinktais priedais šiam laikui trūksta laiko: pasirinkite ankstesnę pradžią.</p>
-              ) : maxHours < (lengths[lengths.length - 1] ?? 0) ? (
+              ) : maxHours < Math.max(0, ...lengths.filter((h) => h !== FULL_DAY_HOURS)) ? (
                 <p className="mt-2 text-sm text-ink/60">Ilgiausiai iki {formatHour(startHour + maxHours)}: po to pirtis užimta arba uždaroma.</p>
               ) : null}
             </div>

@@ -87,7 +87,7 @@ export function SaunaServiceBooking({
   const rowsFor = (day: string) => mode === "session" ? sessionRows(data, day).filter((row) => row.mode === "session") : hourlyRow(day);
   const rows = date && canPickDate ? rowsFor(dateKey(date)) : [];
   const selectedRow = rows.find((row) => row.mode === "session" && row.eventId === pick.eventId);
-  const time = plan?.mode === "hourly" && plan.startHour !== null ? `null:${plan.startHour}` : selectedRow?.key;
+  const time = plan?.mode === "hourly" && plan.startHour !== null ? String(plan.startHour) : selectedRow?.key;
   const event = data.events.find(({ key }) => key === sessionId);
   const eventDate = event && days.find((day) => dateKey(day) === event.date);
   const dialogRow = event && eventDate && sessionRows(data, event.date).find(({ eventId }) => eventId === event.key);

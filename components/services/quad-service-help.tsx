@@ -1,4 +1,4 @@
-import { ArrowUpRightIcon, EnvelopeSimpleIcon, IdentificationCardIcon, PhoneIcon } from "@phosphor-icons/react/dist/ssr";
+import { ArrowUpRightIcon, EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react/dist/ssr";
 import { telHref, type Contact } from "@/lib/contacts";
 
 export function QuadServiceHelp({ contact }: { contact: Pick<Contact, "phone" | "email"> }) {
@@ -6,10 +6,6 @@ export function QuadServiceHelp({ contact }: { contact: Pick<Contact, "phone" | 
 
   return (
     <div className="mt-5 divide-y divide-line border-t border-line text-xs">
-      <p className="flex items-start gap-3 py-4 text-copy">
-        <IdentificationCardIcon size={18} aria-hidden className="shrink-0" />
-        <span>Atvykdamas turėk asmens tapatybės dokumentą.</span>
-      </p>
       <div className="flex flex-wrap items-center gap-x-2">
         <span>Kyla klausimų?</span>
         <a href={`${email}?subject=${encodeURIComponent("Keturračių turo užklausa")}`} className="inline-flex min-h-11 items-center gap-2 font-bold hover:text-rust">

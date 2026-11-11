@@ -2,10 +2,11 @@ import { guestsLabel, type StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import { SPACES, formatMoney } from "@/lib/event-pricing";
 import { programPriceLine } from "@/lib/sauna-programs";
+import { SaunaPriceTables } from "./sauna-price-table";
 import type { ServiceSlug } from "./service-content";
 
 function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, stayTypes?: StayType[]) {
-  if (slug === "pirtis") return sauna?.programs.map((program) => ({
+  if (slug === "pirtis") return sauna?.programs.filter((program) => program.kind === "session").map((program) => ({
     label: program.name,
     price: programPriceLine(program),
     note: program.kind === "private" && program.capacity
@@ -46,8 +47,10 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, 
 
 export function ServicePricing({ slug, sauna, quads, stayTypes }: { slug: ServiceSlug; sauna?: SaunaPageData; quads?: QuadPageData; stayTypes?: StayType[] }) {
   const rows = prices(slug, sauna, quads, stayTypes);
+  const hire = slug === "pirtis" && sauna?.saunas.length ? <SaunaPriceTables saunas={sauna.saunas} masters={sauna.masters} /> : null;
   return (
     <div className="space-y-3">
+      {hire}
       {rows.length ? (
         <ul className="divide-y divide-line border-y border-line">
           {rows.map(({ label, price, note }) => (
@@ -60,7 +63,7 @@ export function ServicePricing({ slug, sauna, quads, stayTypes }: { slug: Servic
             </li>
           ))}
         </ul>
-      ) : (
+      ) : hire ? null : (
         <p className="text-sm text-copy">{slug === "restoranas" ? "Dienos meniu ir kainas sužinosi susisiekęs su restoranu. Renginių meniu parengiame pagal svečių skaičių ir progą."
           : slug === "vandenlentes" ? "Dėl aktualių plaukimų, treniruočių ir įrangos kainų susisiek su Marso Akademija."
             : "Dėl privačios nuomos kainų susisiek su Pirtis Marse komanda."}</p>

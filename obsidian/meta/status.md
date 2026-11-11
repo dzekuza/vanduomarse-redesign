@@ -1,6 +1,6 @@
 ---
 tags: [meta, status]
-updated: 2026-11-07
+updated: 2026-11-12
 ---
 
 # Current status — vanduomarse-redesign
@@ -11,6 +11,10 @@ updated: 2026-11-07
 > and [[changelog]], not here.
 
 **Last updated:** 2026-11-12
+
+**Quad route tiles (2026-11-12): `QuadRoutePicker` above the date on the quad booking (/keturraciu-nuoma, /keturraciai, /rezervacija); tsc/eslint clean, checked at 375/1280 px up to the empty-day message; the start-time card needs real departures (none yet). Uncommitted, on `feat/sauna-duration-table` with the sauna work (separate files).**
+
+**Sauna full-day prices (2026-11-12, ADR-0066 addendum): branch `feat/sauna-duration-table`: owner's sheet (2/3/4 h + Visa diena, weekday and Fri–Sun) APPLIED to the live DB (migration `20261112150000`), `/pirtis` Kainos table built from the DB rows, one-row duration tiles, Laikas select fix; tsc/eslint clean, checked at 375/1024 px; NOT committed or pushed yet.**
 
 **ATV booking (2026-11-12, ADR-0070): branch `feat/atv-booking-ui`: route cards on live departures embedded on /keturraciai; checked with fake departures; NO real departures exist, staff must add them in /admin/keturraciai before tours can be sold.**
 
