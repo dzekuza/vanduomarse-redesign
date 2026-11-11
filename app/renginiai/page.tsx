@@ -22,8 +22,8 @@ export default async function RenginiaiPage() {
           <div className="min-w-0 space-y-10 lg:col-span-2">
             <BookingHeader
               crumb="Renginiai"
-              title={["Kas vyksta", "Marse"]}
-              intro="Pirties ritualai, vakarai prie ežero, Akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje."
+              title={["Kas vyksta", "Vanduo Marse"]}
+              intro="Renginiai, pirties ritualai, wake akademijos treniruotės ir šventės. Artimiausios 30 dienų vienoje vietoje."
             />
             <EventsBoard data={events} />
           </div>

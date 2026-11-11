@@ -179,11 +179,11 @@ export interface ActivityCard {
 }
 
 export const ACTIVITY_CARDS: ActivityCard[] = [
-  { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Sauna · iki 20 asm.", "Malkinė dar įrengiama."] },
-  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Vienu keturračiu", "galima važiuoti dviese."] },
+  { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Sauna · iki 20 asm.", "Malkinė pirtis jau netrukus!"] },
+  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Po pasivažinėjimų –", "į pirtį atsigauti."] },
   { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "KUPOLAS · RESTORANAS · TERASA", num: "03 / ŠVĘSK", title: "ŠVENTĖS MARSE.", note: ["Vestuvės, gimtadieniai,", "įmonių renginiai."] },
-  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Nameliai", "prie vandens."] },
-  { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKEBOARD", note: ["Wake treniruotės", "Kaune sezono metu."] },
+  { id: "cabins", categories: ["rest"], alt: "Juodi Marso nameliai prie pat vandens", tag: "2 IR 4 VIETŲ NAMELIAI", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Apsistokite jaukiuose", "nameliuose prie vandens."] },
+  { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKEBOARD", note: ["Wake grupinės treniruotės", "kartu su Handle The Watter."] },
   { id: "food", categories: ["rest", "celebrate"], alt: "Maistas ir užkandžiai susitikimui Marse", tag: "RESTORANAS · MAITINIMAS", num: "06 / PARAGAUK", title: "SKONIAI MARSE.", note: ["Geras maistas", "kiekvienai progai."] },
 ];
 
@@ -191,17 +191,17 @@ export const EVENT_OPTIONS = [
   { n: "01", title: "ERDVĖ", body: "Kupolas, restoranas ar terasa prie vandens. Išsirenkam jūsų kompanijai tinkamą vietą." },
   { n: "02", title: "MAISTAS", body: "Nuo bendro stalo iki šventinės vakarienės. Meniu ir serviravimą derinam pagal jūsų progą." },
   { n: "03", title: "PRAMOGOS", body: "Ciongo keturračiai, pirtis ar sezoninės vandens veiklos. Planas pagal jūsų žmones ir oro sąlygas." },
-  { n: "04", title: "NAKVYNĖ", body: "Po šventės pasiliekat Marse. Namelių užimtumą ir nakvynės galimybes suderiname iš anksto." },
+  { n: "04", title: "NAKVYNĖ", body: "Po šventės pasiliekate Marse? Namelių užimtumą ir nakvynės galimybes suderinkime iš anksto." },
 ] as const;
 
 export const FAQ_ITEMS = [
   {
-    q: "Ar į Marsą galima atvykti ne vasarą?",
+    q: "Ar Vanduo Marse dirba visus metus?",
     a: "Taip. Pirtį, šventes ir nakvynę planuojame ir ne vasaros sezonu. Keturračių važiavimą deriname pagal trasos ir oro sąlygas. Vandenlenčių parkas veikia šiltuoju sezonu. Prieš atvykdami susisiekite dėl norimos veiklos.",
   },
   {
     q: "Ar vienu keturračiu galime važiuoti dviese?",
-    a: "Taip, vienu Ciongo keturračiu gali važiuoti iki dviejų žmonių. Trasa trunka apie 1,5–2 val., priklausomai nuo tempo ir įgūdžių. Kainas matysi keturračių rezervacijoje. Važiavimo sąlygas patiksliname rezervuojant.",
+    a: "Taip, vienu Ciongo keturračiu gali važiuoti ir du žmonės. Trasos aplink Vanduo Marse yra skirtingo ilgio ir trunka pagal pasirinktą programą. Kainas matysi keturračių rezervacijoje. Važiavimo sąlygas patiksliname rezervuojant.",
   },
   {
     q: "Ar pirtis įskaičiuota į keturračių kainą?",

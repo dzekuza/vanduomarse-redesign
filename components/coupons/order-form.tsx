@@ -108,7 +108,7 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       <ArrowButton type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Siunčiama..." : "Užsakyti kuponą"}
       </ArrowButton>
-      <p className="text-xs text-copy">Kainos nurodytos su 21% PVM. Apmokėjimo detales atsiųsime el. paštu.</p>
+      <p className="text-xs text-copy">Kainos nurodytos su PVM. Visas detales atsiųsime ir el. paštu.</p>
     </form>
     </Panel>
     <CouponVerificationDialog open={verifying} phone={phone} busy={isSubmitting} error={errors.root?.message} onClose={() => setVerifying(false)} onSubmit={() => void submit()} />

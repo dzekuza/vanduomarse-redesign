@@ -197,7 +197,7 @@
   --text-jumbo: clamp(3.625rem, 8.4vw, 8.75rem);
   --text-jumbo--line-height: 1.01;
   --text-jumbo--letter-spacing: -0.07em;
-  --text-statement-sm: 3.625rem;
+  --text-statement-sm: clamp(2.5rem, 13vw, 3.625rem);
   --text-statement-sm--line-height: 1.01;
   --text-statement-sm--letter-spacing: -0.065em;
   --text-statement: clamp(3.125rem, 5.9vw, 5.875rem);
