@@ -7,22 +7,15 @@ import { CouponList } from "./coupon-list";
 import { CouponProductsCard } from "./coupon-products-card";
 import { CouponSheet } from "./coupon-sheet";
 import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { COUPON_SERVICE_LABEL, COUPON_STATUS_LABEL, normalizeCode, type CouponService, type CouponStatus } from "@/lib/coupons";
-import { dateKey } from "@/lib/sauna";
+import { COUPON_STATUS_LABEL, normalizeCode, type CouponStatus } from "@/lib/coupons";
 
 type Filter = CouponStatus | "visi";
-type ServiceFilter = CouponService | "visi";
 
 /** Coupon orders: confirm payment, redeem, cancel; plus the catalogue customers buy from. */
 export function CouponsView() {
   const { coupons } = useAdmin();
   const [filter, setFilter] = useState<Filter>("visi");
   const [query, setQuery] = useState("");
-  const [service, setService] = useState<ServiceFilter>("visi");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const statuses = Object.keys(COUPON_STATUS_LABEL) as CouponStatus[];
@@ -35,11 +28,6 @@ export function CouponsView() {
   const code = normalizeCode(query);
   const rows = coupons
     .filter((c) => filter === "visi" || c.status === filter)
-    .filter((c) => service === "visi" || c.service === service)
-    .filter((c) => {
-      const day = dateKey(new Date(c.createdAt));
-      return (!from || day >= from) && (!to || day <= to);
-    })
     .filter(
       (c) =>
         !q ||
@@ -78,26 +66,8 @@ export function CouponsView() {
         />
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-3">
-        <Select value={service} onValueChange={(v) => setService(v as ServiceFilter)}>
-          <SelectTrigger className="w-full" aria-label="Paslauga">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="visi">Visos paslaugos</SelectItem>
-            {(Object.keys(COUPON_SERVICE_LABEL) as CouponService[]).map((s) => (
-              <SelectItem key={s} value={s}>
-                {COUPON_SERVICE_LABEL[s]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DatePicker value={from} max={to || undefined} onChange={setFrom} placeholder="Užsakyta nuo" />
-        <DatePicker value={to} min={from || undefined} onChange={setTo} placeholder="Užsakyta iki" />
-      </div>
-
       <CouponList
-        key={`${filter}|${service}|${from}|${to}|${query}`}
+        key={`${filter}|${query}`}
         coupons={rows}
         emptyText={coupons.length === 0 ? "Užsakymų dar nėra." : "Pagal šiuos kriterijus kuponų nėra."}
         onOpen={setOpenId}

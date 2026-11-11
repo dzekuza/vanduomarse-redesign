@@ -1,16 +1,15 @@
 "use client";
 
-import { DotsThreeIcon, PlusIcon } from "@phosphor-icons/react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
+import { AdminSection } from "../admin-section";
+import { CouponProductTile } from "./coupon-product-tile";
 import { ProductDialog } from "./product-dialog";
-import { COUPON_SERVICE_LABEL, formatEuro, type CouponProduct } from "@/lib/coupons";
+import type { CouponProduct } from "@/lib/coupons";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
 
 type Editing = { product?: CouponProduct } | null;
 
@@ -21,53 +20,31 @@ export function CouponProductsCard() {
   const [deleting, setDeleting] = useState<CouponProduct | null>(null);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Parduodami kuponai</CardTitle>
-        <CardDescription>
-          Kainos čia yra užšaldomos pirkimo metu: pakeitus kainą jau parduoti kuponai nesikeičia. Patirčių kainas derinkite su pirties ir
-          nakvynės tarifais patys.
-        </CardDescription>
-        <CardAction>
-          <Button onClick={() => setEditing({})}>
-            <PlusIcon size={18} /> <span className="hidden sm:inline">Naujas kuponas</span>
-            <span className="sr-only sm:hidden">Naujas kuponas</span>
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="divide-y">
-        {couponProducts.length === 0 ? <p className="py-3 text-sm text-muted-foreground">Kuponų nėra.</p> : null}
+    <AdminSection
+      title="Parduodami kuponai"
+      description="Kainos čia yra užšaldomos pirkimo metu: pakeitus kainą jau parduoti kuponai nesikeičia. Patirčių kainas derinkite su pirties ir nakvynės tarifais patys."
+      action={
+        <Button onClick={() => setEditing({})}>
+          <PlusIcon size={18} /> <span className="hidden sm:inline">Naujas kuponas</span>
+          <span className="sr-only sm:hidden">Naujas kuponas</span>
+        </Button>
+      }
+    >
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {couponProducts.length === 0 ? <p className="text-sm text-muted-foreground sm:col-span-2 xl:col-span-4">Kuponų nėra.</p> : null}
         {couponProducts.map((p) => (
-          <div key={p.id} className="flex items-center gap-3 py-3 first:pt-0">
-            <div className="min-w-0 flex-1">
-              <p className={`truncate text-sm font-medium ${p.active ? "" : "text-muted-foreground line-through"}`}>{p.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{COUPON_SERVICE_LABEL[p.service]}</p>
-            </div>
-            <p className="shrink-0 font-display text-sm font-bold tabular-nums">{formatEuro(p.value)}</p>
-            <Switch
-              checked={p.active}
-              aria-label={`Parduoti „${p.name}“`}
-              onCheckedChange={(v) => {
-                saveCouponProduct({ ...p, active: v });
-                toast.success(v ? `${p.name}: parduodamas` : `${p.name}: paslėptas`);
-              }}
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm" aria-label={`Veiksmai: ${p.name}`}>
-                  <DotsThreeIcon size={20} weight="bold" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => setEditing({ product: p })}>Redaguoti</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onSelect={() => setDeleting(p)}>
-                  Ištrinti
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <CouponProductTile
+            key={p.id}
+            product={p}
+            onToggle={(v) => {
+              saveCouponProduct({ ...p, active: v });
+              toast.success(v ? `${p.name}: parduodamas` : `${p.name}: paslėptas`);
+            }}
+            onEdit={() => setEditing({ product: p })}
+            onDelete={() => setDeleting(p)}
+          />
         ))}
-      </CardContent>
+      </div>
 
       {editing ? <ProductDialog key={editing.product?.id ?? "new"} product={editing.product} onOpenChange={(o) => !o && setEditing(null)} /> : null}
 
@@ -94,6 +71,6 @@ export function CouponProductsCard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </AdminSection>
   );
 }
