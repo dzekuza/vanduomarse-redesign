@@ -1,3 +1,19 @@
+## 2026-11-12 — Quad route tiles on the booking panel
+
+- **Why:** the owner saw Mini / Midi / Maxi route cards with a tag on the friend's `/keturraciu-nuoma`; `main` showed only a date field (and every date said "no free times": 0 departures).
+- **Found:** `24f22ca`'s two buttons, cancellation line and help block were already on `main`; the route chips were a hard-coded preview. `quad_tour_routes.badge` already exists (Midi = "Populiariausia") but only the details dialog drew it.
+- **Changed:** rebuilt to the owner's mock: `QuadRoutePicker` (row of tiles, tag), `QuadTourFields` (Laikas select, quads, gear; auto-commit), `QuadServiceBooking` (route → date → time), ID note moved into the panel, `QuadTourCard` `routeId` + badge tag.
+- **Status:** `tsc`/eslint clean; checked at 375/1280 px up to the empty-day message. Same branch as the sauna work (`feat/sauna-duration-table`), separate files; not committed.
+- **Next:** staff add quad departures, then check start times, quads and gear; split the quad files into their own commit/PR.
+
+## 2026-11-12 — Sauna full-day price sheet and Kainos table
+
+- **Why:** owner's sheet adds "Visa diena" and new 3 h / weekend prices; the Kainos table seen on `front-updates-original` was missing on `main`.
+- **Found:** the table and the 4-tile picker lived only on the older branches (`feat/booking-interface`, `front-updates-original`) on a hard-coded `hireTariff`; `main` already had per-length pricing in the DB (ADR-0066) and a 12 h "Visa diena" key, but the live rows lacked it. The Laikas select never showed the chosen private-hire time (value `null:<hour>` vs `<hour>`).
+- **Changed:** migration `20261112150000_sauna_full_day_prices.sql` (applied + verified), `SaunaPriceTables`, `service-pricing.tsx`, four-column duration tiles, hint and select fixes. Details in the changelog.
+- **Status:** `tsc`/eslint clean; browser-checked at 375 and 1024 px; no booking submitted. Branch `feat/sauna-duration-table`, not committed yet.
+- **Next:** owner to confirm the sauna names in the DB ("Malkine pirtis", "Suomiska sauna" have no diacritics); the older private programs (350 € / 200 €) are hidden from Kainos but still bookable under "Pirties seansai" rows, so retire or reprice them in /admin/pirtis.
+
 ## 2026-11-12 — ATV booking from front-updates
 
 - **Why:** user wants the friend's UI on main, including the new ATV booking, live.
