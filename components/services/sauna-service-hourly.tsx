@@ -38,7 +38,7 @@ export function SaunaServiceHourly({ sauna, masters, day, hours, onHours, master
     <div className="space-y-5">
       <fieldset disabled={disabled}>
         <legend className={LEGEND}><ClockIcon size={18} aria-hidden /> Trukmė</legend>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-4 gap-2">
           {all.map((h) => (
             <FilterChip key={h} active={h === chosen} disabled={!offered(h)} onClick={() => onHours(h)} className={TILE}>
               {hoursLabel(h)}
