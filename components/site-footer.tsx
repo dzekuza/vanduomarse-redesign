@@ -11,7 +11,7 @@ const LINK = "inline-flex min-h-11 items-center";
 /** The giant "Susitinkam Marse" closing line. */
 export function FooterWord() {
   return (
-    <Reveal className="my-12 md:my-17.5">
+    <Reveal className="mb-12 md:mb-17.5">
       <p aria-hidden className="relative text-footer-sm font-bold md:text-footer">
         SUSITINKAM
         <br />
@@ -25,10 +25,12 @@ export function FooterWord() {
 /** Logo, link row and copyright. `topHref` is where "Į viršų" jumps to. */
 export function FooterBar({ topHref }: { topHref: string }) {
   return (
-    <>
-    <FooterLinks />
-      <div className="grid grid-cols-2 items-center gap-x-9 border-t border-line pt-6.5 text-xs md:flex">
-        <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 md:w-30" />
+    <div className="flex flex-col gap-3 border-t border-line pt-6.5 text-xs lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 shrink-0 md:w-30" />
+        <span>© {new Date().getFullYear()} VANDUO MARSE</span>
+      </div>
+      <div className="flex flex-wrap justify-end gap-x-6">
         <a href={`mailto:${MAIN_CONTACT.email}`} className={LINK}>
           {MAIN_CONTACT.email}
         </a>
@@ -41,9 +43,8 @@ export function FooterBar({ topHref }: { topHref: string }) {
         <a href={topHref} className={LINK}>
           Į viršų ↑
         </a>
-        <span className="col-span-2 md:ml-auto">© {new Date().getFullYear()} VANDUO MARSE</span>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -70,6 +71,7 @@ function ContactItem({ contact: c }: { contact: Contact }) {
 export function SiteFooter() {
   return (
     <footer className="bg-dust px-gutter pt-14 pb-6.5 md:pt-19">
+      <FooterWord />
       <Reveal>
         <SectionKicker left="KONTAKTAI" right="LAUKSIME JŪSŲ" />
         <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,7 +80,7 @@ export function SiteFooter() {
           ))}
         </ul>
       </Reveal>
-      <FooterWord />
+      <FooterLinks />
       <FooterBar topHref="#" />
     </footer>
   );

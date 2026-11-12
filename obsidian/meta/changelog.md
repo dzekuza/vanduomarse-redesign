@@ -39,6 +39,13 @@
 - 2026-11-13 Wide date-strip tiles (`DayCell` `compact` + `wide`, the sauna session strips) are `w-18` instead of `w-14`, so the time and "19/20" seats fit on one row. Not browser-checked.
 - 2026-11-13 `BookingHeader` intro paragraphs no longer have `max-w-xl`; width follows the page container (shared by all booking pages). Not browser-checked.
 - 2026-11-13 Rider registration: the birth date is now three number fields (year / month / day, new `BirthdateInput`) instead of the calendar popover. Value stays `yyyy-mm-dd`; incomplete, impossible or future dates give "Neteisinga data". `tsc`/eslint clean; not browser-checked.
+- 2026-11-12 The shared footer puts Susitinkam Marse above contacts, groups links by purpose, and places copyright beside the logo with quick links on the right.
+- 2026-11-12 Reservation checkout shows the right-aligned VAT label and total beside a single service, with a separate total for multiple services or a discount.
+- 2026-11-12 Quad booking on /rezervacija uses the same visible date strip and calendar as private sauna hire, with Laisva/Pilna from route availability. After selecting a route and date, quad booking shows the shared Pradžia grid, followed by quantity and gear. Changing the route clears the previous tour.
+- 2026-11-12 Event cards show the start time and remaining seats below the date, using the same availability colours as booking calendars.
+- 2026-11-12 Event cards and the Tavo renginys panel use the light reservation surface. The panel CTA links to the celebrations page.
+- 2026-11-12 Service page introductions use the full width of their content column.
+- 2026-11-12 Quad route tiles place duration and price 16 px below the title, aligned left and right on one row.
 - 2026-11-12 Quad route tiles right-align duration and price and provide a separate route details icon on both booking pages.
 - 2026-11-12 Quad route tiles show the scheduled tour duration from the catalogue on the service and reservation pages.
 - 2026-11-12 Removed the extra separator and reduced the space above the inline quad reservation plan.
@@ -1542,3 +1549,5 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
 - 2026-11-12 Reservation checkout omits the account-creation hint and the generic confirmation paragraph when no payment method is shown.
 - 2026-11-12 The discount code field is temporarily hidden in reservation checkout.
 - 2026-11-12 The reservation gallery clips photos to its frame and sizes the carousel track to the frame’s capped height so images stay above the summary heading.
+- 2026-11-12 Removed the extra separator above the reservation checkout action and tightened the space below the summary.
+- 2026-11-12 Shortened the footer link labels to Pirtis, Nakvynė, Restoranas and Šventės.

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarBlankIcon, WavesIcon } from "@phosphor-icons/react";
+import { WavesIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
 import { FilterChip } from "@/components/events/filter-chip";
@@ -12,11 +12,12 @@ import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { hourlyStartHours, MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
 import { dateKey, FULL_DAY_HOURS, longDateLabel } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
-import { DatePicker } from "@/components/reservation/date-picker";
+import { BookingDatePicker } from "@/components/reservation/booking-date-picker";
+import { bookingDayAvailability } from "@/components/reservation/booking-day-availability";
+import { StartTimePicker } from "@/components/reservation/start-time-picker";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
 import { SaunaServiceSessions } from "./sauna-service-sessions";
-import { SaunaServiceTime } from "./sauna-service-time";
 import { saunaSessionDayDetails } from "./sauna-session-day-details";
 
 interface SaunaServiceBookingProps {
@@ -131,19 +132,7 @@ export function SaunaServiceBooking({
     const available = sauna ? free > 0 : data.saunas.some((candidate) =>
       candidate.active && hourlyStartHours(data, candidate, key).length > 0,
     );
-    const label = available ? "Laisva" : "Pilna";
-    const color = onInk
-      ? available ? "text-availability-open-on-ink" : "text-rust"
-      : available ? "text-availability-open" : "text-rust-ink";
-    return {
-      label: sauna && available ? `Laisvų laikų: ${free}` : label,
-      available,
-      indicator: (
-        <span className="@container mx-auto block w-6">
-          <span className={`relative left-1/2 block w-max -translate-x-1/2 text-calendar-status font-bold ${color}`}>{label}</span>
-        </span>
-      ),
-    };
+    return bookingDayAvailability(available, onInk, sauna && available ? `Laisvų laikų: ${free}` : undefined);
   }
 
   return (
@@ -178,18 +167,7 @@ export function SaunaServiceBooking({
           masterId={masterId} onMaster={setMaster} disabled={busy} />
       ) : null}
       {lockedMode ? (
-        <fieldset disabled={busy || !canPickDate} className="min-w-0 disabled:opacity-50">
-          <legend className="sr-only">Data</legend>
-          <DatePicker
-            compact
-            wideStrip
-            label={<span aria-hidden className="flex items-center gap-2 text-sm font-bold"><CalendarBlankIcon size={18} /> Data</span>}
-            days={days}
-            selected={canPickDate ? date : null}
-            dayDetails={dayDetails}
-            onSelect={chooseDate}
-          />
-        </fieldset>
+        <BookingDatePicker disabled={busy || !canPickDate} days={days} selected={canPickDate ? date : null} dayDetails={dayDetails} onSelect={chooseDate} />
       ) : (
         <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
           dayDetails={dayDetails}
@@ -207,7 +185,7 @@ export function SaunaServiceBooking({
             ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable />
             : null} />
       ) : date && canPickDate ? (
-        <SaunaServiceTime
+        <StartTimePicker
           hours={rows[0]?.startHours ?? []}
           selected={hourly?.startHour ?? null}
           busy={busy}

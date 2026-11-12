@@ -3,7 +3,8 @@
 import { ClockCounterClockwiseIcon, IdentificationCardIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
-import { ACTIVITY_ICON } from "@/components/reservation/activity-icons";
+import { BookingDatePicker } from "@/components/reservation/booking-date-picker";
+import { bookingDayAvailability } from "@/components/reservation/booking-day-availability";
 import { DateField } from "@/components/reservation/date-field";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { dateKey } from "@/lib/sauna";
@@ -21,6 +22,7 @@ interface QuadServiceBookingProps {
   /** Hours the visitor's sauna booking already holds; a tour cannot start inside them. */
   busyHours: readonly number[];
   busy: boolean;
+  inlineDates: boolean;
   /** Where "Daugiau apie trasas" scrolls to (the page's price section); the link is left out without it. */
   pricesHref?: string;
   onDate: (date: Date) => void;
@@ -32,7 +34,7 @@ interface QuadServiceBookingProps {
  * Tours are not scheduled: any start the free fleet covers can be booked. Routes, minimum quads, gear and prices are database rows (`quad_tour_routes`);
  * the plan panel and checkout dialog take the selected tour from here.
  */
-export function QuadServiceBooking({ data, days, date, pick, busyHours, busy, pricesHref, onDate, onPick }: QuadServiceBookingProps) {
+export function QuadServiceBooking({ data, days, date, pick, busyHours, busy, inlineDates, pricesHref, onDate, onPick }: QuadServiceBookingProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [chosenRoute, setChosenRoute] = useState<string | null>(null);
   // A tour already in the plan opens on its route; a single route needs no choice.
@@ -45,27 +47,39 @@ export function QuadServiceBooking({ data, days, date, pick, busyHours, busy, pr
     return <p className="text-sm text-copy">Keturračių šiuo metu nesiūlome. Susisiek su komanda.</p>;
   }
 
+  function dayDetails(candidate: Date, view: "strip" | "calendar") {
+    const key = dateKey(candidate);
+    const available = (route ? [route] : data.tourRoutes).some((option) =>
+      quadTourStarts(data, key, option, busyHours).length > 0,
+    );
+    return bookingDayAvailability(available, inlineDates && view === "strip" && route !== null && key === day);
+  }
+
   return (
     <div className="space-y-5">
       <div>
-        <QuadRoutePicker routes={data.tourRoutes} value={routeId} disabled={busy} onChange={setChosenRoute} />
+        <QuadRoutePicker routes={data.tourRoutes} value={routeId} disabled={busy} onChange={(next) => {
+          if (next === routeId) return;
+          setChosenRoute(next);
+          setCalendarOpen(false);
+          if (pick) onPick(null);
+        }} />
         {pricesHref ? (
           <Link href={pricesHref} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Daugiau apie trasas</Link>
         ) : null}
       </div>
-      <DateField
+      {inlineDates ? (
+        <BookingDatePicker disabled={busy || !route} days={days} selected={route ? date : null} dayDetails={dayDetails} onSelect={onDate} />
+      ) : <DateField
         date={date}
         days={days}
         disabled={busy || !route}
         open={calendarOpen}
         onOpenChange={setCalendarOpen}
         onSelect={onDate}
-        icons={(d) => {
-          const available = route !== null && quadTourStarts(data, dateKey(d), route, busyHours).length > 0;
-          return [{ Icon: ACTIVITY_ICON.keturraciai, on: available, label: available ? "Yra laisvų laikų" : "Laisvų laikų nėra" }];
-        }}
-      />
-      <QuadTourFields data={data} route={route} day={day} busy={busyHours} pick={pick} onChange={onPick} />
+        dayDetails={dayDetails}
+      />}
+      {route && day ? <QuadTourFields data={data} route={route} day={day} busyHours={busyHours} busy={busy} pick={pick} onChange={onPick} /> : null}
       <ul className="space-y-2 border-t border-line pt-4 text-xs text-copy">
         {note ? (
           <li className="flex items-start gap-3">
