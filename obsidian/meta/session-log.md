@@ -1,3 +1,21 @@
+## 2026-11-13 — Code quality pass
+
+- **Checked:** `pnpm lint` and `tsc` clean; scanned the 37 files changed today for inline styles, hex/arbitrary values, `any` (none) and the 150-line rule.
+- **Changed:** shared `RebindBracelet`, `CustomersTable` split, sitemap revalidation on page-content save.
+- **Left:** `admin-store.tsx` (694 lines), `repository.ts`, `types.ts`, `email/notify.ts` are long but predate today; `database.types.ts` was edited by hand twice (regenerate).
+
+## 2026-11-13 — SEO audit, the rest
+
+- **Changed:** public `/kainos` price page (sitemap, footer, llms.txt), `Service` image markup; measured TTFB (see changelog).
+- **Status:** tsc/eslint pass; branch `feat/seo-rest` (includes `fix/seo-audit-quick-wins`).
+- **Not done:** caching of dynamic pages (needs partial prerendering), `sameAs` URLs, guide articles and named people (need real content from the owner).
+
+## 2026-11-13 — SEO audit quick wins
+
+- **Changed:** titles, `/registracija` noindex, `Event` markup on `/renginiai`, sitemap `lastmod`, richer `llms.txt`.
+- **Status:** tsc/eslint pass, checked on the dev server; branch `fix/seo-audit-quick-wins`.
+- **Next:** page caching (public pages are `no-store`), `sameAs` profiles, local guide content, price page for AI agents.
+
 ## 2026-11-13 — Staff paid notification with full details
 
 - **Changed:** `paid_staff_details` function (applied), `PaidRequest.staff`, `staffPaidText` / `emailStaffPaid` / push body in `lib/sms/notify.ts`, `lib/email/notify.ts`, `lib/notify.ts`; webhook loads the requests for every payment.

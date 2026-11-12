@@ -17,7 +17,7 @@ import { LandingProvider } from "@/components/landing/landing-provider";
 import { LandingTicker } from "@/components/landing/landing-ticker";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Vanduo Marse | Pirtis, keturračiai ir vandenlentės prie Kauno",
+  title: "Vanduo Marse | Pirtis, keturračiai, vandenlentės prie Kauno",
   absoluteTitle: true,
   description:
     "Wake parkas, pirtis, keturračiai, nameliai prie ežero ir šventės Žemaitkiemyje, Kauno rajone. Susiplanuok dieną Vanduo Marse.",

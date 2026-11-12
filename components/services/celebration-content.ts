@@ -36,7 +36,7 @@ export const CELEBRATION_PAGES = {
   "imoniu-renginiai": {
     service: "party",
     label: "Įmonių renginiai",
-    title: "Įmonių renginiai ir komandos išvykos prie Kauno",
+    title: "Įmonių renginiai ir išvykos prie Kauno",
     summary: "Vieta įmonės šventei, konferencijai ar komandos dienai. Derink erdvę, maitinimą ir veiklas Vanduo Marse parke.",
     description: "Dieną gali pradėti seminaru kupole, tęsti pietumis ir užbaigti komandos veikla. Vakariniam renginiui derink privačią erdvę, vakarienę ir nakvynę kolegoms.",
     facts: [
