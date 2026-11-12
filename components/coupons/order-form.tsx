@@ -17,7 +17,7 @@ import { formatEuro, isWakeSeasonPass, type CouponProduct } from "@/lib/coupons"
 const MESSAGE_MAX = 300;
 
 /** Stripe Checkout cannot open inside the embedded iframe, so the whole window (the embedding site's top page) goes to it. */
-function goToCheckout(url: string) {
+export function goToCheckout(url: string) {
   try {
     if (window.top && window.top !== window) {
       window.top.location.href = url;
@@ -29,7 +29,7 @@ function goToCheckout(url: string) {
   window.location.assign(url);
 }
 
-function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: React.ReactNode }) {
+export function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>

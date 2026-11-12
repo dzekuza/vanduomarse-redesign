@@ -10,6 +10,8 @@ updated: 2026-11-12
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
+**WAKE season pass as bracelet plan + account registration view (2026-11-13, ADR-0080): in PR `feat/wake-pass-plan-purchase`; migrations `20261113150000/160000/170000` APPLIED to the live DB; nothing tested end to end (register + Stripe test payment still to do).**
+
 **Last updated:** 2026-11-13 (auto-confirm + detailed paid SMS, ADR-0079, branch `feat/auto-confirm-paid-sms` in a separate worktree, uncommitted, migration `20261113150000` not applied; browser-Back release on branch `fix/release-on-browser-back`, uncommitted; payment-release hardening on branch `fix/payment-release-hardening`, uncommitted; PR #48 open: cancelled Stripe payments free their slots at once, ADR-0077; coupon work and abuse guards are merged and live)
 
 **Current focus / next:** merge PR #48 after a real test (reserve a sauna slot, click back on Stripe, confirm the slot is free again); then a Stripe test-mode coupon purchase (card 4242) and both inboxes; confirm `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `COUPON_FROM_EMAIL`, `PHONE_VERIFICATION_SECRET` in Vercel. Migrations are applied by the assistant without asking (memory note `apply-migrations-without-asking`). Nothing from today is browser-checked.

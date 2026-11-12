@@ -1,8 +1,12 @@
 "use client";
 
-import { ArrowClockwiseIcon, CameraIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, CameraIcon, UploadSimpleIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+
+/** What `registerRider` accepts: JPG, PNG or WebP, up to 5 MB. Checked here too, so a wrong file is refused at once. */
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 interface CameraCaptureProps {
   onNext: (photo: Blob) => void;
@@ -22,6 +26,7 @@ export function CameraCapture({ onNext, onBack }: CameraCaptureProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [photoBlob, setPhotoBlob] = useState<Blob | null>(null);
   const [captureError, setCaptureError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,22 +99,55 @@ export function CameraCapture({ onNext, onBack }: CameraCaptureProps) {
       .catch(() => setPhase("unavailable"));
   }
 
-  function onFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  /** A photo from the file picker or a drop: checked, then shown as the captured photo (the camera is released). */
+  function acceptPhotoFile(file: File) {
+    if (!PHOTO_TYPES.includes(file.type)) {
+      setCaptureError("Nuotrauka turi būti JPG, PNG arba WebP.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setCaptureError("Nuotrauka per didelė (daugiausia 5 MB).");
+      return;
+    }
     setCaptureError(null);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
     setPhotoBlob(file);
     setPreviewUrl(URL.createObjectURL(file));
     setPhase("captured");
   }
 
+  function onFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) acceptPhotoFile(file);
+  }
+
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) acceptPhotoFile(file);
+  }
+
   return (
     <div className="space-y-5">
-      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border bg-muted">
+      <div
+        data-dragging={dragging || undefined}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+        }}
+        onDrop={onDrop}
+        className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border bg-muted transition-[border-color,box-shadow] duration-150 data-dragging:border-ring data-dragging:ring-3 data-dragging:ring-ring"
+      >
         {phase === "unavailable" ? (
           <div className="flex flex-col items-center gap-2 p-6 text-center text-sm text-muted-foreground">
             <WarningCircleIcon size={28} />
-            <p>Nepavyko pasiekti kameros. Įkelkite nuotrauką iš galerijos.</p>
+            <p>Nepavyko pasiekti kameros. Įkelkite nuotrauką iš galerijos arba nutempkite ją čia.</p>
           </div>
         ) : phase === "captured" && previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- a local object URL, not a Next-optimizable remote image
@@ -124,6 +162,12 @@ export function CameraCapture({ onNext, onBack }: CameraCaptureProps) {
             className="size-full scale-x-[-1] object-cover"
           />
         )}
+        {dragging ? (
+          <div aria-hidden className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ink/70 text-sm font-bold text-dust">
+            <UploadSimpleIcon size={32} />
+            Paleiskite nuotrauką čia
+          </div>
+        ) : null}
       </div>
 
       {captureError ? <p className="text-sm text-destructive">{captureError}</p> : null}
@@ -139,7 +183,7 @@ export function CameraCapture({ onNext, onBack }: CameraCaptureProps) {
           </Button>
           <label className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg border border-border text-sm font-bold hover:bg-muted">
             Įkelti nuotrauką
-            <input type="file" accept="image/*" capture="user" className="sr-only" onChange={onFilePicked} />
+            <input type="file" accept="image/jpeg,image/png,image/webp" capture="user" className="sr-only" onChange={onFilePicked} />
           </label>
         </div>
       )}

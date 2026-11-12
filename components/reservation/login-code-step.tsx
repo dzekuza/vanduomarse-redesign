@@ -1,11 +1,11 @@
 "use client";
 
-import { KeyIcon } from "@phosphor-icons/react";
 import { useId } from "react";
 import type { CodeSent } from "@/app/actions/customer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OtpInput } from "@/components/ui/otp-input";
+import { LOGIN_CODE_LENGTH } from "@/lib/customer-schema";
 
 interface LoginCodeStepProps {
   target: CodeSent;
@@ -26,7 +26,7 @@ export function LoginCodeStep({ target, code, busy, error, wait, onCode, onConfi
 
   return (
     <section aria-labelledby={`${id}-title`} className="space-y-6">
-      <header className="space-y-2 text-center">
+      <header className="space-y-2">
         <h3 id={`${id}-title`} className="text-heading font-bold">Patvirtinimo kodas</h3>
         <p id={`${id}-hint`} className="text-sm leading-relaxed text-copy">
           Įvesk kodą, kurį išsiuntėme {target.channel === "phone" ? "SMS numeriu" : "el. paštu"}{" "}
@@ -35,27 +35,20 @@ export function LoginCodeStep({ target, code, busy, error, wait, onCode, onConfi
       </header>
       <div className="space-y-2">
         <Label htmlFor={`${id}-code`}>Patvirtinimo kodas</Label>
-        <div className="relative">
-          <KeyIcon aria-hidden className="pointer-events-none absolute top-1/2 left-4 z-10 size-5 -translate-y-1/2 text-copy" />
-          <Input
-            id={`${id}-code`}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={10}
-            placeholder="000000"
-            autoFocus
-            aria-invalid={!!error}
-            aria-describedby={`${id}-hint${error ? ` ${id}-error` : ""}`}
-            value={code}
-            onChange={(event) => onCode(event.target.value.replace(/\D/g, ""))}
-            onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
-              event.preventDefault();
-              if (!disabled) onConfirm();
-            }}
-            className="h-14 rounded-none bg-transparent px-12 text-center text-figure! tracking-widest"
-          />
-        </div>
+        <OtpInput
+          id={`${id}-code`}
+          length={LOGIN_CODE_LENGTH}
+          autoFocus
+          invalid={!!error}
+          describedBy={`${id}-hint${error ? ` ${id}-error` : ""}`}
+          value={code}
+          onChange={onCode}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            if (!disabled) onConfirm();
+          }}
+        />
         {error ? <p id={`${id}-error`} role="alert" className="text-xs text-rust-ink">{error}</p> : null}
       </div>
       <div className="space-y-2">

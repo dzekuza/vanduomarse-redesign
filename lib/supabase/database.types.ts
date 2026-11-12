@@ -1198,6 +1198,7 @@ export type Database = {
           id: string
           name: string
           price: number | null
+          sold_online: boolean
           sort_order: number
           updated_at: string
         }
@@ -1209,6 +1210,7 @@ export type Database = {
           id?: string
           name: string
           price?: number | null
+          sold_online?: boolean
           sort_order?: number
           updated_at?: string
         }
@@ -1220,6 +1222,7 @@ export type Database = {
           id?: string
           name?: string
           price?: number | null
+          sold_online?: boolean
           sort_order?: number
           updated_at?: string
         }
@@ -1314,6 +1317,76 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "rider_documents_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rider_plan_orders: {
+        Row: {
+          created_at: string
+          id: string
+          paid_at: string | null
+          plan_category: string
+          plan_id: string | null
+          plan_name: string
+          price: number
+          purchase_id: string | null
+          reference: string
+          rider_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          plan_category: string
+          plan_id?: string | null
+          plan_name: string
+          price: number
+          purchase_id?: string | null
+          reference: string
+          rider_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          plan_category?: string
+          plan_id?: string | null
+          plan_name?: string
+          price?: number
+          purchase_id?: string | null
+          reference?: string
+          rider_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rider_plan_orders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ride_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rider_plan_orders_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rider_plan_orders_rider_id_fkey"
             columns: ["rider_id"]
             isOneToOne: false
             referencedRelation: "riders"
@@ -1950,15 +2023,23 @@ export type Database = {
       my_riders: {
         Args: Record<PropertyKey, never>
         Returns: {
+          avatar_path: string | null
+          birthdate: string | null
           cards: string[]
+          email: string | null
           id: string
           name: string
           plan_category: string | null
           plan_description: string | null
           plan_name: string | null
           plan_price: number | null
+          phone: string | null
+          phone2: string | null
           purchases: Json
+          registered: boolean
+          signed_at: string | null
           surname: string
+          terms_version: string | null
         }[]
       }
       my_inquiries: {
@@ -1989,6 +2070,55 @@ export type Database = {
         Args: { p_inquiry_id: string }
         Returns: number
       }
+      abandon_plan_order: { Args: { p_order_id: string }; Returns: undefined }
+      attach_plan_order_session: { Args: { p_order_id: string; p_session_id: string }; Returns: undefined }
+      complete_plan_order_payment: {
+        Args: { p_amount: number; p_order_id: string; p_payment_intent: string; p_session_id: string }
+        Returns: {
+          amount_ok: boolean
+          newly_paid: boolean
+          order_status: string
+          plan_name: string
+          price: number
+          reference: string
+          rider_email: string
+          rider_id: string
+          rider_name: string
+        }[]
+      }
+      create_plan_order: {
+        Args: { p_plan_id: string; p_rider_id: string }
+        Returns: {
+          id: string
+          plan_name: string
+          price: number
+          reference: string
+          rider_email: string
+          rider_name: string
+        }[]
+      }
+      expire_plan_order_session: { Args: { p_session_id: string }; Returns: number }
+      online_plans: {
+        Args: never
+        Returns: {
+          category: string
+          description: string
+          id: string
+          name: string
+          price: number
+        }[]
+      }
+      plan_order_state: {
+        Args: { p_session_id: string }
+        Returns: {
+          plan_name: string
+          price: number
+          reference: string
+          rider_email: string
+          status: string
+        }[]
+      }
+      refund_plan_order_payment: { Args: { p_payment_intent: string; p_refunded: number }; Returns: string }
       abandon_payment: { Args: { p_payment_id: string }; Returns: number }
       account_notify_email: { Args: { p_user: string }; Returns: string }
       activate_coupon: {

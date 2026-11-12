@@ -2,6 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { couponIdOf, onCouponPaid, onCouponRefund, onCouponSessionClosed } from "@/lib/coupon-payment";
+import { onPlanOrderPaid, onPlanOrderRefund, onPlanSessionClosed, planOrderIdOf } from "@/lib/plan-payment";
 import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
 import { loadPaidRequests } from "@/lib/payment-notice";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -25,6 +26,8 @@ async function onPaid(session: Stripe.Checkout.Session) {
   if (session.payment_status === "unpaid") return;
   const couponId = couponIdOf(session);
   if (couponId) return onCouponPaid(couponId, session);
+  const planOrderId = planOrderIdOf(session);
+  if (planOrderId) return onPlanOrderPaid(planOrderId, session);
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("complete_payment", {
     p_session_id: session.id,
@@ -58,6 +61,7 @@ async function onPaid(session: Stripe.Checkout.Session) {
 
 async function onClosed(sessionId: string, failed: boolean) {
   await onCouponSessionClosed(sessionId);
+  await onPlanSessionClosed(sessionId);
   const { error } = await createAdminClient().rpc("expire_payment", { p_session_id: sessionId, p_failed: failed });
   if (error) throw error;
 }
@@ -66,6 +70,7 @@ async function onRefund(charge: Stripe.Charge) {
   const intent = paymentIntentId(charge.payment_intent);
   if (!intent) return;
   await onCouponRefund(charge);
+  await onPlanOrderRefund(charge);
   const { error } = await createAdminClient().rpc("record_refund", { p_payment_intent: intent, p_refunded: charge.amount_refunded / 100 });
   if (error) throw error;
 }

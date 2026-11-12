@@ -69,6 +69,30 @@ export interface MyRider {
   plan: { name: string; description: string; category: string; price: number | null } | null;
   /** Bracelet numbers bound to them. */
   cards: string[];
+  /** Finished /registracija: a profile photo and a signed waiver. True when unknown (before `my_riders()` reports it). */
+  registered: boolean;
+  /** What they gave at /registracija; null when the database does not report it yet. */
+  registration: {
+    email: string;
+    phone: string;
+    phone2: string;
+    /** yyyy-mm-dd, or "". */
+    birthdate: string;
+    /** Short-lived signed URL of the profile photo, or null. */
+    photoUrl: string | null;
+    /** When the rules were signed, or null. */
+    signedAt: string | null;
+    termsVersion: string;
+  } | null;
   /** Plans bought, newest first. */
   purchases: { planName: string; category: string; price: number | null; soldAt: string }[];
+}
+
+/**
+ * Riders to show: once one is registered, unfinished rows with no plan, bracelet or purchase (old attempts, imports) are
+ * leftovers and stay hidden, so they neither crowd the tab nor ask the customer to finish a registration they have.
+ */
+export function visibleRiders(riders: MyRider[]): MyRider[] {
+  if (!riders.some((rider) => rider.registered)) return riders;
+  return riders.filter((rider) => rider.registered || rider.plan !== null || rider.cards.length > 0 || rider.purchases.length > 0);
 }

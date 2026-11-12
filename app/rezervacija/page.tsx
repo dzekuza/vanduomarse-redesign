@@ -5,7 +5,7 @@ import { BookingPage } from "@/components/booking/booking-page";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ACTIVITY_ORDER, RESERVATION_DAYS } from "@/lib/reservation";
-import { getCabinPageData, getCouponProducts, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { getCabinPageData, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
 import { getCustomer } from "@/lib/customer";
 import { paymentsEnabled } from "@/lib/stripe";
 import { pageMetadata } from "@/lib/seo";
@@ -53,12 +53,12 @@ async function ReservationContent({ searchParams }: { searchParams: SearchParams
   const sessionId = Array.isArray(seansas) ? seansas[0] : seansas;
   const initialTab = sessionId ? "pirtis" : veikla === "wake" ? "wake" : ACTIVITY_ORDER.find((id) => id === veikla);
   const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
-  const [sauna, cabin, quads, customer, products] = await Promise.all([
+  const [sauna, cabin, quads, customer, wakeOffers] = await Promise.all([
     getSaunaPageData(availabilityWindow),
     getCabinPageData(availabilityWindow),
     getQuadPageData(availabilityWindow),
     getCustomer(),
-    getCouponProducts(),
+    getWakeOffers(),
   ]);
 
   return (
@@ -66,7 +66,7 @@ async function ReservationContent({ searchParams }: { searchParams: SearchParams
       header={header}
       data={{ sauna, cabin, quads }}
       initialTab={initialTab}
-      wakeProducts={products.filter(({ service }) => service === "kabelis")}
+      wakeProducts={wakeOffers}
       initialDay={sauna.events.find((event) => event.key === sessionId)?.date}
       payments={paymentsEnabled()}
       initialCustomer={customer}
