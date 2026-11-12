@@ -1,3 +1,9 @@
+## 2026-11-13 — Sales row opens event details
+
+- **Found:** ticket sales in the Apžvalga table linked to the management pages; the user wants the event or booking details.
+- **Changed:** `SaleTarget` `event` kind; `SalesTable` renders `EventSheet` (+ `EventDialog` for editing).
+- **Status:** tsc/eslint clean; not browser-checked.
+
 ## 2026-11-13 — Coloured status badges
 
 - **Changed:** `--status-warn/ok/bad` tokens; `StatusPill` tints (exported); sales table and discount-code state use it.

@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useAdmin } from "../admin-store";
 import { BookingSheet } from "../bookings/booking-sheet";
+import { EventSheet } from "../calendar/event-sheet";
 import { CouponSheet } from "../coupons/coupon-sheet";
+import { EventDialog } from "../events/event-dialog";
 import { RentalSheet } from "../quads/rental-sheet";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import { exportFileName } from "@/lib/admin/export";
 import { filterSales, SALE_CATEGORIES, SALE_STATE_LABEL, salesRevenue, salesToCsv, type Sale, type SaleFilters } from "@/lib/admin/sales";
+import type { ManagedEvent } from "@/lib/admin/types";
 import { downloadText } from "@/lib/download";
 import { todayKey } from "@/lib/sauna";
 import { SaleStatusBadge } from "../status-badge";
@@ -27,7 +30,8 @@ interface SalesTableProps {
 }
 
 export function SalesTable({ all, filters }: SalesTableProps) {
-  const { bookings, quadRentals, coupons } = useAdmin();
+  const { bookings, quadRentals, coupons, events } = useAdmin();
+  const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
   const [shown, setShown] = useState(PAGE_SIZE);
   const [open, setOpen] = useState<Extract<Sale["target"], { id: string }> | null>(null);
   const router = useRouter();
@@ -118,6 +122,15 @@ export function SalesTable({ all, filters }: SalesTableProps) {
 
     <BookingSheet booking={open?.kind === "booking" ? (bookings.find((b) => b.id === open.id) ?? null) : null} onOpenChange={close} />
     <RentalSheet rental={open?.kind === "rental" ? (quadRentals.find((q) => q.id === open.id) ?? null) : null} onOpenChange={close} />
+    <EventSheet
+      event={open?.kind === "event" ? (events.find((e) => e.id === open.id) ?? null) : null}
+      onOpenChange={close}
+      onEdit={(event) => {
+        setOpen(null);
+        setEditingEvent(event);
+      }}
+    />
+    {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
     <CouponSheet coupon={open?.kind === "coupon" ? (coupons.find((c) => c.id === open.id) ?? null) : null} onOpenChange={close} />
     </>
   );
