@@ -4,14 +4,24 @@ import type { BookingStatus, InquiryStatus, PaymentInfo, PaymentStatus } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type Tone = "pending" | "confirmed" | "new" | "done" | "closed";
+/** pending = waiting (yellow), confirmed = approved (green), new = contacted / offered (tan), done = finished (grey), closed = declined or failed (red). */
+export type Tone = "pending" | "confirmed" | "new" | "done" | "closed";
 
 const DOT: Record<Tone, string> = {
-  pending: "bg-status-pending",
-  confirmed: "bg-status-confirmed",
+  pending: "bg-status-warn",
+  confirmed: "bg-status-ok",
   new: "bg-status-new",
   done: "bg-status-done",
-  closed: "bg-transparent ring-1 ring-status-done",
+  closed: "bg-status-bad",
+};
+
+/** The pill's tinted background and border; the label colour is never tinted. */
+const PILL: Record<Tone, string> = {
+  pending: "border-status-warn/60 bg-status-warn/20",
+  confirmed: "border-status-ok/60 bg-status-ok/15",
+  new: "border-status-new/70 bg-status-new/25",
+  done: "border-status-done/50 bg-status-done/15",
+  closed: "border-status-bad/60 bg-status-bad/15",
 };
 
 const BOOKING_TONE: Record<BookingStatus, Tone> = {
@@ -49,10 +59,10 @@ interface StatusPillProps {
   pulse?: boolean;
 }
 
-/** Neutral pill with a coloured status dot; the label keeps full text contrast. */
-function StatusPill({ tone, label, pulse }: StatusPillProps) {
+/** Pill with a tinted background and a status dot; the label keeps full text contrast. */
+export function StatusPill({ tone, label, pulse }: StatusPillProps) {
   return (
-    <Badge variant="outline" className={cn("gap-1.5 bg-card", tone === "closed" && "text-muted-foreground")}>
+    <Badge variant="outline" className={cn("gap-1.5", PILL[tone])}>
       <span aria-hidden className={cn("size-2 shrink-0 rounded-full", DOT[tone], pulse && "animate-pulse motion-reduce:animate-none")} />
       {label}
     </Badge>
@@ -80,4 +90,9 @@ export function PaymentBadge({ payment }: { payment?: PaymentInfo }) {
       {payment.needsReview ? <StatusPill tone="pending" label="Peržiūrėti mokėjimą" pulse /> : null}
     </>
   );
+}
+
+/** The folded money state of a sale (`SaleState`): waiting, in force, or cancelled. */
+export function SaleStatusBadge({ state, label }: { state: "galioja" | "laukia" | "atsaukta"; label: string }) {
+  return <StatusPill tone={state === "laukia" ? "pending" : state === "atsaukta" ? "closed" : "confirmed"} label={label} />;
 }

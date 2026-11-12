@@ -12,7 +12,7 @@ import { exportFileName } from "@/lib/admin/export";
 import { filterSales, SALE_CATEGORIES, SALE_STATE_LABEL, salesRevenue, salesToCsv, type Sale, type SaleFilters } from "@/lib/admin/sales";
 import { downloadText } from "@/lib/download";
 import { todayKey } from "@/lib/sauna";
-import { Badge } from "@/components/ui/badge";
+import { SaleStatusBadge } from "../status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -94,7 +94,7 @@ export function SalesTable({ all, filters }: SalesTableProps) {
                   <TableCell className="hidden sm:table-cell">{s.customer}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatEur(s.total)}</TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant="outline">{s.state === "galioja" ? s.statusLabel : SALE_STATE_LABEL[s.state]}</Badge>
+                    <SaleStatusBadge state={s.state} label={s.state === "galioja" ? s.statusLabel : SALE_STATE_LABEL[s.state]} />
                   </TableCell>
                 </TableRow>
               ))}
