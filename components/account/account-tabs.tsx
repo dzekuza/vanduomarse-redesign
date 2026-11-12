@@ -29,7 +29,7 @@ export function AccountTabs({ requests, inquiries, riders, coupons }: { requests
           <TabsTrigger
             key={id}
             value={id}
-            className="h-full min-h-11 flex-auto shrink-0 rounded-none px-4 py-2 text-xs whitespace-nowrap text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust"
+            className="h-full min-h-11 min-w-max flex-1 basis-0 rounded-none px-4 py-2 text-xs whitespace-nowrap text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust"
           >
             {label} <span className="opacity-60">{count(id, kinds)}</span>
           </TabsTrigger>
