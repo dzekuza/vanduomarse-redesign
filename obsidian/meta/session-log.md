@@ -1,3 +1,8 @@
+## 2026-11-13 — Mobile sheet overlay animation
+
+- **Found:** `SheetModal` put the backdrop inside a slide-animated `Modal`, so the overlay slid up with the sheet.
+- **Changed:** `mobile/src/components/primitives.tsx` (fade backdrop + sliding sheet, tap backdrop to close).
+- **Status:** tsc + iOS export pass; not seen on a device.
 ## 2026-11-13 — Mobile sign-in "undefined is not a function"
 
 - **Found:** the alert is the message of an exception thrown while loading admin data after sign-in (`loadForSession`), in shared website code. `toSorted` is called there and Hermes may lack it.
