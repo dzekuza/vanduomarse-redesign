@@ -618,6 +618,12 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "riderDocument/delete", id });
         return report(actions.deleteRiderDocument(id));
       },
+      /** Not optimistic: the rows leave the list once the server has removed them. */
+      deleteRiders: async (ids: string[]) => {
+        const result = await report(actions.deleteRiders(ids));
+        if ("data" in result) for (const id of ids) dispatch({ type: "rider/delete", id });
+        return result;
+      },
       deleteRider: (id: string) => {
         dispatch({ type: "rider/delete", id });
         return report(actions.deleteRider(id));

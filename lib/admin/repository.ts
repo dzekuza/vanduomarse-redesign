@@ -69,6 +69,17 @@ async function readSiteSettings(supabase: ServerSupabase, me: StaffAccess): Prom
   return data ? { comingSoon: data.coming_soon } : null;
 }
 
+/** Ids of customers who have a site account; empty without the Klientai / Apyrankės page or before the migration. */
+async function readRiderAccountIds(supabase: ServerSupabase, me: StaffAccess): Promise<string[]> {
+  if (!hasPermission(me, "klientai") && !hasPermission(me, "apyrankes")) return [];
+  const { data, error } = await supabase.rpc("rider_accounts");
+  if (error) {
+    console.error("Admin data: rider accounts", error.message);
+    return [];
+  }
+  return data.map((r) => r.rider_id);
+}
+
 /**
  * Discount codes and their usage, only for staff with the `nuolaidos` page. Optional like payments:
  * before the discount migration is applied the table is missing and the screen just shows no codes.
@@ -197,6 +208,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),
+    riderAccountIds: await readRiderAccountIds(supabase, me),
     riderSessions,
     purchases: purchases.data!.map(toPurchase),
     riderComments: riderComments.data!.map(toRiderComment),

@@ -1244,6 +1244,23 @@ export async function deleteRider(id: string): Promise<ActionResult> {
   return done(null);
 }
 
+/** Bulk removal from the customer list: the same rules as `deleteRider`, in one statement so it succeeds or fails as a whole. */
+export async function deleteRiders(ids: string[]): Promise<ActionResult<{ count: number }>> {
+  const ctx = await staffClient(["apyrankes", "klientai"]);
+  if (!ctx.ok) return ctx.error;
+  const parsed = z.array(z.uuid()).min(1).max(100).safeParse(ids);
+  if (!parsed.success) return fail("Pasirinkite nuo 1 iki 100 klientų.", "invalid");
+  const unique = [...new Set(parsed.data)];
+  const { data: avatars } = await ctx.supabase.from("riders").select("avatar_path").in("id", unique);
+  const { data: docs } = await ctx.supabase.from("rider_documents").select("file_path").in("rider_id", unique);
+  const { data: removed, error } = await ctx.supabase.from("riders").delete().in("id", unique).select("id");
+  if (error) return dbError(error);
+  const avatarPaths = (avatars ?? []).flatMap((a) => (a.avatar_path ? [a.avatar_path] : []));
+  if (avatarPaths.length) await ctx.supabase.storage.from(RIDER_PHOTO_BUCKET).remove(avatarPaths);
+  if (docs?.length) await ctx.supabase.storage.from(RIDER_DOCUMENT_BUCKET).remove(docs.map((d) => d.file_path));
+  return done({ count: removed?.length ?? 0 });
+}
+
 const AVATAR_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };
 
 export async function uploadRiderAvatar(riderId: string, form: FormData): Promise<ActionResult<{ avatarPath: string }>> {

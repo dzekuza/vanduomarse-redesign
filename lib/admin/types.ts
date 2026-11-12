@@ -379,6 +379,8 @@ export interface AdminData {
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];
+  /** Customers with a site account (a confirmed login matching their e-mail or phone). */
+  riderAccountIds: string[];
   /** Empty without the `instruktorius` permission. */
   riderSessions: RiderSession[];
   purchases: Purchase[];
