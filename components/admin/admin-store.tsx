@@ -474,6 +474,17 @@ function useAdminReducer(initial: AdminData) {
         return result;
       },
       setTourTicketStatus: (id: string, status: BookingStatus) => report(actions.setTourTicketStatus(id, status)),
+      /** Cancels a request and, with `refund`, refunds what it paid. Not optimistic: Stripe answers first. */
+      cancelRequest: async (kind: "booking" | "rental" | "ticket", id: string, refund: boolean) => {
+        const result = await report(actions.cancelRequest(kind, id, refund));
+        if ("data" in result) {
+          if (kind === "booking") dispatch({ type: "booking/status", id, status: "atsaukta" });
+          if (kind === "rental") dispatch({ type: "rental/status", id, status: "atsaukta" });
+          if (result.data.refundError) toast.error(`Atšaukta, bet pinigų grąžinti nepavyko. ${result.data.refundError}`);
+          else if (result.data.refunded > 0) toast.success(`Atšaukta. Klientui grąžinama ${result.data.refunded} € (Stripe).`);
+        }
+        return result;
+      },
       saveStayType: (stayType: StayType) => {
         dispatch({ type: "stayType/upsert", stayType });
         return report(actions.saveStayType(stayType));

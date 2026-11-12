@@ -1,3 +1,10 @@
+## 2026-11-13 — Refund when admin cancels a paid request
+
+- **Why:** cancelling in the admin never refunded the customer.
+- **Changed:** migration `20261113200000_request_refunds.sql` (NOT applied: classifier blocked), `lib/refund.ts`, `cancelRequest` action + store method, `CancelRefundDialog`, `useCancelRequest`, `StatusActions.onCancel`, booking/rental/ticket call sites, `PaymentNote` wording, types.
+- **Status:** tsc/eslint clean; nothing tested with a real payment.
+- **Next:** apply the migration, then cancel a Stripe-test-paid booking with a refund and check Stripe, `request_refunds`, `payments.refunded` (webhook) and a second attempt ("jau grąžinti").
+
 ## 2026-11-13 — PR #53 review follow-ups
 
 - **Changed:** unique migration versions (file rename only), `stopPropagation` in `WakeCheckoutDialog`, plan checks before the rider is saved in `registerRider`, error logging for `online_plans` and photo signing.

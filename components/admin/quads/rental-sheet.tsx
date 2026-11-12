@@ -8,6 +8,7 @@ import { StatusActions } from "./status-actions";
 import { formatDateTime, formatDay, quadRentalLabel } from "@/lib/admin/format";
 import { BOOKING_SOURCE } from "@/lib/admin/labels";
 import type { QuadRental } from "@/lib/admin/types";
+import { useCancelRequest } from "@/components/admin/use-cancel-request";
 import { hourLabel } from "@/lib/quads";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -19,6 +20,7 @@ interface RentalSheetProps {
 /** Rental details with contact links and the status actions. */
 export function RentalSheet({ rental, onOpenChange }: RentalSheetProps) {
   const { quadTypes, setRentalStatus } = useAdmin();
+  const { cancel, dialog: cancelDialog } = useCancelRequest("rental");
   return (
     <Sheet open={!!rental} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
@@ -69,7 +71,8 @@ export function RentalSheet({ rental, onOpenChange }: RentalSheetProps) {
                 ) : null}
               </div>
               <div className="border-t pt-4">
-                <StatusActions status={rental.status} onSet={(s) => setRentalStatus(rental.id, s)} />
+                <StatusActions status={rental.status} onSet={(s) => setRentalStatus(rental.id, s)} onCancel={() => cancel({ id: rental.id, reference: rental.reference, total: rental.total, payment: rental.payment })} />
+                {cancelDialog}
               </div>
             </div>
           </>

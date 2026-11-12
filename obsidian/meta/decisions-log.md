@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0081 — Cancelling a paid request can refund its share through Stripe
+
+- **Date:** 2026-11-13. **Status:** code done; migration `20261113200000_request_refunds.sql` written, NOT applied (the auto-mode classifier blocked `apply_migration`): until it is applied the refund button reports "Nepavyko pradėti grąžinimo" and the cancellation still happens.
+- **Context:** cancelling in the admin only changed a status; the customer's money stayed unless staff remembered to refund in the Stripe Dashboard (the `charge.refunded` webhook then recorded it). One online payment can cover several requests.
+- **Decision:** `cancelRequest(kind, id, refund)` (`app/admin/actions.ts`) cancels through the existing status actions (same permission checks), then, if asked, `lib/refund.ts` refunds that request only: `begin_request_refund` reserves a row in the new `request_refunds` (one per request reference, so a request can never be refunded twice) capped at the request's `total` and at what is still unrefunded on the payment (counting manual Dashboard refunds, `payments.refunded`); Stripe `refunds.create` (idempotency key per request, `reason: requested_by_customer`); `finish_request_refund`, or `fail_request_refund` if Stripe refuses. The existing webhook records the refund on the payment. In the admin, cancelling a request paid online opens `CancelRefundDialog`: refund and cancel, cancel without refund, or leave it. A failed refund does not undo the cancellation: staff see the reason and refund in Stripe.
+- **Consequences:** same permission as the cancel (rezervacijos / keturraciai / renginiai), not owner-only. Coupons, bracelet-plan orders and other flows are not refunded by this (a full Dashboard refund still cancels them through the webhook). The customer still gets the normal "atšaukta" message, which does not mention the refund.
+
+---
 ## ADR-0080 — WAKE season passes are bracelet plans bought online, not coupons (supersedes the season-pass part of ADR-0069)
 
 - **Date:** 2026-11-13. **Status:** code done; migrations `20261113151000_rider_plan_orders.sql`, `…161000_my_riders_registered.sql` and `…170000_my_riders_registration_details.sql` APPLIED to the live project 2026-11-13 and verified (2 online plans, coupon passes inactive, RLS on, order RPCs executable by `service_role` only, `online_plans()` by anon).
