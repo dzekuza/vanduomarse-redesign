@@ -2035,6 +2035,7 @@ export type Database = {
           plan_price: number | null
           phone: string | null
           phone2: string | null
+          primary_match: boolean
           purchases: Json
           registered: boolean
           signed_at: string | null

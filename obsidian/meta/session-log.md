@@ -1,3 +1,9 @@
+## 2026-11-13 — my_riders() security fix (review finding)
+
+- **Found:** automated security review: a `phone2` match (staff-entered, maybe a parent's number) returned the rider's birth date, e-mail, phones and photo.
+- **Changed:** migration `20261113180000_my_riders_primary_match.sql` (applied, verified, smoke-tested as an unknown user: 0 rows); `loadMyRiders` ignores non-primary rows for registration and the "registered" check.
+- **Status:** tsc/eslint clean; not tested with a real second account. An owner link (`riders.user_id`) is the cleaner long-term fix.
+
 ## 2026-11-13 — "Užbaigti registraciją" kept showing
 
 - **Found:** the owner's email matched 10 rider rows: one finished registration (today) plus 8 old unfinished test attempts (7 Nov) and a Grabby import. The button showed when ANY row was unfinished.

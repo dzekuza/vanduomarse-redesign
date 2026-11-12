@@ -134,8 +134,10 @@ export async function loadMyRiders(): Promise<MyRider[]> {
     purchases: riderPurchases(r.purchases),
     // Until the migrations that add `registered` and the registration fields are applied they are missing: assume
     // registered and hide the details, so no wrong prompt shows.
-    registered: r.registered ?? true,
-    registration: r.signed_at === undefined
+    // Only riders whose own e-mail or phone the account confirmed count: a match through a secondary number (`phone2`)
+    // is someone else's registration, so it neither counts as the customer's nor shows registration details.
+    registered: r.primary_match === false ? false : (r.registered ?? true),
+    registration: r.primary_match === false || r.signed_at === undefined
       ? null
       : {
           email: r.email ?? "",
