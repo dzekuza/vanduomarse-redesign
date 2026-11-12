@@ -732,6 +732,47 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_push_tokens: {
+        Row: {
+          active: boolean
+          created_at: string
+          device_name: string
+          expo_push_token: string
+          id: string
+          topics: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          device_name?: string
+          expo_push_token: string
+          id?: string
+          topics?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          device_name?: string
+          expo_push_token?: string
+          id?: string
+          topics?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -2689,6 +2730,7 @@ export type Database = {
         }[]
       }
       staff_notify_phones: { Args: { p_topic: string }; Returns: string[] }
+      staff_push_tokens_for: { Args: { p_topic: string }; Returns: string[] }
       stay_occupancy: {
         Args: { p_from: string; p_to: string }
         Returns: {

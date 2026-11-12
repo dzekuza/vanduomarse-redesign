@@ -13,8 +13,12 @@ app/                    ← routes; pages compose components directly
 ├── globals.css         ← all tokens (site + shadcn), utilities, theme
 ├── pirtis/ miegas/ keturraciai/ renginiai/ kuponai/ skaiciuokle/
 ├── actions/            ← public server actions (requests, quads, coupons, phone, booking-data)
+├── api/admin/mobile-action/ ← Bearer-token authenticated staff API route for mobile actions needing server-only secrets (Stripe refund, Resend coupon email, SMS/push alerts)
 ├── embed/              ← bare booking widgets for the WordPress plugin (ADR-0014)
 └── admin/              ← dashboard: layout (shell, store) + one page per screen
+mobile/                 ← Expo / React Native iOS staff admin app (pnpm workspace, ADR-0083)
+├── app/                ← Expo Router layouts and 5 operational tabs (Šiandien, Skenavimas, Užklausos, Kuponai, Daugiau)
+└── src/                ← useAppTheme() tokens, Supabase client, UsbScanTarget (USB HID bracelet reader), primitives, store
 components/
 ├── *.tsx               ← shared shell + primitives (site-header, main-header, page-intro, site-footer, cta, reveal, menu-panel…)
 ├── landing/            ← the home page: sections, activity/calculator drawers, copy in content.ts
