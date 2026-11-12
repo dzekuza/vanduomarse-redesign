@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { ArrowButton } from "@/components/booking/arrow-button";
 import { CompactStepper } from "@/components/booking/stepper";
+import { AvailabilityCount } from "@/components/services/availability-count";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { SessionRow } from "@/lib/reservation";
 import { toSaunaEvent, type SaunaEventData } from "@/lib/sauna-events";
@@ -17,12 +18,13 @@ interface SessionDetails {
   selected: boolean;
 }
 
-export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelectedFocus }: {
+export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelectedFocus, actionLabel }: {
   open: boolean;
   details?: SessionDetails;
   onClose: () => void;
   onSelect: () => void;
   onSelectedFocus?: () => void;
+  actionLabel?: string;
 }) {
   const title = useRef<HTMLHeadingElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -58,12 +60,12 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
         {details ? (
           <div className="min-h-0 space-y-5 overflow-y-auto p-5 sm:p-6">
             <dl className="grid grid-cols-2 gap-2">
-              {[
+              {([
                 ["Data", sessionDate.format(toSaunaEvent(details.event).date)],
                 ["Laikas", details.row.time],
                 ["Vieta", details.event.venue || "Pirtis Marse"],
-                ["Laisvos vietos", `${details.event.spotsLeft}${details.event.capacity ? ` / ${details.event.capacity}` : ""}`],
-              ].map(([label, value]) => (
+                ["Laisvos vietos", <AvailabilityCount key="seats" free={details.event.spotsLeft} capacity={details.event.capacity} binary />],
+              ] as const).map(([label, value]) => (
                 <div key={label} className="space-y-1 border border-line bg-card p-3">
                   <dt className="text-micro uppercase text-copy">{label}</dt>
                   <dd className="text-xs font-bold">{value}</dd>
@@ -88,7 +90,7 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
                 <ArrowButton onClick={() => {
                   confirmed.current = true;
                   onSelect();
-                }}>{details.selected ? "Grįžti į planą" : "Pridėti į planą"}</ArrowButton>
+                }}>{actionLabel ?? (details.selected ? "Grįžti į planą" : "Pridėti į planą")}</ArrowButton>
               )}
             </div>
           </div>

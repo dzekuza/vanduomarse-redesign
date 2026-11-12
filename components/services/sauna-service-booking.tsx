@@ -14,9 +14,9 @@ import { dateKey, FULL_DAY_HOURS } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
-import { AvailabilityCount } from "./availability-count";
 import { SaunaServiceSessions } from "./sauna-service-sessions";
 import { SaunaServiceTime } from "./sauna-service-time";
+import { saunaSessionDayDetails } from "./sauna-session-day-details";
 
 interface SaunaServiceBookingProps {
   data: SaunaPageData;
@@ -31,7 +31,7 @@ interface SaunaServiceBookingProps {
   onPick: (pick: SaunaPick, people?: number) => void;
   onPeople: (people: number) => void;
   onRemove: () => void;
-  onSelectedFocus: () => void;
+  onReserve: () => void;
   /** Chosen outside (the /rezervacija type chips); the form then hides its own type choice. Remount it (key) when this changes. */
   mode?: SaunaMode;
 }
@@ -42,14 +42,14 @@ type Mode = SaunaMode;
 /** Whether the venue offers shared sessions next to private hire. */
 export const saunaHasSessions = (data: SaunaPageData) => data.events.length > 0 || data.programs.some((program) => program.active && program.kind === "session");
 
-const TYPES: { id: Mode; title: string; hint: string }[] = [
-  { id: "private", title: "Privati pirtis", hint: "Visa pirtis jūsų grupei" },
-  { id: "session", title: "Pirties seansas", hint: "Vieta bendrame seanse" },
+const TYPES: { id: Mode; title: string }[] = [
+  { id: "private", title: "Privati pirtis" },
+  { id: "session", title: "Pirties seansas" },
 ];
 
 /** Type, date and time lead into the existing reservation plan. */
 export function SaunaServiceBooking({
-  data, days, date, plan, pick, people, busy, sessionId, onDate, onPick, onPeople, onRemove, onSelectedFocus, mode: lockedMode,
+  data, days, date, plan, pick, people, busy, sessionId, onDate, onPick, onPeople, onRemove, onReserve, mode: lockedMode,
 }: SaunaServiceBookingProps) {
   const [ownMode, setMode] = useState<Mode | null>(() => sessionId ? "session" : null);
   const mode = lockedMode ?? ownMode;
@@ -88,7 +88,6 @@ export function SaunaServiceBooking({
   const rowsFor = (day: string) => mode === "session" ? sessionRows(data, day).filter((row) => row.mode === "session") : hourlyRow(day);
   const rows = date && canPickDate ? rowsFor(dateKey(date)) : [];
   const selectedRow = rows.find((row) => row.mode === "session" && row.eventId === pick.eventId);
-  const time = plan?.mode === "hourly" && plan.startHour !== null ? String(plan.startHour) : selectedRow?.key;
   const event = data.events.find(({ key }) => key === sessionId);
   const eventDate = event && days.find((day) => dateKey(day) === event.date);
   const dialogRow = event && eventDate && sessionRows(data, event.date).find(({ eventId }) => eventId === event.key);
@@ -113,21 +112,20 @@ export function SaunaServiceBooking({
       {lockedMode ? null : <fieldset disabled={busy}>
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold"><WavesIcon size={18} aria-hidden /> Tipas</legend>
         <div className="grid grid-cols-2 gap-2">
-          {TYPES.filter(({ id }) => id === "private" || hasSessions).map(({ id, title, hint }) => (
+          {TYPES.filter(({ id }) => id === "private" || hasSessions).map(({ id, title }) => (
             <FilterChip key={id} active={mode === id} onClick={() => {
               if (mode === id) return;
               setMode(id);
               setCalendarOpen(false);
               onRemove();
-            }} className="min-h-16 min-w-0 flex-col items-start justify-center gap-1 px-3 py-2 text-left">
-              <span className="font-bold">{title}</span>
-              <span className={mode === id ? "text-dust/80" : "text-copy"}>{hint}</span>
+            }} className="min-w-0 justify-center px-2 py-2 text-center font-bold">
+              {title}
             </FilterChip>
           ))}
         </div>
       </fieldset>}
-      {mode === "private" ? (
-        <SaunaServicePrivateOptions venues={venues} venueId={venueId} disabled={busy}
+      {mode !== "session" && venues.length > 0 ? (
+        <SaunaServicePrivateOptions venues={venues} venueId={venueId} disabled={busy || mode === null}
           onVenue={(id) => {
             if (id === venueId) return;
             setVenueId(id);
@@ -142,14 +140,21 @@ export function SaunaServiceBooking({
       ) : null}
       <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
         dayDetails={(day) => {
-          const rowsOfDay = rowsFor(dateKey(day));
-          // Private hire counts free start times; sessions count the sessions that still have room.
-          const free = mode === "private" ? (rowsOfDay[0]?.startHours?.length ?? 0) : rowsOfDay.filter(({ blocked }) => !blocked).length;
-          const label = mode === "private" ? `Laisvų laikų: ${free}` : `Laisvų seansų: ${free}`;
+          const dayRows = rowsFor(dateKey(day));
+          if (mode === "session") return saunaSessionDayDetails(dayRows);
+
+          const free = dayRows[0]?.startHours?.length ?? 0;
+          const available = free > 0;
+          const label = available ? "Laisva" : "Pilna";
+          const color = available ? "text-availability-open" : "text-rust-ink";
           return {
-            label,
-            available: free > 0,
-            indicator: <span className="block text-calendar-status"><AvailabilityCount free={free} binary /></span>,
+            label: available ? `Laisvų laikų: ${free}` : label,
+            available,
+            indicator: (
+              <span className="@container mx-auto block w-6">
+                <span className={`relative left-1/2 block w-max -translate-x-1/2 text-calendar-status font-bold ${color}`}>{label}</span>
+              </span>
+            ),
           };
         }}
       />
@@ -159,13 +164,24 @@ export function SaunaServiceBooking({
           familyControls={plan?.mode === "session" && plan.program?.pricing === "family"
             ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable />
             : null} />
-      ) : (
-            <SaunaServiceTime rows={rows} value={time} busy={busy} dateSelected={Boolean(date) && canPickDate} onSelect={(row, hour) => {
-          if (row.mode === "session") selectSession(row, 1);
-          else onPick({ ...pick, programId: null, eventId: null, children: 0, saunaId: venueId ?? pick.saunaId, startHour: hour, hours: draft.hours, masterId: draft.masterId }, people);
-        }} />
-      )}
-      {mode === "private" && sauna?.rates && venue?.hasPrices ? <SaunaServicePeople sauna={sauna} people={people} onPeople={onPeople} disabled={busy} /> : null}
+      ) : date && canPickDate ? (
+        <SaunaServiceTime
+          hours={rows[0]?.startHours ?? []}
+          selected={hourly?.startHour ?? null}
+          busy={busy}
+          onSelect={(startHour) => onPick({
+            ...pick,
+            programId: null,
+            eventId: null,
+            children: 0,
+            saunaId: venueId ?? pick.saunaId,
+            startHour,
+            hours: wantedHours,
+            masterId,
+          }, people)}
+        />
+      ) : null}
+      {mode === "private" && hourly?.startHour != null && sauna ? <SaunaServicePeople sauna={sauna} people={people} onPeople={onPeople} disabled={busy} /> : null}
       {hourly && hourly.upsells.length ? (
         <fieldset disabled={busy}>
           <OptionGroupLabel>Papildomai</OptionGroupLabel>
@@ -184,7 +200,8 @@ export function SaunaServiceBooking({
           },
         } : undefined}
         onClose={closeSessionInfo}
-        onSelectedFocus={onSelectedFocus}
+        actionLabel="Rezervuoti"
+        onSelectedFocus={onReserve}
         onSelect={() => {
           if (!dialogRow || dialogRow.blocked || !eventDate) return;
           if (!dialogSelected) {

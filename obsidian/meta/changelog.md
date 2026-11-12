@@ -1,3 +1,20 @@
+- 2026-11-12 Reconciled the booking panels with main: announced saunas keep their disabled coming-soon cards, full-day start rules remain available, private calendars use Laisva/Pilna, and session calendars show start times and free seats. Review source labels follow main.
+- 2026-11-12 The sauna session details dialog uses Rezervuoti and opens the reservation checkout with the chosen session and seat count. The free-seat count uses the same green or red as the calendar.
+- 2026-11-12 Moved the sauna session rate beside its time and the free-seat count beside the selected card’s quantity controls.
+- 2026-11-12 Removed the general Google Maps link below the sauna reviews. Individual review source links remain.
+- 2026-11-12 The sauna session booking calendar and date strip show session start times and free seats. Dates without sessions have no visible availability badge.
+- 2026-11-12 Matched the sauna booking type labels to the venue card title size.
+- 2026-11-12 Shortened the sauna cancellation note to “Nemokamas atšaukimas likus bent 24 val. iki pradžios.”
+- 2026-11-12 Sauna duration tiles show their base price for the selected day, or the starting price before a date is chosen. The selected base price remains beneath the tiles.
+- 2026-11-12 Private sauna start times are shown in a compact grid labelled Pradžia. The selected time is highlighted, and changing it keeps the selected duration and attendant.
+- 2026-11-12 Reduced the visible gap between stacked booking help contacts while preserving 44 px link targets.
+- 2026-11-12 The sauna sidebar shows Galutinė kaina, su PVM with the amount right-aligned.
+- 2026-11-12 Removed the duplicate day plan and quantity editor from `/pirtis`. The time and guest controls in the form update the total directly.
+- 2026-11-12 The sauna booking calendar and date strip show green Laisva or red Pilna using the selected booking options and live availability.
+- 2026-11-12 Simplified the `/pirtis` sidebar with compact type buttons, time controls after date selection, and no empty total. The cancellation note stays above the actions and sauna booking help uses the events inbox.
+- 2026-11-12 The `/pirtis` booking panel shows the sauna choices beneath Tipas from the start. They become available after selecting Privati pirtis. The Finnish sauna is shown first.
+- 2026-11-12 Reworked the `/nakvyne` booking sidebar with type tiles before dates, an inline calendar showing availability for the selected type, a total after dates are chosen, and help contacts below the booking buttons.
+
 - 2026-11-12 Designed Open Graph images from the owner's files (`PIRTIS-OG`, `NAMELIAI-OG`, `RENGINIAI-OG`, 1200x630, compressed to JPEG with `sips`, 200-470 KB instead of up to 1.6 MB) in `public/og/`: `/pirtis` -> `pirtis.jpg`, `/nakvyne` -> `nameliai.jpg`, `/sventes`, `/vestuves`, `/imoniu-renginiai`, `/gimtadieniai` and `/skaiciuokle` -> `renginiai.jpg`. New `SERVICE_OG_IMAGES` / `EVENTS_OG_IMAGE` in `lib/seo.ts`, used by `app/[service]/page.tsx` and `app/skaiciuokle/page.tsx`; other service pages keep their activity cover, `/renginiai` and the home page keep the default. `tsc`/eslint clean; `og:image` and `twitter:image` checked on the dev server for every page above, files served as image/jpeg. Not checked in a social-media preview tool (needs the deployed URL; crawlers cache old images).
 
 - 2026-11-12 `/sventes` calculator, Švediškas stalas card (`food-section.tsx`): the "Kaina vienam suaugusiajam" slider and its price labels were only as wide as their content (the card's controls row is a wrapping flex row); the wrapper is now `w-full`, so the slider spans the card and "Pasirinkti" wraps below. `tsc`/eslint clean; checked at 1280 px.

@@ -48,6 +48,7 @@ import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
 import { ReservationAccountDialog } from "./reservation-account-dialog";
 import { requestsFor, submitReservation, type Outcome } from "./submit-reservation";
+import { StayServiceBooking } from "./stay-service-booking";
 import { stayDayDetails } from "./stay-day-details";
 import type { ReservationDayDetails } from "./day-cell";
 import { WhenStep, type StayDatePhase } from "./when-step";
@@ -234,6 +235,7 @@ export function ReservationFlow({
       return remaining;
     });
     if (id === "pirtis") setPeople(1);
+    if (activity === "nakvyne" && id === "nakvyne") setStayDatePhase("idle");
   }
 
   const editPicks: typeof setPicks = (next) => {
@@ -421,7 +423,10 @@ export function ReservationFlow({
               }}
               onPeople={editPeople}
               onRemove={() => removeActivity("pirtis")}
-              onSelectedFocus={() => inlinePlan.current?.focus()}
+              onReserve={() => {
+                if (selectionReady) next(false);
+                else (inline ? inlinePlan.current : selectionHeader.current)?.focus();
+              }}
             /> : tab === "keturraciai" ? <QuadServiceBooking
               data={data.quads}
               days={days}
@@ -445,6 +450,17 @@ export function ReservationFlow({
                   return rest;
                 });
               }}
+            /> : inline && tab === "nakvyne" ? <StayServiceBooking
+              data={data.cabin}
+              days={days}
+              date={date}
+              end={stayEnd}
+              phase={stayDatePhase}
+              plan={plans.nakvyne}
+              busy={busy}
+              onDate={selectStayDate}
+              onPick={(nakvyne) => editPicks((current) => ({ ...current, nakvyne }))}
+              onClear={() => removeActivity("nakvyne")}
             /> : <>
               {/* With the month calendar open and room to spare, the day's results sit beside it instead of below. */}
               <div className="@container">
