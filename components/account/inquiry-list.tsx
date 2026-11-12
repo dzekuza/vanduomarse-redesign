@@ -27,7 +27,7 @@ export function InquiryList({ inquiries }: { inquiries: MyInquiry[] }) {
     return (
       <div className="space-y-3 border border-line p-5 sm:p-6">
         <p className="text-copy">Pasiūlymų dar nėra. Suskaičiuok savo šventę skaičiuoklėje ir išsiųsk užklausą, ji atsiras čia.</p>
-        <Link href="/skaiciuokle" className="inline-flex min-h-11 items-center border-b border-current text-sm font-bold">
+        <Link href="/sventes#rezervuoti" className="inline-flex min-h-11 items-center border-b border-current text-sm font-bold">
           Į skaičiuoklę
         </Link>
       </div>

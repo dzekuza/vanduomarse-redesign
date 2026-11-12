@@ -99,7 +99,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
             {customBookingLayout ? booking(bookingHeader) : <>{bookingHeader}{booking}</>}
             {slug === "keturraciu-nuoma" ? <ServiceBookingHelp contact={contact} /> : !booking && (
               <div className="space-y-3 border-t border-line pt-4">
-                {isCelebration ? <Cta tone="dark" small className="w-full" href="/skaiciuokle">Skaičiuoti šventės kainą</Cta> : (
+                {isCelebration ? <Cta tone="dark" small className="w-full" href="/sventes#rezervuoti">Skaičiuoti šventės kainą</Cta> : (
                   <Cta tone="dark" small className="w-full" href={telHref(contact.phone)}>{contact.phone}</Cta>
                 )}
                 <a href={`mailto:${contact.email}`} className="flex min-h-11 w-fit max-w-full items-center break-all text-xs underline underline-offset-4 hover:text-rust">{contact.email}</a>

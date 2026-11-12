@@ -27,7 +27,7 @@ export function LandingNight() {
           <p className="max-w-xl text-xs leading-loose">
             Mūsų neriboja garsas, tad Jūsų gimtadienis, vestuvės ar įmonės šventės čia gali skambėti garsiai! Švęskit iki ryto savų žmonių rate.
           </p>
-          <Cta tone="cream" href="/skaiciuokle" className="mt-6 max-w-full md:mt-0">
+          <Cta tone="cream" href="/sventes#rezervuoti" className="mt-6 max-w-full md:mt-0">
             Skaičiuoti šventės kainą
           </Cta>
         </Reveal>

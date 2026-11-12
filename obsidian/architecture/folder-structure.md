@@ -11,7 +11,7 @@ No `src/` directory: folders sit at the repo root (Next's default).
 app/                    ← routes; pages compose components directly
 ├── layout.tsx          ← fonts, theme-marse on <body>, site metadata
 ├── globals.css         ← all tokens (site + shadcn), utilities, theme
-├── pirtis/ miegas/ keturraciai/ renginiai/ kuponai/ skaiciuokle/
+├── pirtis/ miegas/ keturraciai/ renginiai/ kuponai/
 ├── actions/            ← public server actions (requests, quads, coupons, phone, booking-data)
 ├── api/admin/mobile-action/ ← Bearer-token authenticated staff API route for mobile actions needing server-only secrets (Stripe refund, Resend coupon email, SMS/push alerts)
 ├── embed/              ← bare booking widgets for the WordPress plugin (ADR-0014)
@@ -26,7 +26,7 @@ components/
 ├── ui/                 ← shadcn/ui primitives (locally modified, see [[components/ui]])
 ├── booking/            ← embed booking flows (sauna, cabins, quads), receipts, calendar export
 ├── events/             ← /renginiai feed
-├── calculator/         ← /skaiciuokle
+├── calculator/         ← /sventes (CelebrationCalculator, shared logic)
 └── admin/              ← store, shell, and a folder per admin screen
 hooks/                  ← shared hooks — catalog: [[hooks]]
 lib/                    ← business rules, prices, data generators — catalog: [[utils]]

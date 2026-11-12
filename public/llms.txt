@@ -14,6 +14,6 @@
 - [Rezervacija](https://www.vanduomarse.lt/rezervacija)
 - [Renginiai](https://www.vanduomarse.lt/renginiai)
 - [Dovanų kuponai](https://www.vanduomarse.lt/kuponai)
-- [Renginio kainos skaičiuoklė](https://www.vanduomarse.lt/skaiciuokle)
+- [Šventės kainos skaičiuoklė](https://www.vanduomarse.lt/sventes)
 - [Kontaktai](https://www.vanduomarse.lt/kontaktai)
 - [Privatumo politika](https://www.vanduomarse.lt/privatumo-politika)

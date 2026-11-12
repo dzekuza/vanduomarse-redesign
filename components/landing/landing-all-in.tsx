@@ -26,7 +26,7 @@ export function LandingAllIn() {
             Jums nereikia derinti kelių skirtingų vietų – pasakykite, ką švenčiate, o mes pateiksime Jums
             paruoštą planą.
           </p>
-          <Link href="/skaiciuokle" className={textCtaClass()}>
+          <Link href="/sventes#rezervuoti" className={textCtaClass()}>
             Gauti pasiūlymą
             <TextCtaArrow />
           </Link>

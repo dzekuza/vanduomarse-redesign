@@ -9,7 +9,6 @@ const PAGES: { path: string; priority: number }[] = [
   { path: "/rezervacija", priority: 0.9 },
   { path: "/renginiai", priority: 0.8 },
   { path: "/kuponai", priority: 0.7 },
-  { path: "/skaiciuokle", priority: 0.6 },
   { path: "/kontaktai", priority: 0.5 },
   { path: "/privatumo-politika", priority: 0.3 },
   ...Object.keys(SERVICE_PAGES).map((slug) => ({ path: `/${slug}`, priority: 0.8 })),
