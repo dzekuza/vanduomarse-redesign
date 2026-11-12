@@ -1,5 +1,5 @@
 import "server-only";
-import { contactFor, requestDate, requestHeading, requestTime, type PaidRequest } from "@/lib/paid-request";
+import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, staffExtras, type PaidRequest } from "@/lib/paid-request";
 import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
 import { emailList, escapeHtml, sendEmail } from "./resend";
@@ -127,11 +127,42 @@ function toStaff(
 export const emailStaffNew = (service: NotifyService, reference: string | undefined, summary: string) =>
   toStaff([service], `Nauja užklausa${reference ? ` ${reference}` : ""}`, [{ strong: summary }]);
 
-export const emailStaffPaid = (references: string[], amount: number, review: boolean) =>
-  toStaff(servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`, [
+/** "2026-11-13 14:05" in Vilnius time. */
+const vilniusNow = () =>
+  new Intl.DateTimeFormat("lt-LT", { timeZone: "Europe/Vilnius", dateStyle: "short", timeStyle: "short" }).format(new Date());
+
+/** The staff mail of a paid reservation: amount and time, who booked (name, phone, e-mail) and each request with date, time, people, price and any code. */
+export const emailStaffPaid = (
+  references: string[],
+  amount: number,
+  review: boolean,
+  requests: PaidRequest[] = [],
+  contact: { phone?: string | null; email?: string | null } = {},
+) => {
+  const customer = staffCustomer(requests, contact);
+  const { discountCodes, notes } = staffExtras(requests);
+  return toStaff(servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`, [
     { strong: `${formatEuro(amount)} už ${references.join(", ")}` },
     ...(review ? ["Apmokėta pavėluotai arba kita suma: patikrinkite ir, jei reikia, grąžinkite per Stripe."] : []),
+    `Apmokėjimo laikas: ${vilniusNow()}`,
+    ...(customer
+      ? [["Klientas:", customer.name, customer.phone ? `Tel.: ${customer.phone}` : null, customer.email ? `El. paštas: ${customer.email}` : null].filter(Boolean).join("\n")]
+      : []),
+    ...requests.map((r) =>
+      [
+        r.reference,
+        requestHeading(r),
+        `Data: ${requestDate(r)}`,
+        ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : []),
+        ...(r.staff?.people ? [`Žmonių: ${r.staff.people}`] : []),
+        ...(r.staff?.units && r.service !== "pirtis" ? [`Kiekis: ${r.staff.units}`] : []),
+        ...(r.staff ? [`Kaina: ${formatEuro(r.staff.total)}`] : []),
+      ].join("\n"),
+    ),
+    ...(discountCodes.length ? [`Nuolaidos kodas: ${discountCodes.join(", ")}`] : []),
+    ...(notes.length ? [`Pastabos:\n${notes.join("\n")}`] : []),
   ]);
+};
 
 export const emailStaffDuplicate = (references: string[], amount: number) =>
   toStaff(servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [

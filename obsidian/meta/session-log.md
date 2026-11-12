@@ -1,3 +1,9 @@
+## 2026-11-13 — Staff paid notification with full details
+
+- **Changed:** `paid_staff_details` function (applied), `PaidRequest.staff`, `staffPaidText` / `emailStaffPaid` / push body in `lib/sms/notify.ts`, `lib/email/notify.ts`, `lib/notify.ts`; webhook loads the requests for every payment.
+- **Status:** tsc/eslint pass; SMS text rendered with sample data; branch `feat/paid-notification-details`, uncommitted. Not triggered by a real payment.
+- **Next:** a test payment to read the real SMS/e-mail; commit and PR.
+
 ## 2026-11-13 — Editable service pages (/admin/puslapiai)
 
 - **Changed:** `page_content` table + `page-photos` bucket (migration applied), `lib/page-content.ts` (schema, merge, diff), `lib/data/page-content.ts` (public read), `app/admin/page-content-actions.ts`, store + repository wiring, `components/admin/page-content/*`, nav item, `next.config.ts` image pattern; `ServicePage` is now async and `app/[service]/page.tsx` reads merged copy.

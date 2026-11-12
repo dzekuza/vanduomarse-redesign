@@ -14,6 +14,9 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const PAGE_SIZE = 50;
+/** A name saved without a surname ends in a dash ("Rysard -"); show just the name. */
+const cleanName = (name: string) => name.replace(/\s+[-–]\s*$/, "");
+
 const CATEGORY_LABEL = Object.fromEntries(SALE_CATEGORIES.map((c) => [c.id, c.label]));
 
 /** Every sale across pirtis, nakvynė, keturračiai, renginiai, kuponai and apyrankės, filterable by category and date. */
@@ -54,10 +57,10 @@ export function SalesTable({ all, filters }: SalesTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Parduota</TableHead>
+                <TableHead className="whitespace-nowrap">Parduota</TableHead>
                 <TableHead>Prekė</TableHead>
-                <TableHead className="hidden md:table-cell">Kategorija</TableHead>
-                <TableHead className="hidden lg:table-cell">Paslaugos laikas</TableHead>
+                <TableHead className="hidden xl:table-cell">Kategorija</TableHead>
+                <TableHead className="hidden xl:table-cell">Paslaugos laikas</TableHead>
                 <TableHead className="hidden sm:table-cell">Klientas</TableHead>
                 <TableHead className="text-right">Suma</TableHead>
                 <TableHead className="hidden sm:table-cell">Būsena</TableHead>
@@ -67,7 +70,7 @@ export function SalesTable({ all, filters }: SalesTableProps) {
               {rows.slice(0, shown).map((s) => (
                 <TableRow key={s.id} onClick={() => openSale(s.target)} className="cursor-pointer">
                   <TableCell className="whitespace-nowrap">{formatDay(s.soldOn)}</TableCell>
-                  <TableCell className="max-w-48 sm:max-w-none">
+                  <TableCell className="max-w-48 sm:max-w-64 xl:max-w-none">
                     <button
                       type="button"
                       className="block max-w-full min-h-11 truncate text-left outline-none focus-visible:ring-3 focus-visible:ring-ring"
@@ -78,14 +81,16 @@ export function SalesTable({ all, filters }: SalesTableProps) {
                     >
                       {s.item}
                     </button>
-                    <p className="truncate text-xs text-muted-foreground sm:hidden">{s.customer}</p>
-                    {s.reference ? <p className="hidden truncate text-xs text-muted-foreground sm:block">{s.reference}</p> : null}
+                    <p className="truncate text-xs text-muted-foreground sm:hidden">{cleanName(s.customer)}</p>
+                    <p className="hidden truncate text-xs text-muted-foreground sm:block">
+                      {[s.reference, CATEGORY_LABEL[s.category], s.when].filter(Boolean).join(" · ")}
+                    </p>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">{CATEGORY_LABEL[s.category]}</TableCell>
-                  <TableCell className="hidden lg:table-cell">{s.when || "—"}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{s.customer}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatEur(s.total)}</TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell className="hidden xl:table-cell">{CATEGORY_LABEL[s.category]}</TableCell>
+                  <TableCell className="hidden xl:table-cell">{s.when || "—"}</TableCell>
+                  <TableCell className="hidden max-w-48 truncate sm:table-cell">{cleanName(s.customer)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-right tabular-nums">{formatEur(s.total)}</TableCell>
+                  <TableCell className="hidden whitespace-nowrap sm:table-cell">
                     <SaleStatusBadge state={s.state} label={s.state === "galioja" ? s.statusLabel : SALE_STATE_LABEL[s.state]} />
                   </TableCell>
                 </TableRow>
