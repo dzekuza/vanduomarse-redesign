@@ -5,6 +5,11 @@
 - **Changed:** migration `20261113220000_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
 - **Status:** tsc/eslint clean; not tested with a live event.
 - **Next:** open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
+## 2026-11-13 — OTP blocks per channel
+
+- **Found:** the code field always drew 8 blocks, but an SMS code has 6 (e-mail has 8).
+- **Changed:** `LOGIN_CODE_LENGTH = { phone: 6, email: 8 }`; `LoginCodeStep` uses the channel's length and confirms only when full.
+- **Status:** tsc/eslint clean; not browser-checked.
 
 ## 2026-11-13 — Refund hardening (review + Stripe docs)
 
