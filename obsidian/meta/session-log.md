@@ -1,3 +1,8 @@
+## 2026-11-13 — Footer contacts, hero phone, stay quantity labels
+
+- **Changed:** `FOOTER_CONTACTS` rewritten and used by `SiteFooter`; hero phone from `MAIN_CONTACT`; stay stepper labels by kind.
+- **Status:** tsc/eslint clean; NOT browser-checked; pushed to `main`.
+- **Next:** decide whether `/kontaktai` and `RESERVATION_PHONE` should follow the new numbers.
 ## 2026-11-13 — Hero phone number
 
 - **Changed:** `components/landing/landing-hero.tsx` uses `MAIN_CONTACT.phone`.

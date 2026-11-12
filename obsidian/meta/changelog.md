@@ -1,3 +1,6 @@
+- 2026-11-13 Footer contacts: five entries (Vanduo Marse ir renginiai, Marso Akademija, Pirtis Marse, Partneriai, Skoniai Marse) with the owner's emails and phones, from `FOOTER_CONTACTS`. `/kontaktai`, service pages and `MAIN_CONTACT` unchanged.
+- 2026-11-13 Home hero phone is now `MAIN_CONTACT.phone` (+370 630 80 444); the reservation plan panel and mobile dock still use `RESERVATION_PHONE`.
+- 2026-11-13 `/rezervacija` stay cards: the stepper label is "Namelių kiekis" (cabins) / "Kemperių kiekis" (camper pitches).
 - 2026-11-13 Home hero phone is now `MAIN_CONTACT.phone` (+370 630 80 444) instead of `RESERVATION_PHONE`; the reservation plan panel and mobile dock still use `RESERVATION_PHONE`. Not browser-checked.
 - 2026-11-13 Footer contacts: five entries (Vanduo Marse ir renginiai, Marso Akademija, Pirtis Marse, Partneriai, Skoniai Marse) with the owner's emails and phones, from `FOOTER_CONTACTS`. `/kontaktai`, service pages and `MAIN_CONTACT` unchanged. Not browser-checked.
 - 2026-11-13 `/rezervacija` stay cards: the stepper label "Kiekis" is now "Namelių kiekis" (cabins) / "Kemperių kiekis" (camper pitches). Not browser-checked.
