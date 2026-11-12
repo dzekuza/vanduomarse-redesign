@@ -2689,7 +2689,7 @@ export type Database = {
           p_surname: string
           p_terms_version: string
         }
-        Returns: string
+        Returns: { already_registered: boolean; rider_id: string }[]
       }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }

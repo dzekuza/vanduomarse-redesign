@@ -1,3 +1,4 @@
+import { makeCustomerLookup } from "@/lib/admin/customer-match";
 import { bookingTypeLabel, bookingWhen, formatDay, quadRentalLabel } from "./format";
 import { toCsv } from "./export";
 import { BOOKING_STATUS } from "./labels";
@@ -26,8 +27,8 @@ export const SALE_STATE_LABEL: Record<SaleState, string> = {
   atsaukta: "Atšaukta",
 };
 
-/** What a click on a sale row opens: a details drawer on the overview, or the page that manages it. */
-export type SaleTarget = { kind: "booking" | "rental" | "coupon"; id: string } | { kind: "link"; href: string };
+/** What a click on a sale row opens: a details drawer on the overview (an event's tickets for ticket sales), or the page that manages it. */
+export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event"; id: string } | { kind: "link"; href: string };
 
 export interface Sale {
   id: string;
@@ -45,6 +46,8 @@ export interface Sale {
   /** The source's own status wording, for the badge. */
   statusLabel: string;
   target: SaleTarget;
+  /** The linked customer (Klientai), when the sale is tied to one. */
+  riderId: string | null;
 }
 
 const bookingState = (s: BookingStatus): SaleState => (s === "atsaukta" ? "atsaukta" : s === "laukia" ? "laukia" : "galioja");
@@ -60,6 +63,7 @@ type SalesSource = Pick<
 /** Every sale from every source as one list, newest first. */
 export function buildSales(data: SalesSource): Sale[] {
   const sales: Sale[] = [];
+  const customerOf = makeCustomerLookup(data.riders);
 
   for (const b of data.bookings) {
     const when = [formatDay(b.date), bookingWhen(b)].filter(Boolean).join(", ");
@@ -75,6 +79,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(b.status),
       statusLabel: BOOKING_STATUS[b.status],
       target: { kind: "booking", id: b.id },
+      riderId: b.riderId ?? customerOf(b.customer) ?? null,
     });
   }
 
@@ -91,6 +96,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(r.status),
       statusLabel: BOOKING_STATUS[r.status],
       target: { kind: "rental", id: r.id },
+      riderId: r.riderId ?? customerOf(r.customer) ?? null,
     });
   }
 
@@ -106,7 +112,8 @@ export function buildSales(data: SalesSource): Sale[] {
       total: t.total,
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
-      target: { kind: "link", href: "/admin/keturraciai" },
+      target: { kind: "event", id: t.eventId },
+      riderId: t.riderId ?? customerOf(t.customer) ?? null,
     });
   }
 
@@ -124,7 +131,8 @@ export function buildSales(data: SalesSource): Sale[] {
       total: t.total,
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
-      target: { kind: "link", href: eventCategory.get(t.eventId) === "pirtis" ? "/admin/pirtis" : "/admin/renginiai" },
+      target: { kind: "event", id: t.eventId },
+      riderId: t.riderId ?? customerOf(t.customer) ?? null,
     });
   }
 
@@ -141,6 +149,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: couponState(c.status),
       statusLabel: COUPON_STATUS_LABEL[c.status],
       target: { kind: "coupon", id: c.id },
+      riderId: c.riderId ?? customerOf({ email: c.buyer.email }) ?? null,
     });
   }
 
@@ -158,6 +167,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: "galioja",
       statusLabel: SALE_STATE_LABEL.galioja,
       target: { kind: "link", href: `/admin/klientai/${p.riderId}` },
+      riderId: p.riderId,
     });
   }
 

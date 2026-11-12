@@ -1,12 +1,8 @@
 "use client";
 
 import { DownloadSimpleIcon } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useAdmin } from "../admin-store";
-import { BookingSheet } from "../bookings/booking-sheet";
-import { CouponSheet } from "../coupons/coupon-sheet";
-import { RentalSheet } from "../quads/rental-sheet";
+import { useSaleDetails } from "./sale-details";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import { exportFileName } from "@/lib/admin/export";
 import { filterSales, SALE_CATEGORIES, SALE_STATE_LABEL, salesRevenue, salesToCsv, type Sale, type SaleFilters } from "@/lib/admin/sales";
@@ -27,17 +23,13 @@ interface SalesTableProps {
 }
 
 export function SalesTable({ all, filters }: SalesTableProps) {
-  const { bookings, quadRentals, coupons } = useAdmin();
   const [shown, setShown] = useState(PAGE_SIZE);
-  const [open, setOpen] = useState<Extract<Sale["target"], { id: string }> | null>(null);
-  const router = useRouter();
+  const { openSale, sheets } = useSaleDetails();
 
   const rows = useMemo(() => filterSales(all, filters), [all, filters]);
   const withCoupons = filters.category === "kuponai";
   const revenue = salesRevenue(rows, withCoupons);
 
-  const openSale = (target: Sale["target"]) => (target.kind === "link" ? router.push(target.href) : setOpen(target));
-  const close = (isOpen: boolean) => !isOpen && setOpen(null);
 
   return (
     <>
@@ -116,9 +108,7 @@ export function SalesTable({ all, filters }: SalesTableProps) {
         </CardContent>
       </Card>
 
-    <BookingSheet booking={open?.kind === "booking" ? (bookings.find((b) => b.id === open.id) ?? null) : null} onOpenChange={close} />
-    <RentalSheet rental={open?.kind === "rental" ? (quadRentals.find((q) => q.id === open.id) ?? null) : null} onOpenChange={close} />
-    <CouponSheet coupon={open?.kind === "coupon" ? (coupons.find((c) => c.id === open.id) ?? null) : null} onOpenChange={close} />
+    {sheets}
     </>
   );
 }

@@ -41,7 +41,7 @@ added, removed, or majorly upgraded — and add a [[changelog]] entry.
 
 Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 
-## Mobile (`mobile/` workspace, ADR-0083)
+## Mobile (`mobile/` workspace, ADR-0084)
 
 | Package | Version | Why |
 |---------|---------|-----|

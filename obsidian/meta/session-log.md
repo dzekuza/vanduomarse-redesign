@@ -3,7 +3,30 @@
 - **Why:** Expo Go on the owner's iPhone is SDK 58; the app was SDK 53 ("Project is incompatible with this version of Expo Go").
 - **Done:** direct upgrade (expo-upgrade skill) in worktree branch `feat/mobile-expo-sdk-58`, stacked on `feat/mobile-admin-app`; two code fixes; doctor/typecheck/iOS export pass.
 - **Not done / watch:** not run on a device; `expo-notifications` push needs a check on a real iPhone; Expo recommends one SDK at a time, this was a direct jump.
-- **Next:** `cd mobile && npx expo start -c`, open in Expo Go; renumber the mobile ADR (it is ADR-0083 on that branch, but 0083 is taken on `main`).
+- **Next:** `cd mobile && npx expo start -c`, open in Expo Go; the mobile ADR is now ADR-0084.
+## 2026-11-13 — Link orders and registration to one customer per contact
+
+- **Found:** PR-1021 and every order since 7 Nov had no `rider_id`; registration always created a new rider. A first draft of the backfill would have created 2 customers (test e-mail, one coupon buyer): changed to link-only. A first draft ranked the OLDEST customer first, which would have attached PR-1021 to the imported record: now a registered customer first.
+- **Changed:** migration `20261113230000_link_customers_by_contact.sql` (indexes, `find_rider`, `find_or_create_rider`, 4 insert triggers, link-only backfill, `register_rider_public` returning `already_registered`, `create_plan_order` without `self_registered`); `registerRider`; the admin matcher order.
+- **Status:** tsc/eslint clean; the migration was run inside a rolled-back transaction (0 → 6 unlinked, 8958 riders unchanged, PR-1021 → the registered profile). APPLIED and verified on the live DB.
+- **Next:** order something with a known phone and check the new order has the existing customer's `rider_id`; register again with the same number and check no new rider row appears.
+
+## 2026-11-13 — Customer names link to the customer page
+
+- **Found:** PR-1021 had no `rider_id`: orders are only linked by the one-time 7 Nov backfill, so new orders were unlinked (and missing from the new Pirkimai tab).
+- **Changed:** `lib/admin/customer-match.ts`, `CustomerLink`, used in the sheets and two lists; `buildSales` links by contact too.
+- **Status:** tsc/eslint clean; matcher checked with sample numbers; not browser-checked. A permanent fix would link new orders in the database when they are created.
+
+## 2026-11-13 — Pirkimai tab on the customer page
+
+- **Changed:** `CustomerPurchasesTab`; `Sale.riderId` in `lib/admin/sales.ts`; `useSaleDetails` extracted from `SalesTable`.
+- **Status:** tsc/eslint clean; not browser-checked. Orders not linked to a customer record are not listed.
+
+## 2026-11-13 — Sales row opens event details
+
+- **Found:** ticket sales in the Apžvalga table linked to the management pages; the user wants the event or booking details.
+- **Changed:** `SaleTarget` `event` kind; `SalesTable` renders `EventSheet` (+ `EventDialog` for editing).
+- **Status:** tsc/eslint clean; not browser-checked.
 
 ## 2026-11-13 — Coloured status badges
 

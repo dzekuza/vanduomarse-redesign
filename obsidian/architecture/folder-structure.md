@@ -16,7 +16,7 @@ app/                    ← routes; pages compose components directly
 ├── api/admin/mobile-action/ ← Bearer-token authenticated staff API route for mobile actions needing server-only secrets (Stripe refund, Resend coupon email, SMS/push alerts)
 ├── embed/              ← bare booking widgets for the WordPress plugin (ADR-0014)
 └── admin/              ← dashboard: layout (shell, store) + one page per screen
-mobile/                 ← Expo / React Native iOS staff admin app (pnpm workspace, ADR-0083)
+mobile/                 ← Expo / React Native iOS staff admin app (pnpm workspace, ADR-0084)
 ├── app/                ← Expo Router layouts and 5 operational tabs (Šiandien, Skenavimas, Užklausos, Kuponai, Daugiau)
 └── src/                ← useAppTheme() tokens, Supabase client, UsbScanTarget (USB HID bracelet reader), primitives, store
 components/
