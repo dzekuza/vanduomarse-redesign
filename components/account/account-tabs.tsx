@@ -1,10 +1,12 @@
 "use client";
 
+import { CouponList } from "./coupon-list";
 import { InquiryList } from "./inquiry-list";
 import { RequestList } from "./request-list";
 import { RiderPlans } from "./rider-plans";
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { MyInquiry, MyRequest, MyRider, RequestKind } from "@/lib/account";
+import type { MyCoupon, MyInquiry, MyRequest, MyRider, RequestKind } from "@/lib/account";
 
 const TABS: { id: string; label: string; kinds?: readonly RequestKind[] }[] = [
   { id: "visi", label: "Visi" },
@@ -13,21 +15,25 @@ const TABS: { id: string; label: string; kinds?: readonly RequestKind[] }[] = [
   { id: "keturraciai", label: "Keturračiai", kinds: ["keturraciai"] },
   { id: "vandenlentes", label: "Vandenlentės" },
   { id: "pasiulymai", label: "Pasiūlymai" },
+  { id: "kuponai", label: "Kuponai" },
 ];
 
 /** The account's lists by category: every reservation, one category, or the calculator quotes. */
-export function AccountTabs({ requests, inquiries, riders }: { requests: MyRequest[]; inquiries: MyInquiry[]; riders: MyRider[] }) {
+export function AccountTabs({ requests, inquiries, riders, coupons }: { requests: MyRequest[]; inquiries: MyInquiry[]; riders: MyRider[]; coupons: MyCoupon[] }) {
   const count = (id: string, kinds?: readonly RequestKind[]) =>
-    id === "pasiulymai" ? inquiries.length : id === "vandenlentes" ? riders.length : kinds ? requests.filter((r) => kinds.includes(r.kind)).length : requests.length;
+    id === "pasiulymai" ? inquiries.length : id === "kuponai" ? coupons.length : id === "vandenlentes" ? riders.length : kinds ? requests.filter((r) => kinds.includes(r.kind)).length : requests.length;
 
   return (
     <Tabs defaultValue="visi" className="gap-4">
-      <TabsList aria-label="Rezervacijų skiltys" className="grid w-full grid-cols-2 divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto sm:grid-cols-6">
+      <TabsList aria-label="Rezervacijų skiltys" className="grid w-full grid-cols-2 divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto sm:grid-cols-4">
         {TABS.map(({ id, label, kinds }) => (
           <TabsTrigger
             key={id}
             value={id}
-            className="h-full min-h-11 min-w-0 rounded-none px-1 py-2 text-xs wrap-break-word whitespace-normal text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust"
+            className={cn(
+              "h-full min-h-11 min-w-0 rounded-none px-1 py-2 text-xs wrap-break-word whitespace-normal text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust",
+              id === "kuponai" && "col-span-2",
+            )}
           >
             {label} <span className="opacity-60">{count(id, kinds)}</span>
           </TabsTrigger>
@@ -35,7 +41,9 @@ export function AccountTabs({ requests, inquiries, riders }: { requests: MyReque
       </TabsList>
       {TABS.map(({ id, kinds }) => (
         <TabsContent key={id} value={id}>
-          {id === "pasiulymai" ? (
+          {id === "kuponai" ? (
+            <CouponList coupons={coupons} />
+          ) : id === "pasiulymai" ? (
             <InquiryList inquiries={inquiries} />
           ) : id === "vandenlentes" ? (
             <RiderPlans riders={riders} />

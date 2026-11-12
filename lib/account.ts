@@ -1,3 +1,4 @@
+import type { CouponService } from "@/lib/coupons";
 export type RequestKind = "pirtis" | "nakvyne" | "keturraciai" | "renginys";
 
 /** What the account page shows about one of the customer's requests (a sauna, stay, quad or event reservation). */
@@ -95,4 +96,25 @@ export interface MyRider {
 export function visibleRiders(riders: MyRider[]): MyRider[] {
   if (!riders.some((rider) => rider.registered)) return riders;
   return riders.filter((rider) => rider.registered || rider.plan !== null || rider.cards.length > 0 || rider.purchases.length > 0);
+}
+
+/** A paid gift coupon the signed-in account bought or was given (matched by confirmed e-mail, see `my_coupons()`). */
+export interface MyCoupon {
+  reference: string;
+  productName: string;
+  faceValue: number;
+  balance: number;
+  status: "aktyvus" | "panaudotas";
+  /** Null only for odd legacy rows. */
+  code: string | null;
+  /** yyyy-mm-dd */
+  expiresAt: string | null;
+  service: CouponService;
+  /** Bought by this account, or sent to it as a gift. */
+  role: "buyer" | "recipient";
+  buyerName: string;
+  recipientName: string;
+  message: string;
+  /** Checkout Session id: only for coupons this account bought online; opens the PDF page and the resend button. */
+  sessionId: string | null;
 }

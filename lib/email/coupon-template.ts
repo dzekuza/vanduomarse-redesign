@@ -1,5 +1,6 @@
 import "server-only";
 import { CONTACTS } from "@/lib/contacts";
+import { COUPON_RULES, COUPON_RULES_TITLE } from "@/lib/coupon-rules";
 import { COUPON_SERVICE_LABEL, formatCode, formatEuro, formatExpiry } from "@/lib/coupons";
 import { SITE_URL } from "@/lib/site";
 import type { CouponEmail } from "./send-coupon";
@@ -18,12 +19,6 @@ const CORAL = "#ed5257";
 const CORAL_INK = "#a8282d";
 const COPY = "#6d6069";
 const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-
-const STEPS = [
-  "Rezervuodami pirtį ar nakvynę svetainėje, laukelyje „Turite dovanų kuponą?“ įveskite kodą.",
-  "Arba parodykite kodą (atspausdintą ar telefone) komandai parke.",
-  "Kupono vertė sumažina sąskaitą; likutis lieka kuponui iki galiojimo pabaigos.",
-];
 
 const label = (text: string) => `<p style="margin:0 0 4px;font:700 11px ${FONT};letter-spacing:1px;text-transform:uppercase;color:${COPY};">${escapeHtml(text)}</p>`;
 
@@ -74,8 +69,8 @@ export function buildCouponEmail(c: CouponEmail, audience: CouponEmailAudience):
     <p style="margin:0 0 8px;font:400 13px/1.5 ${FONT};color:${COPY};">Kuponą PDF formatu rasite ir prisegtame faile.</p>`
         : `<p style="margin:24px 0 8px;font:400 13px/1.5 ${FONT};color:${COPY};">Kuponą PDF formatu rasite prisegtame faile.</p>`
     }
-    <p style="margin:24px 0 8px;font:700 11px ${FONT};letter-spacing:1px;text-transform:uppercase;color:${COPY};">Kaip panaudoti</p>
-    <table role="presentation" cellpadding="0" cellspacing="0">${STEPS.map(
+    <p style="margin:24px 0 8px;font:700 11px ${FONT};letter-spacing:1px;text-transform:uppercase;color:${COPY};">${escapeHtml(COUPON_RULES_TITLE)}</p>
+    <table role="presentation" cellpadding="0" cellspacing="0">${COUPON_RULES.map(
       (s, i) => `<tr><td valign="top" style="padding:0 10px 8px 0;font:700 14px/1.5 ${FONT};color:${CORAL_INK};">${i + 1}</td><td style="padding:0 0 8px;font:400 14px/1.5 ${FONT};">${escapeHtml(s)}</td></tr>`,
     ).join("")}</table>
   </td></tr>
@@ -96,8 +91,8 @@ export function buildCouponEmail(c: CouponEmail, audience: CouponEmailAudience):
     `Vertė: ${value}`,
     `Galioja: ${service.toLowerCase()}, iki ${expires}`,
     "",
-    "Kaip panaudoti:",
-    ...STEPS.map((s, i) => `${i + 1}. ${s}`),
+    `${COUPON_RULES_TITLE}:`,
+    ...COUPON_RULES.map((s, i) => `${i + 1}. ${s}`),
     ...(c.voucherUrl ? ["", `Kuponas spausdinimui / PDF: ${c.voucherUrl}`] : []),
     "Kuponą PDF formatu rasite prisegtame faile.",
     "",

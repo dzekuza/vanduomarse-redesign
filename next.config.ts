@@ -10,7 +10,7 @@ const SECURITY_HEADERS = [
 ];
 
 /** Read at runtime by lib/email/coupon-pdf.ts. */
-const COUPON_PDF_FILES = ["./app/fonts/Termina-Regular.otf", "./app/fonts/Termina-Bold.otf", "./public/brand/logo-email.png"];
+const COUPON_PDF_FILES = ["./app/fonts/Termina-Regular.otf", "./app/fonts/Termina-Bold.otf", "./public/brand/voucher/logo.png", "./public/brand/voucher/star.png", "./public/brand/voucher/banner.jpg"];
 
 const nextConfig: NextConfig = {
   cacheComponents: false,

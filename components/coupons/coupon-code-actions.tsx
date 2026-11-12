@@ -5,7 +5,7 @@ import { resendCouponEmail } from "@/app/actions/coupons";
 import { Button } from "@/components/ui/button";
 
 /** Copy the code, open the printable voucher, and send the email again (once every couple of minutes). */
-export function CouponCodeActions({ code, sessionId }: { code: string; sessionId: string }) {
+export function CouponCodeActions({ code, sessionId }: { code: string; /** Only coupons bought online have one: it opens the PDF page and allows the resend. */ sessionId?: string | null }) {
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
@@ -28,6 +28,7 @@ export function CouponCodeActions({ code, sessionId }: { code: string; sessionId
   async function resend() {
     setBusy(true);
     setMessage(null);
+    if (!sessionId) return;
     const result = await resendCouponEmail(sessionId);
     setBusy(false);
     setMessage("error" in result ? { text: result.error.message, ok: false } : { text: "Laišką išsiuntėme į jūsų el. paštą. Patikrinkite ir šiukšliadėžę.", ok: true });
@@ -39,12 +40,15 @@ export function CouponCodeActions({ code, sessionId }: { code: string; sessionId
         <Button type="button" variant="outline" className="min-h-11 border-ink bg-transparent" onClick={() => void copy()}>
           {copied ? "Nukopijuota" : "Kopijuoti kodą"}
         </Button>
-        <Button asChild variant="outline" className="min-h-11 border-ink bg-transparent">
-          <a href={`/kuponai/kuponas?sid=${encodeURIComponent(sessionId)}`} target="_blank" rel="noreferrer">
-            Atsisiųsti PDF
-          </a>
-        </Button>
+        {sessionId ? (
+          <Button asChild variant="outline" className="min-h-11 border-ink bg-transparent">
+            <a href={`/kuponai/kuponas?sid=${encodeURIComponent(sessionId)}`} target="_blank" rel="noreferrer">
+              Atsisiųsti PDF
+            </a>
+          </Button>
+        ) : null}
       </div>
+      {sessionId ? (
       <div>
         <button type="button" disabled={busy} onClick={() => void resend()} className="inline-flex min-h-11 items-center border-b border-current text-sm font-bold disabled:opacity-50">
           {busy ? "Siunčiama..." : "Negavote laiško? Siųsti dar kartą"}
@@ -55,6 +59,7 @@ export function CouponCodeActions({ code, sessionId }: { code: string; sessionId
           </p>
         ) : null}
       </div>
+      ) : null}
     </div>
   );
 }
