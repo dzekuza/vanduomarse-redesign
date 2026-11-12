@@ -2,7 +2,7 @@
 
 - 2026-11-12 `/sventes` calculator, Švediškas stalas card (`food-section.tsx`): the "Kaina vienam suaugusiajam" slider and its price labels were only as wide as their content (the card's controls row is a wrapping flex row); the wrapper is now `w-full`, so the slider spans the card and "Pasirinkti" wraps below. `tsc`/eslint clean; checked at 1280 px.
 
-- 2026-11-12 Removed the "„Google Maps“ per „Wanderlog“" link from the visitor review cards (`service-reviews.tsx`); those cards now name "„Google Maps“" as plain text. Booking.com and Restaurant Guru cards keep their links.
+- 2026-11-12 Removed the "„Google Maps“ per „Wanderlog“" link from the visitor review cards (`service-reviews.tsx`); those cards now name "„Google Maps“" as plain text. Booking.com and Restaurant Guru cards keep their links. Also removed the "Skaityti „Vanduo Marse“ atsiliepimus „Google Maps“" link under the reviews on /pirtis.
 
 - 2026-11-12 Sauna booking calendar (`/pirtis`, `/rezervacija`): day cells show the number of free start times for the chosen length (private hire) or the number of sessions with room (Pirties seansai) instead of the wave icon; `dayDetails` with `AvailabilityCount` in `sauna-service-booking.tsx`, same recipe as the cabin counts. `tsc`/eslint clean; checked at 1280 px on /rezervacija (Suomiska sauna, 2 val.: 11 on a free day).
 

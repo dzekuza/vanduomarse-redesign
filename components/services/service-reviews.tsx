@@ -1,8 +1,6 @@
 import { ArrowUpRightIcon, StarIcon } from "@phosphor-icons/react/dist/ssr";
 import type { ServiceId } from "@/components/landing/content";
 
-const PARK_GOOGLE_REVIEWS_URL = "https://www.google.com/maps/place//data=!4m4!3m3!1s0x46e71f5cc75c8d1f:0xe85e73ab6be12dc!9m1!1b1";
-
 /** Shown as plain text: the reviews are summaries and have no page of their own to link to. */
 const GOOGLE_REVIEWS = { label: "„Google Maps“" };
 
@@ -110,17 +108,6 @@ export function ServiceReviews({ service }: { service: ServiceId }) {
           </li>
         ))}
       </ul>
-      {service === "sauna" ? (
-        <a
-          href={PARK_GOOGLE_REVIEWS_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 text-xs font-bold underline underline-offset-4 hover:text-rust"
-        >
-          Skaityti „Vanduo Marse“ atsiliepimus „Google Maps“
-          <ArrowUpRightIcon aria-hidden className="size-4 shrink-0" />
-        </a>
-      ) : null}
     </div>
   );
 }
