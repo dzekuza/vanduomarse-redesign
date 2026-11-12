@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
+import { MemberPlanCheckout } from "@/components/registration/member-plan-checkout";
 import { RegistrationFlow, type RegistrationPlan } from "@/components/registration/registration-flow";
 import { loadMyRiders } from "@/lib/account-data";
 import { getCustomer } from "@/lib/customer";
@@ -21,10 +22,11 @@ async function loadPlan(id: string | undefined): Promise<RegistrationPlan | unde
 }
 
 /**
- * What the signed-in customer already gave us, to prefill step 1: the details of their customer record when there is one
- * (the one matched through their confirmed e-mail or phone), otherwise what the account itself knows. Nothing when signed out.
+ * What the signed-in customer already gave us: the details of their customer record when there is one (the one matched
+ * through their confirmed e-mail or phone), otherwise what the account itself knows; plus whether that record is a finished
+ * registration (photo and signed rules). Nothing when signed out.
  */
-async function loadInitialContact(): Promise<Partial<RegistrationInput> | undefined> {
+async function loadAccountContext(): Promise<{ initial: Partial<RegistrationInput>; registeredName: string | null } | undefined> {
   const customer = await getCustomer();
   if (!customer) return undefined;
   const riders = await loadMyRiders();
@@ -33,18 +35,24 @@ async function loadInitialContact(): Promise<Partial<RegistrationInput> | undefi
   const rider = riders.find((r) => r.registration);
   const [firstName = "", ...rest] = customer.name.trim().split(/\s+/);
   return {
-    name: rider?.name ?? firstName,
-    surname: rider?.surname ?? rest.join(" "),
-    email: rider?.registration?.email || customer.email || "",
-    phone: rider?.registration?.phone || customer.phone || "",
-    phone2: rider?.registration?.phone2 || "",
-    birthdate: rider?.registration?.birthdate || "",
+    initial: {
+      name: rider?.name ?? firstName,
+      surname: rider?.surname ?? rest.join(" "),
+      email: rider?.registration?.email || customer.email || "",
+      phone: rider?.registration?.phone || customer.phone || "",
+      phone2: rider?.registration?.phone2 || "",
+      birthdate: rider?.registration?.birthdate || "",
+    },
+    registeredName: rider?.registered ? rider.name : null,
   };
 }
 
-export default async function RegistrationPage({ searchParams }: { searchParams: Promise<{ abonementas?: string }> }) {
-  const { abonementas } = await searchParams;
-  const [plan, initial] = await Promise.all([loadPlan(abonementas), loadInitialContact()]);
+export default async function RegistrationPage({ searchParams }: { searchParams: Promise<{ abonementas?: string; kitas?: string }> }) {
+  const { abonementas, kitas } = await searchParams;
+  const [plan, account] = await Promise.all([loadPlan(abonementas), loadAccountContext()]);
+  const initial = account?.initial;
+  // A finished registration buying a plan goes straight to payment, unless they are registering someone else (?kitas=1).
+  const member = plan && !kitas ? (account?.registeredName ?? null) : null;
 
   return (
     <BookingPage>
@@ -56,12 +64,14 @@ export default async function RegistrationPage({ searchParams }: { searchParams:
               crumb="Registracija"
               introClassName="max-w-2xl"
               title={plan ? ["Užsakyk", plan.name] : ["Tapk Vanduo", "Marse nariu"]}
-              intro={plan
+              intro={plan && member !== null
+                ? "Tavo registracija jau išsaugota, belieka apmokėti."
+                : plan
                 ? "Prieš apmokėdamas užsiregistruok: kontaktai, nuotrauka ir taisyklės. Apmokėjus planą priskirsime tau, o apyrankę parke priskirs darbuotojas."
                 : "Užpildyk kontaktus, nusifotografuok ir pasirašyk taisykles — darbuotojas kasoje iškart priskirs tau apyrankę."}
             />
           </div>
-          <RegistrationFlow plan={plan} initial={initial} />
+          {plan && member !== null ? <MemberPlanCheckout plan={plan} name={member} /> : <RegistrationFlow plan={plan} initial={kitas ? undefined : initial} />}
         </div>
       </div>
     </BookingPage>

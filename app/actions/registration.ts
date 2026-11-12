@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
+import { loadMyRiders } from "@/lib/account-data";
+import { getCustomer } from "@/lib/customer";
 import { registrationSchema } from "@/lib/registration-schema";
 import { TERMS_VERSION } from "@/lib/park-rules";
 import { openPlanCheckout } from "@/lib/plan-checkout";
@@ -101,6 +103,12 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
 
   if (!planId) return { data: { riderId } };
 
+  const started = await startPlanCheckout(riderId, planId);
+  return "error" in started ? started : { data: { riderId, checkoutUrl: started.data.checkoutUrl } };
+}
+
+/** Creates the plan order for a rider and opens Stripe Checkout; drops the order again when Checkout cannot open. */
+async function startPlanCheckout(riderId: string, planId: string): Promise<ActionResult<{ checkoutUrl: string }>> {
   const admin = createAdminClient();
   const { data: order, error: orderError } = await admin.rpc("create_plan_order", { p_rider_id: riderId, p_plan_id: planId });
   const row = order?.[0];
@@ -117,5 +125,19 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
     }
     return fail(PLAN_FAILED, "payment");
   }
-  return { data: { riderId, checkoutUrl } };
+  return { data: { checkoutUrl } };
+}
+
+/**
+ * A customer who already finished /registracija (photo and signed rules) buys a plan without registering again. The rider is
+ * found from the signed-in session, through the confirmed e-mail or phone, never from anything the browser sends.
+ */
+export async function buyPlanAsMember(planId: string): Promise<ActionResult<{ checkoutUrl: string }>> {
+  if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
+  if (!paymentsEnabled()) return fail("Mokėjimas šiuo metu neveikia. Skambinkite mums.", "setup");
+  const customer = await getCustomer();
+  if (!customer) return fail("Prisijunkite, kad tęstumėte.", "unauthorized");
+  const member = (await loadMyRiders()).find((r) => r.registration && r.registered);
+  if (!member) return fail("Registracija nerasta. Užpildykite registracijos formą.", "not_registered");
+  return startPlanCheckout(member.id, planId);
 }
