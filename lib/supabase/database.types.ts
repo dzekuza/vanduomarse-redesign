@@ -2093,7 +2093,7 @@ export type Database = {
           p_buyer_email: string
           p_buyer_name: string
           p_buyer_phone: string
-          p_ip_hash?: string
+          p_ip_hash: string
           p_message?: string
           p_product_id: string
           p_recipient_email?: string
