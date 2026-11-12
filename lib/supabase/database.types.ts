@@ -297,6 +297,9 @@ export type Database = {
           buyer_phone: string | null
           code: string | null
           created_at: string
+          discount_amount: number
+          discount_code: string | null
+          discount_code_id: string | null
           expires_at: string | null
           face_value: number
           ip_hash: string | null
@@ -323,6 +326,9 @@ export type Database = {
           buyer_phone?: string | null
           code?: string | null
           created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           expires_at?: string | null
           face_value: number
           ip_hash?: string | null
@@ -349,6 +355,9 @@ export type Database = {
           buyer_phone?: string | null
           code?: string | null
           created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           expires_at?: string | null
           face_value?: number
           ip_hash?: string | null
@@ -2321,6 +2330,7 @@ export type Database = {
       create_coupon_order: {
         Args: {
           p_buyer_email: string
+          p_discount_code?: string
           p_buyer_name: string
           p_buyer_phone: string
           p_ip_hash: string

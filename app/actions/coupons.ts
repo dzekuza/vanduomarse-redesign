@@ -57,10 +57,14 @@ export async function createCouponOrder(input: CouponOrderInput): Promise<Action
     p_recipient_email: v.recipientEmail,
     p_message: v.message,
     p_ip_hash: ipHash,
+    p_discount_code: v.discountCode || undefined,
   });
 
   if (error) {
     if (error.hint === "product_unavailable") return fail("Šio kupono jau nebeparduodame. Atnaujinkite puslapį.", "unavailable");
+    if (error.hint === "discount_invalid") return fail("Nuolaidos kodas negalioja dovanų kuponams.", "discount");
+    if (error.hint === "discount_used_up") return fail("Šis nuolaidos kodas jau išnaudotas.", "discount");
+    if (error.hint === "below_minimum") return fail("Po nuolaidos suma per maža apmokėjimui (mažiausia 0,50 €).", "discount");
     if (error.hint === "too_many_orders") return fail("Šiuo metu priimame per daug užsakymų. Bandykite vėliau arba skambinkite.", "busy");
     return fail(FAILED, "db");
   }

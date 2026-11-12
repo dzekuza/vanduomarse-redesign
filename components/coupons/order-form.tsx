@@ -11,6 +11,8 @@ import { Panel } from "@/components/panel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CouponDiscountField } from "@/components/coupons/coupon-discount-field";
+import { discountFor, type CheckedDiscount } from "@/lib/discount-codes";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
 import { formatEuro, isWakeSeasonPass, type CouponProduct } from "@/lib/coupons";
 
@@ -42,6 +44,9 @@ export function Field({ id, label, error, children }: { id: string; label: strin
 /** Buyer, recipient and message for the selected coupon. Validates with the same schema as the server action, then sends the buyer to Stripe Checkout. */
 export function OrderForm({ product }: { product: CouponProduct }) {
   const [redirecting, setRedirecting] = useState(false);
+  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const discountAmount = discount ? discountFor(discount, "kuponai", product.value) : 0;
+  const total = Math.max(product.value - discountAmount, 0);
   const form = useForm<CouponOrderInput>({
     resolver: zodResolver(couponOrderSchema),
     values: {
@@ -62,7 +67,7 @@ export function OrderForm({ product }: { product: CouponProduct }) {
 
   const submit = handleSubmit(async (values) => {
     clearErrors("root");
-    const result = await createCouponOrder(values);
+    const result = await createCouponOrder({ ...values, discountCode: discount?.code });
     if ("error" in result) {
       setError("root", { message: result.error.message });
       return;
@@ -100,7 +105,16 @@ export function OrderForm({ product }: { product: CouponProduct }) {
       </Field>
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" {...register("website")} />
       {errors.root ? <p role="alert" className="text-sm text-rust-ink">{errors.root.message}</p> : null}
-      <BookingPrice amount={formatEuro(product.value)} note="Apmokėsite saugiai kortele. Kodą atsiųsime el. paštu iškart po apmokėjimo." />
+      <CouponDiscountField discount={discount} amount={discountAmount} disabled={isSubmitting || redirecting} onChange={setDiscount} />
+      <BookingPrice
+        amount={formatEuro(total)}
+        note={
+          <>
+            {discount ? <span className="block">Kupono vertė {formatEuro(product.value)}, su nuolaida mokate {formatEuro(total)}.</span> : null}
+            Apmokėsite saugiai kortele. Kodą atsiųsime el. paštu iškart po apmokėjimo.
+          </>
+        }
+      />
       <ArrowButton fullWidth type="submit" disabled={isSubmitting || redirecting}>
         {redirecting ? "Nukreipiame į apmokėjimą..." : isSubmitting ? "Siunčiama..." : "Pirkti kuponą"}
       </ArrowButton>

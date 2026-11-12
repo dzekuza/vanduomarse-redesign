@@ -15,6 +15,8 @@ export const couponOrderSchema = z.object({
   /** Optional: the code is emailed to the recipient as well, once the order is paid. */
   recipientEmail: z.union([z.literal(""), z.email("Neteisingas el. paštas").max(120)]),
   message: z.string().trim().max(300, "Daugiausia 300 simbolių"),
+  /** Optional discount code; the database validates it and sets the price. */
+  discountCode: z.string().trim().max(40).optional(),
   /** Honeypot: real visitors never see or fill it. */
   website: z.string().max(0).optional(),
 });
