@@ -39,7 +39,7 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   const { copy }: { copy: ServicePageCopy } = await getServicePageContent(service);
   const schema = (
     <>
-      <JsonLd data={serviceSchema({ name: copy.title, description: copy.summary, path: `/${service}` })} />
+      <JsonLd data={serviceSchema({ name: copy.title, description: copy.summary, path: `/${service}`, image: (SERVICE_OG_IMAGES[copy.service] ?? { url: SERVICES[copy.service].photo }).url })} />
       <JsonLd data={breadcrumbSchema({ name: copy.title, path: `/${service}` })} />
       {copy.questions.length > 0 && <JsonLd data={faqSchema(copy.questions.map(({ title, body }) => ({ q: title, a: body })))} />}
     </>

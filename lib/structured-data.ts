@@ -40,7 +40,7 @@ export function localBusinessSchema(): Record<string, unknown> {
 }
 
 /** One service page (sauna, quads, cabins, ...) offered by the park. */
-export function serviceSchema({ name, description, path }: { name: string; description: string; path: string }): Record<string, unknown> {
+export function serviceSchema({ name, description, path, image }: { name: string; description: string; path: string; image?: string }): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -49,6 +49,7 @@ export function serviceSchema({ name, description, path }: { name: string; descr
     url: `${SITE_URL}${path}`,
     provider: { "@id": BUSINESS_ID },
     areaServed: "Kauno rajonas",
+    ...(image ? { image: image.startsWith("http") ? image : `${SITE_URL}${image}` } : {}),
   };
 }
 

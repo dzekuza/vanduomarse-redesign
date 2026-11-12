@@ -63,3 +63,5 @@ Keep prices and capacities out of the copy (they come from the database). The fu
 - The sitemap sets `lastmod` only for service pages edited in `/admin/puslapiai` (`page_content.updated_at`); no invented dates, no `changefreq`.
 - `public/llms.txt` lists address, contacts, hours, season and how prices are published.
 - Open: public pages are rendered per request (`no-store`); add `sameAs` profiles (Facebook, Google Business Profile) when the URLs are known.
+- `/kainos` lists every published price (`ServicePricing` per service, same data as the service pages); linked from the footer, sitemap and `llms.txt`. `Service` JSON-LD has an `image`.
+- Caching: only pages without live data (home, /kontaktai, /privatumo-politika) are CDN-cached. Service pages, /renginiai and /kuponai read live availability and the signed-in customer, so they stay per request (TTFB 0.6-1.2 s). A speed fix needs partial prerendering (`cacheComponents`) so the static shell is cached and only availability streams in: plan it separately.

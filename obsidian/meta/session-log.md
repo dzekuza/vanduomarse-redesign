@@ -1,3 +1,9 @@
+## 2026-11-13 — SEO audit, the rest
+
+- **Changed:** public `/kainos` price page (sitemap, footer, llms.txt), `Service` image markup; measured TTFB (see changelog).
+- **Status:** tsc/eslint pass; branch `feat/seo-rest` (includes `fix/seo-audit-quick-wins`).
+- **Not done:** caching of dynamic pages (needs partial prerendering), `sameAs` URLs, guide articles and named people (need real content from the owner).
+
 ## 2026-11-13 — SEO audit quick wins
 
 - **Changed:** titles, `/registracija` noindex, `Event` markup on `/renginiai`, sitemap `lastmod`, richer `llms.txt`.

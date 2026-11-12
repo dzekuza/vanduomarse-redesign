@@ -23,6 +23,7 @@ const SERVICE_GROUPS: readonly { title: string; services: readonly ServiceId[] }
 const LINK_GROUPS = [
   ...SERVICE_GROUPS.map(({ title, services }) => ({ title, links: SERVICE_LINKS.filter(({ service }) => services.includes(service)) })),
   { title: "Informacija", links: [
+    { href: "/kainos", label: "Kainos" },
     { href: "/kontaktai", label: "Kontaktai" },
     { href: "/privatumo-politika", label: "Privatumo politika" },
   ] },
