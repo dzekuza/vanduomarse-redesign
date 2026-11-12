@@ -5,7 +5,7 @@ import { checkDiscountCode } from "@/app/actions/discount-codes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { discountValueLabel, type CheckedDiscount } from "@/lib/discount-codes";
+import { discountValueLabel, type CheckedDiscount, type DiscountService } from "@/lib/discount-codes";
 import { formatEuro } from "@/lib/coupons";
 
 interface CouponDiscountFieldProps {
@@ -14,10 +14,12 @@ interface CouponDiscountFieldProps {
   amount: number;
   disabled: boolean;
   onChange: (discount: CheckedDiscount | null) => void;
+  /** What is being bought; the code must cover it. Default: gift coupons. */
+  service?: DiscountService;
 }
 
 /** "Turite nuolaidos kodą?": expands to a code field; once applied shows what it takes off. The database prices the code again on submit. */
-export function CouponDiscountField({ discount, amount, disabled, onChange }: CouponDiscountFieldProps) {
+export function CouponDiscountField({ discount, amount, disabled, onChange, service = "kuponai" }: CouponDiscountFieldProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -29,7 +31,7 @@ export function CouponDiscountField({ discount, amount, disabled, onChange }: Co
     startTransition(async () => {
       const result = await checkDiscountCode(code);
       if ("error" in result) return setError(result.error.message);
-      if (!result.data.services.includes("kuponai")) return setError("Šis kodas netinka dovanų kuponams.");
+      if (!result.data.services.includes(service)) return setError(service === "kuponai" ? "Šis kodas netinka dovanų kuponams." : "Šis kodas netinka šiam užsakymui.");
       onChange(result.data);
       setCode("");
     });
@@ -58,10 +60,10 @@ export function CouponDiscountField({ discount, amount, disabled, onChange }: Co
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor="coupon-discount">Nuolaidos kodas</Label>
+      <Label htmlFor={`discount-${service}`}>Nuolaidos kodas</Label>
       <div className="flex gap-2">
         <Input
-          id="coupon-discount"
+          id={`discount-${service}`}
           value={code}
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => {

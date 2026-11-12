@@ -1434,6 +1434,9 @@ export type Database = {
       rider_plan_orders: {
         Row: {
           created_at: string
+          discount_amount: number
+          discount_code: string | null
+          discount_code_id: string | null
           id: string
           paid_at: string | null
           plan_category: string
@@ -1449,6 +1452,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           id?: string
           paid_at?: string | null
           plan_category: string
@@ -1464,6 +1470,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
           id?: string
           paid_at?: string | null
           plan_category?: string
@@ -2258,7 +2267,7 @@ export type Database = {
         }[]
       }
       create_plan_order: {
-        Args: { p_plan_id: string; p_rider_id: string }
+        Args: { p_discount_code?: string; p_plan_id: string; p_rider_id: string }
         Returns: {
           id: string
           plan_name: string
