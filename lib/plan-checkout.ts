@@ -33,7 +33,7 @@ export async function openPlanCheckout(o: PlanOrderToPay): Promise<string | null
       customer_email: o.buyerEmail || undefined,
       client_reference_id: o.id,
       metadata: { plan_order_id: o.id, plan_order_reference: o.reference },
-      payment_intent_data: { metadata: { plan_order_id: o.id }, description: `Vanduo Marse abonementas ${o.reference} (${formatEuro(o.amount)})` },
+      payment_intent_data: { metadata: { plan_order_id: o.id }, description: `Vanduo Marse planas ${o.reference} (${formatEuro(o.amount)})` },
       success_url: `${origin}/registracija/apmoketa?sid={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/registracija/apmoketa?sid={CHECKOUT_SESSION_ID}&atsaukta=1`,
       expires_at: Math.floor(Date.now() / 1000) + SESSION_MINUTES * 60,

@@ -292,6 +292,7 @@ async function loadWakeOffers(): Promise<WakeOffer[]> {
     value: plan.price,
     active: true,
     planId: plan.id,
+    planCategory: plan.category,
   }));
   return [...products.filter(({ service }) => service === "kabelis"), ...planOffers];
 }

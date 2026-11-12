@@ -200,7 +200,7 @@ export const emailPlanPaidCustomer = (o: { to: string; riderName: string; planNa
     ...body([
       `Sveiki, ${o.riderName}!`,
       { strong: `${o.planName}, ${formatEuro(o.amount)}: apmokėta. Dėkojame!` },
-      "Abonementas priskirtas jūsų profiliui. Atvykę į parką, kasoje pasakykite savo vardą: darbuotojas priskirs jums apyrankę.",
+      "Planas priskirtas jūsų profiliui. Atvykę į parką, kasoje pasakykite savo vardą: darbuotojas priskirs jums apyrankę.",
     ]),
   });
 
@@ -208,7 +208,7 @@ export const emailPlanPaidCustomer = (o: { to: string; riderName: string; planNa
 export const emailStaffPlanPaid = (o: PlanPaidNotice & { problem?: string }) =>
   sendEmail({
     to: couponStaffTo(),
-    subject: o.problem ? `PATIKRINTI ABONEMENTO MOKĖJIMĄ ${o.reference}` : `Apmokėtas abonementas ${o.reference}`,
+    subject: o.problem ? `PATIKRINTI PLANO MOKĖJIMĄ ${o.reference}` : `Apmokėtas planas ${o.reference}`,
     ...body(
       [
         { strong: `${o.planName}, ${formatEuro(o.amount)}` },
@@ -224,6 +224,6 @@ export const emailStaffPlanPaid = (o: PlanPaidNotice & { problem?: string }) =>
 export const emailStaffPlanCancelled = (reference: string) =>
   sendEmail({
     to: couponStaffTo(),
-    subject: `Abonemento užsakymas ${reference} atšauktas (grąžinti pinigai)`,
+    subject: `Plano užsakymas ${reference} atšauktas (grąžinti pinigai)`,
     ...body([{ strong: `Užsakymas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja.", ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : [])], false),
   });

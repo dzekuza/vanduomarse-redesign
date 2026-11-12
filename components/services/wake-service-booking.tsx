@@ -110,7 +110,7 @@ export function WakeBookingSummary({ product, contact }: { product?: WakeOffer; 
         <BookingPrice
           amount={formatEuro(product?.value ?? 0)}
           note={!product ? "Pasirink pasiūlymą, kad matytum kainą."
-            : product.planId ? "Užsiregistruosi (kontaktai, nuotrauka, taisyklės) ir apmokėsi. Abonementas priskiriamas tau, apyrankę parke priskirs darbuotojas."
+            : product.planId ? `Užsiregistruosi (kontaktai, nuotrauka, taisyklės) ir apmokėsi. ${season ? "Abonementas" : "Planas"} priskiriamas tau, apyrankę parke priskirs darbuotojas.`
             : season ? "Apmokėjus gausi kupono kodą. Abonementą su šiuo kodu aktyvuos komanda parke."
               : "Apmokėjus gausi plaukimo kupono kodą. Plaukimo laiką suderink su Marso Akademija."}
         />

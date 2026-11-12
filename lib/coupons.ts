@@ -25,7 +25,8 @@ export interface CouponProduct {
 
 /** Season passes use the same checkout and are activated in person from the paid coupon code. */
 export function isWakeSeasonPass(product: WakeOffer): boolean {
-  return Boolean(product.planId) || (product.service === "kabelis" && product.id.startsWith("wake-abonementas-"));
+  if (product.planId) return product.planCategory === "Abonementai";
+  return product.service === "kabelis" && product.id.startsWith("wake-abonementas-");
 }
 
 /**
@@ -34,6 +35,8 @@ export function isWakeSeasonPass(product: WakeOffer): boolean {
  */
 export interface WakeOffer extends CouponProduct {
   planId?: string;
+  /** The plan's category (`Plaukimas` = rides, `Abonementai` = season passes); set with `planId`. */
+  planCategory?: string;
 }
 
 /** What a customer learns about a code: its remaining balance and scope, nothing about the buyer. */

@@ -31,7 +31,7 @@ export default async function RegistrationPage({ searchParams }: { searchParams:
               crumb="Registracija"
               title={plan ? ["Užsakyk", plan.name] : ["Tapk Vanduo", "Marse nariu"]}
               intro={plan
-                ? "Prieš apmokėdamas užsiregistruok: kontaktai, nuotrauka ir taisyklės. Apmokėjus abonementą priskirsime tau, o apyrankę parke priskirs darbuotojas."
+                ? "Prieš apmokėdamas užsiregistruok: kontaktai, nuotrauka ir taisyklės. Apmokėjus planą priskirsime tau, o apyrankę parke priskirs darbuotojas."
                 : "Užpildyk kontaktus, nusifotografuok ir pasirašyk taisykles — darbuotojas kasoje iškart priskirs tau apyrankę."}
             />
           </div>

@@ -1,3 +1,10 @@
+## 2026-11-13 — Plaukimas items from the database
+
+- **Found:** Plaukimas read coupon products (none exist for rides) and the 13 swim plans in `ride_plans` were all `sold_online = false`.
+- **Changed:** `WakeOffer.planCategory`, `isWakeSeasonPass` by category, plan wording; migration `20261113190000_sell_swim_plans_online.sql` (NOT applied: classifier blocked).
+- **Status:** tsc/eslint clean; not browser-checked. Rides appear only after the migration is applied.
+- **Next:** apply it; consider an admin toggle for `sold_online` in /admin/apyrankes → Planai.
+
 ## 2026-11-13 — my_riders() security fix (review finding)
 
 - **Found:** automated security review: a `phone2` match (staff-entered, maybe a parent's number) returned the rider's birth date, e-mail, phones and photo.

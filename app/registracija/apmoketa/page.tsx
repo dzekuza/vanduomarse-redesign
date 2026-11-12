@@ -5,7 +5,7 @@ import { PlanPaymentStatus, type PlanPaymentView } from "@/components/registrati
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
-  title: "Abonemento apmokėjimas - Vanduo Marse",
+  title: "Plano apmokėjimas - Vanduo Marse",
   robots: { index: false },
 };
 
@@ -30,7 +30,7 @@ export default async function PlanPaymentPage({ searchParams }: { searchParams: 
   return (
     <BookingPage>
       <div className="theme-reservation space-y-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
-        <BookingHeader crumb="Abonemento apmokėjimas" title={["Abonemento", "apmokėjimas"]} />
+        <BookingHeader crumb="Plano apmokėjimas" title={["Plano", "apmokėjimas"]} />
         <PlanPaymentStatus order={order} cancelled={Boolean(atsaukta)} />
       </div>
     </BookingPage>

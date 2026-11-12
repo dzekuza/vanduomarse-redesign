@@ -27,14 +27,14 @@ export function PlanPaymentStatus({ order, cancelled }: { order: PlanPaymentView
 
   const paid = order.status === "apmoketa";
   const pending = order.status === "laukia_apmokejimo";
-  const title = paid ? "Apmokėta. Abonementas tavo." : pending && !cancelled ? "Tikriname mokėjimą" : pending ? "Mokėjimas nebaigtas" : "Užsakymas atšauktas";
+  const title = paid ? "Apmokėta. Planas tavo." : pending && !cancelled ? "Tikriname mokėjimą" : pending ? "Mokėjimas nebaigtas" : "Užsakymas atšauktas";
   const text = paid
-    ? `Abonementas priskirtas tavo profiliui${order.hasEmail ? " ir patvirtinimą išsiuntėme el. paštu" : ""}. Atvykęs į parką, kasoje pasakyk savo vardą: darbuotojas priskirs apyrankę.`
+    ? `Planas priskirtas tavo profiliui${order.hasEmail ? " ir patvirtinimą išsiuntėme el. paštu" : ""}. Atvykęs į parką, kasoje pasakyk savo vardą: darbuotojas priskirs apyrankę.`
     : pending && !cancelled
       ? "Laukiame Stripe patvirtinimo. Puslapis atsinaujins pats."
       : pending
         ? `Mokėjimas nebuvo atliktas. Užsakymas galioja trumpai; jei norite pabaigti, skambinkite ${MAIN_CONTACT.phone} arba užsakykite iš naujo.`
-        : "Mokėjimas nebuvo atliktas arba grąžintas, abonementas nepriskirtas. Gali užsakyti iš naujo.";
+        : "Mokėjimas nebuvo atliktas arba grąžintas, planas nepriskirtas. Gali užsakyti iš naujo.";
 
   return (
     <PaymentCard title={title} text={text} refs={[order.reference]} amount={order.amount}>
