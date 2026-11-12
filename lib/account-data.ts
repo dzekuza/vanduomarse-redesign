@@ -1,6 +1,7 @@
 import "server-only";
-import { REQUEST_PAYMENT_LABEL, type MyInquiry, type MyRequest, type MyRider } from "@/lib/account";
+import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyInquiry, type MyRequest, type MyRider } from "@/lib/account";
 import { formatHour } from "@/lib/sauna";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const PAYMENTS = Object.keys(REQUEST_PAYMENT_LABEL);
@@ -124,12 +125,38 @@ export async function loadMyRiders(): Promise<MyRider[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("my_riders");
   if (error || !data) return [];
-  return data.map((r): MyRider => ({
+  const riders = await Promise.all(data.map(async (r): Promise<MyRider> => ({
     id: r.id,
     name: r.name,
     surname: r.surname,
     plan: r.plan_name ? { name: r.plan_name, description: r.plan_description ?? "", category: r.plan_category ?? "", price: r.plan_price } : null,
     cards: r.cards ?? [],
     purchases: riderPurchases(r.purchases),
-  }));
+    // Until the migrations that add `registered` and the registration fields are applied they are missing: assume
+    // registered and hide the details, so no wrong prompt shows.
+    registered: r.registered ?? true,
+    registration: r.signed_at === undefined
+      ? null
+      : {
+          email: r.email ?? "",
+          phone: r.phone ?? "",
+          phone2: r.phone2 ?? "",
+          birthdate: r.birthdate ?? "",
+          photoUrl: r.avatar_path ? await signedPhotoUrl(r.avatar_path) : null,
+          signedAt: r.signed_at,
+          termsVersion: r.terms_version ?? "",
+        },
+  })));
+  return visibleRiders(riders);
+}
+
+/** The profile photo bucket is private: a one-hour signed URL for a path that belongs to a rider matched to this account. */
+async function signedPhotoUrl(path: string): Promise<string | null> {
+  try {
+    const { data } = await createAdminClient().storage.from("rider-photos").createSignedUrl(path, 3600);
+    return data?.signedUrl ?? null;
+  } catch (e) {
+    console.error("Account data: could not sign the rider photo", e);
+    return null;
+  }
 }

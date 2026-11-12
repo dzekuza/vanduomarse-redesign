@@ -18,6 +18,12 @@ updated: 2026-11-12
 
 **BookingHeader intro (2026-11-13): `max-w-xl` removed from the intro paragraph (shared by booking pages); uncommitted, not browser-checked.**
 
+**Mano registracija on /paskyra (2026-11-13): code done, tsc/eslint clean, uncommitted; migration `20261113170000_my_riders_registration_details.sql` APPLIED to the live DB and verified.**
+
+**/paskyra Vandenlentės buttons (2026-11-13): code done, tsc/eslint clean, uncommitted; migration `20261113160000_my_riders_registered.sql` APPLIED to the live DB and verified. Not browser-checked.**
+
+**WAKE season pass as bracelet plan (2026-11-13, ADR-0079): code done and tsc/eslint clean, uncommitted; migration `20261113150000_rider_plan_orders.sql` APPLIED to the live DB and verified. The live site shows the new passes only after this code is deployed (the old coupon passes are already inactive). Nothing tested end to end.**
+
 **Min charge (2026-11-13): totals under 0,50 € are blocked in the checkout dialog and on the server (Stripe minimum); uncommitted, not browser-checked.**
 
 **Discount code in checkout dialog (2026-11-13): field shown again (flag removed); uncommitted, not browser-checked.**

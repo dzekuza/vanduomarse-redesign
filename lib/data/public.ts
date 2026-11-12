@@ -7,7 +7,7 @@ import type { Upsell } from "@/lib/sauna-upsells";
 import type { CalculatorCatalog } from "@/lib/event-pricing";
 import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaMaster, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
 import { MAX_STAY_NIGHTS, type CabinAvailability, type StayType } from "@/lib/cabin";
-import type { CouponProduct } from "@/lib/coupons";
+import type { CouponProduct, WakeOffer } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
 import { CELEBRATION_WINDOW_DAYS, EVENTS_WINDOW_DAYS, type CelebrationScheduleData, type ParkEventData } from "@/lib/park-events";
@@ -279,6 +279,24 @@ async function loadCouponProducts(): Promise<CouponProduct[]> {
 
 /** Memoised per request, so pages and readers that share it query Supabase once. */
 export const getCouponProducts = cache(loadCouponProducts);
+
+/** WAKE offers: coupon rides, plus the bracelet plans sold online (season passes). Plans need `online_plans()`; without it only coupons show. */
+async function loadWakeOffers(): Promise<WakeOffer[]> {
+  const [products, plans] = await Promise.all([getCouponProducts(), createPublicClient().rpc("online_plans")]);
+  const planOffers: WakeOffer[] = (plans.data ?? []).map((plan) => ({
+    id: plan.id,
+    kind: "paslauga",
+    service: "kabelis",
+    name: plan.name,
+    description: plan.description,
+    value: plan.price,
+    active: true,
+    planId: plan.id,
+  }));
+  return [...products.filter(({ service }) => service === "kabelis"), ...planOffers];
+}
+
+export const getWakeOffers = cache(loadWakeOffers);
 
 /** Days of guided tours the quad page lists. */
 const TOUR_DAYS = 60;

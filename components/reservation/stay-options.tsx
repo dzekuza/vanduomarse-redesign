@@ -81,7 +81,7 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
         {max > 0 && (
           <div>
             <CompactStepper
-              label="Kiekis"
+              label={type.kind === "namelis" ? "Namelių kiekis" : "Kemperių kiekis"}
               value={count}
               onChange={(next) => (selected ? onChange : setDraft)(Math.min(next, max))}
               min={1}

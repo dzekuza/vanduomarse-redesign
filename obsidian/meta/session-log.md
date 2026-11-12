@@ -1,3 +1,35 @@
+## 2026-11-13 — "Užbaigti registraciją" kept showing
+
+- **Found:** the owner's email matched 10 rider rows: one finished registration (today) plus 8 old unfinished test attempts (7 Nov) and a Grabby import. The button showed when ANY row was unfinished.
+- **Changed:** button only when no matched rider is registered; `visibleRiders` (`lib/account.ts`) hides unfinished rows with no plan/bracelet/purchase once one is registered.
+- **Status:** tsc/eslint clean; not browser-checked. The old rows still exist in the database (staff can delete them in Klientai).
+
+## 2026-11-13 — Customer can view their registration
+
+- **Changed:** `RegistrationDetails` component; `MyRider.registration`; `loadMyRiders` signs the photo URL (service role, only for riders `my_riders()` matched to the account); migration `20261113170000_my_riders_registration_details.sql` (drop + recreate `my_riders()`), APPLIED and verified.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open /paskyra → Vandenlentės with a registered account.
+
+## 2026-11-13 — /paskyra Vandenlentės actions
+
+- **Changed:** `RiderPlans` buttons (browse plans, finish registration); `MyRider.registered`; migration `20261113160000_my_riders_registered.sql` (drop + recreate `my_riders()` with `registered`).
+- **Status:** tsc/eslint clean; migration APPLIED and verified (returns `registered`; anon cannot execute, authenticated can). Not browser-checked.
+- **Next:** check with an account whose rider has no photo/waiver.
+
+## 2026-11-13 — WAKE season pass = bracelet plan purchase
+
+- **Why:** the pass should be an actual apyrankė purchase (registration, payment, plan on the rider), not a coupon code.
+- **Changed:** migration `20261113150000_rider_plan_orders.sql` (applied to the live DB after the user asked again, verified); hand-edited `database.types.ts`; `WakeOffer` + `getWakeOffers()`; `registerRider` takes `planId` and returns a Checkout URL; `lib/plan-checkout.ts`, `lib/plan-payment.ts`, `stripe-events.ts` branch; `/registracija?abonementas=`, `/registracija/apmoketa`; the Wake button links to the registration for plans.
+- **Status:** tsc/eslint clean; nothing tested end to end.
+- **Next:** register + pay with a Stripe test card and check `riders.plan_id`, `purchases`, `rider_plan_orders` and both emails; add a `sold_online` toggle in /admin/apyrankes → Planai.
+
+## 2026-11-13 — WAKE purchase opens a checkout dialog
+
+- **Why:** "Užsakyti abonementą" linked to `/kuponai?produktas=…`; owner wants a checkout in place.
+- **Changed:** new `components/services/wake-checkout-dialog.tsx`; `WakeBookingSummary` button opens it; `Field`/`goToCheckout` exported from `coupons/order-form.tsx`.
+- **Status:** tsc/eslint clean; NOT browser-checked (no dev server running); uncommitted.
+- **Next:** open /rezervacija → Wake → pick a pass → pay with a Stripe test card; check 375 px.
+
 ## 2026-11-13 — Hero phone number
 
 - **Changed:** `components/landing/landing-hero.tsx` uses `MAIN_CONTACT.phone`.

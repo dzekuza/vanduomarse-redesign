@@ -12,7 +12,7 @@ import { ServiceGallery } from "@/components/landing/service-gallery";
 import { useWakeBooking, WakeBookingChoices, WakeBookingSummary } from "@/components/services/wake-service-booking";
 import { useReleaseOnBrowserBack } from "@/hooks/use-release-on-back";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
-import type { CouponProduct } from "@/lib/coupons";
+import type { WakeOffer } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
@@ -79,7 +79,7 @@ export function ReservationFlow({
   header: ReactNode;
   data: ReservationData;
   initialTab?: ReservationTab;
-  wakeProducts?: CouponProduct[];
+  wakeProducts?: WakeOffer[];
   initialDay?: string;
   /** On a service page the booking is limited to that activity. */
   activity?: "pirtis" | "nakvyne" | "keturraciai";

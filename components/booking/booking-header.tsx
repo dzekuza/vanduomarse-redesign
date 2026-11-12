@@ -11,6 +11,8 @@ interface BookingHeaderProps {
   title: [string] | [string, string];
   /** One paragraph, or several as an array. */
   intro?: string | string[];
+  /** The header sits in a half-width column (from `lg`): a smaller title keeps long words inside it. */
+  split?: boolean;
 }
 
 export function BookingBreadcrumb({ crumb }: { crumb: string }) {
@@ -24,7 +26,7 @@ export function BookingBreadcrumb({ crumb }: { crumb: string }) {
 }
 
 /** Light page header of the booking-style pages (reservation, calculator): breadcrumb, kicker, big title, intro. */
-export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingHeaderProps) {
+export function BookingHeader({ crumb, kicker, tagline, title, intro, split = false }: BookingHeaderProps) {
   return (
     <header className="space-y-6">
       <BookingBreadcrumb crumb={crumb} />
@@ -37,7 +39,7 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingH
           {tagline ? <p className="max-sm:hidden">{tagline}</p> : null}
         </div>
       ) : null}
-      <h1 className="text-total font-bold uppercase max-sm:tracking-tighter sm:text-display">
+      <h1 className={`text-total font-bold uppercase max-sm:tracking-tighter sm:text-display${split ? " lg:text-display-split" : ""}`}>
         {title[0]}
         {title[1] ? (
           <>

@@ -1,8 +1,12 @@
 "use server";
 
+import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
 import { registrationSchema } from "@/lib/registration-schema";
 import { TERMS_VERSION } from "@/lib/park-rules";
+import { openPlanCheckout } from "@/lib/plan-checkout";
+import { paymentsEnabled } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -19,7 +23,14 @@ const PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
 
-export async function registerRider(form: FormData): Promise<ActionResult<{ riderId: string }>> {
+const PLAN_FAILED = "Registracija įrašyta, bet nepavyko pradėti mokėjimo. Skambinkite mums ir užbaigsime užsakymą.";
+
+/**
+ * With `planId` (a bracelet plan sold online, e.g. a WAKE season pass) the registration continues into Stripe
+ * Checkout: the order is created here for the rider this call just made, never for a client-supplied rider id.
+ * The webhook attaches the plan after payment (ADR-0079).
+ */
+export async function registerRider(form: FormData): Promise<ActionResult<{ riderId: string; checkoutUrl?: string }>> {
   const parsed = registrationSchema.safeParse({
     name: form.get("name"),
     surname: form.get("surname"),
@@ -72,5 +83,26 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
     p_signature_path: signaturePath,
   });
 
-  return { data: { riderId } };
+  const planId = form.get("planId");
+  if (typeof planId !== "string" || planId === "") return { data: { riderId } };
+  if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
+  if (!paymentsEnabled()) return fail("Registracija įrašyta, bet mokėjimas šiuo metu neveikia. Skambinkite mums ir užbaigsime užsakymą.", "setup");
+
+  const admin = createAdminClient();
+  const { data: order, error: orderError } = await admin.rpc("create_plan_order", { p_rider_id: riderId, p_plan_id: planId });
+  const row = order?.[0];
+  if (orderError || !row) {
+    console.error("Plan order: could not create the order", orderError);
+    return fail(orderError?.hint === "plan_unavailable" ? "Šio abonemento internetu nebeparduodame. Skambinkite mums." : PLAN_FAILED, "payment");
+  }
+  const checkoutUrl = await openPlanCheckout({ id: row.id, reference: row.reference, planName: row.plan_name, amount: row.price, buyerEmail: row.rider_email });
+  if (!checkoutUrl) {
+    try {
+      await admin.rpc("abandon_plan_order", { p_order_id: row.id });
+    } catch (e) {
+      console.error("Plan order: could not drop the order", row.reference, e);
+    }
+    return fail(PLAN_FAILED, "payment");
+  }
+  return { data: { riderId, checkoutUrl } };
 }

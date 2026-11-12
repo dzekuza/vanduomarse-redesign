@@ -14,7 +14,7 @@ import { StayServiceSchedule } from "@/components/services/stay-service-schedule
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
-import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getCouponProducts, getParkEvents, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
+import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getParkEvents, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { SERVICE_OG_IMAGES, metaDescription, pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
@@ -74,12 +74,12 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   }
 
   if (service === "vandenlentes") {
-    const [events, products] = await Promise.all([getParkEvents(), getCouponProducts()]);
+    const [events, wakeOffers] = await Promise.all([getParkEvents(), getWakeOffers()]);
     return (
       <>
         {schema}
         <ServicePage slug={service} wake={events.filter(({ category }) => category === "akademija")}
-          booking={<WakeServiceBooking products={products.filter(({ service }) => service === "kabelis")} contact={ACADEMY_CONTACT} />} />
+          booking={<WakeServiceBooking products={wakeOffers} contact={ACADEMY_CONTACT} />} />
       </>
     );
   }
