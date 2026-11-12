@@ -1,3 +1,4 @@
+import type { ParkEventData } from "@/lib/park-events";
 import { PARK_ADDRESS } from "@/components/landing/content";
 import { INSTAGRAM_URL, MAIN_CONTACT, MAPS_URL, PARK_LOCATION } from "@/lib/contacts";
 import { BRAND } from "@/lib/seo";
@@ -39,7 +40,7 @@ export function localBusinessSchema(): Record<string, unknown> {
 }
 
 /** One service page (sauna, quads, cabins, ...) offered by the park. */
-export function serviceSchema({ name, description, path }: { name: string; description: string; path: string }): Record<string, unknown> {
+export function serviceSchema({ name, description, path, image }: { name: string; description: string; path: string; image?: string }): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -48,6 +49,7 @@ export function serviceSchema({ name, description, path }: { name: string; descr
     url: `${SITE_URL}${path}`,
     provider: { "@id": BUSINESS_ID },
     areaServed: "Kauno rajonas",
+    ...(image ? { image: image.startsWith("http") ? image : `${SITE_URL}${image}` } : {}),
   };
 }
 
@@ -80,5 +82,35 @@ export function contactPageSchema(): Record<string, unknown> {
     name: "Kontaktai ir kaip atvykti",
     url: `${SITE_URL}/kontaktai`,
     about: { "@id": BUSINESS_ID },
+  };
+}
+
+/** The upcoming events listed on /renginiai (the same ones the visitor sees there), as schema.org Event items. Dates are Vilnius local time. */
+export function eventsSchema(events: readonly ParkEventData[]): Record<string, unknown> | null {
+  if (events.length === 0) return null;
+  return {
+    "@context": "https://schema.org",
+    "@graph": events.map((e) => ({
+      "@type": "Event",
+      name: e.title,
+      description: e.blurb,
+      startDate: e.time ? `${e.date}T${e.time}:00` : e.date,
+      eventStatus: "https://schema.org/EventScheduled",
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      location: {
+        "@type": "Place",
+        name: e.place || BRAND,
+        address: { "@type": "PostalAddress", streetAddress: PARK_ADDRESS.street, addressLocality: "Žemaitkiemis", addressCountry: "LT" },
+      },
+      organizer: { "@id": BUSINESS_ID },
+      url: `${SITE_URL}/renginiai`,
+      offers: {
+        "@type": "Offer",
+        price: e.price ?? 0,
+        priceCurrency: "EUR",
+        url: `${SITE_URL}/renginiai`,
+        availability: e.spotsLeft === 0 ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+      },
+    })),
   };
 }

@@ -1,18 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useAdmin } from "../admin-store";
-import { PlanBadge } from "./plan-badge";
-import { RiderAvatar } from "./rider-avatar";
-import { ScanTarget } from "./scan-target";
-import { formatDay, formatEur } from "@/lib/admin/format";
+import { CustomersTable, type CustomerRow } from "./customers-table";
+import { RebindBracelet } from "./rebind-bracelet";
 import type { Purchase, Rider } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const FILTERS = [
   { id: "all", label: "Visi" },
@@ -21,18 +15,9 @@ const FILTERS = [
 ] as const;
 type Filter = (typeof FILTERS)[number]["id"];
 
-interface CustomerRow {
-  rider: Rider;
-  purchases: Purchase[];
-  spent: number;
-  lastSoldAt: string | null;
-  hasSubscription: boolean;
-}
-
 /** Customers of /admin/apyrankes: everyone with a current plan or a bracelet-plan purchase, with what they bought. */
 export function CustomersTab() {
-  const { riders, purchases, ridePlans, riderCards, bindRiderCard } = useAdmin();
-  const router = useRouter();
+  const { riders, purchases, ridePlans, riderCards } = useAdmin();
   const [rebinding, setRebinding] = useState<Rider | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
@@ -73,32 +58,13 @@ export function CustomersTab() {
 
   if (rebinding) {
     return (
-      <div className="flex flex-col items-center gap-6 py-6">
-        <p className="text-center text-sm text-muted-foreground">
-          Priglauskite apyrankę, kurią priskirti{" "}
-          <span className="font-medium text-foreground">
-            {rebinding.name} {rebinding.surname}
-          </span>
-          .
-        </p>
-        <ScanTarget
-          enabled
-          title="Priglauskite apyrankę"
-          subtitle="Tai pakeis bet kurią ankstesnę šio naudotojo apyrankę"
-          onScan={async (cardNumber) => {
-            const result = await bindRiderCard(cardNumber, rebinding.id);
-            setNotice(
-              "data" in result && result.data.replaced
-                ? `Apyrankė ${cardNumber} perkelta nuo ${result.data.replaced.name} ${result.data.replaced.surname}.`
-                : null,
-            );
-            setRebinding(null);
-          }}
-        />
-        <Button variant="outline" onClick={() => setRebinding(null)}>
-          Atšaukti
-        </Button>
-      </div>
+      <RebindBracelet
+        rider={rebinding}
+        onDone={(message) => {
+          setNotice(message);
+          setRebinding(null);
+        }}
+      />
     );
   }
 
@@ -122,68 +88,7 @@ export function CustomersTab() {
       {shown.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">Klientų nėra.</p>
       ) : (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-4">Klientas</TableHead>
-                <TableHead className="hidden sm:table-cell">Dabartinis planas</TableHead>
-                <TableHead className="hidden md:table-cell">Pirkimai</TableHead>
-                <TableHead className="hidden lg:table-cell">Apyrankė</TableHead>
-                <TableHead className="text-right">Suma</TableHead>
-                <TableHead className="pr-4 text-right">
-                  <span className="sr-only">Veiksmai</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shown.map(({ rider, purchases: bought, spent, lastSoldAt }) => (
-                <TableRow key={rider.id} className="cursor-pointer" onClick={() => router.push(`/admin/klientai/${rider.id}`)}>
-                  <TableCell className="pl-4">
-                    <Link href={`/admin/klientai/${rider.id}`} onClick={(e) => e.stopPropagation()} className="flex min-h-11 min-w-0 items-center gap-3 outline-none focus-visible:ring-3 focus-visible:ring-ring">
-                      <RiderAvatar name={rider.name} surname={rider.surname} avatarPath={rider.avatarPath} />
-                      <span className="min-w-0">
-                        <span className="block truncate font-bold">
-                          {rider.name} {rider.surname}
-                        </span>
-                        <span className="block truncate text-xs text-muted-foreground">{rider.phone || rider.email || "Nėra kontaktų"}</span>
-                        <PlanBadge planId={rider.planId} className="mt-1 sm:hidden" />
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <PlanBadge planId={rider.planId} />
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {bought.length === 0 ? (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    ) : (
-                      <>
-                        <span className="block">{bought.length}</span>
-                        {lastSoldAt ? <span className="block text-xs text-muted-foreground">paskutinis {formatDay(lastSoldAt.slice(0, 10))}</span> : null}
-                      </>
-                    )}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">{cardRiderIds.has(rider.id) ? "Priskirta" : <span className="text-xs text-muted-foreground">Nėra</span>}</TableCell>
-                  <TableCell className="text-right font-display text-sm font-bold tabular-nums">{formatEur(spent)}</TableCell>
-                  <TableCell className="pr-4 text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-h-11"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRebinding(rider);
-                      }}
-                    >
-                      {cardRiderIds.has(rider.id) ? "Pakeisti apyrankę" : "Priskirti apyrankę"}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <CustomersTable rows={shown} cardRiderIds={cardRiderIds} onAssign={setRebinding} />
       )}
     </div>
   );
