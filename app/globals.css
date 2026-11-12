@@ -71,6 +71,10 @@
   --status-confirmed: #015059;
   --status-new: #e2b38c;
   --status-done: #8f838e;
+  /* Status badges: a tinted background (yellow waiting, green approved, red declined) behind a label that keeps full contrast. */
+  --status-warn: #e5b400;
+  --status-ok: #2f9e63;
+  --status-bad: #e0464d;
   /* Calendar: the tan above, taken toward the aubergine ink until it reads as brown (card borders of the Keturračiai type). */
   --calendar-brown: color-mix(in srgb, #e2b38c 62%, #382e38);
   /* Calendar: a true rose-pink for Renginiai, far enough in hue from the coral red of Pirtis that the two never read alike. */
@@ -115,6 +119,9 @@
   --color-status-confirmed: var(--status-confirmed);
   --color-status-new: var(--status-new);
   --color-status-done: var(--status-done);
+  --color-status-warn: var(--status-warn);
+  --color-status-ok: var(--status-ok);
+  --color-status-bad: var(--status-bad);
   --color-calendar-brown: var(--calendar-brown);
   --color-calendar-pink: var(--calendar-pink);
   --color-availability-open: var(--raw-availability-green);

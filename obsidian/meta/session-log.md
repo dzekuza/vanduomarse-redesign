@@ -1,3 +1,8 @@
+## 2026-11-13 — Coloured status badges
+
+- **Changed:** `--status-warn/ok/bad` tokens; `StatusPill` tints (exported); sales table and discount-code state use it.
+- **Status:** tsc/eslint clean; not browser-checked (light and dark admin themes to look at).
+
 ## 2026-11-13 — Sauna contact is renginiai@
 
 - **Changed:** `SAUNA_CONTACT.email` = `EVENTS_EMAIL` (`lib/contacts.ts`); used by `contactFor` (paid-reservation email/SMS for sauna-only reservations), the sauna service page and `CONTACTS`.

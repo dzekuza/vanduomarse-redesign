@@ -1,13 +1,22 @@
 "use client";
 
 import { DotsThreeIcon } from "@phosphor-icons/react";
-import { Badge } from "@/components/ui/badge";
+import { StatusPill, type Tone } from "../status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { formatEuro } from "@/lib/coupons";
 import { DISCOUNT_STATE_LABEL, discountDateLabel, discountServicesLabel, discountValueLabel, type DiscountCode, type DiscountState } from "@/lib/discount-codes";
+
+/** In force = green, not yet valid = yellow, off or used up = grey, expired = red. */
+const DISCOUNT_TONE: Record<DiscountState, Tone> = {
+  aktyvus: "confirmed",
+  dar_negalioja: "pending",
+  isjungtas: "done",
+  isnaudotas: "done",
+  nebegalioja: "closed",
+};
 
 interface DiscountCodeCardProps {
   code: DiscountCode;
@@ -33,7 +42,7 @@ export function DiscountCodeCard({ code, state, onActive, onEdit, onDelete }: Di
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2 font-display tracking-wide">
           <span className="min-w-0 wrap-anywhere">{code.code}</span>
-          <Badge variant={state === "aktyvus" ? "default" : "secondary"}>{DISCOUNT_STATE_LABEL[state]}</Badge>
+          <StatusPill tone={DISCOUNT_TONE[state]} label={DISCOUNT_STATE_LABEL[state]} />
         </CardTitle>
         <CardDescription>
           {discountValueLabel(code)} · {discountServicesLabel(code.services)}
