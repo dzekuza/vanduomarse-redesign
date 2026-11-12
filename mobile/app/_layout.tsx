@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+import "@/mobile/src/lib/polyfills";
 import React from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";

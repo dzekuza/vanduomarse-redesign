@@ -1,3 +1,9 @@
+## 2026-11-13 — Mobile sign-in "undefined is not a function"
+
+- **Found:** the alert is the message of an exception thrown while loading admin data after sign-in (`loadForSession`), in shared website code. `toSorted` is called there and Hermes may lack it.
+- **Changed:** `mobile/src/lib/polyfills.ts`, import in `app/_layout.tsx`, stack logging in `admin-context.tsx`.
+- **Status:** tsc + iOS export pass; polyfill tested in Node; NOT run on a device. If it still fails, the dev alert now shows the stack: send it.
+
 ## 2026-11-13 — Mobile app to Expo SDK 58
 
 - **Why:** Expo Go on the owner's iPhone is SDK 58; the app was SDK 53 ("Project is incompatible with this version of Expo Go").
