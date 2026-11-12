@@ -5,6 +5,8 @@ updated: 2026-11-12
 
 # Current status — vanduomarse-redesign
 
+**Registration draft (2026-11-12): `/registracija` step 1 is remembered in `sessionStorage` between visits (`lib/registration-draft.ts`), cleared on success; tsc/eslint clean; merged in PR #89 and checked in the browser (type, leave, come back: fields and phone country restored).**
+
 > [!info] How to use this note
 > The **live snapshot** of the project. Read it first when a session starts; rewrite
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
