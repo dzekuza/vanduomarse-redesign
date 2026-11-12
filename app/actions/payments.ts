@@ -6,7 +6,7 @@ import { getCustomer } from "@/lib/customer";
 import { fileRequest } from "@/lib/file-request";
 import { discountCovers, isDiscountService, normalizeDiscountCode, type DiscountService } from "@/lib/discount-codes";
 import { MIN_CHARGE_EUR, MIN_CHARGE_MESSAGE, REQUEST_ACTIVITY, checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
-import { createClient } from "@/lib/supabase/server";
+import { closeCheckoutSession, ownsPayment } from "@/lib/payment-release";
 import { createPublicClient } from "@/lib/supabase/public";
 import { MissingStripeKeyError, getStripe, paymentsEnabled, siteOrigin, toCents } from "@/lib/stripe";
 import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin";
@@ -221,8 +221,7 @@ export async function cancelUnpaidPayment(input: unknown): Promise<ActionResult<
   if (!customer) return fail(SIGN_IN, "unauthorized");
 
   try {
-    const { data: own } = await (await createClient()).from("payments").select("id").eq("id", parsed.data.paymentId).maybeSingle();
-    if (!own) return fail("Mokėjimas nerastas.", "invalid");
+    if (!(await ownsPayment(parsed.data.paymentId))) return fail("Mokėjimas nerastas.", "invalid");
 
     const admin = createAdminClient();
     const { data, error } = await admin.rpc("payment_state", { p_payment_id: parsed.data.paymentId });
@@ -230,14 +229,8 @@ export async function cancelUnpaidPayment(input: unknown): Promise<ActionResult<
     if (error || !state) return fail("Mokėjimas nerastas.", "invalid");
     if (state.status !== "laukia") return fail("Šio mokėjimo atšaukti nebegalima. Atnaujinkite puslapį.", "payment_closed");
 
-    if (state.stripe_session_id) {
-      const stripe = getStripe();
-      // Expiring fails when the session is already paid or already expired: only a paid one must stop here.
-      await stripe.checkout.sessions.expire(state.stripe_session_id).catch(async () => {
-        const session = await stripe.checkout.sessions.retrieve(state.stripe_session_id!);
-        if (session.status === "complete") throw new PaymentSettledError();
-      });
-    }
+    // The slots are freed only once the session can no longer be paid; a failed or unconfirmed expiry stops here.
+    if (state.stripe_session_id && (await closeCheckoutSession(state.stripe_session_id)) === "paid") throw new PaymentSettledError();
     const { error: abandonError } = await admin.rpc("abandon_payment", { p_payment_id: parsed.data.paymentId });
     if (abandonError) throw abandonError;
     return { data: { cancelled: true } };

@@ -9,7 +9,7 @@ interface StatusActionsProps {
   onSet: (status: BookingStatus) => Promise<unknown>;
 }
 
-/** The next steps for a request: confirm or reject, mark done, or bring a cancelled one back. */
+/** The next steps for a request: confirm or reject, cancel a confirmed one, or bring a cancelled one back. */
 export function StatusActions({ status, onSet }: StatusActionsProps) {
   const [pending, startTransition] = useTransition();
   const set = (next: BookingStatus) => startTransition(async () => void (await onSet(next)));
@@ -28,14 +28,9 @@ export function StatusActions({ status, onSet }: StatusActionsProps) {
   }
   if (status === "patvirtinta") {
     return (
-      <div className="flex flex-wrap gap-2">
-        <Button onClick={() => set("ivykdyta")} disabled={pending} className="min-h-11 flex-1">
-          Pažymėti įvykdyta
-        </Button>
-        <Button variant="outline" onClick={() => set("atsaukta")} disabled={pending} className="min-h-11 flex-1">
-          Atšaukti
-        </Button>
-      </div>
+      <Button variant="outline" onClick={() => set("atsaukta")} disabled={pending} className="min-h-11 w-full">
+        Atšaukti
+      </Button>
     );
   }
   if (status === "atsaukta") {

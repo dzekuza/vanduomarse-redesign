@@ -1,3 +1,16 @@
+## 2026-11-13 — Removed the "mark done" button
+
+- **Why:** owner: "Pažymėti įvykdyta" is not needed.
+- **Changed:** removed from `StatusActions` (quads, tours, events) and from the booking row menu; status `ivykdyta` kept for old rows.
+- **Status:** tsc clean; uncommitted on `fix/payment-release-hardening` together with the release hardening; not browser-checked.
+
+## 2026-11-13 — Hardening the cancelled-payment release
+
+- **Why:** security review of PR #48: RLS visibility is not ownership, and a failed Stripe expiry could free a still-payable slot.
+- **Changed:** `ownsPayment` + `closeCheckoutSession` in `lib/payment-release.ts`, used by `releaseCancelledPayment` and `cancelUnpaidPayment`. Branch `fix/payment-release-hardening`, uncommitted.
+- **Status:** tsc/eslint clean; not browser-checked. PR #48 itself is merged.
+- **Next:** commit + PR; the real Stripe back-click test.
+
 ## 2026-11-13 — PR #48: free the slot on a cancelled payment
 
 - **Why:** owner screenshot: after leaving Stripe, the payment page said the slots were still held.
