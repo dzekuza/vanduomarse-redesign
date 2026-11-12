@@ -235,6 +235,8 @@ export interface RidePlan {
   price: number | null;
   category: RidePlanCategory;
   active: boolean;
+  /** Also sold on the public site (register, pay with Stripe); needs a price above 0. */
+  soldOnline: boolean;
   sortOrder: number;
 }
 

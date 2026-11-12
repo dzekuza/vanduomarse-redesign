@@ -278,7 +278,7 @@ export function toCoupon(r: CouponRow): Coupon {
 }
 
 export function toRidePlan(r: Tables<"ride_plans">): RidePlan {
-  return { id: r.id, name: r.name, description: r.description, price: r.price, category: r.category as RidePlanCategory, active: r.active, sortOrder: r.sort_order };
+  return { id: r.id, name: r.name, description: r.description, price: r.price, category: r.category as RidePlanCategory, active: r.active, soldOnline: r.sold_online, sortOrder: r.sort_order };
 }
 
 export function toRider(r: Tables<"riders">): Rider {
