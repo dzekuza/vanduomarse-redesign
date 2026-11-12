@@ -28,7 +28,7 @@ export function CancelRefundDialog({ open, reference, refundable, busy, onChoose
         </DialogHeader>
         <DialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="min-h-11" disabled={busy} onClick={() => onChoose(true)}>
-            {busy ? "Grąžinama..." : `Atšaukti ir grąžinti ${formatEuro(refundable)}`}
+            {busy ? "Vykdoma..." : `Atšaukti ir grąžinti ${formatEuro(refundable)}`}
           </Button>
           <Button variant="outline" className="min-h-11" disabled={busy} onClick={() => onChoose(false)}>
             Atšaukti be grąžinimo

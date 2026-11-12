@@ -7,6 +7,7 @@ import * as discountActions from "@/app/admin/discount-actions";
 import * as notificationActions from "@/app/admin/notification-actions";
 import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
+import { formatEuro } from "@/lib/coupons";
 import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
@@ -480,8 +481,9 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) {
           if (kind === "booking") dispatch({ type: "booking/status", id, status: "atsaukta" });
           if (kind === "rental") dispatch({ type: "rental/status", id, status: "atsaukta" });
+          if (kind === "ticket") dispatch({ type: "ticket/status", id, status: "atsaukta" });
           if (result.data.refundError) toast.error(`Atšaukta, bet pinigų grąžinti nepavyko. ${result.data.refundError}`);
-          else if (result.data.refunded > 0) toast.success(`Atšaukta. Klientui grąžinama ${result.data.refunded} € (Stripe).`);
+          else if (result.data.refunded > 0) toast.success(`Atšaukta. Klientui grąžinama ${formatEuro(result.data.refunded)} (Stripe).`);
         }
         return result;
       },

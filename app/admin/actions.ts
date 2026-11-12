@@ -1061,12 +1061,24 @@ export async function cancelRequest(kind: "booking" | "rental" | "ticket", id: s
   const parsed = z.object({ kind: z.enum(["booking", "rental", "ticket"]), id: z.uuid(), refund: z.boolean() }).safeParse({ kind, id, refund });
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
 
+  // With a refund, check the staff member may refund BEFORE cancelling, so a refusal does not leave a half-done cancel.
+  const ctx = refund ? await staffClient(kind === "booking" ? "rezervacijos" : kind === "rental" ? "keturraciai" : ["keturraciai", "renginiai"]) : null;
+  if (ctx && !ctx.ok) return ctx.error;
+
   const result = kind === "booking" ? await setBookingStatus(id, "atsaukta") : kind === "rental" ? await setRentalStatus(id, "atsaukta") : await setTourTicketStatus(id, "atsaukta");
   if ("error" in result) return result;
-  if (!refund) return done({ refunded: 0 });
+  if (!ctx) return done({ refunded: 0 });
 
-  const ctx = await staffClient(kind === "booking" ? "rezervacijos" : kind === "rental" ? "keturraciai" : ["keturraciai", "renginiai"]);
-  if (!ctx.ok) return ctx.error;
+  // A status update that matches no row (row level security narrower than the check above) reports success: never refund
+  // a request that is not actually cancelled.
+  const check =
+    kind === "booking"
+      ? await ctx.supabase.from("bookings").select("status").eq("id", id).maybeSingle()
+      : kind === "rental"
+        ? await ctx.supabase.from("quad_rentals").select("status").eq("id", id).maybeSingle()
+        : await ctx.supabase.from("event_tickets").select("status").eq("id", id).maybeSingle();
+  if (check.data?.status !== "atsaukta") return fail("Užklausos atšaukti nepavyko, todėl pinigai negrąžinti.", "not_cancelled");
+
   const outcome = await refundRequest(kind, id, ctx.userId);
   return done(outcome.ok ? { refunded: outcome.amount } : { refunded: 0, refundError: outcome.message });
 }
