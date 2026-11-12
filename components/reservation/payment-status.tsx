@@ -13,7 +13,7 @@ export interface PaymentView {
 const LINK = "inline-flex min-h-11 items-center border-b border-current text-sm font-bold";
 
 const COPY: Record<string, { title: string; text: string }> = {
-  apmoketa: { title: "Apmokėta. Gavom.", text: "Mokėjimą gavome. Užklausas patvirtinsime telefonu arba el. paštu, patvirtinimą gausite ir SMS žinute." },
+  apmoketa: { title: "Apmokėta. Gavom.", text: "Mokėjimą gavome, rezervacija patvirtinta. Patvirtinimą su rezervacijos detalėmis gausite SMS žinute." },
   laukia: { title: "Tikriname mokėjimą", text: "Laukiame Stripe patvirtinimo. Puslapis atsinaujins pats." },
   pasibaige: { title: "Mokėjimo laikas baigėsi", text: "Užklausos atšauktos ir vietos paleistos. Rezervuokite iš naujo." },
   nepavyko: { title: "Mokėjimas nepavyko", text: "Užklausos atšauktos ir vietos paleistos. Rezervuokite iš naujo." },

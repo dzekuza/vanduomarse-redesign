@@ -2080,6 +2080,7 @@ export type Database = {
         }
         Returns: {
           amount: number
+          confirmed: boolean
           duplicate: boolean
           needs_review: boolean
           newly_paid: boolean
@@ -2393,6 +2394,18 @@ export type Database = {
         Returns: number
       }
       payment_notify_email: { Args: { p_payment_id: string }; Returns: string }
+      paid_request_details: {
+        Args: { p_payment_id: string }
+        Returns: {
+          day: string
+          end_time: string
+          nights: number
+          reference: string
+          service: string
+          start_time: string
+          title: string
+        }[]
+      }
       payment_state: {
         Args: { p_payment_id: string }
         Returns: {

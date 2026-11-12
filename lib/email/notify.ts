@@ -1,4 +1,5 @@
 import "server-only";
+import { contactFor, requestDate, requestHeading, requestTime, type PaidRequest } from "@/lib/paid-request";
 import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
 import { emailList, escapeHtml, sendEmail } from "./resend";
@@ -65,20 +66,36 @@ export const emailOutcome = (
       })
     : Promise.resolve(false);
 
-/** Stripe confirmed the payment; staff still confirm each request. */
-export const emailPaid = (to: string | null | undefined, references: string[], amount: number) =>
-  to
-    ? sendEmail({
-        to,
-        subject: `Apmokėjimas gautas (${references.join(", ")})`,
-        ...body([
-          "Sveiki,",
-          `gavome jūsų apmokėjimą: ${formatEuro(amount)} už ${references.join(", ")}.`,
-          "Užklausas patvirtinsime netrukus ir pranešime atskirai.",
-          ...accountLink(),
-        ]),
-      })
-    : Promise.resolve(false);
+/**
+ * Stripe confirmed the payment. A paid reservation is confirmed by the database at once (no staff step), so with
+ * `confirmed` the mail lists it; otherwise (a payment that needs a manual look) staff confirm it later.
+ */
+export const emailPaid = (to: string | null | undefined, references: string[], amount: number, requests: PaidRequest[] = [], confirmed = false) => {
+  if (!to) return Promise.resolve(false);
+  if (!confirmed || requests.length === 0) {
+    return sendEmail({
+      to,
+      subject: `Apmokėjimas gautas (${references.join(", ")})`,
+      ...body([
+        "Sveiki,",
+        `gavome jūsų apmokėjimą: ${formatEuro(amount)} už ${references.join(", ")}.`,
+        confirmed ? "Rezervacija patvirtinta." : "Patikrinsime ir patvirtinsime netrukus, pranešime atskirai.",
+        ...accountLink(),
+      ]),
+    });
+  }
+  const contact = contactFor(requests);
+  return sendEmail({
+    to,
+    subject: `Jūsų mokėjimas gautas (${references.join(", ")})`,
+    ...body([
+      "Jūsų mokėjimas gautas. Jūsų rezervacija:",
+      ...requests.map((r) => ({ strong: [requestHeading(r), `Data: ${requestDate(r)}`, ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : [])].join("\n") })),
+      `Turite klausimų? Skambinkite ${contact.phone} arba rašykite ${contact.email}`,
+      ...accountLink(),
+    ], false),
+  });
+};
 
 /* ---------------- staff: the service's inbox (STAFF_INBOX), else STAFF_NOTIFY_EMAIL ---------------- */
 
@@ -111,7 +128,7 @@ export const emailStaffNew = (service: NotifyService, reference: string | undefi
   toStaff([service], `Nauja užklausa${reference ? ` ${reference}` : ""}`, [{ strong: summary }]);
 
 export const emailStaffPaid = (references: string[], amount: number, review: boolean) =>
-  toStaff(servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Nauja apmokėta užklausa"} ${references.join(", ")}`, [
+  toStaff(servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`, [
     { strong: `${formatEuro(amount)} už ${references.join(", ")}` },
     ...(review ? ["Apmokėta pavėluotai arba kita suma: patikrinkite ir, jei reikia, grąžinkite per Stripe."] : []),
   ]);

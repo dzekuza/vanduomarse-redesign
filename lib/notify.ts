@@ -1,5 +1,6 @@
 import "server-only";
 import type { NotifyService } from "@/lib/contacts";
+import type { PaidRequest } from "@/lib/paid-request";
 import {
   emailOutcome,
   emailPaid,
@@ -60,10 +61,17 @@ export const notifyRequestOutcome = (
   summary: string,
 ) => settle(notifyOutcome(contact.phone, reference, outcome, summary), emailOutcome(contact.email, reference, outcome, summary));
 
-export const notifyPaymentReceived = (contact: CustomerContact, references: string[], amount: number, review: boolean) =>
+export const notifyPaymentReceived = (
+  contact: CustomerContact,
+  references: string[],
+  amount: number,
+  review: boolean,
+  requests: PaidRequest[] = [],
+  confirmed = false,
+) =>
   settle(
-    notifyPaid(contact.phone, references, amount),
-    emailPaid(contact.email, references, amount),
+    notifyPaid(contact.phone, references, amount, requests, confirmed),
+    emailPaid(contact.email, references, amount, requests, confirmed),
     notifyStaffPaid(references, amount, review),
     emailStaffPaid(references, amount, review),
   );
