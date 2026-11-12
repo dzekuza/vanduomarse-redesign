@@ -10,7 +10,7 @@ import type { SaunaPageData } from "@/lib/data/public-types";
 import { UpsellPicker } from "@/components/booking/upsell-picker";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { hourlyStartHours, MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
-import { dateKey, FULL_DAY_HOURS } from "@/lib/sauna";
+import { dateKey, FULL_DAY_HOURS, longDateLabel } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
 import { DatePicker } from "@/components/reservation/date-picker";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
@@ -88,6 +88,19 @@ export function SaunaServiceBooking({
   };
   const rowsFor = (day: string) => mode === "session" ? sessionRows(data, day).filter((row) => row.mode === "session") : hourlyRow(day);
   const rows = date && canPickDate ? rowsFor(dateKey(date)) : [];
+  let nextSessionDay: { date: Date; starts: string[] } | undefined;
+  if (lockedMode === "session" && date && rows.length === 0) {
+    const selectedDay = dateKey(date);
+    const eventDays = new Set(data.events.map((event) => event.date));
+    for (const next of days) {
+      const key = dateKey(next);
+      if (key <= selectedDay || !eventDays.has(key)) continue;
+      const starts = rowsFor(key).filter((row) => !row.blocked).map((row) => row.time.split("–")[0]);
+      if (starts.length === 0) continue;
+      nextSessionDay = { date: next, starts: [...new Set(starts)] };
+      break;
+    }
+  }
   const selectedRow = rows.find((row) => row.mode === "session" && row.eventId === pick.eventId);
   const event = data.events.find(({ key }) => key === sessionId);
   const eventDate = event && days.find((day) => dateKey(day) === event.date);
@@ -184,6 +197,11 @@ export function SaunaServiceBooking({
       )}
       {mode === "session" && date ? (
         <SaunaServiceSessions rows={rows} selectedKey={selectedRow?.key} busy={busy} onSelect={(row) => selectSession(row, 1)}
+          upcoming={nextSessionDay && {
+            dateLabel: longDateLabel(nextSessionDay.date).toLocaleLowerCase("lt-LT"),
+            starts: nextSessionDay.starts,
+            onOpen: () => onDate(nextSessionDay.date),
+          }}
           quantity={selectedRow && plan?.mode === "session" ? { value: people, max: maxPeople(selectedRow), onChange: onPeople } : undefined}
           familyControls={plan?.mode === "session" && plan.program?.pricing === "family"
             ? <CompactStepper label="Vaikų grupėje" min={0} max={people - 1} value={plan.children} onChange={(children) => onPick({ ...pick, children })} editable />

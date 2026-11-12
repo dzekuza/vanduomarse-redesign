@@ -409,7 +409,7 @@ export function ReservationFlow({
               mode={activity ? undefined : saunaMode}
               data={data.sauna}
               days={days}
-              date={dayChosen ? date : null}
+              date={dayChosen || (!activity && saunaMode === "session") ? date : null}
               plan={plans.pirtis}
               pick={picks.pirtis ?? defaultPick("pirtis", data)}
               people={people}
@@ -515,22 +515,19 @@ export function ReservationFlow({
             </div>
           </div>
           {wake ? (
-            <div className="min-w-0 space-y-5 lg:sticky lg:top-32 lg:self-start">
-              <aside aria-label="WAKE užsakymas" className="border border-line bg-foam lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto">
-                <ServiceGallery photos={SERVICE_GALLERY.wake} variant="panel" label="WAKE nuotraukos" />
-                <div className="space-y-6 p-5 sm:p-8">
-                  <h2 className="text-tile font-bold">Užsakyti</h2>
-                  <WakeBookingSummary product={wakeBooking.product} contact={ACADEMY_CONTACT} />
-                </div>
-              </aside>
-              {lines.length > 0 ? <PlanPanel activity={tab} photos={photos} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} /> : null}
-            </div>
+            <aside aria-label="WAKE užsakymas" className="min-w-0 border border-line bg-foam lg:sticky lg:top-32 lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto">
+              <ServiceGallery photos={SERVICE_GALLERY.wake} variant="panel" label="WAKE nuotraukos" />
+              <div className="space-y-6 p-5 sm:p-8">
+                <h2 className="text-tile font-bold">Užsakyti</h2>
+                <WakeBookingSummary product={wakeBooking.product} contact={ACADEMY_CONTACT} />
+              </div>
+            </aside>
           ) : (
             <PlanPanel ref={inline ? inlinePlan : undefined} activity={tab} photos={photos} inline={inline} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
           )}
         </div>
       </form>
-      {inline || (wake && lines.length === 0) ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
+      {inline || wake ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
       <ReservationAccountDialog
         open={step === LAST}
         onClose={() => { if (!busy) setStep(0); }}

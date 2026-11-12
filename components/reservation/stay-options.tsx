@@ -1,11 +1,12 @@
 "use client";
 
+import { ListBulletsIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { MAX_STAY_UNITS, type StayType } from "@/lib/cabin";
 import type { StayPick, StayPlan } from "@/lib/reservation";
-import { OptionGroupLabel } from "./option-card";
+import { BookingDetailCard } from "./booking-detail-card";
 import { StayTypeDialog } from "./stay-type-dialog";
 
 interface StayOptionsProps {
@@ -24,9 +25,11 @@ export function StayOptions({ plan, stayTypes, datesSelected, included, onChange
 
   return (
     <>
-      <div className="@container">
-        <OptionGroupLabel>Tipas</OptionGroupLabel>
-        <div className="grid gap-3 lg:@2xl:grid-cols-3">
+      <fieldset disabled={!datesSelected} className="@container min-w-0 disabled:pointer-events-none disabled:opacity-50">
+        <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
+          <ListBulletsIcon size={18} aria-hidden /> Paslauga
+        </legend>
+        <div className="grid gap-3 lg:@md:grid-cols-2">
           {stayTypes.map((type) => {
             const selected = included && type.id === plan.typeId;
             const choice: StayPick = { typeId: type.id, nights, units };
@@ -43,7 +46,7 @@ export function StayOptions({ plan, stayTypes, datesSelected, included, onChange
             );
           })}
         </div>
-      </div>
+      </fieldset>
       {datesSelected && included && !plan.ok && (
         <p role="status" className="text-sm text-rust-ink">
           Šioms naktims pasirinkto kiekio nebeliko. Pakeisk datas, kiekį arba tipą.
@@ -65,17 +68,15 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
   const [draft, setDraft] = useState(1);
   const max = free === null ? 0 : Math.min(MAX_STAY_UNITS, free);
   const count = selected ? units : Math.min(draft, max);
-  const copy = selected ? "text-dust/80" : "text-copy";
-
   return (
-    <article aria-label={title} className={`relative flex flex-col gap-4 border p-5 transition-colors duration-150 ease-out-strong ${selected ? "border-ink bg-ink text-dust" : "border-line bg-card"}`}>
-      <StayTypeDialog type={type} className="absolute top-2 right-2" />
-      <div className="space-y-2">
-        <p className={`text-micro uppercase ${copy}`}>{free === null ? "Nakvynė" : free === 0 ? "Užimta" : Number.isFinite(free) ? `Liko: ${free}` : "Nakvynė"}</p>
-        <h3 className="text-item font-bold">{title}</h3>
-        {type.note ? <p className={`text-xs leading-relaxed ${copy}`}>{type.note}</p> : null}
-        <p className="text-xs font-bold">{price} € / naktį</p>
-      </div>
+    <BookingDetailCard
+      eyebrow={free === null ? "Nakvynė" : free === 0 ? "Užimta" : Number.isFinite(free) ? `Liko: ${free}` : "Nakvynė"}
+      title={title}
+      description={type.note}
+      price={`${price} € / naktį`}
+      selected={selected}
+      details={free !== null ? <StayTypeDialog type={type} /> : undefined}
+    >
       {free !== null ? <div className="mt-auto space-y-4">
         {max > 0 && (
           <div>
@@ -101,6 +102,6 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
           <TextCtaArrow />
         </button>
       </div> : null}
-    </article>
+    </BookingDetailCard>
   );
 }

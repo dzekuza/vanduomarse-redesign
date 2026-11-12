@@ -1,3 +1,12 @@
+- 2026-11-12 The sauna session tab on `/rezervacija` starts on today and shows that day's sessions. On an empty date it offers the next date with bookable sessions and their start times. Opening the suggestion changes the date without adding a session.
+- 2026-11-12 The WAKE order total uses the stacked reservation layout with the amount under the VAT label and coupon instructions below.
+- 2026-11-12 Stay choices match the WAKE two-column layout in wide reservation panels. The info buttons appear once arrival is selected.
+- 2026-11-12 The stay choices on `/rezervacija` remain visible and disabled until an arrival date is selected.
+- 2026-11-12 The stay choices on `/rezervacija` use the Paslauga heading and the same list icon as WAKE.
+- 2026-11-12 Added the sauna waves icon beside the Seansai heading in shared sauna booking.
+- 2026-11-12 The WAKE tab on `/rezervacija` shows only its own order panel. Other activities stay in the reservation plan when switching tabs, and their desktop summary and mobile dock stay hidden on WAKE.
+- 2026-11-12 On `/rezervacija`, the WAKE Paslauga selector has a list icon and starts with neither service selected. It shows a dimmed preview of the ride offers (or passes if there are no rides). Choosing a service enables its offers, and choosing an offer shows its total and checkout link.
+- 2026-11-12 WAKE ride and season-pass options use the stay-card layout with icon headings, inline descriptions and prices, and a dark selected card. Offer details and order totals use the existing live coupon catalogue.
 - 2026-11-12 WAKE type tiles show the name and live starting price in the same two-line layout as quad route tiles.
 - 2026-11-12 Added a WAKE order summary to `/rezervacija` with its gallery, live selected offer price, coupon order link and academy contacts.
 - 2026-11-12 Matched the quad route and WAKE type tiles to the sauna venue tiles for height, spacing and text alignment.

@@ -1,10 +1,10 @@
 "use client";
 
-import { WavesIcon } from "@phosphor-icons/react";
+import { ListBulletsIcon, TicketIcon, WavesIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Cta } from "@/components/cta";
 import { BOOKING_CHOICE_CLASS, FilterChip } from "@/components/events/filter-chip";
-import { OptionCard } from "@/components/reservation/option-card";
+import { BookingDetailCard } from "@/components/reservation/booking-detail-card";
 import { PLAN_PRIMARY_CLASS } from "@/components/reservation/plan-actions";
 import type { Contact } from "@/lib/contacts";
 import { formatEuro, isWakeSeasonPass, type CouponProduct } from "@/lib/coupons";
@@ -17,34 +17,41 @@ const TYPES = [
 
 type WakeType = (typeof TYPES)[number]["id"];
 
-export function useWakeBooking(products?: CouponProduct[]) {
-  const [type, setType] = useState<WakeType>("ride");
+export function useWakeBooking(products?: CouponProduct[], { autoSelect = false } = {}) {
+  const [type, setType] = useState<WakeType | null>(autoSelect ? "ride" : null);
   const [selected, setSelected] = useState<Partial<Record<WakeType, string>>>({});
   const offers: Record<WakeType, CouponProduct[]> = { ride: [], season: [] };
   for (const product of products ?? []) {
     offers[isWakeSeasonPass(product) ? "season" : "ride"].push(product);
   }
-  const options = offers[type];
-  const product = options.find(({ id }) => id === selected[type]) ?? options[0];
+  const offerType = type ?? (offers.ride.length > 0 ? "ride" : "season");
+  const options = offers[offerType];
+  const product = type
+    ? options.find(({ id }) => id === selected[type]) ?? (autoSelect ? options[0] : undefined)
+    : undefined;
 
   return {
     type,
     setType,
     offers,
+    offerType,
     options,
     product,
-    selectProduct: (id: string) => setSelected((current) => ({ ...current, [type]: id })),
+    selectProduct: (id: string) => {
+      if (type) setSelected((current) => ({ ...current, [type]: id }));
+    },
   };
 }
 
-export function WakeBookingChoices({ type, setType, offers, options, product, selectProduct }: ReturnType<typeof useWakeBooking>) {
-  const season = type === "season";
+export function WakeBookingChoices({ type, setType, offers, offerType, options, product, selectProduct }: ReturnType<typeof useWakeBooking>) {
+  const season = offerType === "season";
+  const OfferIcon = season ? TicketIcon : WavesIcon;
 
   return (
     <div className="space-y-5">
       <fieldset>
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
-          <WavesIcon size={18} aria-hidden /> Tipas
+          <ListBulletsIcon size={18} aria-hidden /> Paslauga
         </legend>
         <div className="grid grid-cols-2 gap-2">
           {TYPES.map(({ id, label }) => {
@@ -64,17 +71,29 @@ export function WakeBookingChoices({ type, setType, offers, options, product, se
           })}
         </div>
       </fieldset>
-      {product ? (
-        <div role="group" aria-label={season ? "Abonementai" : "Plaukimai"} className="grid gap-2">
-          {options.map((option) => (
-            <OptionCard key={option.id} title={option.name} text={option.description} meta={formatEuro(option.value)}
-              selected={option.id === product.id} onClick={() => selectProduct(option.id)} />
-          ))}
-        </div>
-      ) : (
+      {options.length > 0 ? (
+        <fieldset disabled={type === null} className="@container min-w-0 disabled:pointer-events-none disabled:opacity-50">
+          <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
+            <OfferIcon size={18} aria-hidden /> {season ? "Abonementai" : "Plaukimo pasirinkimai"}
+          </legend>
+          <div className="grid gap-3 lg:@md:grid-cols-2">
+            {options.map((option) => (
+              <BookingDetailCard
+                key={option.id}
+                eyebrow={season ? "Abonementas" : "Plaukimas"}
+                title={option.name}
+                description={option.description}
+                price={formatEuro(option.value)}
+                selected={option.id === product?.id}
+                onSelect={() => selectProduct(option.id)}
+              />
+            ))}
+          </div>
+        </fieldset>
+      ) : type ? (
         <p className="text-sm text-copy">{season ? "Dėl WAKE abonemento susisiek su Marso Akademija."
           : "Dėl plaukimo susisiek su Marso Akademija."}</p>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -86,14 +105,14 @@ export function WakeBookingSummary({ product, contact }: { product?: CouponProdu
     <>
       {product ? (
         <div className="space-y-3 border-t border-line pt-4">
-          <p aria-live="polite" className="flex items-baseline justify-between gap-3">
-            <span className="text-xs text-copy">Iš viso, su PVM</span>
-            <strong className="text-figure">{formatEuro(product.value)}</strong>
-          </p>
-          <p className="text-xs leading-relaxed text-copy">
-            {season ? "Apmokėjus gausi kupono kodą. Abonementą su šiuo kodu aktyvuos komanda parke."
-              : "Apmokėjus gausi plaukimo kupono kodą. Plaukimo laiką suderink su Marso Akademija."}
-          </p>
+          <div>
+            <p className="text-micro uppercase text-copy">Iš viso, su PVM</p>
+            <p aria-live="polite" aria-atomic="true" className="font-display text-total font-bold">{formatEuro(product.value)}</p>
+            <p className="mt-1 text-xs text-copy">
+              {season ? "Apmokėjus gausi kupono kodą. Abonementą su šiuo kodu aktyvuos komanda parke."
+                : "Apmokėjus gausi plaukimo kupono kodą. Plaukimo laiką suderink su Marso Akademija."}
+            </p>
+          </div>
           <Cta tone="dark" small className={PLAN_PRIMARY_CLASS} href={`/kuponai?produktas=${encodeURIComponent(product.id)}#uzsakymas`}>
             {season ? "Užsakyti abonementą" : "Užsakyti plaukimą"}
           </Cta>
@@ -105,7 +124,7 @@ export function WakeBookingSummary({ product, contact }: { product?: CouponProdu
 }
 
 export function WakeServiceBooking({ products, contact }: { products: CouponProduct[]; contact: Contact }) {
-  const booking = useWakeBooking(products);
+  const booking = useWakeBooking(products, { autoSelect: true });
 
   return (
     <div className="space-y-5">
