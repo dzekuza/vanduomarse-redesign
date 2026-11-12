@@ -1,3 +1,9 @@
+## 2026-11-13 — Mobile sheet overlay animation
+
+- **Found:** `SheetModal` put the backdrop inside a slide-animated `Modal`, so the overlay slid up with the sheet.
+- **Changed:** `mobile/src/components/primitives.tsx` (fade backdrop + sliding sheet, tap backdrop to close).
+- **Status:** tsc + iOS export pass; not seen on a device.
+
 ## 2026-11-13 — Mobile app to Expo SDK 58
 
 - **Why:** Expo Go on the owner's iPhone is SDK 58; the app was SDK 53 ("Project is incompatible with this version of Expo Go").
