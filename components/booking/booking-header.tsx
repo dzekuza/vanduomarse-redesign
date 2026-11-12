@@ -47,7 +47,7 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro }: BookingH
         ) : null}
       </h1>
       {[intro ?? []].flat().map((paragraph) => (
-        <p key={paragraph} className="max-w-xl text-xs leading-loose text-copy md:text-sm">
+        <p key={paragraph} className="text-xs leading-loose text-copy md:text-sm">
           {paragraph}
         </p>
       ))}

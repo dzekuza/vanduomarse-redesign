@@ -14,6 +14,8 @@ export interface MyRequest {
   status: "laukia" | "patvirtinta" | "ivykdyta" | "atsaukta";
   /** The Stripe payment status, or null when it was not paid online. */
   payment: "laukia" | "apmoketa" | "pasibaige" | "nepavyko" | "grazinta" | null;
+  /** The Stripe payment this request belongs to; lets an unpaid one be paid again or cancelled. */
+  paymentId: string | null;
 }
 
 export const REQUEST_STATUS_LABEL: Record<MyRequest["status"], string> = {

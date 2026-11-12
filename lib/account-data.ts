@@ -15,9 +15,9 @@ const paymentOf = (row: { status: string } | null): MyRequest["payment"] =>
 export async function loadMyRequests(): Promise<MyRequest[]> {
   const supabase = await createClient();
   const [bookings, rentals, tickets] = await Promise.all([
-    supabase.from("bookings").select("id, reference, kind, date, start_hour, hours, nights, stay_units, total, status, payments(status)"),
-    supabase.from("quad_rentals").select("id, reference, date, start_hour, hours, units, total, status, payments(status)"),
-    supabase.from("event_tickets").select("id, reference, people, total, status, payments(status), events(title, date, start_time)"),
+    supabase.from("bookings").select("id, reference, kind, date, start_hour, hours, nights, stay_units, total, status, payments(id, status)"),
+    supabase.from("quad_rentals").select("id, reference, date, start_hour, hours, units, total, status, payments(id, status)"),
+    supabase.from("event_tickets").select("id, reference, people, total, status, payments(id, status), events(title, date, start_time)"),
   ]);
   for (const result of [bookings, rentals, tickets]) {
     if (result.error) throw new Error(`Account data: ${result.error.message}`);
@@ -37,6 +37,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       total: b.total,
       status: b.status,
       payment: paymentOf(b.payments),
+      paymentId: b.payments?.id ?? null,
     })),
     ...rentals.data!.map((r): MyRequest => ({
       id: r.id,
@@ -48,6 +49,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       total: r.total,
       status: r.status,
       payment: paymentOf(r.payments),
+      paymentId: r.payments?.id ?? null,
     })),
     ...tickets.data!.map((t): MyRequest => ({
       id: t.id,
@@ -59,6 +61,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       total: t.total,
       status: t.status,
       payment: paymentOf(t.payments),
+      paymentId: t.payments?.id ?? null,
     })),
   ];
   return all.toSorted((a, b) => b.date.localeCompare(a.date) || b.reference.localeCompare(a.reference));

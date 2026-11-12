@@ -88,7 +88,7 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
       aria-describedby={details ? descriptionId : undefined}
       aria-haspopup={details?.opensDialog ? "dialog" : undefined}
       className={`relative flex min-h-11 flex-col items-center border text-sm transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${compact ? "justify-center gap-0.5 py-1" : "gap-1 py-2.5 sm:py-3"} ${
-        fluid ? "w-full" : compact ? (wide ? "w-14 shrink-0" : "w-12 shrink-0") : "w-14 shrink-0 sm:w-16"
+        fluid ? "w-full" : compact ? (wide ? "w-18 shrink-0" : "w-12 shrink-0") : "w-14 shrink-0 sm:w-16"
       } ${hasActions ? "border-transparent" : appearance} ${disabled ? "cursor-not-allowed" : ""}${details ? " min-w-0" : ""}`}
     >
       {isToday && !disabled ? <span aria-hidden className={`absolute rounded-full bg-current ${compactMonth ? "right-0.5 top-0.5 size-1" : "right-1.5 top-1.5 size-1.5"}`} /> : null}
