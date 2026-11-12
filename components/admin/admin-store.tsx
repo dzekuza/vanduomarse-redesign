@@ -632,7 +632,7 @@ function useAdminReducer(initial: AdminData) {
       /** Not optimistic: the rows leave the list once the server has removed them. */
       deleteRiders: async (ids: string[]) => {
         const result = await report(actions.deleteRiders(ids));
-        if ("data" in result) for (const id of ids) dispatch({ type: "rider/delete", id });
+        if ("data" in result) for (const id of result.data.removed) dispatch({ type: "rider/delete", id });
         return result;
       },
       deleteRider: (id: string) => {

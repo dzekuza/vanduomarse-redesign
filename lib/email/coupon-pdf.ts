@@ -22,7 +22,7 @@ export interface CouponPdfData {
 const INK = "#382e38";
 const CORAL = "#ed5257";
 const CORAL_INK = "#a8282d";
-const COPY = "#6d6069";
+const COPY = "#5a4c5a";
 
 const ROOT = process.cwd();
 const FONT_REGULAR = path.join(ROOT, "app/fonts/Termina-Regular.otf");

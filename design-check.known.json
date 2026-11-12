@@ -31,6 +31,12 @@
       "file": "components/ui/tooltip.tsx",
       "text": "rounded-[2px]",
       "count": 1
+    },
+    {
+      "rule": "font-family",
+      "file": "lib/email/coupon-template.ts",
+      "text": "$",
+      "count": 1
     }
   ]
 }

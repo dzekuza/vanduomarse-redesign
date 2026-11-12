@@ -17,7 +17,7 @@ const PAPER = "#fbf3ef";
 const BACKGROUND = "#eed9ce";
 const CORAL = "#ed5257";
 const CORAL_INK = "#a8282d";
-const COPY = "#6d6069";
+const COPY = "#5a4c5a";
 const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 const label = (text: string) => `<p style="margin:0 0 4px;font:700 11px ${FONT};letter-spacing:1px;text-transform:uppercase;color:${COPY};">${escapeHtml(text)}</p>`;

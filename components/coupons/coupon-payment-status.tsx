@@ -51,7 +51,7 @@ export function CouponPaymentStatus({ coupon }: { coupon: CouponPaymentView | nu
             <p className="wrap-anywhere select-all font-display text-figure font-bold text-rust-ink sm:text-total">{formatCode(coupon.code)}</p>
             {coupon.expiresAt ? <p className="mt-1 text-sm text-copy">Galioja iki {formatExpiry(coupon.expiresAt)}</p> : null}
           </div>
-          <CouponCodeActions code={formatCode(coupon.code)} sessionId={coupon.sessionId} />
+          {coupon.status === "aktyvus" ? <CouponCodeActions code={formatCode(coupon.code)} sessionId={coupon.sessionId} /> : null}
         </div>
       ) : null}
       <Link href="/kuponai" className="inline-flex min-h-11 items-center text-sm font-normal text-ink/70 underline underline-offset-4 hover:text-rust">
