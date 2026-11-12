@@ -1,3 +1,10 @@
+## 2026-11-13 — PR #48: free the slot on a cancelled payment
+
+- **Why:** owner screenshot: after leaving Stripe, the payment page said the slots were still held.
+- **Changed:** `lib/payment-release.ts` (owner-checked, expires the Checkout Session, then `abandon_payment`), wired into `/rezervacija/mokejimas?atsaukta=1`; copy updated; ADR-0077; a security review led to the ownership check. PR #48 open, not merged.
+- **Status:** tsc/eslint clean; not browser-checked (needs a real Stripe checkout + back click).
+- **Next:** test, then merge.
+
 ## 2026-11-13 — Checkout below Stripe's 0,50 € minimum
 
 - **Found:** 45 € with code 999 (99 %) = 0,45 €; Stripe Checkout rejects EUR totals under 0,50 €, surfaced as the generic payment-start error.
