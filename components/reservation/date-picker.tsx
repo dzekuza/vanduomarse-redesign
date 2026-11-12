@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarBlankIcon, RowsIcon } from "@phosphor-icons/react";
-import { useState, type PointerEvent } from "react";
+import { useState, type PointerEvent, type ReactNode } from "react";
 import type { DayIcon } from "@/components/booking/day-picker";
 import { dateKey } from "@/lib/sauna";
 import { DateStrip } from "./date-strip";
@@ -17,6 +17,9 @@ interface DatePickerProps {
   icons?: (date: Date) => DayIcon[];
   dayDetails?: (date: Date, view: View) => ReservationDayDetails | undefined;
   initialView?: View;
+  /** Label alongside the view switch when the picker is always visible. */
+  label?: ReactNode;
+  wideStrip?: boolean;
   /** Use the same views in a narrow booking panel. */
   compact?: boolean;
   /** Inquiries can select future dates beyond the dates in the strip. */
@@ -31,7 +34,7 @@ const VIEWS: { id: View; label: string; Icon: typeof RowsIcon }[] = [
 ];
 
 /** A scrolling strip or a month calendar, switched with the toggle above it. */
-export function DatePicker({ days, selected, onSelect, icons, dayDetails, initialView = "strip", compact, allowFutureDates, range }: DatePickerProps) {
+export function DatePicker({ days, selected, onSelect, icons, dayDetails, initialView = "strip", label, wideStrip, compact, allowFutureDates, range }: DatePickerProps) {
   const [view, setView] = useState(initialView);
   const [browsedMonth, setBrowsedMonth] = useState<Date>();
   const [preview, setPreview] = useState<{ start: string; end: string }>();
@@ -71,8 +74,9 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
     setView(next);
   }
 
-  const controlsClass = compact
-    ? "mb-2 flex flex-wrap items-center justify-between gap-2"
+  const inlineControls = compact || Boolean(label);
+  const controlsClass = inlineControls
+    ? "mb-2 flex flex-wrap items-start justify-between gap-2"
     : view === "strip"
       ? "absolute top-0 right-0 z-10 flex h-12 items-center bg-dust pl-3"
       : "mb-4 flex justify-end";
@@ -80,14 +84,15 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
   return (
     <div onPointerOver={selection?.selectingEnd ? previewDeparture : undefined} onPointerLeave={selection?.selectingEnd ? () => setPreview(undefined) : undefined} className="relative">
       <div className={controlsClass}>
-        <div role="group" aria-label="Datos rodinys" className={`inline-flex shrink-0 border border-line ${compact ? "ml-auto" : ""}`}>
+        {label}
+        <div role="group" aria-label="Datos rodinys" className={`inline-flex shrink-0 border border-line ${inlineControls ? "ml-auto" : ""}`}>
           {VIEWS.map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
               aria-pressed={view === id}
               onClick={() => changeView(id)}
-              className={`flex min-h-11 items-center gap-1.5 px-2 text-xs transition-colors duration-150 ease-out-strong ${compact ? "" : "sm:gap-2 sm:px-4"} ${view === id ? "bg-ink text-dust" : "hover:text-rust"}`}
+              className={`flex min-h-11 items-center gap-1.5 px-2 text-xs transition-colors duration-150 ease-out-strong ${inlineControls ? "" : "sm:gap-2 sm:px-4"} ${view === id ? "bg-ink text-dust" : "hover:text-rust"}`}
             >
               <Icon size={16} aria-hidden />
               {label}
@@ -96,7 +101,7 @@ export function DatePicker({ days, selected, onSelect, icons, dayDetails, initia
         </div>
       </div>
       {view === "strip" ? (
-        <DateStrip days={days} selected={selected} onSelect={selectDay} icons={icons} dayDetails={detailsForView} range={selection} reserveIconSpace={reserveIconSpace} compact={compact} />
+        <DateStrip days={days} selected={selected} onSelect={selectDay} icons={icons} dayDetails={detailsForView} range={selection} reserveIconSpace={reserveIconSpace} compact={compact} wideDays={wideStrip} />
       ) : calendarMonth && (
         <MonthCalendar
           days={days}

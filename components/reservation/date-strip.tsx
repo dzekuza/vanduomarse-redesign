@@ -16,9 +16,10 @@ interface DateStripProps {
   range?: DateRangeSelection;
   reserveIconSpace?: boolean;
   compact?: boolean;
+  wideDays?: boolean;
 }
 
-export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, reserveIconSpace, compact }: DateStripProps) {
+export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, reserveIconSpace, compact, wideDays }: DateStripProps) {
   const stripRef = useRef<HTMLDivElement>(null);
   const last = days.at(-1);
   const lastKey = last && dateKey(last);
@@ -86,6 +87,7 @@ export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, 
                     details={details}
                     reserveIconSpace={reserveIconSpace}
                     compact={compact}
+                    wide={wideDays}
                     onSelect={onSelect}
                   />
                 );

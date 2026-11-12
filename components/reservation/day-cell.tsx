@@ -54,11 +54,13 @@ interface DayCellProps {
   /** Fills its grid cell instead of the strip's fixed width. */
   fluid?: boolean;
   compact?: boolean;
+  /** Wider booking strip tile with a dark selected state. */
+  wide?: boolean;
   tabIndex?: number;
 }
 
 /** One day: weekday, big number, a dot for today and the sauna / stay / quad availability marks. */
-export function DayCell({ date, active, isToday, disabled, rangePart, icons, details, reserveIconSpace, onSelect, fluid, compact, tabIndex }: DayCellProps) {
+export function DayCell({ date, active, isToday, disabled, rangePart, icons, details, reserveIconSpace, onSelect, fluid, compact, wide, tabIndex }: DayCellProps) {
   const descriptionId = useId();
   const anyFree = details?.available ?? (!icons || icons.some((i) => i.on));
   const endpoint = rangePart === "arrival" ? "Atvykimas" : rangePart === "departure" ? "Išvykimas" : undefined;
@@ -66,7 +68,7 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
   const compactMonth = compact && fluid;
   const hasActions = !disabled && Boolean(details?.actions);
   const appearance = selected
-    ? "border-ink bg-foam/50 text-ink"
+    ? wide ? "border-ink bg-ink text-dust" : "border-ink bg-foam/50 text-ink"
     : rangePart === "between"
       ? "border-ink/30 bg-foam text-ink hover:border-ink"
       : disabled
@@ -86,7 +88,7 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
       aria-describedby={details ? descriptionId : undefined}
       aria-haspopup={details?.opensDialog ? "dialog" : undefined}
       className={`relative flex min-h-11 flex-col items-center border text-sm transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${compact ? "justify-center gap-0.5 py-1" : "gap-1 py-2.5 sm:py-3"} ${
-        fluid ? "w-full" : compact ? "w-12 shrink-0" : "w-14 shrink-0 sm:w-16"
+        fluid ? "w-full" : compact ? (wide ? "w-14 shrink-0" : "w-12 shrink-0") : "w-14 shrink-0 sm:w-16"
       } ${hasActions ? "border-transparent" : appearance} ${disabled ? "cursor-not-allowed" : ""}${details ? " min-w-0" : ""}`}
     >
       {isToday && !disabled ? <span aria-hidden className={`absolute rounded-full bg-current ${compactMonth ? "right-0.5 top-0.5 size-1" : "right-1.5 top-1.5 size-1.5"}`} /> : null}

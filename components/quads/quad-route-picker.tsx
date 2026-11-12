@@ -1,6 +1,7 @@
 "use client";
 
 import { MapTrifoldIcon } from "@phosphor-icons/react";
+import { BOOKING_CHOICE_CLASS, FilterChip } from "@/components/events/filter-chip";
 import type { QuadTourRoute } from "@/lib/quads";
 
 interface QuadRoutePickerProps {
@@ -20,18 +21,17 @@ export function QuadRoutePicker({ routes, value, disabled, onChange }: QuadRoute
         {routes.map((route) => {
           const active = route.id === value;
           return (
-            <button
+            <FilterChip
               key={route.id}
-              type="button"
-              aria-pressed={active}
+              active={active}
               aria-label={`${route.name} turas, ${route.price} € keturračiui${route.badge ? `, ${route.badge}` : ""}`}
               onClick={() => onChange(route.id)}
-              className={`relative flex min-h-16 min-w-0 flex-col justify-center gap-1 border px-2 py-3 text-left text-xs transition-[color,background-color,border-color,scale] duration-150 ease-out-strong motion-safe:active:scale-97 ${active ? "border-ink bg-ink text-dust" : "border-line text-ink hover:border-ink"}`}
+              className={`relative ${BOOKING_CHOICE_CLASS}`}
             >
               {route.badge ? <span aria-hidden className="absolute -top-2.5 right-1 max-w-[calc(100%-0.5rem)] truncate bg-rust px-1.5 py-0.5 text-micro font-bold text-ink">{route.badge}</span> : null}
               <span className="font-bold">{route.name} turas</span>
-              <span>{route.price} €</span>
-            </button>
+              <span className={active ? "text-dust/80" : "text-copy"}>{route.price} €</span>
+            </FilterChip>
           );
         })}
       </div>
