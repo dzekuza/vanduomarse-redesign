@@ -4,6 +4,8 @@ import type { ActionResult } from "@/app/admin/actions";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
 import { normalizeCode, COUPON_CODE_LENGTH, type CheckedCoupon, type RedeemableService, couponApplies } from "@/lib/coupons";
 import { openCouponCheckout } from "@/lib/coupon-checkout";
+import { SESSION_ID_PATTERN, voucherUrl } from "@/lib/coupon-voucher";
+import { sendCouponEmail } from "@/lib/email/send-coupon";
 import { clientIp } from "@/lib/client-ip";
 import { hashIp } from "@/lib/phone-verification";
 import { paymentsEnabled } from "@/lib/stripe";
@@ -98,4 +100,31 @@ export async function checkCoupon(code: string, flow: RedeemableService): Promis
     return fail(flow === "pirtis" ? "Šis kuponas skirtas kitai paslaugai, ne pirčiai." : "Šis kuponas skirtas kitai paslaugai, ne nakvynei.", "wrong_service");
   }
   return { data: { code: normalized, balance: row.balance, service: row.service, expiresAt: row.expires_at, productName: row.product_name } };
+}
+
+/**
+ * "Siųsti laišką dar kartą" on the payment page: emails the code to the buyer again (not to the gift recipient, so the
+ * button cannot be used to pester a third party). The database allows one send per coupon every 2 minutes.
+ */
+export async function resendCouponEmail(sessionId: string): Promise<ActionResult<null>> {
+  if (typeof sessionId !== "string" || !SESSION_ID_PATTERN.test(sessionId)) return fail("Nuoroda neteisinga.", "invalid");
+  const { data, error } = await createAdminClient().rpc("resend_coupon_email", { p_session_id: sessionId });
+  if (error) return fail("Nepavyko išsiųsti laiško. Bandykite dar kartą arba skambinkite.", "db");
+  const c = data[0];
+  if (!c) return fail("Kodas dar neišduotas. Palaukite kelias sekundes.", "not_active");
+  if (!c.allowed) return fail(`Laišką ką tik siuntėme. Bandykite po ${c.retry_in} s.`, "rate_limit");
+
+  const sent = await sendCouponEmail({
+    to: c.buyer_email,
+    buyerName: c.buyer_name,
+    recipientName: c.recipient_name,
+    message: c.message,
+    code: c.code,
+    productName: c.product_name,
+    faceValue: c.face_value,
+    service: c.service,
+    expiresAt: c.expires_at,
+    voucherUrl: await voucherUrl(sessionId),
+  });
+  return sent ? { data: null } : fail("Nepavyko išsiųsti laiško. Nukopijuokite kodą iš šio puslapio arba skambinkite.", "email");
 }

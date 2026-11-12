@@ -583,3 +583,16 @@ html {
     font-weight: 700;
   }
 }
+
+/* The gift coupon voucher (/kuponai/kuponas): A4, no browser margins, colours kept when saved as PDF. */
+@page {
+  size: A4;
+  margin: 10mm;
+}
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

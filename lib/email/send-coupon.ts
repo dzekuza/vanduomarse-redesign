@@ -22,6 +22,8 @@ export interface CouponEmail {
   service: CouponService;
   /** yyyy-mm-dd */
   expiresAt: string;
+  /** Printable voucher page (save as PDF); linked from the email when known. */
+  voucherUrl?: string;
 }
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY && process.env.COUPON_FROM_EMAIL);
@@ -44,6 +46,7 @@ export async function sendCouponEmail(c: CouponEmail): Promise<boolean> {
     ...(c.message ? ["", `Palinkėjimas: ${c.message}`] : []),
     "",
     "Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.",
+    ...(c.voucherUrl ? ["", `Kuponas spausdinimui / PDF: ${c.voucherUrl}`] : []),
     "",
     `Klausimai? ${contact.email}, ${contact.phone}`,
     "Vanduo Marse",
@@ -56,6 +59,7 @@ export async function sendCouponEmail(c: CouponEmail): Promise<boolean> {
     `<p>Galioja: ${escapeHtml(COUPON_SERVICE_LABEL[c.service].toLowerCase())}, iki ${escapeHtml(formatExpiry(c.expiresAt))}.</p>`,
     ...(c.message ? [`<blockquote>${escapeHtml(c.message)}</blockquote>`] : []),
     `<p>Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.</p>`,
+    ...(c.voucherUrl ? [`<p><a href="${escapeHtml(c.voucherUrl)}">Atsisiųsti kuponą (PDF)</a></p>`] : []),
     `<p>Klausimai? ${escapeHtml(contact.email)}, ${escapeHtml(contact.phone)}<br>Vanduo Marse</p>`,
   ].join("\n");
 
@@ -83,6 +87,7 @@ export async function sendCouponRecipientEmail(c: CouponEmail): Promise<boolean>
     `Galioja: ${COUPON_SERVICE_LABEL[c.service].toLowerCase()}, iki ${formatExpiry(c.expiresAt)}`,
     "",
     "Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.",
+    ...(c.voucherUrl ? ["", `Kuponas spausdinimui / PDF: ${c.voucherUrl}`] : []),
     "",
     `Klausimai? ${contact.email}, ${contact.phone}`,
     "Vanduo Marse",
@@ -94,6 +99,7 @@ export async function sendCouponRecipientEmail(c: CouponEmail): Promise<boolean>
     `<h1>${escapeHtml(code)}</h1>`,
     `<p>Galioja: ${escapeHtml(COUPON_SERVICE_LABEL[c.service].toLowerCase())}, iki ${escapeHtml(formatExpiry(c.expiresAt))}.</p>`,
     `<p>Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.</p>`,
+    ...(c.voucherUrl ? [`<p><a href="${escapeHtml(c.voucherUrl)}">Atsisiųsti kuponą (PDF)</a></p>`] : []),
     `<p>Klausimai? ${escapeHtml(contact.email)}, ${escapeHtml(contact.phone)}<br>Vanduo Marse</p>`,
   ].join("\n");
 
