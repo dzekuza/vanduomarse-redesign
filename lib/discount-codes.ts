@@ -7,7 +7,7 @@
 export type DiscountKind = "procentai" | "suma";
 
 /** The services a code can cover; the same ids as the reservation activities. */
-export const DISCOUNT_SERVICES = ["pirtis", "nakvyne", "keturraciai", "kuponai"] as const;
+export const DISCOUNT_SERVICES = ["pirtis", "nakvyne", "keturraciai", "kuponai", "planai"] as const;
 export type DiscountService = (typeof DISCOUNT_SERVICES)[number];
 
 export const DISCOUNT_SERVICE_LABEL: Record<DiscountService, string> = {
@@ -15,6 +15,7 @@ export const DISCOUNT_SERVICE_LABEL: Record<DiscountService, string> = {
   nakvyne: "Nakvynė",
   keturraciai: "Keturračiai",
   kuponai: "Dovanų kuponai",
+  planai: "Abonementai ir plaukimas",
 };
 
 export const DISCOUNT_KIND_LABEL: Record<DiscountKind, string> = {

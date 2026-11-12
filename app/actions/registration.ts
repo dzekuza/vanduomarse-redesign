@@ -103,16 +103,20 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
 
   if (!planId) return { data: { riderId } };
 
-  const started = await startPlanCheckout(riderId, planId);
+  const discountField = form.get("discountCode");
+  const started = await startPlanCheckout(riderId, planId, typeof discountField === "string" ? discountField.trim().slice(0, 40) : undefined);
   return "error" in started ? started : { data: { riderId, checkoutUrl: started.data.checkoutUrl } };
 }
 
 /** Creates the plan order for a rider and opens Stripe Checkout; drops the order again when Checkout cannot open. */
-async function startPlanCheckout(riderId: string, planId: string): Promise<ActionResult<{ checkoutUrl: string }>> {
+async function startPlanCheckout(riderId: string, planId: string, discountCode?: string): Promise<ActionResult<{ checkoutUrl: string }>> {
   const admin = createAdminClient();
-  const { data: order, error: orderError } = await admin.rpc("create_plan_order", { p_rider_id: riderId, p_plan_id: planId });
+  const { data: order, error: orderError } = await admin.rpc("create_plan_order", { p_rider_id: riderId, p_plan_id: planId, p_discount_code: discountCode || undefined });
   const row = order?.[0];
   if (orderError || !row) {
+    if (orderError?.hint === "discount_invalid") return fail("Nuolaidos kodas negalioja šiam užsakymui.", "discount");
+    if (orderError?.hint === "discount_used_up") return fail("Šis nuolaidos kodas jau išnaudotas.", "discount");
+    if (orderError?.hint === "below_minimum") return fail("Po nuolaidos suma per maža apmokėjimui (mažiausia 0,50 €).", "discount");
     console.error("Plan order: could not create the order", orderError);
     return fail(orderError?.hint === "plan_unavailable" ? "Šio abonemento internetu nebeparduodame. Skambinkite mums." : PLAN_FAILED, "payment");
   }
@@ -132,12 +136,12 @@ async function startPlanCheckout(riderId: string, planId: string): Promise<Actio
  * A customer who already finished /registracija (photo and signed rules) buys a plan without registering again. The rider is
  * found from the signed-in session, through the confirmed e-mail or phone, never from anything the browser sends.
  */
-export async function buyPlanAsMember(planId: string): Promise<ActionResult<{ checkoutUrl: string }>> {
+export async function buyPlanAsMember(planId: string, discountCode?: string): Promise<ActionResult<{ checkoutUrl: string }>> {
   if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
   if (!paymentsEnabled()) return fail("Mokėjimas šiuo metu neveikia. Skambinkite mums.", "setup");
   const customer = await getCustomer();
   if (!customer) return fail("Prisijunkite, kad tęstumėte.", "unauthorized");
   const member = (await loadMyRiders()).find((r) => r.registration && r.registered);
   if (!member) return fail("Registracija nerasta. Užpildykite registracijos formą.", "not_registered");
-  return startPlanCheckout(member.id, planId);
+  return startPlanCheckout(member.id, planId, discountCode?.trim().slice(0, 40));
 }

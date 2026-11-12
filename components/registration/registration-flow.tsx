@@ -4,7 +4,9 @@ import { CheckIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { registerRider } from "@/app/actions/registration";
 import { goToCheckout } from "@/components/coupons/order-form";
+import { CouponDiscountField } from "@/components/coupons/coupon-discount-field";
 import { formatEuro } from "@/lib/coupons";
+import { discountFor, type CheckedDiscount } from "@/lib/discount-codes";
 import { clearRegistrationDraft } from "@/lib/registration-draft";
 import type { RegistrationInput } from "@/lib/registration-schema";
 import { CameraCapture } from "./camera-capture";
@@ -30,6 +32,9 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
+  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const discountAmount = plan && discount ? discountFor(discount, "planai", plan.price) : 0;
+  const total = plan ? Math.max(plan.price - discountAmount, 0) : 0;
 
   if (step === "baigta") {
     return (
@@ -59,6 +64,7 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
       form.set("photo", photo, "photo.jpg");
       form.set("signature", signature, "signature.png");
       if (plan) form.set("planId", plan.id);
+      if (plan && discount) form.set("discountCode", discount.code);
 
       const result = await registerRider(form);
       if ("error" in result) {
@@ -83,8 +89,11 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
     <div className="space-y-6">
       {plan ? (
         <div className="rounded-lg border border-border p-4 text-sm">
-          <p className="font-bold">{plan.name}: {formatEuro(plan.price)}</p>
+          <p className="font-bold">{plan.name}: {formatEuro(total)}{discount ? <span className="ml-2 font-normal text-muted-foreground">(be nuolaidos {formatEuro(plan.price)})</span> : null}</p>
           <p className="text-muted-foreground">Užpildyk kontaktus, nusifotografuok ir pasirašyk taisykles, tada apmokėk. Apyrankę priskirs darbuotojas parke.</p>
+          <div className="mt-3">
+            <CouponDiscountField service="planai" discount={discount} amount={discountAmount} disabled={submitting || redirecting} onChange={setDiscount} />
+          </div>
         </div>
       ) : null}
       <div className="flex gap-1.5" aria-hidden>
@@ -109,7 +118,7 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
         <RulesStep
           fullName={`${contact.name} ${contact.surname}`}
           submitting={submitting || redirecting}
-          submitLabel={plan ? `Sutinku ir mokėti ${formatEuro(plan.price)}` : undefined}
+          submitLabel={plan ? `Sutinku ir mokėti ${formatEuro(total)}` : undefined}
           error={error}
           onBack={() => setStep("nuotrauka")}
           onSubmit={handleSubmit}
