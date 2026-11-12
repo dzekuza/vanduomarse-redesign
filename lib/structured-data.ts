@@ -1,5 +1,5 @@
 import { PARK_ADDRESS } from "@/components/landing/content";
-import { INSTAGRAM_URL, MAIN_CONTACT, MAPS_URL } from "@/lib/contacts";
+import { INSTAGRAM_URL, MAIN_CONTACT, MAPS_URL, PARK_LOCATION } from "@/lib/contacts";
 import { BRAND } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 
@@ -31,7 +31,7 @@ export function localBusinessSchema(): Record<string, unknown> {
       postalCode: "54311",
       addressCountry: "LT",
     },
-    geo: { "@type": "GeoCoordinates", latitude: 54.9910823, longitude: 23.8620224 },
+    geo: { "@type": "GeoCoordinates", latitude: PARK_LOCATION.latitude, longitude: PARK_LOCATION.longitude },
     openingHoursSpecification: OPENING_HOURS,
     hasMap: MAPS_URL,
     sameAs: [INSTAGRAM_URL],

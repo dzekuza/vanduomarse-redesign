@@ -62,6 +62,9 @@ export const INSTAGRAM_URL = "https://www.instagram.com/vanduo_marse/";
 
 export const MAPS_URL = "https://goo.gl/maps/dZJ74iwj3UiChd5FA";
 
+/** Where the park is: the map embed and the structured data (`geo`) read the same point. */
+export const PARK_LOCATION = { latitude: 54.9910823, longitude: 23.8620224 } as const;
+
 /** "+370 630 80 444" → "tel:+37063080444". */
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/\s+/g, "")}`;

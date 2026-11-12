@@ -1,3 +1,4 @@
+import { ParkMap } from "./park-map";
 import { PARK_ADDRESS } from "@/components/landing/content";
 import { CONTACTS, INSTAGRAM_URL, MAPS_URL, telHref } from "@/lib/contacts";
 
@@ -17,6 +18,7 @@ export function ContactDetails() {
         <a href={MAPS_URL} target="_blank" rel="noopener" className={LINK}>
           Atidaryti žemėlapyje
         </a>
+        <ParkMap />
       </section>
       {CONTACTS.map(({ name, email, phone }) => (
         <section key={name} className="border-t border-line pt-4">
