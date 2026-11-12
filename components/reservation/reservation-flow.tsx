@@ -7,7 +7,9 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
-import { WakeServiceBooking } from "@/components/services/wake-service-booking";
+import { SERVICE_GALLERY } from "@/components/landing/content";
+import { ServiceGallery } from "@/components/landing/service-gallery";
+import { useWakeBooking, WakeBookingChoices, WakeBookingSummary } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import type { CouponProduct } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
@@ -100,6 +102,7 @@ export function ReservationFlow({
   const sessionId = useSearchParams().get("seansas");
   const activeTab = activity ?? (sessionId && offer.pirtis ? "pirtis" : selectedTab);
   const wake = activeTab === "wake" && wakeProducts;
+  const wakeBooking = useWakeBooking(wakeProducts);
   const tab = activeTab === "wake" ? tabs[0] : activeTab;
   /** The sauna's two ways to book are separate chips on /rezervacija; session when there are any, otherwise private hire. */
   const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
@@ -152,12 +155,13 @@ export function ReservationFlow({
    * Per-day marks for the active tab: whether it is still free (faded days are not) and, for the sauna and quads,
    * how many scheduled sauna sessions there are.
    */
-  const dayDetails = (d: Date): ReservationDayDetails => {
+  const dayDetails = (d: Date, view: "strip" | "calendar"): ReservationDayDetails => {
     const key = dateKey(d);
     const available = dayAvailability(data, key, people, stayEnd ? stayNights : 1)[tab];
     const status = `${ACTIVITY_TITLE[tab]} ${available ? "laisva" : "užimta"}`;
     if (tab === "nakvyne") {
-      const cabins = stayDayDetails(data.cabin.stayTypes, data.cabin.availability, d, stayEnd ? stayNights : 1);
+      const onInk = !activity && view === "strip" && stayEnd !== null && (key === day || key === dateKey(stayEnd));
+      const cabins = stayDayDetails(data.cabin.stayTypes, data.cabin.availability, d, stayEnd ? stayNights : 1, onInk);
       // The count covers cabins only; `available` also counts camper pitches.
       return cabins ? { ...cabins, available } : { label: status, available };
     }
@@ -400,7 +404,7 @@ export function ReservationFlow({
                 setStep(0);
               }}
             />}
-            {wake ? <WakeServiceBooking products={wake} contact={ACADEMY_CONTACT} /> : tab === "pirtis" ? <SaunaServiceBooking
+            {wake ? <WakeBookingChoices {...wakeBooking} /> : tab === "pirtis" ? <SaunaServiceBooking
               key={activity ? "service" : saunaMode}
               mode={activity ? undefined : saunaMode}
               data={data.sauna}
@@ -510,7 +514,20 @@ export function ReservationFlow({
             </>}
             </div>
           </div>
-          {(!wake || lines.length > 0) && <PlanPanel ref={inline ? inlinePlan : undefined} activity={tab} photos={photos} inline={inline} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}
+          {wake ? (
+            <div className="min-w-0 space-y-5 lg:sticky lg:top-32 lg:self-start">
+              <aside aria-label="WAKE užsakymas" className="border border-line bg-foam lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto">
+                <ServiceGallery photos={SERVICE_GALLERY.wake} variant="panel" label="WAKE nuotraukos" />
+                <div className="space-y-6 p-5 sm:p-8">
+                  <h2 className="text-tile font-bold">Užsakyti</h2>
+                  <WakeBookingSummary product={wakeBooking.product} contact={ACADEMY_CONTACT} />
+                </div>
+              </aside>
+              {lines.length > 0 ? <PlanPanel activity={tab} photos={photos} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} /> : null}
+            </div>
+          ) : (
+            <PlanPanel ref={inline ? inlinePlan : undefined} activity={tab} photos={photos} inline={inline} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
+          )}
         </div>
       </form>
       {inline || (wake && lines.length === 0) ? null : <MobilePlanDock activity={tab} photos={photos} whenLabel={whenLabel} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />}

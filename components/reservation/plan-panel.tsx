@@ -27,14 +27,15 @@ interface PlanPanelProps extends PlanDetailsProps {
 /** Side panel that follows the visitor: activity photos and the running reservation total. */
 export function PlanPanel({ activity, photos = activityPhotos(activity), inline, ref, continueAction, secondaryAction, ...details }: PlanPanelProps) {
   const saunaSidebar = inline && activity === "pirtis";
+  const saunaOnly = activity === "pirtis" && details.lines.length === 1 && details.lines[0].id === "pirtis";
   const showDetails = !inline || details.lines.length > 0 || activity === "keturraciai";
 
   return (
-    <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline ? "scroll-mt-32 border-t border-line" : "hidden border border-line bg-foam/15 lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
+    <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline ? "scroll-mt-32 border-t border-line" : "hidden border border-line bg-foam lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
       {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
       <div className={inline ? "space-y-4 pt-4" : "space-y-6 p-5 sm:p-8"}>
         {inline ? null : <h2 className="text-tile font-bold">Rezervuoti</h2>}
-        {showDetails ? <PlanDetails {...details} showLines={!saunaSidebar} /> : null}
+        {showDetails ? <PlanDetails {...details} showLines={!saunaSidebar && !saunaOnly} /> : null}
         {saunaSidebar ? (
           <p className="flex items-center gap-2 text-xs leading-relaxed text-copy">
             <ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" />

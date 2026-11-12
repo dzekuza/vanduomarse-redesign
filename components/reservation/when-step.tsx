@@ -18,7 +18,7 @@ interface WhenStepProps {
   /** Availability icons under each day (not used by /rezervacija, which marks days through `dayDetails`). */
   icons?: (date: Date) => DayIcon[];
   /** Extra per-day marks, e.g. where scheduled sessions or tours are. */
-  dayDetails?: (date: Date) => ReservationDayDetails | undefined;
+  dayDetails?: (date: Date, view: "strip" | "calendar") => ReservationDayDetails | undefined;
   stay?: {
     phase: StayDatePhase;
     end: Date | null;
@@ -47,6 +47,11 @@ export function WhenStep({ days, date, onDate, icons, dayDetails, stay, compact 
       icons={icons}
       dayDetails={dayDetails}
       initialView={compact ? "calendar" : undefined}
+      compact={Boolean(stay && !compact)}
+      wideStrip={Boolean(stay && !compact)}
+      label={stay && !compact ? (
+        <span className="flex items-center gap-2 text-sm font-bold"><CalendarBlankIcon size={18} aria-hidden /> Datos</span>
+      ) : undefined}
       range={stay ? { end: stay.end, selectingEnd: stay.phase === "selectingEnd", lastEnd: stay.lastEnd } : undefined}
     />
   );

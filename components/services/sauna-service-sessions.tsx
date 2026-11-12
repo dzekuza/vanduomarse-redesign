@@ -42,13 +42,13 @@ export function SaunaServiceSessions({ rows, selectedKey, quantity, familyContro
               {active && quantity && row.eventId ? (
                 <div className="space-y-2 border-t border-line-on-ink px-3 py-1 [&_button:focus-visible]:outline-2 [&_button:focus-visible]:outline-dust [&_input:focus-visible]:border-dust [&_input:focus-visible]:ring-dust">
                   <div className="flex flex-wrap items-center justify-between gap-x-2">
-                    <div className="flex items-center gap-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-3">
                       <p className="inline-flex flex-wrap gap-1 text-xs text-dust/80">
                         Laisvos vietos <AvailabilityCount free={row.maxPeople} capacity={row.capacity} binary onInk />
                       </p>
-                      <SessionInfoLink id={row.eventId} className="grid size-11 shrink-0 place-items-center text-dust/80 hover:text-dust focus-visible:outline-2 focus-visible:outline-dust">
-                        <InfoIcon size={18} aria-hidden />
-                        <span className="sr-only">Daugiau informacijos apie seansą</span>
+                      <SessionInfoLink id={row.eventId} className="inline-flex min-h-11 items-center gap-1.5 text-xs font-bold text-dust underline underline-offset-4 hover:text-dust/80 focus-visible:outline-2 focus-visible:outline-dust">
+                        <InfoIcon size={16} className="shrink-0" aria-hidden />
+                        Daugiau informacijos
                       </SessionInfoLink>
                     </div>
                     <StepperControls label="Vietų skaičius" min={1} max={quantity.max} value={quantity.value} onChange={quantity.onChange} editable tone="current" />

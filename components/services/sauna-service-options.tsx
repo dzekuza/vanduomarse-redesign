@@ -1,5 +1,5 @@
 import { WavesIcon } from "@phosphor-icons/react";
-import { FilterChip } from "@/components/events/filter-chip";
+import { BOOKING_CHOICE_CLASS, FilterChip } from "@/components/events/filter-chip";
 import { CONTACTS, MAIN_CONTACT } from "@/lib/contacts";
 import type { SaunaPageData } from "@/lib/data/public-types";
 
@@ -45,8 +45,6 @@ interface SaunaServicePrivateOptionsProps {
   disabled?: boolean;
 }
 
-const CHOICE = "min-h-18 min-w-0 flex-col items-start justify-center gap-1 px-3 py-2 text-left";
-
 /** Show the venue choices before the private booking mode is selected. */
 export function SaunaServicePrivateOptions({ venues, venueId, onVenue, disabled }: SaunaServicePrivateOptionsProps) {
   const venue = venues.find(({ id }) => id === venueId);
@@ -59,7 +57,7 @@ export function SaunaServicePrivateOptions({ venues, venueId, onVenue, disabled 
         </legend>
         <div className="grid grid-cols-2 gap-2">
           {venues.map(({ id, label, maxParty, comingSoon }) => (
-            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={comingSoon ? `${CHOICE} border-dashed bg-dust-soft opacity-60` : CHOICE}>
+            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={comingSoon ? `${BOOKING_CHOICE_CLASS} border-dashed bg-dust-soft opacity-60` : BOOKING_CHOICE_CLASS}>
               <span className="font-bold">{label}</span>
               <span className={id === venueId ? "text-dust/80" : "text-copy"}>Iki {maxParty} žmonių</span>
               {comingSoon ? <span className="text-copy">Netrukus atsidarys</span> : null}

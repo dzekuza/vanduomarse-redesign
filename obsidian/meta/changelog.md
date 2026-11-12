@@ -1,3 +1,16 @@
+- 2026-11-12 WAKE type tiles show the name and live starting price in the same two-line layout as quad route tiles.
+- 2026-11-12 Added a WAKE order summary to `/rezervacija` with its gallery, live selected offer price, coupon order link and academy contacts.
+- 2026-11-12 Matched the quad route and WAKE type tiles to the sauna venue tiles for height, spacing and text alignment.
+- 2026-11-12 Aligned the session and stay date headings with the other reservation tabs by matching the gap below Tipas.
+- 2026-11-12 The stay booking date strip on `/rezervacija` matches the sauna strip, with wider tiles and dark arrival and departure dates.
+- 2026-11-12 The stay date strip on `/rezervacija` uses the same inline view switch style as the sauna forms.
+- 2026-11-12 Before choosing a private sauna, the disabled booking strip shows whether any bookable sauna is available that day. After selection it shows only that sauna’s availability.
+- 2026-11-12 Highlighted the selected date in the sauna booking strip with a dark fill and high-contrast availability text.
+- 2026-11-12 Added a visible Daugiau informacijos label to the sauna session details link.
+- 2026-11-12 The desktop reservation summary shows a right-aligned final price for a sauna-only selection and omits the duplicate day plan.
+- 2026-11-12 Private sauna booking on `/rezervacija` shows the date strip immediately and enables it once a bookable venue is selected.
+- 2026-11-12 The sauna session tab on `/rezervacija` shows the date strip immediately, with wider day cells and the date label above the month beside the view switch.
+- 2026-11-12 Matched the desktop reservation plan background to the booking forms.
 - 2026-11-12 Reconciled the booking panels with main: announced saunas keep their disabled coming-soon cards, full-day start rules remain available, private calendars use Laisva/Pilna, and session calendars show start times and free seats. Review source labels follow main.
 - 2026-11-12 The sauna session details dialog uses Rezervuoti and opens the reservation checkout with the chosen session and seat count. The free-seat count uses the same green or red as the calendar.
 - 2026-11-12 Moved the sauna session rate beside its time and the free-seat count beside the selected card’s quantity controls.

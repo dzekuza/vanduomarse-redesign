@@ -4,7 +4,7 @@ import { AvailabilityCount } from "./availability-count";
 
 export const SESSION_PREVIEW_LIMIT = 2;
 
-export function SaunaSessionDayIndicator({ rows }: { rows: SessionRow[] }) {
+export function SaunaSessionDayIndicator({ rows, onInk }: { rows: SessionRow[]; onInk?: boolean }) {
   const remaining = rows.length - SESSION_PREVIEW_LIMIT;
   return (
     <span className="@container block">
@@ -12,7 +12,7 @@ export function SaunaSessionDayIndicator({ rows }: { rows: SessionRow[] }) {
         {rows.slice(0, SESSION_PREVIEW_LIMIT).map(({ key, time, maxPeople, capacity }) => (
           <span key={key} className="flex flex-wrap items-center justify-center gap-x-1 py-0.5">
             <span className="font-medium whitespace-nowrap tabular-nums">{time.split("–")[0]}</span>
-            <AvailabilityCount free={maxPeople} capacity={capacity} binary />
+            <AvailabilityCount free={maxPeople} capacity={capacity} binary onInk={onInk} />
           </span>
         ))}
         {remaining > 0 ? <span className="block pt-0.5 text-center tabular-nums">+{remaining}</span> : null}
@@ -21,12 +21,12 @@ export function SaunaSessionDayIndicator({ rows }: { rows: SessionRow[] }) {
   );
 }
 
-export function saunaSessionDayDetails(rows: SessionRow[]): ReservationDayDetails {
+export function saunaSessionDayDetails(rows: SessionRow[], onInk = false): ReservationDayDetails {
   if (!rows.length) return { label: "Seansų nėra", available: false };
 
   return {
     label: rows.map(({ time, title, seats }) => `${time} · ${title} · ${seats}`).join(". "),
     available: rows.some(({ maxPeople }) => maxPeople > 0),
-    indicator: <SaunaSessionDayIndicator rows={rows} />,
+    indicator: <SaunaSessionDayIndicator rows={rows} onInk={onInk} />,
   };
 }

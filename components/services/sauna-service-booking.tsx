@@ -1,6 +1,6 @@
 "use client";
 
-import { WavesIcon } from "@phosphor-icons/react";
+import { CalendarBlankIcon, WavesIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CompactStepper } from "@/components/booking/stepper";
 import { FilterChip } from "@/components/events/filter-chip";
@@ -12,6 +12,7 @@ import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { hourlyStartHours, MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
 import { dateKey, FULL_DAY_HOURS } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
+import { DatePicker } from "@/components/reservation/date-picker";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
 import { SaunaServiceSessions } from "./sauna-service-sessions";
@@ -107,6 +108,31 @@ export function SaunaServiceBooking({
     if (free.length === 1) selectSession(free[0], 1);
   }
 
+  function dayDetails(day: Date, view: "strip" | "calendar") {
+    const key = dateKey(day);
+    const dayRows = rowsFor(key);
+    const onInk = Boolean(lockedMode && canPickDate && view === "strip" && date && dateKey(date) === key);
+    if (mode === "session") return saunaSessionDayDetails(dayRows, onInk);
+
+    const free = dayRows[0]?.startHours?.length ?? 0;
+    const available = sauna ? free > 0 : data.saunas.some((candidate) =>
+      candidate.active && hourlyStartHours(data, candidate, key).length > 0,
+    );
+    const label = available ? "Laisva" : "Pilna";
+    const color = onInk
+      ? available ? "text-availability-open-on-ink" : "text-rust"
+      : available ? "text-availability-open" : "text-rust-ink";
+    return {
+      label: sauna && available ? `Laisvų laikų: ${free}` : label,
+      available,
+      indicator: (
+        <span className="@container mx-auto block w-6">
+          <span className={`relative left-1/2 block w-max -translate-x-1/2 text-calendar-status font-bold ${color}`}>{label}</span>
+        </span>
+      ),
+    };
+  }
+
   return (
     <div className="space-y-5">
       {lockedMode ? null : <fieldset disabled={busy}>
@@ -138,26 +164,24 @@ export function SaunaServiceBooking({
         <SaunaServiceHourly sauna={sauna} masters={data.masters} day={date ? dateKey(date) : null} hours={wantedHours} onHours={setHours}
           masterId={masterId} onMaster={setMaster} disabled={busy} />
       ) : null}
-      <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
-        dayDetails={(day) => {
-          const dayRows = rowsFor(dateKey(day));
-          if (mode === "session") return saunaSessionDayDetails(dayRows);
-
-          const free = dayRows[0]?.startHours?.length ?? 0;
-          const available = free > 0;
-          const label = available ? "Laisva" : "Pilna";
-          const color = available ? "text-availability-open" : "text-rust-ink";
-          return {
-            label: available ? `Laisvų laikų: ${free}` : label,
-            available,
-            indicator: (
-              <span className="@container mx-auto block w-6">
-                <span className={`relative left-1/2 block w-max -translate-x-1/2 text-calendar-status font-bold ${color}`}>{label}</span>
-              </span>
-            ),
-          };
-        }}
-      />
+      {lockedMode ? (
+        <fieldset disabled={busy || !canPickDate} className="min-w-0 disabled:opacity-50">
+          <legend className="sr-only">Data</legend>
+          <DatePicker
+            compact
+            wideStrip
+            label={<span aria-hidden className="flex items-center gap-2 text-sm font-bold"><CalendarBlankIcon size={18} /> Data</span>}
+            days={days}
+            selected={canPickDate ? date : null}
+            dayDetails={dayDetails}
+            onSelect={chooseDate}
+          />
+        </fieldset>
+      ) : (
+        <DateField date={date} days={days} disabled={busy || !canPickDate} open={calendarOpen} onOpenChange={setCalendarOpen} onSelect={chooseDate}
+          dayDetails={dayDetails}
+        />
+      )}
       {mode === "session" && date ? (
         <SaunaServiceSessions rows={rows} selectedKey={selectedRow?.key} busy={busy} onSelect={(row) => selectSession(row, 1)}
           quantity={selectedRow && plan?.mode === "session" ? { value: people, max: maxPeople(selectedRow), onChange: onPeople } : undefined}
