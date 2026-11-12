@@ -76,18 +76,18 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
             <p className="text-micro uppercase text-copy">01 / Kontaktai</p>
             <AccountStep customer={customer} onCustomer={onCustomer} />
           </section>
-          <section aria-label="Rezervacijos suvestinė" className="space-y-3">
-            <p className="text-micro uppercase text-copy">02 / Rezervacijos suvestinė</p>
-            <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
-            <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
-          </section>
-          <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />
-          {belowMinimum ? (
-            <p role="alert" className="text-xs text-rust-ink">
-              {MIN_CHARGE_MESSAGE}
-            </p>
-          ) : null}
-          <div className="border-t border-line pt-5">
+          <div className="space-y-3">
+            <section aria-label="Rezervacijos suvestinė" className="space-y-3">
+              <p className="text-micro uppercase text-copy">02 / Rezervacijos suvestinė</p>
+              <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
+              <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
+            </section>
+            <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />
+            {belowMinimum ? (
+              <p role="alert" className="text-xs text-rust-ink">
+                {MIN_CHARGE_MESSAGE}
+              </p>
+            ) : null}
             <ArrowButton fullWidth type="submit" disabled={!ready || busy || checkingCode || belowMinimum}>
               {redirecting ? "Nukreipiame į mokėjimą..." : busy ? "Siunčiama..." : payments && !payOnSite && payTotal > 0 ? `Mokėti ${payTotal} €` : "Rezervuoti"}
             </ArrowButton>

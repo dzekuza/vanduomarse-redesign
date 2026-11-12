@@ -1,3 +1,10 @@
+- 2026-11-12 The shared footer puts Susitinkam Marse above contacts, groups links by purpose, and places copyright beside the logo with quick links on the right.
+- 2026-11-12 Reservation checkout shows the right-aligned VAT label and total beside a single service, with a separate total for multiple services or a discount.
+- 2026-11-12 Quad booking on /rezervacija uses the same visible date strip and calendar as private sauna hire, with Laisva/Pilna from route availability. After selecting a route and date, quad booking shows the shared Pradžia grid, followed by quantity and gear. Changing the route clears the previous tour.
+- 2026-11-12 Event cards show the start time and remaining seats below the date, using the same availability colours as booking calendars.
+- 2026-11-12 Event cards and the Tavo renginys panel use the light reservation surface. The panel CTA links to the celebrations page.
+- 2026-11-12 Service page introductions use the full width of their content column.
+- 2026-11-12 Quad route tiles place duration and price 16 px below the title, aligned left and right on one row.
 - 2026-11-13 Review follow-ups to PR #53: my two migration files get unique versions (`20261113151000_rider_plan_orders`, `20261113161000_my_riders_registered`; file rename only, the live DB history is unchanged); the WAKE coupon dialog no longer submits the surrounding `/rezervacija` form; `registerRider` checks the plan id and payment setup before saving the rider; failed `online_plans` and photo signing are logged. tsc/eslint clean; not browser-checked.
 - 2026-11-13 /admin/apyrankes → Planai: "Internetu" switch per plan (row, from `sm`, and in the plan dialog) toggles `ride_plans.sold_online`, i.e. whether the plan is sold on the public WAKE page; it needs a price above 0 (`saveRidePlan` forces it off otherwise). `RidePlan.soldOnline`. tsc/eslint clean; not browser-checked.
 - 2026-11-13 WAKE page: "Plaukimas" now lists the swim plans from `ride_plans` (category Plaukimas), bought like the season passes (registration, Stripe, plan attached). `WakeOffer.planCategory` splits rides from season passes; plan wording (emails, return page) says "planas", not "abonementas". Migration `20261113190000_sell_swim_plans_online.sql` (APPLIED, verified: 12 of 13 swim plans and both passes online) sets `sold_online` for the swim plans (not "Papildoma valanda"). tsc/eslint clean; not browser-checked.
@@ -1536,3 +1543,5 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
 - 2026-11-12 Reservation checkout omits the account-creation hint and the generic confirmation paragraph when no payment method is shown.
 - 2026-11-12 The discount code field is temporarily hidden in reservation checkout.
 - 2026-11-12 The reservation gallery clips photos to its frame and sizes the carousel track to the frame’s capped height so images stay above the summary heading.
+- 2026-11-12 Removed the extra separator above the reservation checkout action and tightened the space below the summary.
+- 2026-11-12 Shortened the footer link labels to Pirtis, Nakvynė, Restoranas and Šventės.

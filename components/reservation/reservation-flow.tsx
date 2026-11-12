@@ -444,6 +444,7 @@ export function ReservationFlow({
               pick={tourPick}
               busyHours={planHours(plans.pirtis)}
               busy={busy}
+              inlineDates={!activity}
               pricesHref={inline ? "#kainos" : undefined}
               onDate={(next) => {
                 if (busy) return;
