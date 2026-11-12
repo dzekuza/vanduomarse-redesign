@@ -13,9 +13,10 @@ const PHOTO_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg"
 /** A photo is either one of the site's own files (`/landing/...`) or one uploaded for this page. */
 const isOwnPhoto = (slug: string, src: string) => src.startsWith("/landing/") || pagePhotoPath(src)?.startsWith(`${slug}/`) === true;
 
-/** The page route for the slug; the cache for it is refreshed so visitors see the change at once. */
+/** Refreshes the cached page and the sitemap (its `lastmod` comes from `page_content`) so visitors and crawlers see the change at once. */
 const revalidatePage = (slug: string) => {
   revalidatePath(`/${slug}`);
+  revalidatePath("/sitemap.xml");
 };
 
 /** Saves the overrides for one page. An empty object removes the row (back to the defaults). Photos no longer listed are deleted from storage. */

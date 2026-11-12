@@ -7,7 +7,7 @@ import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { KlientaiBulkBar } from "./klientai-bulk-bar";
 import { KlientaiTable } from "./klientai-table";
-import { ScanTarget } from "../apyrankes/scan-target";
+import { RebindBracelet } from "../apyrankes/rebind-bracelet";
 import type { Rider } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ const isActivityFilter = (value: string): value is ActivityFilter => (ACTIVITY_F
 
 /** `/admin/klientai`: every customer (riders, incl. bulk-imported Grabby contacts). Search, paginate, open a profile. ADR-0042 */
 export function KlientaiView() {
-  const { riders, riderCards, riderAccountIds, purchases, bookings, quadRentals, eventTickets, coupons, bindRiderCard } = useAdmin();
+  const { riders, riderCards, riderAccountIds, purchases, bookings, quadRentals, eventTickets, coupons } = useAdmin();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -112,32 +112,13 @@ export function KlientaiView() {
   if (rebinding) {
     return (
       <AdminPage title="Klientai" description="Visi klientai: kontaktai, rezervacijos, pirkimai, dokumentai ir komentarai.">
-        <div className="flex flex-col items-center gap-6 py-6">
-          <p className="text-center text-sm text-muted-foreground">
-            Priglauskite apyrankę, kurią priskirti{" "}
-            <span className="font-medium text-foreground">
-              {rebinding.name} {rebinding.surname}
-            </span>
-            .
-          </p>
-          <ScanTarget
-            enabled
-            title="Priglauskite apyrankę"
-            subtitle="Tai pakeis bet kurią ankstesnę šio naudotojo apyrankę"
-            onScan={async (cardNumber) => {
-              const result = await bindRiderCard(cardNumber, rebinding.id);
-              setNotice(
-                "data" in result && result.data.replaced
-                  ? `Apyrankė ${cardNumber} perkelta nuo ${result.data.replaced.name} ${result.data.replaced.surname}.`
-                  : null,
-              );
-              setRebinding(null);
-            }}
-          />
-          <Button variant="outline" onClick={() => setRebinding(null)}>
-            Atšaukti
-          </Button>
-        </div>
+        <RebindBracelet
+          rider={rebinding}
+          onDone={(message) => {
+            setNotice(message);
+            setRebinding(null);
+          }}
+        />
       </AdminPage>
     );
   }

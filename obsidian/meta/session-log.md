@@ -1,3 +1,9 @@
+## 2026-11-13 — Code quality pass
+
+- **Checked:** `pnpm lint` and `tsc` clean; scanned the 37 files changed today for inline styles, hex/arbitrary values, `any` (none) and the 150-line rule.
+- **Changed:** shared `RebindBracelet`, `CustomersTable` split, sitemap revalidation on page-content save.
+- **Left:** `admin-store.tsx` (694 lines), `repository.ts`, `types.ts`, `email/notify.ts` are long but predate today; `database.types.ts` was edited by hand twice (regenerate).
+
 ## 2026-11-13 — SEO audit, the rest
 
 - **Changed:** public `/kainos` price page (sitemap, footer, llms.txt), `Service` image markup; measured TTFB (see changelog).
