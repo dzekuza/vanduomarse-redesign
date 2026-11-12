@@ -65,6 +65,7 @@ them pure and typed; anything with client state belongs in a hook instead.
 | `formatPlanPrice` | `lib/ride-plans.ts` | `(price: number \| null) => string` | A ride plan's euro price, or "—" for a free plan (e.g. staff); wraps `formatEuro` |
 | `RIDE_PLAN_CATEGORIES` | `lib/ride-plans.ts` | `readonly [...]` | The /admin/apyrankes plan catalogue's categories (the till's tabs: Plaukimas, Įranga, Abonementai, Pramogos, Apgyvendinimas, Parduotuvė, Dubenėlyje); `RidePlanCategory` in `lib/admin/types.ts` is derived from it (ADR-0039) |
 | `createClient` / `createPublicClient` / `supabaseEnv` | `lib/supabase/server.ts` / `public.ts` / `env.ts` | — | Cookie client (acts as the user) / cookieless anon client / env reader |
+| `createClient` (browser) | `lib/supabase/client.ts` | — | Browser client for Client Components (same session cookies, RLS applies). Used only for Realtime in `AdminLiveUpdates`; reads and writes still go through the server |
 | `formatDay` / `formatDateTime` / `formatEur` / `bookingWhen` | `lib/admin/format.ts` | `(yyyy-mm-dd) => string` etc. | Admin date and money formatting in site wording |
 | `bookingsToCsv` / `toCsv` / `csvCell` / `exportFileName` | `lib/admin/export.ts` | `(bookings: Booking[]) => string` / `(prefix, dayKey) => string` | Excel-ready CSV (UTF-8 BOM, `;`, decimal comma, Lithuanian headers); quotes `;` `"` and line breaks, defuses formula-like cells |
 | `downloadText` | `lib/download.ts` | `(text, fileName, type?) => void` | Client-only: save a string as a file via a Blob link |

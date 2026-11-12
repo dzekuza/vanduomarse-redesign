@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AdminBottomNav } from "@/components/admin/admin-bottom-nav";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { AdminLiveUpdates } from "@/components/admin/admin-live-updates";
 import { AdminStoreProvider } from "@/components/admin/admin-store";
 import { AdminThemeProvider } from "@/components/admin/admin-theme";
 import { AppSidebar } from "@/components/admin/app-sidebar";
@@ -27,6 +28,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
 
   return (
     <AdminStoreProvider initial={data}>
+      <AdminLiveUpdates />
       <AdminThemeProvider initial={theme}>
         <TooltipProvider>
           <SidebarProvider className="flex-1 bg-background">

@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0082 — The admin refreshes itself from Supabase Realtime change notifications
+
+- **Date:** 2026-11-13. **Status:** code done; migration `20261113220000_realtime_admin_tables.sql` written, NOT applied (the auto-mode classifier blocked `apply_migration`): until it is applied nothing is published and the admin behaves as before.
+- **Context:** the admin loads all its data in the server layout, so a new booking, a payment status change from the Stripe webhook or another staff member's edit only showed after a manual reload.
+- **Decision:** the tables that customers, payments and the webhook change (`bookings`, `quad_rentals`, `event_tickets`, `payments`, `coupons`, `events`, `inquiries`, `sauna_blocks`, `riders`, `purchases`, `rider_cards`, `rider_sessions`, `rider_comments`) are added to the `supabase_realtime` publication. `AdminLiveUpdates` (mounted in the panel layout) subscribes through a browser client (`lib/supabase/client.ts`, the staff session's JWT via `realtime.setAuth`) and, on any change, calls `router.refresh()` so the existing store adopts the fresh server data. A burst is debounced (600 ms quiet, 4 s at most), changes while the tab is hidden are applied when it is shown again, and a reconnect refreshes once to catch up. Realtime only says THAT something changed; no row data from the event is used, and every read still goes through the server load with RLS.
+- **Consequences:** Realtime filters events with the subscriber's RLS, so only staff with a SELECT policy on a table receive its changes (anon has none on these, except `events`, which is public). A refresh replaces optimistic local state with server data; open dialogs and their form drafts keep their own state. Config tables (prices, plans, roles, settings) are not published: a change there still needs a reload by the other staff. No new-booking toast yet.
+
+---
 ## ADR-0081 — Cancelling a paid request can refund its share through Stripe
 
 - **Date:** 2026-11-13. **Status:** code done; migration `20261113200000_request_refunds.sql` APPLIED to the live project 2026-11-13 and verified (RLS on, the three functions executable by `service_role` only, 0 rows).
