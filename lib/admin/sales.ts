@@ -45,6 +45,8 @@ export interface Sale {
   /** The source's own status wording, for the badge. */
   statusLabel: string;
   target: SaleTarget;
+  /** The linked customer (Klientai), when the sale is tied to one. */
+  riderId: string | null;
 }
 
 const bookingState = (s: BookingStatus): SaleState => (s === "atsaukta" ? "atsaukta" : s === "laukia" ? "laukia" : "galioja");
@@ -75,6 +77,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(b.status),
       statusLabel: BOOKING_STATUS[b.status],
       target: { kind: "booking", id: b.id },
+      riderId: b.riderId ?? null,
     });
   }
 
@@ -91,6 +94,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(r.status),
       statusLabel: BOOKING_STATUS[r.status],
       target: { kind: "rental", id: r.id },
+      riderId: r.riderId ?? null,
     });
   }
 
@@ -107,6 +111,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
+      riderId: t.riderId ?? null,
     });
   }
 
@@ -125,6 +130,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
+      riderId: t.riderId ?? null,
     });
   }
 
@@ -141,6 +147,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: couponState(c.status),
       statusLabel: COUPON_STATUS_LABEL[c.status],
       target: { kind: "coupon", id: c.id },
+      riderId: c.riderId ?? null,
     });
   }
 
@@ -158,6 +165,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: "galioja",
       statusLabel: SALE_STATE_LABEL.galioja,
       target: { kind: "link", href: `/admin/klientai/${p.riderId}` },
+      riderId: p.riderId,
     });
   }
 

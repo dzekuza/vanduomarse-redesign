@@ -1,3 +1,8 @@
+## 2026-11-13 — Pirkimai tab on the customer page
+
+- **Changed:** `CustomerPurchasesTab`; `Sale.riderId` in `lib/admin/sales.ts`; `useSaleDetails` extracted from `SalesTable`.
+- **Status:** tsc/eslint clean; not browser-checked. Orders not linked to a customer record are not listed.
+
 ## 2026-11-13 — Sales row opens event details
 
 - **Found:** ticket sales in the Apžvalga table linked to the management pages; the user wants the event or booking details.
