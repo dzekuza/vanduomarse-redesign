@@ -265,6 +265,7 @@ export function toCoupon(r: CouponRow): Coupon {
     status: r.status,
     buyer: { name: r.buyer_name, email: r.buyer_email },
     recipientName: r.recipient_name,
+    recipientEmail: r.recipient_email,
     message: r.message,
     createdAt: r.created_at,
     paidAt: r.paid_at ?? undefined,

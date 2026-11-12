@@ -6,6 +6,7 @@ import { getCustomer } from "@/lib/customer";
 import { fileRequest } from "@/lib/file-request";
 import { discountCovers, isDiscountService, normalizeDiscountCode, type DiscountService } from "@/lib/discount-codes";
 import { REQUEST_ACTIVITY, checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
+import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { MissingStripeKeyError, getStripe, paymentsEnabled, siteOrigin, toCents } from "@/lib/stripe";
 import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin";
@@ -198,6 +199,43 @@ export async function resumeCheckout(input: unknown): Promise<ActionResult<{ url
       sessionId: state.stripe_session_id,
     });
     return { data: { url } };
+  } catch (e) {
+    return setupFailure(e);
+  }
+}
+
+/**
+ * "Atšaukti" on /paskyra: the customer gives up an unpaid payment and frees its slots. The payment must be theirs
+ * (read through their own session, row level security) and still waiting; its open Checkout Session is expired first
+ * so it cannot be paid after the slots are released.
+ */
+export async function cancelUnpaidPayment(input: unknown): Promise<ActionResult<{ cancelled: true }>> {
+  const parsed = z.object({ paymentId: z.uuid() }).safeParse(input);
+  if (!parsed.success) return fail("Neteisinga nuoroda.", "invalid");
+  const customer = await getCustomer();
+  if (!customer) return fail(SIGN_IN, "unauthorized");
+
+  try {
+    const { data: own } = await (await createClient()).from("payments").select("id").eq("id", parsed.data.paymentId).maybeSingle();
+    if (!own) return fail("Mokėjimas nerastas.", "invalid");
+
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("payment_state", { p_payment_id: parsed.data.paymentId });
+    const state = data?.[0];
+    if (error || !state) return fail("Mokėjimas nerastas.", "invalid");
+    if (state.status !== "laukia") return fail("Šio mokėjimo atšaukti nebegalima. Atnaujinkite puslapį.", "payment_closed");
+
+    if (state.stripe_session_id) {
+      const stripe = getStripe();
+      // Expiring fails when the session is already paid or already expired: only a paid one must stop here.
+      await stripe.checkout.sessions.expire(state.stripe_session_id).catch(async () => {
+        const session = await stripe.checkout.sessions.retrieve(state.stripe_session_id!);
+        if (session.status === "complete") throw new PaymentSettledError();
+      });
+    }
+    const { error: abandonError } = await admin.rpc("abandon_payment", { p_payment_id: parsed.data.paymentId });
+    if (abandonError) throw abandonError;
+    return { data: { cancelled: true } };
   } catch (e) {
     return setupFailure(e);
   }

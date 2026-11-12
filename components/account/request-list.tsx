@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingPaymentActions } from "@/components/reservation/payment-actions";
 import { REQUEST_PAYMENT_LABEL, REQUEST_STATUS_LABEL, type MyRequest } from "@/lib/account";
 import { longDateLabel } from "@/lib/sauna";
 
@@ -32,6 +33,7 @@ export function RequestList({ requests, filtered = false }: { requests: MyReques
                   <span className="border border-line px-2 py-0.5">{REQUEST_STATUS_LABEL[r.status]}</span>
                   {r.payment ? <span className="ml-2 border border-line px-2 py-0.5">{REQUEST_PAYMENT_LABEL[r.payment]}</span> : null}
                 </p>
+                {r.payment === "laukia" && r.paymentId ? <PendingPaymentActions paymentId={r.paymentId} /> : null}
               </div>
               <div className="text-right">
                 <p className="font-display text-figure font-bold text-rust-ink">{r.reference}</p>

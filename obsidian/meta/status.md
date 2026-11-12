@@ -10,7 +10,23 @@ updated: 2026-11-12
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-12
+**Last updated:** 2026-11-13 (latest: wide date-strip tiles `w-18`, coupon Stripe payment migration applied; everything below is uncommitted on `main` and not browser-checked)
+
+**Current focus / next:** commit the day's work (coupon no-verification + emails + Stripe payment, `/paskyra` pay/cancel, header width, date tile width, birth inputs) on a branch and open a PR; before deploy confirm `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `COUPON_FROM_EMAIL` in Vercel; then a Stripe test-mode coupon purchase (card 4242) and check both inboxes. Migrations are applied by the assistant without asking (memory note `apply-migrations-without-asking`).
+
+**Date-strip tiles (2026-11-13): wide `DayCell` tiles are `w-18` (was `w-14`); uncommitted, not browser-checked.**
+
+**BookingHeader intro (2026-11-13): `max-w-xl` removed from the intro paragraph (shared by booking pages); uncommitted, not browser-checked.**
+
+**Birth date inputs (2026-11-13): rider registration (`/registracija`) uses year / month / day number fields (`BirthdateInput`) instead of the calendar popover; tsc/eslint clean, uncommitted, not browser-checked. Next: check at 375 px (autofill, auto-advance, error).**
+
+**Coupon Stripe payment (2026-11-13, ADR-0075): code done in the working tree, tsc/eslint clean; migration `20261113120000_coupon_stripe_payment.sql` APPLIED to the live DB and verified. Code uncommitted/undeployed; not tested with a real Stripe payment.**
+
+**/paskyra pay/cancel unpaid (2026-11-13): code done in the working tree, tsc/eslint clean, not browser-checked.**
+
+**Coupon emails (2026-11-13, ADR-0074): code done in the working tree (uncommitted), tsc/eslint clean; migration `20261113110000_coupon_recipient_email.sql` APPLIED to the live DB and verified. Code still uncommitted/undeployed; no real email sent yet.**
+
+**Gift coupons without phone verification (2026-11-13, ADR-0073): code done in the `main` working tree (uncommitted), tsc/eslint clean; migration `20261113100000_coupon_orders_no_phone_verification.sql` APPLIED to the live DB and verified. Not browser-checked, no test order submitted; the code must be deployed before the live form stops asking for a code.**
 
 **Quad tours at any time, min 5 quads (2026-11-12, ADR-0071): branch `feat/quad-anytime-booking` (stacked on PR #32): departures removed from the admin and the booking, starts come from the free fleet; tsc/eslint clean, checked at 390 px. Migration `20261112171000_quad_tours_any_time.sql` (grant to anon/authenticated, `min_units` 5) APPLIED and verified; a real test booking has not been submitted yet.**
 

@@ -325,6 +325,7 @@ export interface Coupon {
   status: CouponStatus;
   buyer: { name: string; email: string };
   recipientName: string;
+  recipientEmail: string;
   message: string;
   createdAt: string;
   paidAt?: string;

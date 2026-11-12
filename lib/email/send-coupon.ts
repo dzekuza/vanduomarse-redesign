@@ -11,6 +11,8 @@ import { escapeHtml, sendEmail } from "./resend";
 
 export interface CouponEmail {
   to: string;
+  /** Optional gift recipient; gets their own copy of the code. */
+  recipientEmail?: string;
   buyerName: string;
   recipientName: string;
   message: string;
@@ -59,4 +61,47 @@ export async function sendCouponEmail(c: CouponEmail): Promise<boolean> {
 
   // Staff pressed "Pažymėti apmokėtu" on purpose, so this sends from `next dev` too.
   return sendEmail({ from, to: c.to, subject: `Jūsų Vanduo Marse kuponas ${code}`, text: lines.join("\n"), html }, { skipInDev: false });
+}
+
+/** The gift email: the same code, addressed to the recipient, with the buyer's wish. Returns true when Resend accepted it. */
+export async function sendCouponRecipientEmail(c: CouponEmail): Promise<boolean> {
+  const key = process.env.RESEND_API_KEY;
+  const from = process.env.COUPON_FROM_EMAIL;
+  if (!key || !from || !c.recipientEmail) return false;
+
+  const code = formatCode(c.code);
+  const contact = CONTACTS[0];
+  const greeting = c.recipientName ? `Sveiki, ${c.recipientName}!` : "Sveiki!";
+  const gift = `${c.buyerName} dovanoja jums Vanduo Marse kuponą: ${c.productName} (${c.faceValue} €).`;
+  const lines = [
+    greeting,
+    "",
+    gift,
+    ...(c.message ? ["", `Palinkėjimas: ${c.message}`] : []),
+    "",
+    `Kupono kodas: ${code}`,
+    `Galioja: ${COUPON_SERVICE_LABEL[c.service].toLowerCase()}, iki ${formatExpiry(c.expiresAt)}`,
+    "",
+    "Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.",
+    "",
+    `Klausimai? ${contact.email}, ${contact.phone}`,
+    "Vanduo Marse",
+  ];
+  const html = [
+    `<p>${escapeHtml(greeting)}</p>`,
+    `<p>${escapeHtml(gift)}</p>`,
+    ...(c.message ? [`<blockquote>${escapeHtml(c.message)}</blockquote>`] : []),
+    `<h1>${escapeHtml(code)}</h1>`,
+    `<p>Galioja: ${escapeHtml(COUPON_SERVICE_LABEL[c.service].toLowerCase())}, iki ${escapeHtml(formatExpiry(c.expiresAt))}.</p>`,
+    `<p>Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.</p>`,
+    `<p>Klausimai? ${escapeHtml(contact.email)}, ${escapeHtml(contact.phone)}<br>Vanduo Marse</p>`,
+  ].join("\n");
+
+  return sendEmail({ from, to: c.recipientEmail, subject: `${c.buyerName} padovanojo jums Vanduo Marse kuponą`, text: lines.join("\n"), html }, { skipInDev: false });
+}
+
+/** Buyer and, when given, the recipient. True only when every intended email was accepted. */
+export async function sendCouponEmails(c: CouponEmail): Promise<boolean> {
+  const [buyer, recipient] = await Promise.all([sendCouponEmail(c), c.recipientEmail ? sendCouponRecipientEmail(c) : Promise.resolve(true)]);
+  return buyer && recipient;
 }

@@ -1,9 +1,12 @@
 import "server-only";
 import type { NotifyService } from "@/lib/contacts";
 import {
+  type CouponOrderNotice,
+  emailCouponOrderReceived,
   emailOutcome,
   emailPaid,
   emailReceived,
+  emailStaffCouponOrder,
   emailStaffDuplicate,
   emailStaffNew,
   emailStaffPaid,
@@ -70,3 +73,6 @@ export const notifyPaymentReceived = (contact: CustomerContact, references: stri
 
 export const notifyDuplicatePayment = (references: string[], amount: number) =>
   settle(notifyStaffDuplicate(references, amount), emailStaffDuplicate(references, amount));
+
+/** A gift coupon was ordered: the buyer gets a receipt, staff an alert. */
+export const notifyCouponOrdered = (order: CouponOrderNotice) => settle(emailCouponOrderReceived(order), emailStaffCouponOrder(order));

@@ -35,6 +35,7 @@ export function CouponsView() {
         c.buyer.name.toLowerCase().includes(q) ||
         c.buyer.email.toLowerCase().includes(q) ||
         c.recipientName.toLowerCase().includes(q) ||
+        c.recipientEmail.toLowerCase().includes(q) ||
         (code.length >= 4 && c.code?.includes(code)),
     )
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
