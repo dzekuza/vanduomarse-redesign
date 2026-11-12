@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 interface StatusActionsProps {
   status: BookingStatus;
   onSet: (status: BookingStatus) => Promise<unknown>;
+  /** Cancelling goes through this instead of `onSet("atsaukta")`, e.g. to offer a refund first. */
+  onCancel?: () => Promise<unknown>;
 }
 
 /** The next steps for a request: confirm or reject, cancel a confirmed one, or bring a cancelled one back. */
-export function StatusActions({ status, onSet }: StatusActionsProps) {
+export function StatusActions({ status, onSet, onCancel }: StatusActionsProps) {
   const [pending, startTransition] = useTransition();
-  const set = (next: BookingStatus) => startTransition(async () => void (await onSet(next)));
+  const set = (next: BookingStatus) =>
+    startTransition(async () => void (await (next === "atsaukta" && onCancel ? onCancel() : onSet(next))));
 
   if (status === "laukia") {
     return (

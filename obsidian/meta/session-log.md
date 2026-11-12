@@ -1,3 +1,17 @@
+## 2026-11-13 — Refund hardening (review + Stripe docs)
+
+- **Source:** automated security review plus Stripe docs read directly (the installed Stripe CLI is 1.40.9; `stripe docs` needs 1.50.9+ and `brew upgrade stripe` is blocked by `brew trust` for the stripe tap).
+- **Changed:** `lib/refund.ts` rewritten (definite vs unknown errors, reconcile by `metadata.reference`, 24 h window, failed/canceled refunds), `cancelRequest` passes kind+id, types, migration `20261113210000_request_refunds_by_kind.sql` (applied and verified).
+- **Status:** tsc/eslint clean; nothing tested with a real Stripe payment.
+- **Next:** a test-mode refund; try cancelling twice ("jau grąžinti").
+
+## 2026-11-13 — Refund when admin cancels a paid request
+
+- **Why:** cancelling in the admin never refunded the customer.
+- **Changed:** migration `20261113200000_request_refunds.sql` (applied and verified), `lib/refund.ts`, `cancelRequest` action + store method, `CancelRefundDialog`, `useCancelRequest`, `StatusActions.onCancel`, booking/rental/ticket call sites, `PaymentNote` wording, types.
+- **Status:** tsc/eslint clean; nothing tested with a real payment.
+- **Next:** cancel a Stripe-test-paid booking with a refund and check Stripe, `request_refunds`, `payments.refunded` (webhook) and a second attempt ("jau grąžinti").
+
 ## 2026-11-13 — PR #53 review follow-ups
 
 - **Changed:** unique migration versions (file rename only), `stopPropagation` in `WakeCheckoutDialog`, plan checks before the rider is saved in `registerRider`, error logging for `online_plans` and photo signing.

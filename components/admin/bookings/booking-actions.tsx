@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { BOOKING_STATUS } from "@/lib/admin/labels";
 import type { Booking, BookingStatus } from "@/lib/admin/types";
+import { useCancelRequest } from "../use-cancel-request";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -23,20 +24,28 @@ export const ACTION_LABEL: Record<BookingStatus, string> = {
   atsaukta: "Atšaukti",
 };
 
+/** Status changes; cancelling a booking paid online first asks whether to refund it (render `dialog` beside the button). */
 export function useBookingStatus() {
   const { setBookingStatus } = useAdmin();
-  return (booking: Booking, status: BookingStatus) => {
+  const { cancel, dialog } = useCancelRequest("booking");
+  const change = (booking: Booking, status: BookingStatus) => {
+    if (status === "atsaukta") {
+      void cancel({ id: booking.id, reference: booking.reference, total: booking.total, payment: booking.payment });
+      return;
+    }
     setBookingStatus(booking.id, status);
     toast.success(`${booking.reference}: ${BOOKING_STATUS[status].toLowerCase()}`);
   };
+  return { change, dialog };
 }
 
 /** Row menu with the allowed status transitions. */
 export function BookingActions({ booking }: { booking: Booking }) {
-  const change = useBookingStatus();
+  const { change, dialog } = useBookingStatus();
   const next = NEXT_STATUSES[booking.status];
   if (!next.length) return null;
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon-sm" aria-label={`Veiksmai: ${booking.reference}`} onClick={(e) => e.stopPropagation()}>
@@ -51,5 +60,8 @@ export function BookingActions({ booking }: { booking: Booking }) {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+    {/* The row opens the booking on click; keep clicks inside the dialog (React bubbles through its portal) from reaching it. */}
+    <span onClick={(e) => e.stopPropagation()}>{dialog}</span>
+    </>
   );
 }

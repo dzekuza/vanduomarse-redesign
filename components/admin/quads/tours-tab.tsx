@@ -6,12 +6,14 @@ import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { RentalSheet } from "./rental-sheet";
 import { StatusActions } from "./status-actions";
 import { formatDay } from "@/lib/admin/format";
+import { useCancelRequest } from "@/components/admin/use-cancel-request";
 import { hourLabel } from "@/lib/quads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /** Seat requests for guided tours. The tours themselves (events of category Keturračiai) are listed and created above, in QuadsView. */
 export function ToursTab() {
   const { tourTickets, setTourTicketStatus, quadRentals, quadTourRoutes } = useAdmin();
+  const { cancel, dialog: cancelDialog } = useCancelRequest("ticket");
   const [openId, setOpenId] = useState<string | null>(null);
   const rentals = quadRentals
     .filter((r) => r.tourRouteId)
@@ -22,6 +24,7 @@ export function ToursTab() {
 
   return (
     <div className="space-y-6">
+      {cancelDialog}
       <h2 className="font-display text-figure font-bold">Registracijos</h2>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {rentals.map((r) => (
@@ -69,7 +72,7 @@ export function ToursTab() {
               <p className="text-xs text-muted-foreground">
                 {t.customer.name} · {t.customer.phone || t.customer.email} · {t.reference}
               </p>
-              <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} />
+              <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} onCancel={() => cancel({ id: t.id, reference: t.reference, total: t.total, payment: t.payment })} />
             </CardContent>
           </Card>
         ))}

@@ -21,6 +21,7 @@ import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
+import { refundRequest } from "@/lib/refund";
 import { dbError, done, fail, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
 import { createClient } from "@/lib/supabase/server";
 
@@ -1047,6 +1048,39 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
   if (error) return dbError(error);
   if (data) notifyCustomer(data.source, data, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));
   return done(null);
+}
+
+export type CancelledRequest = { refunded: number; refundError?: string };
+
+/**
+ * Cancels a booking, quad rental or event ticket and, when asked, refunds what it paid through Stripe (ADR-0081).
+ * The cancellation always happens first and keeps its own permission check; a failed refund does not undo it, it comes
+ * back as `refundError` so staff can refund in Stripe by hand.
+ */
+export async function cancelRequest(kind: "booking" | "rental" | "ticket", id: string, refund: boolean): Promise<ActionResult<CancelledRequest>> {
+  const parsed = z.object({ kind: z.enum(["booking", "rental", "ticket"]), id: z.uuid(), refund: z.boolean() }).safeParse({ kind, id, refund });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+
+  // With a refund, check the staff member may refund BEFORE cancelling, so a refusal does not leave a half-done cancel.
+  const ctx = refund ? await staffClient(kind === "booking" ? "rezervacijos" : kind === "rental" ? "keturraciai" : ["keturraciai", "renginiai"]) : null;
+  if (ctx && !ctx.ok) return ctx.error;
+
+  const result = kind === "booking" ? await setBookingStatus(id, "atsaukta") : kind === "rental" ? await setRentalStatus(id, "atsaukta") : await setTourTicketStatus(id, "atsaukta");
+  if ("error" in result) return result;
+  if (!ctx) return done({ refunded: 0 });
+
+  // A status update that matches no row (row level security narrower than the check above) reports success: never refund
+  // a request that is not actually cancelled.
+  const check =
+    kind === "booking"
+      ? await ctx.supabase.from("bookings").select("status").eq("id", id).maybeSingle()
+      : kind === "rental"
+        ? await ctx.supabase.from("quad_rentals").select("status").eq("id", id).maybeSingle()
+        : await ctx.supabase.from("event_tickets").select("status").eq("id", id).maybeSingle();
+  if (check.data?.status !== "atsaukta") return fail("Užklausos atšaukti nepavyko, todėl pinigai negrąžinti.", "not_cancelled");
+
+  const outcome = await refundRequest(kind, id, ctx.userId);
+  return done(outcome.ok ? { refunded: outcome.amount } : { refunded: 0, refundError: outcome.message });
 }
 
 // ---------------------------------------------------------------------------
