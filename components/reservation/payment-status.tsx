@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MAIN_CONTACT, telHref } from "@/lib/contacts";
 import { PayAgain, PaymentPoller } from "./payment-actions";
+import { PaymentRequests, type PaymentRequestView } from "./payment-requests";
 
 export interface PaymentView {
   id: string;
@@ -8,6 +9,8 @@ export interface PaymentView {
   amount: number;
   refs: string[];
   needsReview: boolean;
+  /** What the payment is for: service, date, time, nights, guests. */
+  requests: PaymentRequestView[];
 }
 
 const LINK = "inline-flex min-h-11 items-center border-b border-current text-sm font-bold";
@@ -40,7 +43,7 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
     : (COPY[payment.status] ?? COPY.laukia);
 
   return (
-    <PaymentCard title={copy.title} text={copy.text} refs={payment.refs} amount={payment.amount}>
+    <PaymentCard title={copy.title} text={copy.text} refs={payment.refs} amount={payment.amount} details={<PaymentRequests requests={payment.requests} />}>
       {open && !cancelled ? <PaymentPoller /> : null}
       {open && cancelled ? <PayAgain paymentId={payment.id} /> : null}
       {payment.needsReview ? (
@@ -62,7 +65,7 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
   );
 }
 
-export function PaymentCard({ title, text, refs, amount, children }: { title: string; text: string; refs?: string[]; amount?: number; children?: React.ReactNode }) {
+export function PaymentCard({ title, text, refs, amount, details, children }: { title: string; text: string; refs?: string[]; amount?: number; /** Shown between the references and the text. */ details?: React.ReactNode; children?: React.ReactNode }) {
   return (
     <div className="max-w-xl border border-line bg-foam/15">
       <div className="border-b border-dashed border-ink px-6 py-4">
@@ -78,6 +81,7 @@ export function PaymentCard({ title, text, refs, amount, children }: { title: st
           ))}
         </ul>
       ) : null}
+      {details}
       <div className="space-y-4 border-t border-dashed border-ink px-6 py-4">
         <p className="text-sm text-copy">{text}</p>
         {children}
