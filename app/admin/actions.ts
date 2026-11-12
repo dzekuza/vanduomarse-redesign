@@ -14,6 +14,8 @@ import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import { buildCouponPdf } from "@/lib/email/coupon-pdf";
+import { TERMS_VERSION } from "@/lib/park-rules";
+import { buildWaiverPdf } from "@/lib/waiver-pdf";
 import { sendCouponEmails } from "@/lib/email/send-coupon";
 import { refundCouponPayment } from "@/lib/coupon-refund";
 import { notifyRequestOutcome } from "@/lib/notify";
@@ -1352,6 +1354,44 @@ export async function getRiderFileUrl(bucket: "rider-photos" | "rider-documents"
   const { data, error } = await ctx.supabase.storage.from(bucket).createSignedUrl(path, 3600);
   if (error || !data) return fail("Nepavyko gauti nuorodos.", "storage");
   return done({ url: data.signedUrl });
+}
+
+/**
+ * The signed rules of a self-registered customer as a PDF: the park and pool rules, then the signature with the signing
+ * details. Built on demand from the stored waiver. It refuses a waiver signed under another version than the rules text in
+ * `lib/park-rules.ts`, so an old signature is never printed under newer wording.
+ */
+export async function riderWaiverPdf(riderId: string): Promise<ActionResult<{ fileName: string; base64: string }>> {
+  const ctx = await staffClient(["apyrankes", "klientai"]);
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(riderId).success) return fail("Netinkamos reikšmės.", "invalid");
+  const [{ data: waiver }, { data: rider }] = await Promise.all([
+    ctx.supabase.from("rider_waivers").select("*").eq("rider_id", riderId).order("signed_at", { ascending: false }).limit(1).maybeSingle(),
+    ctx.supabase.from("riders").select("name, surname, birthdate, email, phone").eq("id", riderId).maybeSingle(),
+  ]);
+  if (!waiver || !rider) return fail("Pasirašytų taisyklių nerasta.", "not_found");
+  if (!waiver.signature_path) return fail("Parašo failas nerastas.", "not_found");
+  if (waiver.terms_version !== TERMS_VERSION) {
+    return fail(`Pasirašyta pagal taisyklių versiją ${waiver.terms_version}, o dabartinis tekstas yra ${TERMS_VERSION}. Atidarykite parašą atskirai.`, "version");
+  }
+  const { data: file, error } = await ctx.supabase.storage.from(RIDER_WAIVER_BUCKET).download(waiver.signature_path);
+  if (error || !file) return fail("Nepavyko gauti parašo.", "storage");
+  try {
+    const pdf = await buildWaiverPdf({
+      fullName: `${rider.name} ${rider.surname}`.trim(),
+      birthdate: rider.birthdate,
+      email: rider.email,
+      phone: rider.phone,
+      signedAt: waiver.signed_at,
+      termsVersion: waiver.terms_version,
+      signature: Buffer.from(await file.arrayBuffer()),
+    });
+    const day = waiver.signed_at.slice(0, 10);
+    return done({ fileName: `Taisykles-${rider.name}-${rider.surname}-${day}.pdf`.replace(/\s+/g, "-"), base64: pdf.toString("base64") });
+  } catch (e) {
+    console.error("Waiver PDF could not be built", riderId, e);
+    return fail("Nepavyko sukurti PDF.", "pdf");
+  }
 }
 
 const commentInput = z.object({ riderId: z.uuid(), text: z.string().trim().min(1).max(2000) });

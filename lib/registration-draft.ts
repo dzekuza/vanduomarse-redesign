@@ -7,21 +7,28 @@ export type RegistrationDraft = Partial<Pick<RegistrationInput, "name" | "surnam
 
 const FIELDS = ["name", "surname", "email", "phone", "phone2", "birthdate"] as const;
 
-export function loadRegistrationDraft(): RegistrationDraft | null {
+/** The stored draft as a string (`""` when none), a stable value for `useSyncExternalStore`. */
+export function readRegistrationDraftRaw(): string {
   try {
-    const raw = window.sessionStorage.getItem(KEY);
-    if (!raw) return null;
+    return window.sessionStorage.getItem(KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function parseRegistrationDraft(raw: string): RegistrationDraft {
+  const draft: RegistrationDraft = {};
+  try {
     const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== "object" || parsed === null) return null;
-    const draft: RegistrationDraft = {};
+    if (typeof parsed !== "object" || parsed === null) return draft;
     for (const field of FIELDS) {
       const value = (parsed as Record<string, unknown>)[field];
       if (typeof value === "string" && value) draft[field] = value;
     }
-    return Object.keys(draft).length ? draft : null;
   } catch {
-    return null;
+    // empty or corrupt draft
   }
+  return draft;
 }
 
 export function saveRegistrationDraft(values: Partial<RegistrationInput>): void {

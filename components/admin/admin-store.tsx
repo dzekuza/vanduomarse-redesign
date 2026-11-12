@@ -471,6 +471,8 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "coupon/refunded", id, amount: result.data.refunded });
         return result;
       },
+      /** The signed rules of a customer as a PDF (base64). */
+      riderWaiverPdf: (riderId: string) => report(actions.riderWaiverPdf(riderId)),
       /** The coupon as a PDF (base64), for the download button. */
       couponPdf: (id: string) => report(actions.couponPdf(id)),
       /** Not optimistic: the reference and price come from the database. */
