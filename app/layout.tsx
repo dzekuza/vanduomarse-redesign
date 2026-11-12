@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ReactGrab } from "@/components/dev/react-grab";
 import { SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="lt" data-scroll-behavior="smooth" className={cn("h-full antialiased font-sans", termina.variable)}>
       <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">
+        {process.env.NODE_ENV === "development" ? <ReactGrab /> : null}
         {children}
       </body>
     </html>
