@@ -75,7 +75,9 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
     p_birthdate: v.birthdate,
     p_terms_version: TERMS_VERSION,
   });
-  const customer = registered?.[0];
+  // Before migration 20261113230000 the function returned just the rider id; accept both shapes so deploy and migration can happen in either order.
+  const legacy: unknown = registered;
+  const customer = Array.isArray(registered) ? registered[0] : typeof legacy === "string" ? { rider_id: legacy, already_registered: false } : undefined;
   if (rpcError || !customer) return fail("Nepavyko užregistruoti. Bandykite dar kartą.", "db");
   const riderId = customer.rider_id;
 
