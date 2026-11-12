@@ -38,16 +38,17 @@ export async function createCouponOrder(input: CouponOrderInput): Promise<Action
   // Coupons are bought online only: without Stripe there is nothing to pay with, so no order is stored.
   if (!paymentsEnabled()) return fail("Kuponų pirkimas šiuo metu neveikia. Skambinkite mums ir padėsime.", "setup");
 
-  // Only a hash of the IP is kept, for the per-IP cap on unpaid orders. Without the secret the cap is skipped.
-  let ipHash: string | undefined;
+  // Only a hash of the IP is kept, for the per-IP cap on unpaid orders. It is computed here and the order is
+  // stored with the service role, so a caller cannot choose its own key; without it no order is stored.
+  let ipHash: string;
   try {
     ipHash = hashIp(await clientIp());
   } catch (e) {
-    console.error("Coupon order: IP hash unavailable, per-IP cap skipped", e);
+    console.error("Coupon order: IP hash unavailable", e);
+    return fail(FAILED, "setup");
   }
 
-  const supabase = createPublicClient();
-  const { data, error } = await supabase.rpc("create_coupon_order", {
+  const { data, error } = await createAdminClient().rpc("create_coupon_order", {
     p_product_id: v.productId,
     p_buyer_name: v.buyerName,
     p_buyer_email: v.buyerEmail,

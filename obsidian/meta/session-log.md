@@ -1,3 +1,10 @@
+## 2026-11-13 — Coupon order RPC made service-role only
+
+- **Why:** security review: the anon-callable RPC let a caller supply or omit its own `p_ip_hash`, bypassing the per-IP cap.
+- **Changed:** migration `20261113140000` (revoke anon/authenticated, grant service_role, refuse a missing hash); `createCouponOrder` uses the admin client and fails closed without the IP hash.
+- **Order:** merge and deploy the code first, then apply the migration (anon access is revoked only once the deployed code no longer needs it).
+- **Next:** Stripe test-mode coupon purchase; confirm env in Vercel.
+
 ## 2026-11-13 — Coupon abuse guards, no staff step
 
 - **Why:** security review of PR #45 (email abuse without verification, order-cap exhaustion) and the owner: coupons must not need staff approval.

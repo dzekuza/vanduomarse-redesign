@@ -13,7 +13,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 ## ADR-0076 — Coupons need no staff step; abuse is limited per IP, not by verification (revises ADR-0073/0074/0075)
 
 - **Decision:** a coupon is bought and paid by the buyer alone. Stripe is the only path: without it the order is refused and nothing is stored; if Checkout cannot open the fresh order is cancelled. No email goes to an unverified address before payment (no order receipt, no order alert); emails go out only after Stripe confirms payment.
-- **Guards:** `create_coupon_order` refuses a sixth unpaid order from the same IP in an hour (HMAC of the IP in `coupons.ip_hash`; skipped if `PHONE_VERIFICATION_SECRET` is missing) next to the existing global cap of 100; expired Checkout Sessions cancel their orders (ADR-0075).
+- **Guards:** `create_coupon_order` refuses a sixth unpaid order from the same IP in an hour (HMAC of the IP in `coupons.ip_hash`). The function is callable by the service role only (the action uses `createAdminClient`), so the key cannot be forged with the anon key, and a missing hash (no `PHONE_VERIFICATION_SECRET`) refuses the order instead of skipping the cap next to the existing global cap of 100; expired Checkout Sessions cancel their orders (ADR-0075).
 - **Why:** a security review noted that, without phone verification, order-time emails could be used to send text to strangers and the global cap could be filled by one script. Removing the manual path removes the first; the per-IP cap narrows the second (a distributed attack can still fill the global cap for about 31 minutes).
 - **Kept:** `/admin/kuponai` activation and resend for old pending orders and manual cases.
 
