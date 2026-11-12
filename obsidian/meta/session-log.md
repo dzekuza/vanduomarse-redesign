@@ -1,3 +1,9 @@
+## 2026-11-13 — Sauna contact is renginiai@
+
+- **Changed:** `SAUNA_CONTACT.email` = `EVENTS_EMAIL` (`lib/contacts.ts`); used by `contactFor` (paid-reservation email/SMS for sauna-only reservations), the sauna service page and `CONTACTS`.
+- **Status:** tsc/eslint clean; not tested with a real send.
+- **Open:** which other bookings ("home"?) should show renginiai@ is unclear; phone number unchanged.
+
 ## 2026-11-13 — Live updates in the admin
 
 - **Why:** new bookings and payment status changes needed a manual reload.
