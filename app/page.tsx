@@ -20,7 +20,7 @@ export const metadata: Metadata = pageMetadata({
   title: "Vanduo Marse | Pirtis, keturračiai ir vandenlentės prie Kauno",
   absoluteTitle: true,
   description:
-    "Pirtis, keturračiai, kabelinis vandenlenčių parkas, šventės ir nakvynė prie vandens Žemaitkiemyje, Kauno rajone. Susiplanuok dieną Vanduo Marse.",
+    "Wake parkas, pirtis, keturračiai, nameliai prie ežero ir šventės Žemaitkiemyje, Kauno rajone. Susiplanuok dieną Vanduo Marse.",
   path: "/",
 });
 
