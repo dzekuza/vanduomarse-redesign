@@ -1,3 +1,4 @@
+import { makeCustomerLookup } from "@/lib/admin/customer-match";
 import { bookingTypeLabel, bookingWhen, formatDay, quadRentalLabel } from "./format";
 import { toCsv } from "./export";
 import { BOOKING_STATUS } from "./labels";
@@ -62,6 +63,7 @@ type SalesSource = Pick<
 /** Every sale from every source as one list, newest first. */
 export function buildSales(data: SalesSource): Sale[] {
   const sales: Sale[] = [];
+  const customerOf = makeCustomerLookup(data.riders);
 
   for (const b of data.bookings) {
     const when = [formatDay(b.date), bookingWhen(b)].filter(Boolean).join(", ");
@@ -77,7 +79,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(b.status),
       statusLabel: BOOKING_STATUS[b.status],
       target: { kind: "booking", id: b.id },
-      riderId: b.riderId ?? null,
+      riderId: b.riderId ?? customerOf(b.customer) ?? null,
     });
   }
 
@@ -94,7 +96,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(r.status),
       statusLabel: BOOKING_STATUS[r.status],
       target: { kind: "rental", id: r.id },
-      riderId: r.riderId ?? null,
+      riderId: r.riderId ?? customerOf(r.customer) ?? null,
     });
   }
 
@@ -111,7 +113,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
-      riderId: t.riderId ?? null,
+      riderId: t.riderId ?? customerOf(t.customer) ?? null,
     });
   }
 
@@ -130,7 +132,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
-      riderId: t.riderId ?? null,
+      riderId: t.riderId ?? customerOf(t.customer) ?? null,
     });
   }
 
@@ -147,7 +149,7 @@ export function buildSales(data: SalesSource): Sale[] {
       state: couponState(c.status),
       statusLabel: COUPON_STATUS_LABEL[c.status],
       target: { kind: "coupon", id: c.id },
-      riderId: c.riderId ?? null,
+      riderId: c.riderId ?? customerOf({ email: c.buyer.email }) ?? null,
     });
   }
 

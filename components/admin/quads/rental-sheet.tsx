@@ -11,6 +11,7 @@ import type { QuadRental } from "@/lib/admin/types";
 import { useCancelRequest } from "@/components/admin/use-cancel-request";
 import { hourLabel } from "@/lib/quads";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { CustomerLink } from "../customer-link";
 
 interface RentalSheetProps {
   rental: QuadRental | null;
@@ -55,7 +56,9 @@ export function RentalSheet({ rental, onOpenChange }: RentalSheetProps) {
               </dl>
               {rental.note ? <blockquote className="border-l-2 border-rust pl-3 text-sm">{rental.note}</blockquote> : null}
               <div className="space-y-1 border-t pt-4 text-sm">
-                <p className="font-medium">{rental.customer.name}</p>
+                <p className="font-medium">
+                  <CustomerLink name={rental.customer.name} riderId={rental.riderId} phone={rental.customer.phone} email={rental.customer.email} />
+                </p>
                 {rental.customer.phone ? (
                   <a href={`tel:${rental.customer.phone.replace(/\s/g, "")}`} className="flex min-h-11 items-center gap-2 hover:text-rust">
                     <PhoneIcon size={18} /> {rental.customer.phone}

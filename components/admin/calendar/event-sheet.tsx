@@ -1,6 +1,7 @@
 "use client";
 
 import { useAdmin } from "../admin-store";
+import { CustomerLink } from "../customer-link";
 import { StatusActions } from "../quads/status-actions";
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { seatsLabel, ticketsFor } from "@/lib/admin/calendar-entries";
@@ -52,7 +53,9 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                   <div key={r.id} className="space-y-2 border p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{r.customer.name}</p>
+                        <p className="truncate text-sm font-medium">
+                          <CustomerLink name={r.customer.name} riderId={r.riderId} phone={r.customer.phone} email={r.customer.email} />
+                        </p>
                         <p className="truncate text-xs text-muted-foreground">
                           {r.units} keturr. · {formatEur(r.total)} · {r.reference}
                         </p>
@@ -81,7 +84,9 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                   <div key={t.id} className="space-y-2 border p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{t.customer.name}</p>
+                        <p className="truncate text-sm font-medium">
+                          <CustomerLink name={t.customer.name} riderId={t.riderId} phone={t.customer.phone} email={t.customer.email} />
+                        </p>
                         <p className="truncate text-xs text-muted-foreground">
                           {t.people} asm. · {formatEur(t.total)} · {t.reference}
                         </p>

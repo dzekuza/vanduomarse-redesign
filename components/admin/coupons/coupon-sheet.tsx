@@ -9,6 +9,7 @@ import type { Coupon } from "@/lib/admin/types";
 import { COUPON_SERVICE_LABEL, formatCode, formatEuro, formatExpiry } from "@/lib/coupons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { CustomerLink } from "../customer-link";
 
 interface CouponSheetProps {
   coupon: Coupon | null;
@@ -67,7 +68,9 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
               {coupon.message ? <blockquote className="border-l-2 border-rust pl-3 text-sm">{coupon.message}</blockquote> : null}
 
               <div className="space-y-1 border-t pt-4 text-sm">
-                <p className="font-medium">{coupon.buyer.name}</p>
+                <p className="font-medium">
+                  <CustomerLink name={coupon.buyer.name} riderId={coupon.riderId} email={coupon.buyer.email} />
+                </p>
                 <a
                   href={`mailto:${coupon.buyer.email}?subject=${encodeURIComponent(`Dėl kupono ${coupon.reference}`)}`}
                   className="flex min-h-11 items-center gap-2 hover:text-rust"

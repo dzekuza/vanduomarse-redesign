@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerLink } from "../customer-link";
 
 const INITIAL: BookingFilterState = { kind: "visos", status: "visos", when: "busimos", query: "" };
 const TAB_IDS = ["sarasas", "kalendorius"] as const;
@@ -107,7 +108,9 @@ export function BookingsView() {
                       <p className="text-xs text-muted-foreground">{bookingWhen(b)}</p>
                     </TableCell>
                     <TableCell className="max-w-32 sm:max-w-none">
-                      <p className="truncate">{b.customer.name}</p>
+                      <p className="truncate">
+                        <CustomerLink name={b.customer.name} riderId={b.riderId} phone={b.customer.phone} email={b.customer.email} />
+                      </p>
                       <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
                         {b.reference}
                         {b.source && b.source !== "svetaine" ? (

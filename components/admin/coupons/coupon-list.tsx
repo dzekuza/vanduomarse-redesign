@@ -8,6 +8,7 @@ import { COUPON_SERVICE_LABEL, formatCode, formatEuro } from "@/lib/coupons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CustomerLink } from "../customer-link";
 
 const PAGE_SIZE = 50;
 
@@ -60,7 +61,9 @@ export function CouponList({ coupons, emptyText, onOpen }: CouponListProps) {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{COUPON_SERVICE_LABEL[c.service]}</TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <p className="truncate">{c.buyer.name}</p>
+                    <p className="truncate">
+                      <CustomerLink name={c.buyer.name} riderId={c.riderId} email={c.buyer.email} />
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">{c.buyer.email}</p>
                   </TableCell>
                   <TableCell className="hidden font-mono tracking-wide lg:table-cell">{c.code ? formatCode(c.code) : "—"}</TableCell>
