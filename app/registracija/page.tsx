@@ -29,6 +29,7 @@ export default async function RegistrationPage({ searchParams }: { searchParams:
           <div className="xl:w-4xl">
             <BookingHeader
               crumb="Registracija"
+              introClassName="max-w-2xl"
               title={plan ? ["Užsakyk", plan.name] : ["Tapk Vanduo", "Marse nariu"]}
               intro={plan
                 ? "Prieš apmokėdamas užsiregistruok: kontaktai, nuotrauka ir taisyklės. Apmokėjus planą priskirsime tau, o apyrankę parke priskirs darbuotojas."
