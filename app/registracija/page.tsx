@@ -11,6 +11,9 @@ import { createPublicClient } from "@/lib/supabase/public";
 export const metadata: Metadata = {
   title: "Registracija - Vanduo Marse",
   description: "Užsiregistruok internetu — kontaktai, nuotrauka ir taisyklių sutikimas — ir darbuotojas kasoje iškart priskirs tau apyrankę.",
+  // A personal form with ?abonementas= variants: not for search results.
+  alternates: { canonical: "/registracija" },
+  robots: { index: false, follow: true },
 };
 
 /** The bracelet plan the visitor came to buy (`?abonementas=`), only if it is on sale online. */

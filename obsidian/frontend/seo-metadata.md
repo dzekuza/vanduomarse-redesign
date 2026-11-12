@@ -55,3 +55,11 @@ Keep prices and capacities out of the copy (they come from the database). The fu
 ## Related
 
 [[routing]] · [[html-semantics]]
+
+## Added 2026-11-13 (SEO audit)
+
+- `/renginiai` has `Event` JSON-LD from `eventsSchema` (`lib/structured-data.ts`) for the events it lists.
+- `/registracija` is `noindex, follow` (canonical `/registracija`; the `?abonementas=` variants are not for search).
+- The sitemap sets `lastmod` only for service pages edited in `/admin/puslapiai` (`page_content.updated_at`); no invented dates, no `changefreq`.
+- `public/llms.txt` lists address, contacts, hours, season and how prices are published.
+- Open: public pages are rendered per request (`no-store`); add `sameAs` profiles (Facebook, Google Business Profile) when the URLs are known.

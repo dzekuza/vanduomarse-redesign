@@ -1,3 +1,9 @@
+## 2026-11-13 — SEO audit quick wins
+
+- **Changed:** titles, `/registracija` noindex, `Event` markup on `/renginiai`, sitemap `lastmod`, richer `llms.txt`.
+- **Status:** tsc/eslint pass, checked on the dev server; branch `fix/seo-audit-quick-wins`.
+- **Next:** page caching (public pages are `no-store`), `sameAs` profiles, local guide content, price page for AI agents.
+
 ## 2026-11-13 — Staff paid notification with full details
 
 - **Changed:** `paid_staff_details` function (applied), `PaidRequest.staff`, `staffPaidText` / `emailStaffPaid` / push body in `lib/sms/notify.ts`, `lib/email/notify.ts`, `lib/notify.ts`; webhook loads the requests for every payment.

@@ -17,3 +17,11 @@
 - [Šventės kainos skaičiuoklė](https://www.vanduomarse.lt/sventes)
 - [Kontaktai](https://www.vanduomarse.lt/kontaktai)
 - [Privatumo politika](https://www.vanduomarse.lt/privatumo-politika)
+
+## Praktinė informacija
+- Adresas: Sausinės g. 20, Žemaitkiemio km., Kauno rajonas, Lietuva (apie 20 min. nuo Kauno centro)
+- Telefonas: +370 630 80 444; el. paštas: info@vanduomarse.lt
+- Darbo laikas (parkas): penktadieniais 17:00-21:00, šeštadieniais ir sekmadieniais 10:00-20:00. Restoranas, pirties seansai ir renginiai gali turėti kitą laiką, tikslius laikus rodo rezervacijos kalendorius.
+- Vandenlenčių sezonas: šiltasis metų laikas; plaukimo laikai priklauso nuo sezono ir oro.
+- Kainos: visos kainos nurodomos su 21% PVM ir rodomos kiekvieno puslapio skiltyje „Kainos“ bei rezervacijos metu; jos imamos iš gyvų duomenų, todėl čia nekartojamos.
+- Kalba: lietuvių. Apmokėjimas internetu kortele (Stripe).
