@@ -65,7 +65,8 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
 
   const supabase = createPublicClient();
 
-  const { data: riderId, error: rpcError } = await supabase.rpc("register_rider_public", {
+  // Reuses the customer with this phone or e-mail instead of inserting another one (ADR-0083).
+  const { data: registered, error: rpcError } = await supabase.rpc("register_rider_public", {
     p_name: v.name,
     p_surname: v.surname,
     p_email: v.email,
@@ -74,22 +75,27 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
     p_birthdate: v.birthdate,
     p_terms_version: TERMS_VERSION,
   });
-  if (rpcError || !riderId) return fail("Nepavyko užregistruoti. Bandykite dar kartą.", "db");
+  const customer = registered?.[0];
+  if (rpcError || !customer) return fail("Nepavyko užregistruoti. Bandykite dar kartą.", "db");
+  const riderId = customer.rider_id;
 
-  const avatarPath = `${riderId}/avatar.${photoExt}`;
-  const signaturePath = `${riderId}/signature.png`;
+  // A customer who already finished registering (photo and signed rules) has nothing to upload; their record is kept as is.
+  if (!customer.already_registered) {
+    const avatarPath = `${riderId}/avatar.${photoExt}`;
+    const signaturePath = `${riderId}/signature.png`;
 
-  const [photoUpload, signatureUpload] = await Promise.all([
-    supabase.storage.from("rider-photos").upload(avatarPath, photo, { contentType: photo.type }),
-    supabase.storage.from("rider-waivers").upload(signaturePath, signature, { contentType: "image/png" }),
-  ]);
-  if (photoUpload.error || signatureUpload.error) return fail("Registracija įrašyta, bet nepavyko įkelti failų. Kreipkitės į darbuotoją.", "upload");
+    const [photoUpload, signatureUpload] = await Promise.all([
+      supabase.storage.from("rider-photos").upload(avatarPath, photo, { contentType: photo.type }),
+      supabase.storage.from("rider-waivers").upload(signaturePath, signature, { contentType: "image/png" }),
+    ]);
+    if (photoUpload.error || signatureUpload.error) return fail("Registracija įrašyta, bet nepavyko įkelti failų. Kreipkitės į darbuotoją.", "upload");
 
-  await supabase.rpc("finalize_rider_registration_public", {
-    p_rider_id: riderId,
-    p_avatar_path: avatarPath,
-    p_signature_path: signaturePath,
-  });
+    await supabase.rpc("finalize_rider_registration_public", {
+      p_rider_id: riderId,
+      p_avatar_path: avatarPath,
+      p_signature_path: signaturePath,
+    });
+  }
 
   if (!planId) return { data: { riderId } };
 
