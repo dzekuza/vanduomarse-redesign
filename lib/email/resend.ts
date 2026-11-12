@@ -14,6 +14,8 @@ export interface EmailMessage {
   html: string;
   /** Overrides the sender, e.g. COUPON_FROM_EMAIL for coupons. */
   from?: string;
+  /** Files sent with the message (Resend takes them base64 encoded). */
+  attachments?: { filename: string; content: Buffer }[];
 }
 
 export const escapeHtml = (s: string) =>
@@ -55,7 +57,7 @@ export async function sendEmail(m: EmailMessage, opts: { skipInDev?: boolean } =
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, reply_to: MAIN_CONTACT.email, subject: m.subject, text: m.text, html: m.html }),
+      body: JSON.stringify({ from, to, reply_to: MAIN_CONTACT.email, subject: m.subject, text: m.text, html: m.html, attachments: m.attachments?.map((a) => ({ filename: a.filename, content: a.content.toString("base64") })) }),
       // The Stripe webhook awaits this: a stalled connection must not hold the response until Stripe retries.
       signal: AbortSignal.timeout(8000),
     });

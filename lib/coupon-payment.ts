@@ -52,6 +52,7 @@ export async function onCouponPaid(couponId: string, session: Stripe.Checkout.Se
     faceValue: c.face_value,
     service: c.service,
     expiresAt: c.expires_at,
+    reference: c.reference,
     voucherUrl: await voucherUrl(session.id),
   });
   await emailStaffCouponPaid({
