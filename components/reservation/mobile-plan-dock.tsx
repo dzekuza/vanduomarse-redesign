@@ -7,6 +7,7 @@ import { ServiceGallery } from "@/components/landing/service-gallery";
 import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
+import { formatEuro } from "@/lib/coupons";
 import { PlanDetails, type PlanDetailsProps } from "./plan-panel";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
 import { activityPhotos } from "./activity-photos";
@@ -44,7 +45,7 @@ export function MobilePlanDock({ activity, photos = activityPhotos(activity), wh
   }
 
   return (
-    <div ref={dockRef} className="sticky bottom-0 z-10 grid items-center border-t border-line-on-ink bg-ink px-gutter pb-[env(safe-area-inset-bottom)] text-dust sm:flex sm:gap-4 lg:hidden">
+    <div ref={dockRef} className="sticky bottom-0 z-10 grid items-center border-t border-line-on-ink bg-ink px-gutter pb-[env(safe-area-inset-bottom)] text-dust lg:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger type="button" className="flex min-h-11 min-w-0 flex-1 items-center gap-2 py-2.5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-dust sm:gap-3">
           {photos[0] ? <Image src={photos[0].src} alt="" width={40} height={40} className="size-10 shrink-0 object-cover" /> : null}
@@ -53,8 +54,9 @@ export function MobilePlanDock({ activity, photos = activityPhotos(activity), wh
             <span className="block text-xs text-dust/80">{whenLabel}</span>
           </span>
           <span className="flex shrink-0 items-center gap-1 sm:gap-3">
-            <span aria-live="polite" className="font-display text-figure font-bold">
-              <span className="sr-only">Preliminari kaina: </span>{details.total} €
+            <span className="grid text-right">
+              <span className="text-micro uppercase text-dust/80">Iš viso, su PVM</span>
+              <span aria-live="polite" className="font-display text-figure font-bold">{formatEuro(details.total)}</span>
             </span>
             <CaretUpIcon aria-hidden className="size-5" />
           </span>
@@ -94,7 +96,7 @@ export function MobilePlanDock({ activity, photos = activityPhotos(activity), wh
         </SheetContent>
       </Sheet>
       {enabledContinueAction ? (
-        <PlanActions continueAction={enabledContinueAction} secondaryAction={secondaryAction} tone="cream" className="mb-2 sm:my-2 sm:w-64 sm:shrink-0" />
+        <PlanActions continueAction={enabledContinueAction} secondaryAction={secondaryAction} tone="cream" className="mb-2" />
       ) : null}
     </div>
   );

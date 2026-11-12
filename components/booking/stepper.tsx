@@ -11,6 +11,8 @@ interface StepperProps {
   label: string;
   /** Type the number instead of only pressing − / +. */
   editable?: boolean;
+  /** Commit valid typed values immediately, while retaining the draft until blur. */
+  updateOnInput?: boolean;
 }
 
 interface StepperControlsProps extends StepperProps {
@@ -22,7 +24,7 @@ const BUTTON =
   "flex size-11 items-center justify-center border transition-[color,border-color,scale] duration-150 ease-out-strong enabled:hover:border-rust enabled:hover:text-rust motion-safe:enabled:active:scale-90 disabled:opacity-30";
 
 /** The − / value / + row on its own. `label` is the accessible name only, so place a visible caption yourself or use `Stepper` / `CompactStepper`. */
-export function StepperControls({ value, onChange, min, max, label, editable = false, tone = "line" }: StepperControlsProps) {
+export function StepperControls({ value, onChange, min, max, label, editable = false, updateOnInput = false, tone = "line" }: StepperControlsProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const current = draft ? Math.max(min, Math.min(max, Number(draft))) : value;
   const toneClass = tone === "current" ? "border-current/25" : "border-line text-ink";
@@ -45,7 +47,10 @@ export function StepperControls({ value, onChange, min, max, label, editable = f
           onFocus={(event) => event.currentTarget.select()}
           onChange={(event) => {
             const next = event.target.value;
-            if (/^\d*$/.test(next)) setDraft(next);
+            if (!/^\d*$/.test(next)) return;
+            setDraft(next);
+            const number = Number(next);
+            if (updateOnInput && next && number >= min && number <= max && number !== value) onChange(number);
           }}
           onBlur={() => commit(current)}
           onKeyDown={(event) => {

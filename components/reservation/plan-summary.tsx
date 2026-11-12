@@ -1,3 +1,5 @@
+import { BookingPrice } from "@/components/booking/booking-price";
+import { formatEuro } from "@/lib/coupons";
 import type { PlanLine } from "@/lib/reservation";
 
 /** An applied discount code and the euros it takes off the plan. */
@@ -29,13 +31,7 @@ export function PlanSummary({ lines, total, discount, compact = false }: { lines
           <span className="shrink-0 font-bold">−{discounted.amount} €</span>
         </div>
       ) : null}
-      <div className="flex items-baseline justify-between gap-4">
-        <span className="text-micro uppercase text-copy">Iš viso, su PVM</span>
-        <span className="text-total font-bold">
-          {discounted ? <s className="mr-2 text-base font-normal text-copy">{total} €</s> : null}
-          {discounted ? Math.round((total - discounted.amount) * 100) / 100 : total} €
-        </span>
-      </div>
+      <BookingPrice amount={formatEuro(total - (discounted?.amount ?? 0))} />
     </div>
   );
 }

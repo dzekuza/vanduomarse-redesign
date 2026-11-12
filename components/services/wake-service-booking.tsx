@@ -2,6 +2,7 @@
 
 import { ListBulletsIcon, TicketIcon, WavesIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { BookingPrice } from "@/components/booking/booking-price";
 import { Cta } from "@/components/cta";
 import { BOOKING_CHOICE_CLASS, FilterChip } from "@/components/events/filter-chip";
 import { BookingDetailCard } from "@/components/reservation/booking-detail-card";
@@ -103,21 +104,19 @@ export function WakeBookingSummary({ product, contact }: { product?: CouponProdu
 
   return (
     <>
-      {product ? (
-        <div className="space-y-3 border-t border-line pt-4">
-          <div>
-            <p className="text-micro uppercase text-copy">Iš viso, su PVM</p>
-            <p aria-live="polite" aria-atomic="true" className="font-display text-total font-bold">{formatEuro(product.value)}</p>
-            <p className="mt-1 text-xs text-copy">
-              {season ? "Apmokėjus gausi kupono kodą. Abonementą su šiuo kodu aktyvuos komanda parke."
-                : "Apmokėjus gausi plaukimo kupono kodą. Plaukimo laiką suderink su Marso Akademija."}
-            </p>
-          </div>
-          <Cta tone="dark" small className={PLAN_PRIMARY_CLASS} href={`/kuponai?produktas=${encodeURIComponent(product.id)}#uzsakymas`}>
-            {season ? "Užsakyti abonementą" : "Užsakyti plaukimą"}
-          </Cta>
-        </div>
-      ) : null}
+      <div className="space-y-3 border-t border-line pt-4">
+        <BookingPrice
+          amount={formatEuro(product?.value ?? 0)}
+          note={!product ? "Pasirink pasiūlymą, kad matytum kainą."
+            : season ? "Apmokėjus gausi kupono kodą. Abonementą su šiuo kodu aktyvuos komanda parke."
+              : "Apmokėjus gausi plaukimo kupono kodą. Plaukimo laiką suderink su Marso Akademija."}
+        />
+        <Cta tone="dark" small className={PLAN_PRIMARY_CLASS}
+          href={product ? `/kuponai?produktas=${encodeURIComponent(product.id)}#uzsakymas` : undefined}
+          disabled={!product}>
+          {!product ? "Užsakyti" : season ? "Užsakyti abonementą" : "Užsakyti plaukimą"}
+        </Cta>
+      </div>
       <ServiceBookingHelp contact={contact} />
     </>
   );

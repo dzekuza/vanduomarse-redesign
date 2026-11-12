@@ -382,7 +382,7 @@ export function ReservationFlow({
         event.preventDefault();
         next();
       }} noValidate className={activity ? undefined : "px-gutter pt-10 pb-16 md:pt-14 md:pb-24"}>
-        <div className={inline ? "grid gap-6" : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
+        <div className={inline ? `grid ${activity === "keturraciai" ? "gap-4" : "gap-6"}` : "grid gap-10 lg:grid-cols-3 lg:gap-12"}>
           <div className={inline ? "min-w-0 space-y-5" : "min-w-0 space-y-8 lg:col-span-2"}>
             {activity === "pirtis" || activity === "keturraciai" ? null : <div ref={selectionHeader} tabIndex={-1} className="scroll-mt-32 outline-none">{header}</div>}
             <div className={activity ? "space-y-5" : "space-y-5 border border-line bg-foam p-4 sm:p-6"}>

@@ -36,6 +36,7 @@ export function AccountStep({ customer, onCustomer }: { customer: Customer | nul
     return (
       <div key="login">
         <LoginForm
+          showAccountNote={false}
           onCustomer={(signedIn) => {
             if (!getValues("customerName") && signedIn.name) setValue("customerName", signedIn.name);
             onCustomer(signedIn);

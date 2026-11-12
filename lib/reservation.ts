@@ -26,7 +26,7 @@ import {
 } from "@/lib/sauna";
 import type { SaunaEventData } from "@/lib/sauna-events";
 import type { SaunaMaster } from "@/lib/sauna-masters";
-import { durationLabel, programRateLine, programTotal, type SaunaProgram } from "@/lib/sauna-programs";
+import { durationLabel, programRateLine, sessionPartyPrice, type SaunaProgram } from "@/lib/sauna-programs";
 import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 
 export type ActivityId = "pirtis" | "keturraciai" | "nakvyne";
@@ -233,8 +233,7 @@ export function planHours(plan: PirtisPlan | QuadPlan | StayPlan | null | undefi
 
 function planSession(pick: SaunaPick, program: SaunaProgram | null, data: SaunaPageData, when: When, busy: readonly number[]): ProgramPlan {
   const session = data.events.find((e) => e.key === pick.eventId && e.programId === (program?.id ?? null) && e.date === when.day) ?? null;
-  const children = program?.pricing === "family" ? Math.max(0, Math.min(pick.children, when.people - 1)) : 0;
-  const adults = when.people - children;
+  const { adults, children, price } = sessionPartyPrice(session?.pricePerPerson ?? 0, program, when.people, pick.children);
   const minutes = session ? sessionMinutes(session, program) : (program?.durationMinutes ?? 60);
   const start = session ? startMinute(session.time) : null;
   const ok = session !== null && start !== null && start / 60 >= pastHourOn(when.day, data.today, data.nowHour) + 1
@@ -242,7 +241,7 @@ function planSession(pick: SaunaPick, program: SaunaProgram | null, data: SaunaP
   return {
     kind: "pirtis", mode: "session", program, session, sauna: null, master: null,
     startHour: start === null ? null : Math.floor(start / 60), hours: minutes / 60, adults, children, ok,
-    price: ok ? (program ? programTotal(program, adults, children) : session.pricePerPerson * adults) : 0,
+    price: ok ? price : 0,
   };
 }
 

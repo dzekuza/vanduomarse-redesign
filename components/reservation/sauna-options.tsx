@@ -74,7 +74,11 @@ export function SaunaOptions({ plan, data, when, included, busy, sessionId, onSe
       />
       <SaunaSessionDialog
         open={Boolean(sessionId)}
-        details={event && session ? { event, row: session, quantity: quantity(session), selected: selected(session) } : undefined}
+        details={event && session ? {
+          event, row: session, quantity: quantity(session), selected: selected(session),
+          program: data.programs.find(({ id }) => id === session.programId) ?? null,
+          children: selected(session) ? pick.children : 0,
+        } : undefined}
         onClose={closeSessionInfo}
         onSelectedFocus={onSessionSelectedFocus}
         onSelect={() => {

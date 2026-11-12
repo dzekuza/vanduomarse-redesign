@@ -44,7 +44,7 @@ export function EventRegister({ eventId, title }: { eventId: string; title: stri
             {form.formState.errors.root.message}
           </p>
         ) : null}
-        <ArrowButton type="submit" disabled={form.formState.isSubmitting}>
+        <ArrowButton fullWidth type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Siunčiama..." : "Registruotis"}
         </ArrowButton>
       </form>

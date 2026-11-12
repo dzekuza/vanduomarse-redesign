@@ -235,6 +235,8 @@ export function SaunaServiceBooking({
         open={Boolean(sessionId) && !busy}
         details={event && dialogRow ? {
           event, row: dialogRow, selected: dialogSelected,
+          program: data.programs.find(({ id }) => id === dialogRow.programId) ?? null,
+          children: dialogSelected ? pick.children : 0,
           quantity: {
             value: dialogSelected ? people : dialogPeople,
             max: maxPeople(dialogRow),

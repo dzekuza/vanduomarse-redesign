@@ -1,3 +1,7 @@
+- 2026-11-12 Quad route tiles right-align duration and price and provide a separate route details icon on both booking pages.
+- 2026-11-12 Quad route tiles show the scheduled tour duration from the catalogue on the service and reservation pages.
+- 2026-11-12 Removed the extra separator and reduced the space above the inline quad reservation plan.
+- 2026-11-12 Public booking, coupon and event inquiry forms show the VAT-inclusive total before the full-width main action. Sauna session totals update immediately with seat quantity and reuse plan pricing. The WAKE panel shows 0 € and a disabled action before selection.
 - 2026-11-12 The sauna session tab on `/rezervacija` starts on today and shows that day's sessions. On an empty date it offers the next date with bookable sessions and their start times. Opening the suggestion changes the date without adding a session.
 - 2026-11-12 The WAKE order total uses the stacked reservation layout with the amount under the VAT label and coupon instructions below.
 - 2026-11-12 Stay choices match the WAKE two-column layout in wide reservation panels. The info buttons appear once arrival is selected.
@@ -1488,3 +1492,7 @@ This is a human-curated log — not a mirror of `git log`. Record *why*, not jus
 - Project brain scaffolded from the shared `.project-brain` template: vault,
   root shims (`AGENTS.md` / `CLAUDE.md` / `.cursorrules`), and the three Claude
   Code hooks that keep this vault in sync.
+- 2026-11-12 Removed the Keisti planą action from the reservation checkout footer.
+- 2026-11-12 Reservation checkout omits the account-creation hint and the generic confirmation paragraph when no payment method is shown.
+- 2026-11-12 The discount code field is temporarily hidden in reservation checkout.
+- 2026-11-12 The reservation gallery clips photos to its frame and sizes the carousel track to the frame’s capped height so images stay above the summary heading.

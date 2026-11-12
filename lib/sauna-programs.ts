@@ -63,3 +63,14 @@ export function programTotal(p: Pick<SaunaProgram, "pricing" | "price" | "childP
   if (p.pricing === "group") return p.price;
   return adults * p.price + children * (p.childPrice ?? p.price);
 }
+
+/** The public session price for a party with at least one adult. */
+export function sessionPartyPrice(pricePerPerson: number, program: SaunaProgram | null, people: number, childCount: number) {
+  const children = program?.pricing === "family" ? Math.max(0, Math.min(childCount, people - 1)) : 0;
+  const adults = people - children;
+  return {
+    adults,
+    children,
+    price: program ? programTotal(program, adults, children) : pricePerPerson * adults,
+  };
+}

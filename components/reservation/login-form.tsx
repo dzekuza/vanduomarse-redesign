@@ -42,7 +42,7 @@ function FieldError({ message }: { message?: string }) {
  * email gets a new account). Used by the checkout step and the account page, so Enter in its fields
  * must not submit a surrounding form.
  */
-export function LoginForm({ onCustomer }: { onCustomer: (customer: Customer) => void }) {
+export function LoginForm({ onCustomer, showAccountNote = true }: { onCustomer: (customer: Customer) => void; showAccountNote?: boolean }) {
   const id = useId();
   const [channel, setChannel] = useState<Channel>("phone");
   const [value, setValue] = useState("");
@@ -139,7 +139,7 @@ export function LoginForm({ onCustomer }: { onCustomer: (customer: Customer) => 
       <Button type="button" variant="default" size="lg" className="w-full sm:w-auto" disabled={busy || value.trim().length < 5} onClick={() => void send()}>
         {busy ? "Siunčiama..." : "Siųsti kodą"}
       </Button>
-      <p className="text-sm text-copy">Jei paskyros dar nėra, ją sukursime. Slaptažodžio nereikia.</p>
+      {showAccountNote ? <p className="text-sm text-copy">Jei paskyros dar nėra, ją sukursime. Slaptažodžio nereikia.</p> : null}
     </div>
   );
 }

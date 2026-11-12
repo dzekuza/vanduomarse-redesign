@@ -5,6 +5,7 @@ import { useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { createCouponOrder, type CouponOrderResult } from "@/app/actions/coupons";
 import { ArrowButton } from "@/components/booking/arrow-button";
+import { BookingPrice } from "@/components/booking/booking-price";
 import { VerifiedPhoneField } from "@/components/booking/verified-phone-field";
 import { setPhoneVerification, usePhoneVerification } from "@/hooks/use-phone-verification";
 import { Eyebrow } from "@/components/eyebrow";
@@ -81,7 +82,6 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       <div>
         <Eyebrow>Užsakymas</Eyebrow>
         <p className="mt-1 text-item font-bold">{product.name}</p>
-        <p className="font-display text-total font-bold">{formatEuro(product.value)}</p>
       </div>
       <Field id="buyerName" label="Jūsų vardas" error={errors.buyerName?.message}>
         <Input id="buyerName" autoComplete="name" aria-invalid={!!errors.buyerName} {...register("buyerName")} />
@@ -105,10 +105,10 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       </Field>
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" {...register("website")} />
       {errors.root ? <p role="alert" className="text-sm text-rust-ink">{errors.root.message}</p> : null}
-      <ArrowButton type="submit" disabled={isSubmitting}>
+      <BookingPrice amount={formatEuro(product.value)} note="Apmokėjimo detales atsiųsime el. paštu." />
+      <ArrowButton fullWidth type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Siunčiama..." : "Užsakyti kuponą"}
       </ArrowButton>
-      <p className="text-xs text-copy">Kainos nurodytos su 21% PVM. Apmokėjimo detales atsiųsime el. paštu.</p>
       {isWakeSeasonPass(product) ? <p className="text-xs text-copy">Apmokėtą kupono kodą pateik komandai parke, kad ji aktyvuotų abonementą.</p> : null}
     </form>
     </Panel>

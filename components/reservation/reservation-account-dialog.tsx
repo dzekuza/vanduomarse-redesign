@@ -12,6 +12,8 @@ import { DiscountCodeField } from "./discount-code-field";
 import { PlanSummary } from "./plan-summary";
 import { ReservationSubmitDetails } from "./reservation-submit-details";
 
+const SHOW_DISCOUNT_CODE_FIELD = false;
+
 interface ReservationAccountDialogProps {
   open: boolean;
   onClose: () => void;
@@ -76,13 +78,14 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
           </section>
           <section aria-label="Rezervacijos suvestinė" className="space-y-3">
             <p className="text-micro uppercase text-copy">02 / Rezervacijos suvestinė</p>
+            {SHOW_DISCOUNT_CODE_FIELD ? (
+              <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
+            ) : null}
             <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
-            <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
           </section>
           <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
-            <button type="button" disabled={busy} onClick={dismiss} className="inline-flex min-h-11 items-center text-xs font-bold underline underline-offset-4 disabled:opacity-50">Keisti planą</button>
-            <ArrowButton type="submit" disabled={!ready || busy || checkingCode}>
+          <div className="border-t border-line pt-5">
+            <ArrowButton fullWidth type="submit" disabled={!ready || busy || checkingCode}>
               {redirecting ? "Nukreipiame į mokėjimą..." : busy ? "Siunčiama..." : payments && !payOnSite && payTotal > 0 ? `Mokėti ${payTotal} €` : "Rezervuoti"}
             </ArrowButton>
           </div>
