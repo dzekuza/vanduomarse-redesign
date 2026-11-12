@@ -41,6 +41,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       // Sauna photos uploaded in /admin/pirtis (public `sauna-photos` bucket).
       { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/sauna-photos/**" },
+      // Service page photos uploaded in /admin/puslapiai (public `page-photos` bucket).
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/page-photos/**" },
     ],
   },
   // The standalone calculator page was folded into the celebrations page (/sventes), which has the same calculator.

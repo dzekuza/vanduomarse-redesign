@@ -7,13 +7,14 @@ import { PARK_ADDRESS, SERVICE_GALLERY, SERVICES, type ServicePhoto } from "@/co
 import { LandingAccordion } from "@/components/landing/landing-accordion";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { CONTACTS, MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
+import { getServicePageContent } from "@/lib/data/page-content";
 import { guestsLabel, type StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import type { ParkEventData } from "@/lib/park-events";
 import { cn } from "@/lib/utils";
 import { CELEBRATION_LINKS } from "./celebration-content";
 import { ServiceBookingHelp } from "./service-booking-help";
-import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "./service-content";
+import { type ServicePageCopy, type ServiceSlug } from "./service-content";
 import { ServicePhotoMosaic } from "./service-photo-mosaic";
 import { ServicePricing } from "./service-pricing";
 import { ServiceReviews } from "./service-reviews";
@@ -38,7 +39,7 @@ function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; childr
   );
 }
 
-export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake }: {
+export async function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake }: {
   slug: ServiceSlug;
   booking?: ReactNode | ((header: ReactNode) => ReactNode);
   schedule?: ReactNode;
@@ -49,7 +50,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
   photos?: ServicePhoto[];
   wake?: ParkEventData[];
 }) {
-  const copy: ServicePageCopy = SERVICE_PAGES[slug];
+  const { copy, photos: customPhotos }: { copy: ServicePageCopy; photos: ServicePhoto[] | undefined } = await getServicePageContent(slug);
   const facts = [
     ...(sauna?.saunas ?? []).map(({ id, name, description, rates }) => ({
       id, label: name, value: [description, `Iki ${rates.maxParty} žmonių.`].filter(Boolean).join(" "),
@@ -62,7 +63,7 @@ export function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, 
     })),
     ...copy.facts.map((fact) => ({ ...fact, id: fact.label })),
   ];
-  const gallery = photos ?? SERVICE_GALLERY[copy.service];
+  const gallery = customPhotos ?? photos ?? SERVICE_GALLERY[copy.service];
   const contact = CONTACTS.find(({ name }) => name === SERVICES[copy.service].contact) ?? MAIN_CONTACT;
   const isCelebration = copy.service === "party";
   const bookingTitle = slug === "vandenlentes" ? "Užsakyti" : slug === "sventes" ? "Šventės skaičiuoklė"

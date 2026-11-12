@@ -1,4 +1,5 @@
 import "server-only";
+import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
@@ -67,6 +68,22 @@ async function readSiteSettings(supabase: ServerSupabase, me: StaffAccess): Prom
     return null;
   }
   return data ? { comingSoon: data.coming_soon } : null;
+}
+
+/** Saved service page overrides, owners only. An invalid row is left out (the public page falls back to its defaults). */
+async function readPageContent(supabase: ServerSupabase, me: StaffAccess): Promise<Record<string, PageContentOverride>> {
+  if (!me.isOwner) return {};
+  const { data, error } = await supabase.from("page_content").select("slug, content");
+  if (error) {
+    console.error("Admin data: page content", error.message);
+    return {};
+  }
+  const out: Record<string, PageContentOverride> = {};
+  for (const row of data) {
+    const parsed = pageContentSchema.safeParse(row.content);
+    if (parsed.success) out[row.slug] = parsed.data;
+  }
+  return out;
 }
 
 /** Ids of customers who have a site account; empty without the Klientai / Apyrankės page or before the migration. */
@@ -205,6 +222,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     staff: me.isOwner ? staff.data!.map(toStaffMember) : [],
     notificationRecipients: await readNotificationRecipients(supabase, me),
     siteSettings: await readSiteSettings(supabase, me),
+    pageContent: await readPageContent(supabase, me),
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),

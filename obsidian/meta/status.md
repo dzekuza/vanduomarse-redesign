@@ -5,6 +5,10 @@ updated: 2026-11-12
 
 # Current status — vanduomarse-redesign
 
+**Page content editor (2026-11-13, ADR-0083): owner-only `/admin/puslapiai` edits texts, info boxes, FAQ and photos of the public service pages; migration `20261115100000_page_content.sql` APPLIED; public merge verified with a temporary row (removed), the editor UI not browser-checked, uncommitted. Next: try it signed in as owner (edit, upload, restore defaults); then extend to the home page, /renginiai and /kontaktai texts.**
+
+**Apyrankės Klientai tab (2026-11-13): `/admin/apyrankes?tab=klientai` lists customers with a plan or plan purchase (`CustomersTab`, filters Visi / Aktyvūs planai / Abonementai); tsc/eslint clean, uncommitted, not browser-checked. Next: check at 375 / 768 / 1024 px signed in; decide whether subscriptions need expiry dates (plans have none, so "active" = has a current plan).**
+
 **Registration draft (2026-11-12): `/registracija` step 1 is remembered in `sessionStorage` between visits (`lib/registration-draft.ts`), cleared on success; tsc/eslint clean; merged in PR #89 and checked in the browser (type, leave, come back: fields and phone country restored).**
 
 > [!info] How to use this note

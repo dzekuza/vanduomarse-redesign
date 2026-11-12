@@ -1,3 +1,4 @@
+import type { PageContentOverride } from "@/lib/page-content";
 import type { DiscountCode } from "@/lib/discount-codes";
 import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
@@ -382,6 +383,8 @@ export interface AdminData {
   notificationRecipients: NotificationRecipient[];
   /** Site-wide switches; owners only (null for everyone else, or before the site_settings migration). */
   siteSettings: SiteSettings | null;
+  /** Saved overrides of the public service pages by slug; owners only (empty for everyone else, or before the page_content migration). */
+  pageContent: Record<string, PageContentOverride>;
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];

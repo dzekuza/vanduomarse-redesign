@@ -9,6 +9,7 @@ import {
   EnvelopeSimpleIcon,
   FireIcon,
   GlobeHemisphereWestIcon,
+  NotePencilIcon,
   GiftIcon,
   LifebuoyIcon,
   MotorcycleIcon,
@@ -18,7 +19,7 @@ import {
   TagIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
-import { hasPermission, NOTIFICATIONS_HREF, SITE_SETTINGS_HREF, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
+import { hasPermission, NOTIFICATIONS_HREF, PAGE_CONTENT_HREF, SITE_SETTINGS_HREF, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
 
 export type AdminNavGroup = "apzvalga" | "pardavimai" | "turinys" | "nustatymai";
 
@@ -87,6 +88,7 @@ export const ADMIN_NAV: AdminNavEntry[] = [
     ],
   },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
+  { href: PAGE_CONTENT_HREF, label: "Puslapiai", icon: NotePencilIcon, group: "turinys", permission: "owner" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },
   { href: "/admin/kuponai", label: "Kuponai", icon: GiftIcon, group: "nustatymai", permission: "kuponai", badge: "pendingCoupons" },
   { href: "/admin/nuolaidos", label: "Nuolaidos", icon: PercentIcon, group: "nustatymai", permission: "nuolaidos" },
