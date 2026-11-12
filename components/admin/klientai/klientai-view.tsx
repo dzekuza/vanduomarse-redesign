@@ -1,18 +1,15 @@
 "use client";
 
 import { AddressBookIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
-import { PlanBadge } from "../apyrankes/plan-badge";
-import { RiderAvatar } from "../apyrankes/rider-avatar";
+import { KlientaiBulkBar } from "./klientai-bulk-bar";
+import { KlientaiTable } from "./klientai-table";
 import { ScanTarget } from "../apyrankes/scan-target";
 import type { Rider } from "@/lib/admin/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 const PAGE_SIZE = 25;
@@ -28,7 +25,7 @@ const isActivityFilter = (value: string): value is ActivityFilter => (ACTIVITY_F
 
 /** `/admin/klientai`: every customer (riders, incl. bulk-imported Grabby contacts). Search, paginate, open a profile. ADR-0042 */
 export function KlientaiView() {
-  const { riders, riderCards, purchases, bookings, quadRentals, eventTickets, coupons, bindRiderCard } = useAdmin();
+  const { riders, riderCards, riderAccountIds, purchases, bookings, quadRentals, eventTickets, coupons, bindRiderCard } = useAdmin();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,6 +37,10 @@ export function KlientaiView() {
   );
   const [rebinding, setRebinding] = useState<Rider | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Ticked customers. Cleared whenever the visible list changes (search, filter, page), so nothing out of sight can be removed.
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+
+  const accountIds = useMemo(() => new Set(riderAccountIds), [riderAccountIds]);
 
   const activityRiders = useMemo(() => {
     const apyrankes = new Set(purchases.map((p) => p.riderId));
@@ -52,6 +53,7 @@ export function KlientaiView() {
     const next = activityFilters.includes(id) ? activityFilters.filter((f) => f !== id) : [...activityFilters, id];
     setActivityFilters(next);
     setPage(1);
+    setSelected(new Set());
     const params = new URLSearchParams(searchParams);
     if (next.length) params.set("activity", next.join(","));
     else params.delete("activity");
@@ -90,6 +92,23 @@ export function KlientaiView() {
   const currentPage = Math.min(page, pageCount);
   const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  function changePage(next: number) {
+    setPage(next);
+    setSelected(new Set());
+  }
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll(checked: boolean) {
+    setSelected(checked ? new Set(paged.map((r) => r.id)) : new Set());
+  }
+
   if (rebinding) {
     return (
       <AdminPage title="Klientai" description="Visi klientai: kontaktai, rezervacijos, pirkimai, dokumentai ir komentarai.">
@@ -126,34 +145,35 @@ export function KlientaiView() {
   return (
     <AdminPage title="Klientai" description="Visi klientai: kontaktai, rezervacijos, pirkimai, dokumentai ir komentarai.">
       {notice ? <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">{notice}</p> : null}
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {filtered.length} {filtered.length === 1 ? "klientas" : "klientai"}
-        </p>
+      <p className="text-sm text-muted-foreground">
+        {filtered.length} {filtered.length === 1 ? "klientas" : "klientai"}
+      </p>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {ACTIVITY_FILTERS.map((f) => (
+            <Button
+              key={f.id}
+              type="button"
+              size="sm"
+              variant={activityFilters.includes(f.id) ? "default" : "outline"}
+              className="min-h-9"
+              onClick={() => toggleActivityFilter(f.id)}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
         <Input
           placeholder="Paieška"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
             setPage(1);
+            setSelected(new Set());
           }}
-          className="min-h-11 w-56"
+          className="min-h-11 w-full sm:w-56"
         />
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {ACTIVITY_FILTERS.map((f) => (
-          <Button
-            key={f.id}
-            type="button"
-            size="sm"
-            variant={activityFilters.includes(f.id) ? "default" : "outline"}
-            className="min-h-9"
-            onClick={() => toggleActivityFilter(f.id)}
-          >
-            {f.label}
-          </Button>
-        ))}
       </div>
 
       {filtered.length === 0 ? (
@@ -165,36 +185,17 @@ export function KlientaiView() {
         </div>
       ) : (
         <>
-          <div className="space-y-3">
-            {paged.map((r) => {
-              const card = riderCards.find((c) => c.riderId === r.id);
-              return (
-                <Card key={r.id}>
-                  <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-3">
-                    <Link href={`/admin/klientai/${r.id}`} className="flex min-w-0 flex-1 basis-56 items-center gap-3">
-                      <RiderAvatar name={r.name} surname={r.surname} avatarPath={r.avatarPath} />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold">
-                          {r.name} {r.surname}
-                          {r.selfRegistered ? <Badge variant="outline" className="ml-1.5 align-middle">Internetu</Badge> : null}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">{r.phone || r.email || "Nėra kontaktų"}</p>
-                        <PlanBadge planId={r.planId} />
-                      </div>
-                    </Link>
-                    {card ? (
-                      <span className="truncate font-mono text-xs text-muted-foreground">{card.cardNumber}</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Nėra apyrankės</span>
-                    )}
-                    <Button variant="outline" size="sm" className="min-h-9" onClick={() => setRebinding(r)}>
-                      {card ? "Pakeisti apyrankę" : "Priskirti apyrankę"}
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          {selected.size > 0 ? <KlientaiBulkBar ids={[...selected]} onClear={() => setSelected(new Set())} /> : null}
+          <KlientaiTable
+            riders={paged}
+            riderCards={riderCards}
+            accountIds={accountIds}
+            lastActivity={lastActivity}
+            onRebind={setRebinding}
+            selected={selected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+          />
 
           {pageCount > 1 ? (
             <div className="flex items-center justify-between gap-3 pt-2">
@@ -204,7 +205,7 @@ export function KlientaiView() {
                 className="min-h-11 min-w-11"
                 aria-label="Ankstesnis puslapis"
                 disabled={currentPage <= 1}
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => changePage(currentPage - 1)}
               >
                 <CaretLeftIcon size={18} />
               </Button>
@@ -217,7 +218,7 @@ export function KlientaiView() {
                 className="min-h-11 min-w-11"
                 aria-label="Kitas puslapis"
                 disabled={currentPage >= pageCount}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => changePage(currentPage + 1)}
               >
                 <CaretRightIcon size={18} />
               </Button>

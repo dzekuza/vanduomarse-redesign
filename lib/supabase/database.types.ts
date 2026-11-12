@@ -2120,6 +2120,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      my_coupons: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance: number
+          buyer_name: string
+          code: string | null
+          expires_at: string | null
+          face_value: number
+          message: string
+          paid_at: string | null
+          product_name: string
+          recipient_name: string
+          reference: string
+          role: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          session_id: string | null
+          status: Database["public"]["Enums"]["coupon_status"]
+        }[]
+      }
+      rider_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: { rider_id: string }[]
+      }
       auth_user_has_password: {
         Args: { p_user: string }
         Returns: boolean
