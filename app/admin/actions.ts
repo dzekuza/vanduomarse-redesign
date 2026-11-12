@@ -23,6 +23,7 @@ import type { SaunaMaster } from "@/lib/sauna-masters";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { refundRequest } from "@/lib/refund";
 import { dbError, done, fail, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
+import { loginCodeSchema } from "@/lib/customer-schema";
 import { createClient } from "@/lib/supabase/server";
 
 export type { ActionResult };
@@ -43,6 +44,36 @@ export async function signIn(input: z.infer<typeof signInSchema>): Promise<Actio
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return fail("Neteisingas el. paštas arba slaptažodis.", "invalid_credentials");
+  redirect("/admin");
+}
+
+const staffEmail = z.email().max(120).transform((v) => v.toLowerCase());
+
+/**
+ * Step 1 of the e-mail code sign-in. Never creates an account (`shouldCreateUser: false`) and always answers the same,
+ * so the form does not reveal which addresses belong to staff. Only a staff address ever receives a working code.
+ */
+export async function sendStaffCode(email: string): Promise<ActionResult> {
+  const parsed = staffEmail.safeParse(email);
+  if (!parsed.success) return fail("Įveskite el. paštą.", "invalid");
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({ email: parsed.data, options: { shouldCreateUser: false } });
+  if (error && /rate|too many|seconds/i.test(error.message)) return fail("Kodas jau išsiųstas. Palaukite minutę ir bandykite dar kartą.", "rate_limit");
+  return { data: null };
+}
+
+/** Step 2: checks the code, then signs out again unless the address is an active staff member. */
+export async function confirmStaffCode(email: string, code: string): Promise<ActionResult> {
+  const parsed = z.object({ email: staffEmail, code: loginCodeSchema }).safeParse({ email, code });
+  if (!parsed.success) return fail("Įveskite kodą iš laiško.", "invalid");
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({ email: parsed.data.email, token: parsed.data.code, type: "email" });
+  if (error || !data.user) return fail("Neteisingas arba pasibaigęs kodas.", "invalid_code");
+  const { data: staff } = await supabase.from("staff").select("active").eq("user_id", data.user.id).maybeSingle();
+  if (!staff?.active) {
+    await supabase.auth.signOut();
+    return fail("Šis el. paštas neturi prieigos prie valdymo.", "forbidden");
+  }
   redirect("/admin");
 }
 
