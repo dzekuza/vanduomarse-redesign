@@ -28,7 +28,7 @@ export default function ContactPage() {
             />
             <ContactDetails />
           </div>
-          <section aria-label="Žemėlapis" className="min-w-0 lg:sticky lg:top-32 lg:col-span-4 lg:self-start">
+          <section aria-label="Žemėlapis" className="min-w-0 lg:col-span-4">
             <ParkMap />
           </section>
         </div>
