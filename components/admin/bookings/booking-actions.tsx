@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 /** Which status changes make sense from each status. */
 export const NEXT_STATUSES: Record<BookingStatus, BookingStatus[]> = {
   laukia: ["patvirtinta", "atsaukta"],
-  patvirtinta: ["ivykdyta", "atsaukta"],
+  patvirtinta: ["atsaukta"],
   ivykdyta: [],
   atsaukta: ["laukia"],
 };

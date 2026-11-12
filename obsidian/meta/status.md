@@ -10,7 +10,7 @@ updated: 2026-11-12
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-13 (PR #48 open: cancelled Stripe payments free their slots at once, ADR-0077; coupon work and abuse guards are merged and live)
+**Last updated:** 2026-11-13 (payment-release hardening on branch `fix/payment-release-hardening`, uncommitted; PR #48 open: cancelled Stripe payments free their slots at once, ADR-0077; coupon work and abuse guards are merged and live)
 
 **Current focus / next:** merge PR #48 after a real test (reserve a sauna slot, click back on Stripe, confirm the slot is free again); then a Stripe test-mode coupon purchase (card 4242) and both inboxes; confirm `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `COUPON_FROM_EMAIL`, `PHONE_VERIFICATION_SECRET` in Vercel. Migrations are applied by the assistant without asking (memory note `apply-migrations-without-asking`). Nothing from today is browser-checked.
 
