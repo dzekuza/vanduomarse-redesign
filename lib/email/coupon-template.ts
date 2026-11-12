@@ -40,7 +40,7 @@ export function buildCouponEmail(c: CouponEmail, audience: CouponEmailAudience):
   const logo = `${SITE_URL}/brand/logo-email.png`;
 
   const html = `<!doctype html>
-<html lang="lt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(subject)}</title></head>
+<html lang="lt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><style>:root{color-scheme:light only;supported-color-schemes:light only;}</style><title>${escapeHtml(subject)}</title></head>
 <body style="margin:0;padding:0;background:${BACKGROUND};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BACKGROUND};"><tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:${PAPER};border:1px solid ${INK};">
