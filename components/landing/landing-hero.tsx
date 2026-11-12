@@ -47,7 +47,7 @@ export function LandingHero() {
         </Link>
       </div>
 
-      <div className="absolute top-90 left-7 z-5 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:duration-700 motion-safe:delay-500 motion-safe:ease-out-strong motion-safe:fill-mode-both md:top-45 md:right-gutter md:left-auto lg:top-hero-kicker lg:mt-7.5">
+      <div className="absolute top-104 right-gutter z-5 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:duration-700 motion-safe:delay-500 motion-safe:ease-out-strong motion-safe:fill-mode-both md:top-45 lg:top-hero-kicker lg:mt-7.5">
         <Link
           href="/rezervacija"
           aria-label="Rezervuok laiką Marse"
