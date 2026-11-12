@@ -26,8 +26,8 @@ export const SALE_STATE_LABEL: Record<SaleState, string> = {
   atsaukta: "Atšaukta",
 };
 
-/** What a click on a sale row opens: a details drawer on the overview, or the page that manages it. */
-export type SaleTarget = { kind: "booking" | "rental" | "coupon"; id: string } | { kind: "link"; href: string };
+/** What a click on a sale row opens: a details drawer on the overview (an event's tickets for ticket sales), or the page that manages it. */
+export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event"; id: string } | { kind: "link"; href: string };
 
 export interface Sale {
   id: string;
@@ -106,7 +106,7 @@ export function buildSales(data: SalesSource): Sale[] {
       total: t.total,
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
-      target: { kind: "link", href: "/admin/keturraciai" },
+      target: { kind: "event", id: t.eventId },
     });
   }
 
@@ -124,7 +124,7 @@ export function buildSales(data: SalesSource): Sale[] {
       total: t.total,
       state: bookingState(t.status),
       statusLabel: BOOKING_STATUS[t.status],
-      target: { kind: "link", href: eventCategory.get(t.eventId) === "pirtis" ? "/admin/pirtis" : "/admin/renginiai" },
+      target: { kind: "event", id: t.eventId },
     });
   }
 
