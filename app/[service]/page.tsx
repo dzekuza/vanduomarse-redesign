@@ -8,12 +8,13 @@ import { activityPhotos } from "@/components/reservation/activity-photos";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
 import { QuadSchedule } from "@/components/services/quad-schedule";
 import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
-import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
+import { isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
 import { ServicePage } from "@/components/services/service-page";
 import { StayServiceSchedule } from "@/components/services/stay-service-schedule";
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getCustomer } from "@/lib/customer";
+import { getServicePageContent } from "@/lib/data/page-content";
 import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getParkEvents, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { SERVICE_OG_IMAGES, metaDescription, pageMetadata } from "@/lib/seo";
@@ -28,14 +29,14 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
-  const { title, summary, description, metaDescription: custom, service: id }: ServicePageCopy = SERVICE_PAGES[service];
+  const { copy: { title, summary, description, metaDescription: custom, service: id } } = await getServicePageContent(service);
   return pageMetadata({ title, description: custom ?? metaDescription([summary, description]), path: `/${service}`, image: SERVICE_OG_IMAGES[id] ?? { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
 }
 
 export default async function ActivityPage({ params, searchParams }: Props) {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
-  const copy: ServicePageCopy = SERVICE_PAGES[service];
+  const { copy }: { copy: ServicePageCopy } = await getServicePageContent(service);
   const schema = (
     <>
       <JsonLd data={serviceSchema({ name: copy.title, description: copy.summary, path: `/${service}` })} />

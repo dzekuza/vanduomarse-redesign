@@ -27,6 +27,12 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** the admin keeps `makeCustomerLookup` (same order) as a fallback. Customers that are already duplicates are not merged (the owner's e-mail still matches several; the registered one wins the link). Phone and e-mail are not verified at purchase, so a typo or a shared number links an order to the wrong customer; and a public registration with someone else's phone/e-mail can fill that customer's blank fields and, if they have no photo yet, attach its photo (accepted: fill-only, first writer wins).
 
 ---
+## ADR-0083 — Owners edit public service pages through DB overrides on top of the code defaults
+
+- **Context:** the service pages (Pirtis, Vandenlentės, Keturračiai, Nakvynė, Restoranas, Šventės and the celebration pages) keep their texts, info boxes and FAQ in `components/services/service-content.ts` and their photos in `public/landing`; changing a word needed a deploy.
+- **Decision:** table `page_content` (`slug` pk, `content jsonb`, public read, owner-only write) holds only the fields an owner changed; `mergeServiceCopy` puts them over the code default, `facts`/`questions`/`photos` replace the whole list. Photos go to the public `page-photos` bucket (owner-only write). Saving stores the diff against the default (`overrideFromEdit`), so untouched fields keep following code changes, and deletes storage files that left the gallery. An invalid row or a failed read falls back to the defaults. Owner-only at `/admin/puslapiai` (no new permission). Prices, schedules, sauna/quad/stay boxes stay data-driven and are not editable there.
+- **Consequences:** the home page, `/renginiai`, `/kontaktai` and the embeds are still code-only (next step). An override of `photos` replaces the page's default gallery entirely (for Pirtis that includes the sauna photos from `/admin/pirtis`). Photos uploaded but not saved stay in the bucket until the page is saved again.
+
 ## ADR-0082 — The admin refreshes itself from Supabase Realtime change notifications
 
 - **Date:** 2026-11-13. **Status:** code done; migration `20261113220000_realtime_admin_tables.sql` APPLIED to the live project 2026-11-13 and verified (13 tables in `supabase_realtime`).

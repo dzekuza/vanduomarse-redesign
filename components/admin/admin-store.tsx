@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import * as actions from "@/app/admin/actions";
 import * as discountActions from "@/app/admin/discount-actions";
 import * as notificationActions from "@/app/admin/notification-actions";
+import * as pageContentActions from "@/app/admin/page-content-actions";
 import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import { formatEuro } from "@/lib/coupons";
@@ -13,6 +14,7 @@ import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
 import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
+import type { PageContentOverride } from "@/lib/page-content";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
 import type { NotificationRecipientInput } from "@/lib/notification-recipient-schema";
 import type { StayType } from "@/lib/cabin";
@@ -58,6 +60,7 @@ type Action =
   | { type: "discountCode/active"; id: string; active: boolean }
   | { type: "discountCode/delete"; id: string }
   | { type: "siteSettings/comingSoon"; enabled: boolean }
+  | { type: "pageContent/set"; slug: string; content: PageContentOverride }
   | { type: "notificationRecipient/active"; id: string; active: boolean }
   | { type: "notificationRecipient/delete"; id: string }
   | { type: "rental/status"; id: string; status: BookingStatus }
@@ -198,6 +201,10 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, discountCodes: state.discountCodes.filter((d) => d.id !== action.id) };
     case "siteSettings/comingSoon":
       return state.siteSettings ? { ...state, siteSettings: { ...state.siteSettings, comingSoon: action.enabled } } : state;
+    case "pageContent/set": {
+      const rest = Object.fromEntries(Object.entries(state.pageContent).filter(([slug]) => slug !== action.slug));
+      return { ...state, pageContent: Object.keys(action.content).length ? { ...rest, [action.slug]: action.content } : rest };
+    }
     case "notificationRecipient/active":
       return { ...state, notificationRecipients: state.notificationRecipients.map((n) => (n.id === action.id ? { ...n, active: action.active } : n)) };
     case "notificationRecipient/delete":
@@ -444,6 +451,13 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "siteSettings/comingSoon", enabled });
         return result;
       },
+      /** Not optimistic: the change goes live for every visitor. */
+      savePageContent: async (slug: string, content: PageContentOverride) => {
+        const result = await report(pageContentActions.savePageContent(slug, content));
+        if ("data" in result) dispatch({ type: "pageContent/set", slug, content: result.data });
+        return result;
+      },
+      uploadPagePhoto: (slug: string, form: FormData) => report(pageContentActions.uploadPagePhoto(slug, form)),
       /** Not optimistic: the id comes from the database and a repeated number is refused. */
       saveNotificationRecipient: (input: NotificationRecipientInput) => report(notificationActions.saveNotificationRecipient(input)),
       setNotificationRecipientActive: async (id: string, active: boolean) => {

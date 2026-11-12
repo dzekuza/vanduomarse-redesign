@@ -2009,6 +2009,24 @@ export type Database = {
         }
         Relationships: []
       }
+      page_content: {
+        Row: {
+          content: Json
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           coming_soon: boolean

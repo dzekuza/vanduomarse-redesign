@@ -1,3 +1,15 @@
+## 2026-11-13 — Editable service pages (/admin/puslapiai)
+
+- **Changed:** `page_content` table + `page-photos` bucket (migration applied), `lib/page-content.ts` (schema, merge, diff), `lib/data/page-content.ts` (public read), `app/admin/page-content-actions.ts`, store + repository wiring, `components/admin/page-content/*`, nav item, `next.config.ts` image pattern; `ServicePage` is now async and `app/[service]/page.tsx` reads merged copy.
+- **Status:** tsc/eslint pass; public merge checked with a temporary /restoranas row (removed). Editor UI not browser-checked.
+- **Next:** test as owner; home page, /renginiai, /kontaktai are still code-only.
+
+## 2026-11-13 — Klientai tab on Apyrankės
+
+- **Changed:** new `components/admin/apyrankes/customers-tab.tsx`, wired as the third tab of `ApyrankesView`: customers with a plan or plan purchases, filters Visi / Aktyvūs planai / Abonementai, search.
+- **Also:** rows open the customer profile on click and have a Priskirti/Pakeisti apyrankę button (scan flow).
+- **Status:** tsc/eslint pass; not browser-checked. "Active" means the rider currently has a `planId` (plans have no expiry in the data). Next: check at 375 / 768 / 1024 px signed in; decide if expiry dates are wanted for subscriptions.
+
 ## 2026-11-12 — Registration draft kept between visits
 
 - **Found:** `/registracija` held the form only in React state, so leaving the page emptied it.
