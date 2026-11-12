@@ -94,7 +94,7 @@ function GrantAccess({ rider, email, roles }: { rider: Rider; email: string; rol
   const { createStaff } = useAdmin();
   const [roleId, setRoleId] = useState(roles.find((r) => !r.isOwner)?.id ?? roles[0]?.id ?? "");
   const [saving, setSaving] = useState(false);
-  const [created, setCreated] = useState<string | null>(null);
+  const [created, setCreated] = useState<{ password: string | null } | null>(null);
   const role = roles.find((r) => r.id === roleId);
 
   if (created) {
@@ -105,7 +105,11 @@ function GrantAccess({ rider, email, roles }: { rider: Rider; email: string; rol
           <CardDescription>Perduokite prisijungimo duomenis klientui. Slaptažodis rodomas tik dabar.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <CredentialsPanel email={email} password={created} />
+          {created.password ? (
+            <CredentialsPanel email={email} password={created.password} />
+          ) : (
+            <p className="text-sm text-muted-foreground">Klientas jau turėjo paskyrą su slaptažodžiu: prieiga suteikta, jis prisijungia savo esamais duomenimis.</p>
+          )}
           <Button className="min-h-11" onClick={() => setCreated(null)}>
             Baigta
           </Button>
@@ -118,7 +122,7 @@ function GrantAccess({ rider, email, roles }: { rider: Rider; email: string; rol
     setSaving(true);
     const result = await createStaff({ email, displayName: `${rider.name} ${rider.surname}`.trim(), roleId });
     setSaving(false);
-    if ("data" in result) setCreated(result.data.tempPassword);
+    if ("data" in result) setCreated({ password: result.data.tempPassword });
   }
 
   return (

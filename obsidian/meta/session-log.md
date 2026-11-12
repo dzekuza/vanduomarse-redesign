@@ -1,3 +1,15 @@
+## 2026-11-12 — Role for existing customer login
+
+- **Found:** `createStaff` always created a new auth user, so a customer with an account hit the duplicate error.
+- **Changed:** reuse the existing auth user (`findAuthUserId`), `tempPassword` is `string | null`, both UIs handle null.
+- **Status:** tsc/eslint pass; not tested live. Next: try it on the Rysard Gvo customer.
+
+## 2026-11-13 — Mobile dev-console warnings
+
+- **Found:** Metro log warnings: `expo-notifications` push unsupported in Expo Go (and on web), `useNativeDriver` unsupported on web, a one-off VirtualizedList "slow to update" line (dt 148 s, i.e. an idle app, 4.5k px list; not a real render problem, left alone). The earlier `expo-router@5.1.11` bundle lines are from the old SDK 53 run, not a current problem.
+- **Changed:** `push-notifications.ts` loads `expo-notifications` lazily and only on native, non-Expo-Go builds (registration returns a Lithuanian "dev/production build only" message otherwise); `SheetModal` uses `useNativeDriver: Platform.OS !== "web"`.
+- **Status:** `tsc` in `mobile` passes; not re-run in Expo Go or on web. Real push needs a development build.
+
 ## 2026-11-13 — Mobile keyboard avoidance
 
 - **Found:** screenshot from the simulator: input mid-screen, number pad Done bar visible, no soft keys (hardware keyboard connected), and no layout adjustment when the keyboard opens.

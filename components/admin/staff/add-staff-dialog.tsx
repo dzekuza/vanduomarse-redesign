@@ -22,7 +22,7 @@ type Values = z.infer<typeof schema>;
 /** Creates the login with a temporary password, then shows it once. */
 export function AddStaffDialog({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
   const { roles, createStaff } = useAdmin();
-  const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
+  const [created, setCreated] = useState<{ email: string; password: string | null } | null>(null);
   const { register, control, handleSubmit, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { displayName: "", email: "", roleId: roles.find((r) => !r.isOwner)?.id ?? "" },
@@ -44,7 +44,11 @@ export function AddStaffDialog({ onOpenChange }: { onOpenChange: (open: boolean)
           </DialogDescription>
         </DialogHeader>
         {created ? (
-          <CredentialsPanel email={created.email} password={created.password} />
+          created.password ? (
+            <CredentialsPanel email={created.email} password={created.password} />
+          ) : (
+            <p className="text-sm text-muted-foreground">Šis el. paštas jau turėjo paskyrą su slaptažodžiu. Prieiga suteikta, žmogus prisijungia savo esamais duomenimis.</p>
+          )
         ) : (
           <form id="add-staff-form" onSubmit={submit} className="space-y-4">
             <div className="space-y-1.5">

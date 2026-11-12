@@ -33,8 +33,8 @@ const userId = z.uuid();
 
 export interface NewLogin {
   userId: string;
-  /** Shown to the owner once: it is not stored anywhere readable. */
-  tempPassword: string;
+  /** Shown to the owner once: it is not stored anywhere readable. Null when an existing account was reused. */
+  tempPassword: string | null;
 }
 
 const newStaffInput = z.object({
@@ -42,6 +42,18 @@ const newStaffInput = z.object({
   displayName: z.string().trim().min(2).max(80),
   roleId: z.uuid(),
 });
+
+async function findAuthUser(admin: ReturnType<typeof createAdminClient>, email: string) {
+  const perPage = 200;
+  for (let page = 1; page <= 25; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) return null;
+    const hit = data.users.find((u) => u.email?.toLowerCase() === email);
+    if (hit) return hit;
+    if (data.users.length < perPage) return null;
+  }
+  return null;
+}
 
 export async function createStaff(input: z.input<typeof newStaffInput>): Promise<ActionResult<NewLogin>> {
   const ctx = await staffClient("owner");
@@ -59,7 +71,25 @@ export async function createStaff(input: z.input<typeof newStaffInput>): Promise
   const { data: created, error: authError } = await client.admin.auth.admin.createUser({ email: v.email, password, email_confirm: true });
   if (authError || !created.user) {
     const taken = /already|registered|exists/i.test(authError?.message ?? "");
-    return fail(taken ? "Šis el. paštas jau turi paskyrą. Naudokite kitą arba pašalinkite senąją Supabase skiltyje Authentication." : "Nepavyko sukurti paskyros.", taken ? "duplicate" : "auth");
+    if (!taken) return fail("Nepavyko sukurti paskyros.", "auth");
+
+    // A customer who registered on the site already has a login: give that login the staff role instead of failing.
+    const existing = await findAuthUser(client.admin, v.email);
+    if (!existing) return fail("Šis el. paštas jau turi paskyrą, bet jos rasti nepavyko. Patikrinkite Supabase skiltyje Authentication.", "duplicate");
+    // Only a mailbox-verified login may be promoted: an unconfirmed sign-up could belong to someone who never owned the address.
+    if (!existing.email_confirmed_at) return fail("Šio el. pašto paskyra nepatvirtinta, todėl jos pakelti negalima. Pašalinkite ją Supabase skiltyje Authentication ir bandykite dar kartą.", "duplicate");
+    const existingId = existing.id;
+    const { data: already } = await ctx.supabase.from("staff").select("user_id").eq("user_id", existingId).maybeSingle();
+    if (already) return fail("Šis žmogus jau yra darbuotojas.", "duplicate");
+    const { error: linkError } = await ctx.supabase.from("staff").insert({ user_id: existingId, display_name: v.displayName, role_id: v.roleId, email: v.email });
+    if (linkError) return dbError(linkError);
+
+    // Customers sign in with a code and may have no password, but the admin sign-in needs one: set a temporary one then.
+    const { data: hasPassword } = await client.admin.rpc("auth_user_has_password", { p_user: existingId });
+    if (hasPassword) return done({ userId: existingId, tempPassword: null });
+    const { error: pwError } = await client.admin.auth.admin.updateUserById(existingId, { password });
+    if (pwError) return fail("Prieiga suteikta, bet slaptažodžio nustatyti nepavyko. Naudokite „Atstatyti slaptažodį“ darbuotojų sąraše.", "auth");
+    return done({ userId: existingId, tempPassword: password });
   }
 
   const { error } = await ctx.supabase.from("staff").insert({ user_id: created.user.id, display_name: v.displayName, role_id: v.roleId, email: v.email });
