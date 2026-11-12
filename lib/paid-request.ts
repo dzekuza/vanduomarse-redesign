@@ -21,7 +21,7 @@ export const SERVICE_NOUN: Record<PaidRequest["service"], string> = {
   renginys: "Renginys",
 };
 
-/** The contact a customer writes to: the sauna's own when the reservation is only sauna, else the main one. */
+/** The contact a customer writes to: the sauna's (the events inbox, renginiai@) when the reservation is only sauna, else the main one. */
 export const contactFor = (requests: PaidRequest[]): Contact =>
   requests.length > 0 && requests.every((r) => r.service === "pirtis") ? SAUNA_CONTACT : MAIN_CONTACT;
 

@@ -18,7 +18,7 @@ interface BookingSheetProps {
 
 /** Side panel with the full booking, contact shortcuts and status actions. */
 export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
-  const change = useBookingStatus();
+  const { change, dialog } = useBookingStatus();
   const { saunas, stayTypes } = useAdmin();
   const saunaName = saunas.find((s) => s.id === booking?.saunaId)?.name;
   return (
@@ -72,6 +72,7 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
             </SheetFooter>
           </>
         ) : null}
+        {dialog}
       </SheetContent>
     </Sheet>
   );

@@ -7,6 +7,7 @@ import { seatsLabel, ticketsFor } from "@/lib/admin/calendar-entries";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import type { ManagedEvent } from "@/lib/admin/types";
 import { EVENT_CATEGORIES } from "@/lib/park-events";
+import { useCancelRequest } from "@/components/admin/use-cancel-request";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -14,6 +15,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 /** An event with the bookings (tickets) made for it. */
 export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEvent | null; onOpenChange: (open: boolean) => void; onEdit: (event: ManagedEvent) => void }) {
   const { tourTickets, eventTickets, setTourTicketStatus, quadRentals, setRentalStatus } = useAdmin();
+  const { cancel: cancelRental, dialog: rentalDialog } = useCancelRequest("rental");
+  const { cancel: cancelTicket, dialog: ticketDialog } = useCancelRequest("ticket");
   const tickets = event ? ticketsFor(event.id, tourTickets, eventTickets) : [];
   // Bookings of a quad tour departure are quad rentals joined to the event.
   const rentals = event ? quadRentals.filter((r) => r.tourEventId === event.id) : [];
@@ -71,7 +74,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         </a>
                       ) : null}
                     </div>
-                    <StatusActions status={r.status} onSet={(s) => setRentalStatus(r.id, s)} />
+                    <StatusActions status={r.status} onSet={(s) => setRentalStatus(r.id, s)} onCancel={() => cancelRental({ id: r.id, reference: r.reference, total: r.total, payment: r.payment })} />
                   </div>
                 ))}
                 {tickets.map((t) => (
@@ -100,13 +103,15 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         </a>
                       ) : null}
                     </div>
-                    <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} />
+                    <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} onCancel={() => cancelTicket({ id: t.id, reference: t.reference, total: t.total, payment: t.payment })} />
                   </div>
                 ))}
               </section>
             </div>
           </>
         ) : null}
+        {rentalDialog}
+        {ticketDialog}
       </SheetContent>
     </Sheet>
   );

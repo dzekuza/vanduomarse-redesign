@@ -1,3 +1,36 @@
+## 2026-11-13 — Sauna contact is renginiai@
+
+- **Changed:** `SAUNA_CONTACT.email` = `EVENTS_EMAIL` (`lib/contacts.ts`); used by `contactFor` (paid-reservation email/SMS for sauna-only reservations), the sauna service page and `CONTACTS`.
+- **Status:** tsc/eslint clean; not tested with a real send.
+- **Open:** which other bookings ("home"?) should show renginiai@ is unclear; phone number unchanged.
+
+## 2026-11-13 — Live updates in the admin
+
+- **Why:** new bookings and payment status changes needed a manual reload.
+- **Found:** `supabase_realtime` had no tables; staff already have SELECT policies on the activity tables; no browser Supabase client existed.
+- **Changed:** migration `20261113220000_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
+- **Status:** tsc/eslint clean; not tested with a live event.
+- **Next:** open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
+## 2026-11-13 — OTP blocks per channel
+
+- **Found:** the code field always drew 8 blocks, but an SMS code has 6 (e-mail has 8).
+- **Changed:** `LOGIN_CODE_LENGTH = { phone: 6, email: 8 }`; `LoginCodeStep` uses the channel's length and confirms only when full.
+- **Status:** tsc/eslint clean; not browser-checked.
+
+## 2026-11-13 — Refund hardening (review + Stripe docs)
+
+- **Source:** automated security review plus Stripe docs read directly (the installed Stripe CLI is 1.40.9; `stripe docs` needs 1.50.9+ and `brew upgrade stripe` is blocked by `brew trust` for the stripe tap).
+- **Changed:** `lib/refund.ts` rewritten (definite vs unknown errors, reconcile by `metadata.reference`, 24 h window, failed/canceled refunds), `cancelRequest` passes kind+id, types, migration `20261113210000_request_refunds_by_kind.sql` (applied and verified).
+- **Status:** tsc/eslint clean; nothing tested with a real Stripe payment.
+- **Next:** a test-mode refund; try cancelling twice ("jau grąžinti").
+
+## 2026-11-13 — Refund when admin cancels a paid request
+
+- **Why:** cancelling in the admin never refunded the customer.
+- **Changed:** migration `20261113200000_request_refunds.sql` (applied and verified), `lib/refund.ts`, `cancelRequest` action + store method, `CancelRefundDialog`, `useCancelRequest`, `StatusActions.onCancel`, booking/rental/ticket call sites, `PaymentNote` wording, types.
+- **Status:** tsc/eslint clean; nothing tested with a real payment.
+- **Next:** cancel a Stripe-test-paid booking with a refund and check Stripe, `request_refunds`, `payments.refunded` (webhook) and a second attempt ("jau grąžinti").
+
 ## 2026-11-13 — PR #53 review follow-ups
 
 - **Changed:** unique migration versions (file rename only), `stopPropagation` in `WakeCheckoutDialog`, plan checks before the rider is saved in `registerRider`, error logging for `online_plans` and photo signing.

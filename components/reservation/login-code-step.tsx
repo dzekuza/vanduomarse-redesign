@@ -22,7 +22,8 @@ interface LoginCodeStepProps {
 /** The code view shares one accessible field for typing, pasting and SMS autofill. */
 export function LoginCodeStep({ target, code, busy, error, wait, onCode, onConfirm, onResend, onChangeContact }: LoginCodeStepProps) {
   const id = useId();
-  const disabled = busy || code.length < 4;
+  const length = LOGIN_CODE_LENGTH[target.channel];
+  const disabled = busy || code.length < length;
 
   return (
     <section aria-labelledby={`${id}-title`} className="space-y-6">
@@ -37,7 +38,7 @@ export function LoginCodeStep({ target, code, busy, error, wait, onCode, onConfi
         <Label htmlFor={`${id}-code`}>Patvirtinimo kodas</Label>
         <OtpInput
           id={`${id}-code`}
-          length={LOGIN_CODE_LENGTH}
+          length={length}
           autoFocus
           invalid={!!error}
           describedBy={`${id}-hint${error ? ` ${id}-error` : ""}`}
