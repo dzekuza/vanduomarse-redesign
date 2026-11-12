@@ -1,18 +1,15 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { CouponOrderResult } from "@/app/actions/coupons";
 import { Panel } from "@/components/panel";
 import type { CouponProduct } from "@/lib/coupons";
 import { CouponSteps } from "./coupon-steps";
-import { OrderConfirmation } from "./order-confirmation";
 import { OrderForm } from "./order-form";
 import { ProductPicker } from "./product-picker";
 
-/** Coupon page body: header, steps and the coupon picker on the left, the order form (sticky) or its confirmation on the right. */
+/** Coupon page body: header, steps and the coupon picker on the left, the order form (sticky) on the right. */
 export function CouponShop({ products, header, initialProductId }: { products: CouponProduct[]; header?: ReactNode; initialProductId?: string }) {
   const [selectedId, setSelectedId] = useState(initialProductId || products[0]?.id || "");
-  const [ordered, setOrdered] = useState<{ order: CouponOrderResult; email: string } | null>(null);
   const selected = products.find((p) => p.id === selectedId);
 
   if (!products.length) {
@@ -32,10 +29,8 @@ export function CouponShop({ products, header, initialProductId }: { products: C
         <ProductPicker products={products} value={selectedId} onChange={setSelectedId} />
       </div>
       <div id="uzsakymas" className="min-w-0 scroll-mt-32 lg:sticky lg:top-32 lg:self-start">
-        {ordered ? (
-          <OrderConfirmation order={ordered.order} email={ordered.email} onReset={() => setOrdered(null)} />
-        ) : selected ? (
-          <OrderForm product={selected} onOrdered={(order, email) => setOrdered({ order, email })} />
+        {selected ? (
+          <OrderForm product={selected} />
         ) : (
           <Panel className="text-sm text-copy">Šis pasiūlymas nebeparduodamas. Pasirink kitą kuponą.</Panel>
         )}

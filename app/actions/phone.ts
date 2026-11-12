@@ -1,6 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
+import { clientIp } from "@/lib/client-ip";
 import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
 import { hashCode, hashIp, MissingVerificationSecretError, newCode, signToken } from "@/lib/phone-verification";
@@ -33,16 +33,6 @@ const BY_RESULT: Record<string, string> = {
   expired: "Kodas nebegalioja. Išsiųskite naują.",
   locked: "Per daug neteisingų bandymų. Išsiųskite naują kodą.",
 };
-
-/**
- * Vercel's edge overwrites x-real-ip and x-forwarded-for with the connecting
- * client, so neither can be spoofed there. Behind another proxy, revisit this:
- * a client-set header would let one sender dodge the per-IP cap.
- */
-async function clientIp(): Promise<string> {
-  const h = await headers();
-  return h.get("x-real-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-}
 
 function setupError(e: unknown) {
   if (e instanceof MissingVerificationSecretError || e instanceof MissingServiceKeyError) {

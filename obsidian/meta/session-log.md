@@ -1,3 +1,10 @@
+## 2026-11-13 — Coupon abuse guards, no staff step
+
+- **Why:** security review of PR #45 (email abuse without verification, order-cap exhaustion) and the owner: coupons must not need staff approval.
+- **Changed:** see ADR-0076: Stripe-only ordering, no pre-payment emails, per-IP cap, `abandon_coupon_order`, `OrderConfirmation` removed, shared `lib/client-ip.ts`; migration `20261113130000` applied and verified.
+- **Status:** tsc/eslint clean; no browser check, no Stripe test payment.
+- **Next:** Stripe test-mode coupon purchase (card 4242); confirm Stripe/Resend env in Vercel.
+
 ## 2026-11-13 — Coupon Stripe migration applied, wider date tiles
 
 - **Why:** user asked to apply the coupon Stripe migration (and to let the assistant apply migrations without asking), and to widen the sauna date-strip tile.
