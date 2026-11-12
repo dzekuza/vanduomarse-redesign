@@ -1,3 +1,6 @@
+- 2026-11-13 Footer contacts: five entries (Vanduo Marse ir renginiai, Marso Akademija, Pirtis Marse, Partneriai, Skoniai Marse) with the owner's emails and phones, from `FOOTER_CONTACTS`. `/kontaktai`, service pages and `MAIN_CONTACT` unchanged.
+- 2026-11-13 Home hero phone is now `MAIN_CONTACT.phone` (+370 630 80 444); the reservation plan panel and mobile dock still use `RESERVATION_PHONE`.
+- 2026-11-13 `/rezervacija` stay cards: the stepper label is "Namelių kiekis" (cabins) / "Kemperių kiekis" (camper pitches).
 - 2026-11-13 Payments below Stripe's 0,50 € minimum (e.g. 45 € with a 99 % code = 0,45 €) used to fail with the generic "Nepavyko pradėti mokėjimo". `MIN_CHARGE_EUR` (`lib/payments.ts`): the checkout dialog shows the reason and disables the pay button, and `checkoutUrl` throws `BelowMinimumError` (held slots are freed) as a second guard. Not browser-checked.
 - 2026-11-13 The "Nuolaidos kodas" field is visible again in the "Užbaik rezervaciją" dialog (removed the `SHOW_DISCOUNT_CODE_FIELD = false` flag). Not browser-checked.
 - 2026-11-13 Admin: removed the "Pažymėti įvykdyta" (mark done) button from confirmed requests (`StatusActions`, and `NEXT_STATUSES` in `booking-actions.tsx`); a confirmed request now only offers "Atšaukti". The `ivykdyta` status itself is unchanged for existing rows. `tsc` clean; not browser-checked.

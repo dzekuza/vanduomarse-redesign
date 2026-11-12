@@ -1,3 +1,9 @@
+## 2026-11-13 — Footer contacts, hero phone, stay quantity labels
+
+- **Changed:** `FOOTER_CONTACTS` rewritten and used by `SiteFooter`; hero phone from `MAIN_CONTACT`; stay stepper labels by kind.
+- **Status:** tsc/eslint clean; NOT browser-checked; pushed to `main`.
+- **Next:** decide whether `/kontaktai` and `RESERVATION_PHONE` should follow the new numbers.
+
 ## 2026-11-13 — Removed the "mark done" button
 
 - **Why:** owner: "Pažymėti įvykdyta" is not needed.

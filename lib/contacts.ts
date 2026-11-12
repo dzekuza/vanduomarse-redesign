@@ -21,11 +21,13 @@ export const CONTACTS: Contact[] = [
   ACADEMY_CONTACT,
 ];
 
+/** The footer's contact list, in display order. */
 export const FOOTER_CONTACTS: Contact[] = [
-  MAIN_CONTACT,
-  { name: "Renginiai Marse", email: EVENTS_EMAIL, phone: MAIN_CONTACT.phone },
-  RESTAURANT_CONTACT,
-  ACADEMY_CONTACT,
+  { name: "Vanduo Marse ir renginiai", email: EVENTS_EMAIL, phone: "+370 640 57 504" },
+  { name: "Marso Akademija", email: EVENTS_EMAIL, phone: "+370 640 57 504" },
+  { name: "Pirtis Marse", email: EVENTS_EMAIL, phone: "+370 640 57 504" },
+  { name: "Partneriai", email: "info@vanduomarse.lt", phone: "+370 672 21 235" },
+  { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" },
 ];
 
 /**

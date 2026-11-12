@@ -2,7 +2,7 @@ import { ArrowDownIcon, ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr"
 import Image from "next/image";
 import Link from "next/link";
 import { StarMark } from "@/components/star-mark";
-import { RESERVATION_PHONE, telHref } from "@/lib/contacts";
+import { MAIN_CONTACT, telHref } from "@/lib/contacts";
 import { PARK_ADDRESS } from "./content";
 import { HeroOrbits } from "./hero-orbits";
 
@@ -66,8 +66,8 @@ export function LandingHero() {
 
       <div className={`absolute inset-x-gutter bottom-6 z-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 pt-3 text-micro md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:pt-1 ${ENTER} motion-safe:delay-700`}>
         <address className="col-start-1 row-start-1 not-italic md:whitespace-nowrap">{PARK_ADDRESS.compact}</address>
-        <a href={telHref(RESERVATION_PHONE)} className="col-start-1 row-start-2 inline-flex min-h-11 items-center justify-self-start whitespace-nowrap hover:underline md:col-start-2 md:row-start-1 md:justify-self-center">
-          {RESERVATION_PHONE}
+        <a href={telHref(MAIN_CONTACT.phone)} className="col-start-1 row-start-2 inline-flex min-h-11 items-center justify-self-start whitespace-nowrap hover:underline md:col-start-2 md:row-start-1 md:justify-self-center">
+          {MAIN_CONTACT.phone}
         </a>
         <Link href="#kryptys" className="col-start-2 row-span-2 row-start-1 inline-flex min-h-11 items-center justify-self-end gap-1 whitespace-nowrap hover:underline md:col-start-3 md:row-span-1">
           Leiskis žemyn
