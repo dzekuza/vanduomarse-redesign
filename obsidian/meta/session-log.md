@@ -1,3 +1,10 @@
+## 2026-11-13 — Refund hardening (review + Stripe docs)
+
+- **Source:** automated security review plus Stripe docs read directly (the installed Stripe CLI is 1.40.9; `stripe docs` needs 1.50.9+ and `brew upgrade stripe` is blocked by `brew trust` for the stripe tap).
+- **Changed:** `lib/refund.ts` rewritten (definite vs unknown errors, reconcile by `metadata.reference`, 24 h window, failed/canceled refunds), `cancelRequest` passes kind+id, types, migration `20261113210000_request_refunds_by_kind.sql` (NOT applied).
+- **Status:** tsc/eslint clean; nothing tested with a real Stripe payment.
+- **Next:** apply the migration, then a test-mode refund; try cancelling twice ("jau grąžinti").
+
 ## 2026-11-13 — Refund when admin cancels a paid request
 
 - **Why:** cancelling in the admin never refunded the customer.

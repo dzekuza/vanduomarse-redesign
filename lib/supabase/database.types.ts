@@ -1194,9 +1194,11 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          kind: string
           payment_id: string
           reference: string
           refunded_by: string | null
+          request_id: string
           status: string
           stripe_refund_id: string | null
         }
@@ -1204,9 +1206,11 @@ export type Database = {
           amount: number
           created_at?: string
           id?: string
+          kind: string
           payment_id: string
           reference: string
           refunded_by?: string | null
+          request_id: string
           status?: string
           stripe_refund_id?: string | null
         }
@@ -1214,9 +1218,11 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          kind?: string
           payment_id?: string
           reference?: string
           refunded_by?: string | null
+          request_id?: string
           status?: string
           stripe_refund_id?: string | null
         }
@@ -2162,8 +2168,8 @@ export type Database = {
       }
       refund_plan_order_payment: { Args: { p_payment_intent: string; p_refunded: number }; Returns: string }
       begin_request_refund: {
-        Args: { p_reference: string; p_staff: string }
-        Returns: { amount: number; payment_intent: string; refund_id: string }[]
+        Args: { p_id: string; p_kind: string; p_staff: string }
+        Returns: { amount: number; created_at: string; payment_intent: string; reference: string; refund_id: string; resumed: boolean }[]
       }
       fail_request_refund: { Args: { p_id: string }; Returns: undefined }
       finish_request_refund: { Args: { p_id: string; p_stripe_refund_id: string }; Returns: undefined }

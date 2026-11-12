@@ -1067,15 +1067,7 @@ export async function cancelRequest(kind: "booking" | "rental" | "ticket", id: s
 
   const ctx = await staffClient(kind === "booking" ? "rezervacijos" : kind === "rental" ? "keturraciai" : ["keturraciai", "renginiai"]);
   if (!ctx.ok) return ctx.error;
-  const row =
-    kind === "booking"
-      ? await ctx.supabase.from("bookings").select("reference").eq("id", id).maybeSingle()
-      : kind === "rental"
-        ? await ctx.supabase.from("quad_rentals").select("reference").eq("id", id).maybeSingle()
-        : await ctx.supabase.from("event_tickets").select("reference").eq("id", id).maybeSingle();
-  if (!row.data) return done({ refunded: 0, refundError: "Užklausos nerasta: grąžinkite pinigus Stripe paskyroje." });
-
-  const outcome = await refundRequest(row.data.reference, ctx.userId);
+  const outcome = await refundRequest(kind, id, ctx.userId);
   return done(outcome.ok ? { refunded: outcome.amount } : { refunded: 0, refundError: outcome.message });
 }
 
