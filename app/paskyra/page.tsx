@@ -5,7 +5,7 @@ import { ProfileCard } from "@/components/account/profile-card";
 import { AccountTabs } from "@/components/account/account-tabs";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
-import { loadMyInquiries, loadMyRequests, loadMyRiders } from "@/lib/account-data";
+import { loadMyCoupons, loadMyInquiries, loadMyRequests, loadMyRiders } from "@/lib/account-data";
 import { getCustomer } from "@/lib/customer";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 /** "Mano rezervacijos": sign in with a code, then the customer's reservations first and their account details beside them. */
 export default async function AccountPage() {
   const customer = await getCustomer();
-  const [requests, inquiries, riders] = customer ? await Promise.all([loadMyRequests(), loadMyInquiries(), loadMyRiders()]) : [[], [], []];
+  const [requests, inquiries, riders, coupons] = customer ? await Promise.all([loadMyRequests(), loadMyInquiries(), loadMyRiders(), loadMyCoupons()]) : [[], [], [], []];
 
   if (!customer) {
     return (
@@ -40,7 +40,7 @@ export default async function AccountPage() {
         <BookingHeader crumb="Mano rezervacijos" title={["Mano", "rezervacijos"]} />
         <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
           <div className="lg:col-span-2">
-            <AccountTabs requests={requests} inquiries={inquiries} riders={riders} />
+            <AccountTabs requests={requests} inquiries={inquiries} riders={riders} coupons={coupons} />
           </div>
           <div className="lg:col-span-1">
             <ProfileCard customer={customer} />

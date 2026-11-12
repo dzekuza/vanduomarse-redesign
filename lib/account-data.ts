@@ -1,5 +1,5 @@
 import "server-only";
-import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyInquiry, type MyRequest, type MyRider } from "@/lib/account";
+import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyCoupon, type MyInquiry, type MyRequest, type MyRider } from "@/lib/account";
 import { formatHour } from "@/lib/sauna";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -162,4 +162,26 @@ async function signedPhotoUrl(path: string): Promise<string | null> {
     console.error("Account data: could not sign the rider photo", e);
     return null;
   }
+}
+
+/** The customer's paid gift coupons (bought or received), through `my_coupons()`. A failure shows an empty tab instead of breaking the page. */
+export async function loadMyCoupons(): Promise<MyCoupon[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("my_coupons");
+  if (error || !data) return [];
+  return data.map((c): MyCoupon => ({
+    reference: c.reference,
+    productName: c.product_name,
+    faceValue: c.face_value,
+    balance: c.balance,
+    status: c.status === "panaudotas" ? "panaudotas" : "aktyvus",
+    code: c.code,
+    expiresAt: c.expires_at,
+    service: c.service,
+    role: c.role === "buyer" ? "buyer" : "recipient",
+    buyerName: c.buyer_name,
+    recipientName: c.recipient_name,
+    message: c.message,
+    sessionId: c.session_id,
+  }));
 }
