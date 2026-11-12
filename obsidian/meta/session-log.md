@@ -1,3 +1,10 @@
+## 2026-11-13 — Auto-confirm paid reservations and a detailed confirmation SMS
+
+- **Why:** owner: after payment the customer got "Uzklausas patvirtinsime netrukus" and staff had to confirm; they should get the booking details and need no staff step.
+- **Changed:** ADR-0079: migration `20261113150000` (`complete_payment` confirms, `paid_request_details`), `lib/paid-request.ts`, `lib/payment-notice.ts`, SMS/email/webhook wiring, return page copy. Branch `feat/auto-confirm-paid-sms` (worktree), uncommitted.
+- **Status:** tsc/eslint clean; SMS text previewed (207 chars, 2 segments); migration NOT applied; no real payment run.
+- **Next:** commit + PR; merge, then apply the migration (the new code tolerates the old DB: it falls back to the short message); test one real paid sauna booking and read the SMS.
+
 ## 2026-11-13 — Footer contacts, hero phone, stay quantity labels
 
 - **Changed:** `FOOTER_CONTACTS` rewritten and used by `SiteFooter`; hero phone from `MAIN_CONTACT`; stay stepper labels by kind.

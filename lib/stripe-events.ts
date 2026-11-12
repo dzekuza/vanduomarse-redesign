@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { z } from "zod";
 import { couponIdOf, onCouponPaid, onCouponRefund, onCouponSessionClosed } from "@/lib/coupon-payment";
 import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
+import { loadPaidRequests } from "@/lib/payment-notice";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -50,7 +51,9 @@ async function onPaid(session: Stripe.Checkout.Session) {
   // A failed lookup only drops the customer email: notifications must never fail the webhook.
   const { data: email, error: emailError } = await admin.rpc("payment_notify_email", { p_payment_id: paid.payment_id });
   if (emailError) console.error("Stripe webhook: payment_notify_email failed, customer email skipped", paid.payment_id);
-  await notifyPaymentReceived({ phone: paid.phone, email: email ?? null }, paid.refs, paid.amount, paid.needs_review);
+  // The database confirmed the paid requests itself (`confirmed`): the customer gets what was booked, no staff step.
+  const requests = paid.confirmed ? await loadPaidRequests(paid.payment_id) : [];
+  await notifyPaymentReceived({ phone: paid.phone, email: email ?? null }, paid.refs, paid.amount, paid.needs_review, requests, paid.confirmed);
 }
 
 async function onClosed(sessionId: string, failed: boolean) {

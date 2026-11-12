@@ -10,6 +10,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0079 — A paid reservation is confirmed automatically and the customer gets what was booked (revises ADR-0026)
+
+- **Decision:** `complete_payment` now sets the payment's requests (`bookings`, `quad_rentals`, `event_tickets`) from `laukia` to `patvirtinta` itself, and returns `confirmed`. A payment that needs a look (`needs_review`: odd amount, or slots not restorable after a late payment) is not confirmed and stays for staff. The webhook then sends the SMS and email built from `paid_request_details` (what, date, time) instead of "we will confirm shortly".
+- **SMS (ASCII, Lithuanian letters folded):** "Jusu mokejimas gautas. Jusu rezervacija:" then per request "Pirties seansas: <name>", "Data: <date>", "Laikas: <start-end>", then "Turite klausimu? skambinkite <phone> arba rasykite <email>". Sauna-only reservations show pirtis@vanduomarse.lt, others info@. Stays show the nights; the generic wording remains when the details cannot be read or the payment is under review.
+- **Why:** owner: no staff confirmation after payment; the customer must see their booking in the message.
+- **Unchanged:** unpaid and pay-on-site requests still wait for staff; the admin can still cancel a confirmed request.
+
 ## ADR-0078 — Browser Back from Stripe cancels the unpaid payment
 
 - **Decision:** the Back button never opens our cancel URL, so `ReservationFlow` listens for it (`useReleaseOnBrowserBack`: a `back_forward` navigation or a bfcache `pageshow`) and calls `releaseMyUnpaidPayments`, which releases every `laukia` payment of the signed-in customer through the owner-checked, expiry-confirmed `releaseCancelledPayment` (ADR-0077). The page leaves its "redirecting" state and shows "Mokėjimas nebuvo atliktas...".
