@@ -1,7 +1,8 @@
 import "server-only";
-import { COUPON_SERVICE_LABEL, formatCode, formatExpiry, type CouponService } from "@/lib/coupons";
-import { CONTACTS } from "@/lib/contacts";
-import { escapeHtml, sendEmail } from "./resend";
+import { formatCode, type CouponService } from "@/lib/coupons";
+import { buildCouponPdf } from "./coupon-pdf";
+import { buildCouponEmail } from "./coupon-template";
+import { sendEmail, type EmailMessage } from "./resend";
 
 /**
  * Coupon delivery over the Resend HTTP API (no SDK). Needs RESEND_API_KEY and
@@ -22,82 +23,40 @@ export interface CouponEmail {
   service: CouponService;
   /** yyyy-mm-dd */
   expiresAt: string;
+  /** Order number printed on the voucher, when known. */
+  reference?: string;
+  /** Printable voucher page (save as PDF); linked from the email when known. */
+  voucherUrl?: string;
 }
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY && process.env.COUPON_FROM_EMAIL);
 
+/** The voucher as an attachment, or none when it could not be built (the email still carries the code). */
+async function voucherAttachment(c: CouponEmail): Promise<EmailMessage["attachments"]> {
+  try {
+    const pdf = await buildCouponPdf({ ...c, expiresAt: c.expiresAt });
+    return [{ filename: `Vanduo-Marse-kuponas-${formatCode(c.code)}.pdf`, content: pdf }];
+  } catch (e) {
+    console.error("Coupon PDF could not be built, email goes without it", e);
+    return undefined;
+  }
+}
+
 /** Returns true when Resend accepted the message. */
 export async function sendCouponEmail(c: CouponEmail): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
   const from = process.env.COUPON_FROM_EMAIL;
-  if (!key || !from) return false;
-
-  const code = formatCode(c.code);
-  const contact = CONTACTS[0];
-  const lines = [
-    `Sveiki, ${c.buyerName}!`,
-    "",
-    `Dėkojame už užsakymą. Jūsų ${c.productName} (${c.faceValue} €) paruoštas${c.recipientName ? `, dovana: ${c.recipientName}` : ""}.`,
-    "",
-    `Kupono kodas: ${code}`,
-    `Galioja: ${COUPON_SERVICE_LABEL[c.service].toLowerCase()}, iki ${formatExpiry(c.expiresAt)}`,
-    ...(c.message ? ["", `Palinkėjimas: ${c.message}`] : []),
-    "",
-    "Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.",
-    "",
-    `Klausimai? ${contact.email}, ${contact.phone}`,
-    "Vanduo Marse",
-  ];
-
-  const html = [
-    `<p>Sveiki, ${escapeHtml(c.buyerName)}!</p>`,
-    `<p>Dėkojame už užsakymą. Jūsų <strong>${escapeHtml(c.productName)}</strong> (${c.faceValue} €) paruoštas${c.recipientName ? `, dovana: ${escapeHtml(c.recipientName)}` : ""}.</p>`,
-    `<h1>${escapeHtml(code)}</h1>`,
-    `<p>Galioja: ${escapeHtml(COUPON_SERVICE_LABEL[c.service].toLowerCase())}, iki ${escapeHtml(formatExpiry(c.expiresAt))}.</p>`,
-    ...(c.message ? [`<blockquote>${escapeHtml(c.message)}</blockquote>`] : []),
-    `<p>Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.</p>`,
-    `<p>Klausimai? ${escapeHtml(contact.email)}, ${escapeHtml(contact.phone)}<br>Vanduo Marse</p>`,
-  ].join("\n");
-
+  if (!process.env.RESEND_API_KEY || !from) return false;
+  const { subject, html, text } = buildCouponEmail(c, "buyer");
   // Staff pressed "Pažymėti apmokėtu" on purpose, so this sends from `next dev` too.
-  return sendEmail({ from, to: c.to, subject: `Jūsų Vanduo Marse kuponas ${code}`, text: lines.join("\n"), html }, { skipInDev: false });
+  return sendEmail({ from, to: c.to, subject, text, html, attachments: await voucherAttachment(c) }, { skipInDev: false });
 }
 
 /** The gift email: the same code, addressed to the recipient, with the buyer's wish. Returns true when Resend accepted it. */
 export async function sendCouponRecipientEmail(c: CouponEmail): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY;
   const from = process.env.COUPON_FROM_EMAIL;
-  if (!key || !from || !c.recipientEmail) return false;
-
-  const code = formatCode(c.code);
-  const contact = CONTACTS[0];
-  const greeting = c.recipientName ? `Sveiki, ${c.recipientName}!` : "Sveiki!";
-  const gift = `${c.buyerName} dovanoja jums Vanduo Marse kuponą: ${c.productName} (${c.faceValue} €).`;
-  const lines = [
-    greeting,
-    "",
-    gift,
-    ...(c.message ? ["", `Palinkėjimas: ${c.message}`] : []),
-    "",
-    `Kupono kodas: ${code}`,
-    `Galioja: ${COUPON_SERVICE_LABEL[c.service].toLowerCase()}, iki ${formatExpiry(c.expiresAt)}`,
-    "",
-    "Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.",
-    "",
-    `Klausimai? ${contact.email}, ${contact.phone}`,
-    "Vanduo Marse",
-  ];
-  const html = [
-    `<p>${escapeHtml(greeting)}</p>`,
-    `<p>${escapeHtml(gift)}</p>`,
-    ...(c.message ? [`<blockquote>${escapeHtml(c.message)}</blockquote>`] : []),
-    `<h1>${escapeHtml(code)}</h1>`,
-    `<p>Galioja: ${escapeHtml(COUPON_SERVICE_LABEL[c.service].toLowerCase())}, iki ${escapeHtml(formatExpiry(c.expiresAt))}.</p>`,
-    `<p>Kaip panaudoti: įveskite kodą rezervuodami pirtį ar nakvynę svetainėje, arba parodykite jį parke.</p>`,
-    `<p>Klausimai? ${escapeHtml(contact.email)}, ${escapeHtml(contact.phone)}<br>Vanduo Marse</p>`,
-  ].join("\n");
-
-  return sendEmail({ from, to: c.recipientEmail, subject: `${c.buyerName} padovanojo jums Vanduo Marse kuponą`, text: lines.join("\n"), html }, { skipInDev: false });
+  if (!process.env.RESEND_API_KEY || !from || !c.recipientEmail) return false;
+  const { subject, html, text } = buildCouponEmail(c, "recipient");
+  return sendEmail({ from, to: c.recipientEmail, subject, text, html, attachments: await voucherAttachment(c) }, { skipInDev: false });
 }
 
 /** Buyer and, when given, the recipient. True only when every intended email was accepted. */

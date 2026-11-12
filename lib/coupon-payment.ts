@@ -2,6 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { emailStaffCouponCancelled, emailStaffCouponPaid } from "@/lib/email/notify";
+import { voucherUrl } from "@/lib/coupon-voucher";
 import { sendCouponEmails } from "@/lib/email/send-coupon";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -51,6 +52,8 @@ export async function onCouponPaid(couponId: string, session: Stripe.Checkout.Se
     faceValue: c.face_value,
     service: c.service,
     expiresAt: c.expires_at,
+    reference: c.reference,
+    voucherUrl: await voucherUrl(session.id),
   });
   await emailStaffCouponPaid({
     reference: c.reference,

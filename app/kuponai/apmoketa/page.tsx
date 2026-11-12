@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { CouponPaymentStatus, type CouponPaymentView } from "@/components/coupons/coupon-payment-status";
+import { SESSION_ID_PATTERN } from "@/lib/coupon-voucher";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -10,12 +11,21 @@ export const metadata: Metadata = {
 };
 
 async function loadCoupon(sessionId: string | undefined): Promise<CouponPaymentView | null> {
-  if (!sessionId || !/^cs_[A-Za-z0-9_]{10,200}$/.test(sessionId)) return null;
+  if (!sessionId || !SESSION_ID_PATTERN.test(sessionId)) return null;
   try {
     const { data } = await createAdminClient().rpc("coupon_payment_state", { p_session_id: sessionId });
     const row = data?.[0];
     if (!row) return null;
-    return { status: row.status, reference: row.reference, productName: row.product_name, amount: row.face_value, hasRecipient: row.has_recipient };
+    return {
+      status: row.status,
+      reference: row.reference,
+      productName: row.product_name,
+      amount: row.face_value,
+      hasRecipient: row.has_recipient,
+      code: row.code,
+      expiresAt: row.expires_at,
+      sessionId,
+    };
   } catch (e) {
     console.error("Coupon payment page: could not read the coupon", e);
     return null;

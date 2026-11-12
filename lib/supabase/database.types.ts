@@ -304,6 +304,7 @@ export type Database = {
           face_value: number
           ip_hash: string | null
           id: string
+          last_emailed_at: string | null
           kind: Database["public"]["Enums"]["coupon_kind"]
           message: string
           paid_at: string | null
@@ -333,6 +334,7 @@ export type Database = {
           face_value: number
           ip_hash?: string | null
           id?: string
+          last_emailed_at?: string | null
           kind: Database["public"]["Enums"]["coupon_kind"]
           message?: string
           paid_at?: string | null
@@ -362,6 +364,7 @@ export type Database = {
           face_value?: number
           ip_hash?: string | null
           id?: string
+          last_emailed_at?: string | null
           kind?: Database["public"]["Enums"]["coupon_kind"]
           message?: string
           paid_at?: string | null
@@ -2302,11 +2305,33 @@ export type Database = {
       coupon_payment_state: {
         Args: { p_session_id: string }
         Returns: {
+          buyer_name: string
+          code: string | null
+          expires_at: string | null
           face_value: number
           has_recipient: boolean
+          message: string
           product_name: string
+          recipient_name: string
           reference: string
+          service: Database["public"]["Enums"]["coupon_service"]
           status: Database["public"]["Enums"]["coupon_status"]
+        }[]
+      }
+      resend_coupon_email: {
+        Args: { p_session_id: string }
+        Returns: {
+          allowed: boolean
+          buyer_email: string
+          buyer_name: string
+          code: string
+          expires_at: string
+          face_value: number
+          message: string
+          product_name: string
+          recipient_name: string
+          retry_in: number
+          service: Database["public"]["Enums"]["coupon_service"]
         }[]
       }
       complete_payment: {

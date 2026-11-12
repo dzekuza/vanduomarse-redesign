@@ -9,11 +9,23 @@ const SECURITY_HEADERS = [
   { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
 ];
 
+/** Read at runtime by lib/email/coupon-pdf.ts. */
+const COUPON_PDF_FILES = ["./app/fonts/Termina-Regular.otf", "./app/fonts/Termina-Bold.otf", "./public/brand/logo-email.png"];
+
 const nextConfig: NextConfig = {
   cacheComponents: false,
   // LAN/Tailscale hosts used to open the dev server from other devices, plus
   // 127.0.0.1 for browser automation tools that can't resolve "localhost".
   allowedDevOrigins: ["100.66.120.126", "127.210.108.239", "127.0.0.1"],
+  // pdfkit reads its own data files at runtime, so it stays outside the bundle; the coupon PDF's fonts and logo are
+  // read from disk, so the routes that send coupon emails must ship them.
+  serverExternalPackages: ["pdfkit"],
+  outputFileTracingIncludes: {
+    "/api/stripe/webhook": COUPON_PDF_FILES,
+    "/api/admin/mobile-action": COUPON_PDF_FILES,
+    "/admin/**": COUPON_PDF_FILES,
+    "/kuponai/**": COUPON_PDF_FILES,
+  },
   // Sauna photos are compressed in the browser first; this is headroom for large originals.
   experimental: {
     serverActions: { bodySizeLimit: "4mb" },
