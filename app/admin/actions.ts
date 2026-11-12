@@ -786,7 +786,7 @@ export async function couponPdf(id: string): Promise<ActionResult<{ fileName: st
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
   const { data: c, error } = await ctx.supabase.from("coupons").select("*").eq("id", id).single();
   if (error) return dbError(error);
-  if (!c.code || !c.expires_at || c.status === "laukia_apmokejimo") return fail("PDF paruošiamas tik apmokėtam kuponui.", "invalid");
+  if (!c.code || !c.expires_at || (c.status !== "aktyvus" && c.status !== "panaudotas")) return fail("PDF paruošiamas tik aktyviam ar panaudotam kuponui.", "invalid");
   try {
     const pdf = await buildCouponPdf({
       code: c.code,
@@ -1289,7 +1289,7 @@ export async function deleteRider(id: string): Promise<ActionResult> {
 }
 
 /** Bulk removal from the customer list: the same rules as `deleteRider`, in one statement so it succeeds or fails as a whole. */
-export async function deleteRiders(ids: string[]): Promise<ActionResult<{ count: number }>> {
+export async function deleteRiders(ids: string[]): Promise<ActionResult<{ removed: string[] }>> {
   const ctx = await staffClient(["apyrankes", "klientai"]);
   if (!ctx.ok) return ctx.error;
   const parsed = z.array(z.uuid()).min(1).max(100).safeParse(ids);
@@ -1302,7 +1302,7 @@ export async function deleteRiders(ids: string[]): Promise<ActionResult<{ count:
   const avatarPaths = (avatars ?? []).flatMap((a) => (a.avatar_path ? [a.avatar_path] : []));
   if (avatarPaths.length) await ctx.supabase.storage.from(RIDER_PHOTO_BUCKET).remove(avatarPaths);
   if (docs?.length) await ctx.supabase.storage.from(RIDER_DOCUMENT_BUCKET).remove(docs.map((d) => d.file_path));
-  return done({ count: removed?.length ?? 0 });
+  return done({ removed: (removed ?? []).map((r) => r.id) });
 }
 
 const AVATAR_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };

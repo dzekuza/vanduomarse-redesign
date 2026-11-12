@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
     "/api/admin/mobile-action": COUPON_PDF_FILES,
     "/admin/**": COUPON_PDF_FILES,
     "/kuponai/**": COUPON_PDF_FILES,
+    "/paskyra": COUPON_PDF_FILES,
   },
   // Sauna photos are compressed in the browser first; this is headroom for large originals.
   experimental: {

@@ -99,7 +99,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
                 </a>
               </div>
 
-              {coupon.code && coupon.status !== "laukia_apmokejimo" ? (
+              {coupon.code && (coupon.status === "aktyvus" || coupon.status === "panaudotas") ? (
                 <Button variant="outline" className="min-h-11 w-full" disabled={downloading} onClick={() => download(coupon.id)}>
                   <DownloadSimpleIcon size={18} /> {downloading ? "Ruošiama..." : "Atsisiųsti PDF"}
                 </Button>
