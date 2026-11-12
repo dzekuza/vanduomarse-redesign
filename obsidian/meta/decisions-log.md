@@ -10,6 +10,12 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0078 — Browser Back from Stripe cancels the unpaid payment
+
+- **Decision:** the Back button never opens our cancel URL, so `ReservationFlow` listens for it (`useReleaseOnBrowserBack`: a `back_forward` navigation or a bfcache `pageshow`) and calls `releaseMyUnpaidPayments`, which releases every `laukia` payment of the signed-in customer through the owner-checked, expiry-confirmed `releaseCancelledPayment` (ADR-0077). The page leaves its "redirecting" state and shows "Mokėjimas nebuvo atliktas...".
+- **Why:** owner: slots must be held only while a payment can happen; users leave Stripe with Back or by closing the tab, not only with Stripe's own link.
+- **Limits:** it cancels all of the customer's unpaid payments, so someone paying in a second tab while pressing Back in another loses that checkout (the session is expired, the slot freed). Closing the tab without coming back still holds the slot until the session expires (about 31 minutes).
+
 ## ADR-0077 — A slot is held only while a payment can still happen
 
 - **Decision:** reservations are still filed before Stripe Checkout (that is how the database prices and checks them), but they are released the moment the visitor returns unpaid via the cancel link: `releaseCancelledPayment` expires the Checkout Session (so it cannot be paid afterwards) and calls `abandon_payment`. A session found already paid stops the release.

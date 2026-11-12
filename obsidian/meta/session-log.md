@@ -1,3 +1,26 @@
+## 2026-11-13 — Hero phone number
+
+- **Changed:** `components/landing/landing-hero.tsx` uses `MAIN_CONTACT.phone`.
+- **Status:** tsc/eslint below; NOT browser-checked; uncommitted.
+
+## 2026-11-13 — Footer contact list
+
+- **Changed:** `FOOTER_CONTACTS` rewritten in `lib/contacts.ts`; `SiteFooter` renders it (title = name).
+- **Status:** tsc/eslint clean; NOT browser-checked; uncommitted.
+- **Next:** decide whether `/kontaktai` should use the same list.
+
+## 2026-11-13 — Cancel the unpaid payment on browser Back
+
+- **Why:** PR-1022 stayed "Laukia apmokėjimo" after the customer left Stripe: the DB showed no release ran, because the Back button never hits our cancel URL.
+- **Changed:** `useReleaseOnBrowserBack` + `releaseMyUnpaidPayments` (ADR-0078), wired into `ReservationFlow`. Branch `fix/release-on-browser-back`, uncommitted.
+- **Status:** tsc/eslint clean; not browser-checked (needs a signed-in account, Stripe, and the Back button; also test the bfcache case).
+- **Next:** test, commit + PR.
+
+## 2026-11-13 — Stay quantity labels
+
+- **Changed:** `components/reservation/stay-options.tsx` stepper label by `type.kind`.
+- **Status:** tsc/eslint clean; NOT browser-checked; uncommitted.
+
 ## 2026-11-13 — Removed the "mark done" button
 
 - **Why:** owner: "Pažymėti įvykdyta" is not needed.

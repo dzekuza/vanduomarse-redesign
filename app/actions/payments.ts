@@ -6,7 +6,8 @@ import { getCustomer } from "@/lib/customer";
 import { fileRequest } from "@/lib/file-request";
 import { discountCovers, isDiscountService, normalizeDiscountCode, type DiscountService } from "@/lib/discount-codes";
 import { MIN_CHARGE_EUR, MIN_CHARGE_MESSAGE, REQUEST_ACTIVITY, checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
-import { closeCheckoutSession, ownsPayment } from "@/lib/payment-release";
+import { closeCheckoutSession, ownsPayment, releaseCancelledPayment } from "@/lib/payment-release";
+import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { MissingStripeKeyError, getStripe, paymentsEnabled, siteOrigin, toCents } from "@/lib/stripe";
 import { createAdminClient, MissingServiceKeyError } from "@/lib/supabase/admin";
@@ -237,4 +238,18 @@ export async function cancelUnpaidPayment(input: unknown): Promise<ActionResult<
   } catch (e) {
     return setupFailure(e);
   }
+}
+
+/**
+ * The customer is back from Stripe Checkout with the browser's Back button: cancel their own unpaid payments so no
+ * slot stays held (ADR-0078). Each one goes through `releaseCancelledPayment`, so a payment that turns out to be
+ * paid is left alone. Never fails the page: nothing to release, or a signed-out visitor, reports 0.
+ */
+export async function releaseMyUnpaidPayments(): Promise<ActionResult<{ released: number }>> {
+  const customer = await getCustomer();
+  if (!customer) return { data: { released: 0 } };
+  const { data } = await (await createClient()).from("payments").select("id").eq("user_id", customer.id).eq("status", "laukia");
+  const ids = (data ?? []).map((row) => row.id);
+  for (const id of ids) await releaseCancelledPayment(id);
+  return { data: { released: ids.length } };
 }
