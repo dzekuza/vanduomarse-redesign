@@ -8,6 +8,10 @@
     "build:wp-plugin": "node --experimental-strip-types scripts/build-wp-plugin.mts",
     "start": "next start",
     "lint": "eslint",
+    "mobile": "pnpm --filter vanduomarse-mobile start",
+    "mobile:ios": "pnpm --filter vanduomarse-mobile ios",
+    "mobile:web": "pnpm --filter vanduomarse-mobile web",
+    "mobile:typecheck": "pnpm --filter vanduomarse-mobile typecheck",
     "design:check": "node tools/zero-slop-design/zsd.mjs lint DESIGN.md && node tools/zero-slop-design/zsd.mjs check-code DESIGN.md --config design-check.config.json"
   },
   "dependencies": {

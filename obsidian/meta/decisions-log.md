@@ -10,6 +10,15 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0084 — Simplified React Native (Expo) iOS staff admin app in `mobile/`
+
+- **Date:** 2026-11-13. **Status:** code done; migration `20261113180000_staff_push_tokens.sql` created (NOT yet applied to the live DB).
+- **Context:** park staff need a fast iOS mobile companion for day-to-day operations on the dock and at reception (confirming/cancelling bookings, checking riders in/out on the water and assigning bracelets via a connected USB HID reader, answering inquiries, activating/redeeming coupons, searching the 8,900+ customer directory, and receiving instant push notifications) without carrying a laptop or duplicating the CMS/catalog configuration screens.
+- **Decision:** `mobile/` is a `pnpm` workspace package running Expo SDK 58 / React Native (upgraded from 53 on 2026-11-13: Expo Go on a physical iPhone only supports the newest SDK) with Expo Router, importing pure TypeScript types, mappers, permissions, and pricing helpers directly from `@/lib/*`. Every colour, spacing, radius, and Termina font role comes from `useAppTheme()` (`mobile/src/theme/use-app-theme.tsx`) with zero raw hex or numbers in `StyleSheet.create()`. Connected USB IC/RFID readers work on iOS as a hardware HID keyboard wedge captured by `<UsbScanTarget>` (`showSoftInputOnFocus={false}` keeps the iOS soft keyboard hidden while capturing digits and mapping Lithuanian number-row characters `ąčęėįšųū„“` → `1234567890`). Reads and standard writes talk directly to Supabase under the signed-in staff member's RLS policies (`staff` + `staff_roles`); operations requiring server-only secrets (Stripe refund on cancellation, Resend coupon emails, customer SMS notifications) call `POST /api/admin/mobile-action` authenticated with the staff member's Supabase Bearer token. Native push notifications use `public.staff_push_tokens` + `lib/push/staff-push.ts` wired into `lib/notify.ts` alongside Twilio SMS.
+- **Consequences:** web-only owner/CMS configuration screens (sauna rate tables, cabin types, quad fleet, event CRUD, price sheet, staff/role management) stay exclusively in the Next.js `/admin` web app.
+
+---
+
 ## ADR-0083 — One customer per phone number or e-mail: orders and registration link to the existing customer
 
 - **Date:** 2026-11-13. **Status:** code done; migration `20261113230000_link_customers_by_contact.sql` APPLIED to the live project 2026-11-13 and verified (4 triggers, 6 orders left unlinked, rider count unchanged at 8958, PR-1021 on the registered profile).

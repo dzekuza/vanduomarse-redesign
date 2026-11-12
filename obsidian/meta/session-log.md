@@ -1,3 +1,9 @@
+## 2026-11-13 — Mobile app to Expo SDK 58
+
+- **Why:** Expo Go on the owner's iPhone is SDK 58; the app was SDK 53 ("Project is incompatible with this version of Expo Go").
+- **Done:** direct upgrade (expo-upgrade skill) in worktree branch `feat/mobile-expo-sdk-58`, stacked on `feat/mobile-admin-app`; two code fixes; doctor/typecheck/iOS export pass.
+- **Not done / watch:** not run on a device; `expo-notifications` push needs a check on a real iPhone; Expo recommends one SDK at a time, this was a direct jump.
+- **Next:** `cd mobile && npx expo start -c`, open in Expo Go; the mobile ADR is now ADR-0084.
 ## 2026-11-13 — Link orders and registration to one customer per contact
 
 - **Found:** PR-1021 and every order since 7 Nov had no `rider_id`; registration always created a new rider. A first draft of the backfill would have created 2 customers (test e-mail, one coupon buyer): changed to link-only. A first draft ranked the OLDEST customer first, which would have attached PR-1021 to the imported record: now a registered customer first.

@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // WordPress plugin: plain browser scripts loaded by WordPress, not part of the app build.
     "wordpress/**",
+    // React Native (Expo) mobile app: has its own tsconfig and lint setup.
+    "mobile/**",
+    ".claude/**",
+    "tools/**",
   ]),
 ]);
 

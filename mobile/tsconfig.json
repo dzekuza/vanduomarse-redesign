@@ -1,0 +1,23 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "paths": {
+      "@/mobile/*": ["./*"],
+      "@/*": ["../*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../lib/admin/types.ts",
+    "../lib/admin/mappers.ts",
+    "../lib/admin/permissions.ts",
+    "../lib/admin/labels.ts",
+    "../lib/admin/format.ts",
+    "../lib/admin/calendar-entries.ts",
+    "../lib/supabase/database.types.ts"
+  ],
+  "exclude": ["node_modules"]
+}

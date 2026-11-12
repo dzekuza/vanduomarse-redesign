@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Vanduo Marse Valdymas",
+    "slug": "vanduomarse-admin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "vanduomarse-admin",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "lt.vanduomarse.admin",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#ed5257"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
