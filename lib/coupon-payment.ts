@@ -55,7 +55,7 @@ export async function onCouponPaid(couponId: string, session: Stripe.Checkout.Se
   await emailStaffCouponPaid({
     reference: c.reference,
     productName: c.product_name,
-    amount: c.face_value,
+    amount: paidAmount,
     buyerName: c.buyer_name,
     buyerEmail: c.buyer_email,
     recipientName: c.recipient_name,
