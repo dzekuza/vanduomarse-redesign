@@ -1,3 +1,9 @@
+## 2026-11-13 — OTP blocks per channel
+
+- **Found:** the code field always drew 8 blocks, but an SMS code has 6 (e-mail has 8).
+- **Changed:** `LOGIN_CODE_LENGTH = { phone: 6, email: 8 }`; `LoginCodeStep` uses the channel's length and confirms only when full.
+- **Status:** tsc/eslint clean; not browser-checked.
+
 ## 2026-11-13 — Refund hardening (review + Stripe docs)
 
 - **Source:** automated security review plus Stripe docs read directly (the installed Stripe CLI is 1.40.9; `stripe docs` needs 1.50.9+ and `brew upgrade stripe` is blocked by `brew trust` for the stripe tap).
