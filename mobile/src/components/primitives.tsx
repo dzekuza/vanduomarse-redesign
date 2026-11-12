@@ -1,11 +1,14 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
   type StyleProp,
   type TextInputProps,
@@ -263,11 +266,33 @@ export function SheetModal({
 }) {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { height } = useWindowDimensions();
+
+  // The backdrop fades in place and only the sheet slides. A `Modal` with animationType="slide" moves everything inside
+  // it, backdrop included, so the Modal itself is not animated: it stays mounted while the sheet animates out.
+  const progress = useRef(new Animated.Value(0)).current;
+  const [mounted, setMounted] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+      Animated.timing(progress, { toValue: 1, duration: 260, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+    } else {
+      Animated.timing(progress, { toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setMounted(false);
+      });
+    }
+  }, [visible, progress]);
+
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] });
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modalSheet}>
+    <Modal visible={mounted} animationType="none" transparent onRequestClose={onClose}>
+      <View style={styles.modalRoot}>
+        <Animated.View style={[StyleSheet.absoluteFill, styles.modalBackdrop, { opacity: progress }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Uždaryti" onPress={onClose} style={StyleSheet.absoluteFill} />
+        </Animated.View>
+        <Animated.View style={[styles.modalSheet, { transform: [{ translateY }] }]}>
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderCopy}>
               <Text style={styles.modalTitle}>{title}</Text>
@@ -289,7 +314,7 @@ export function SheetModal({
           >
             {children}
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -429,10 +454,12 @@ function createStyles(theme: AppTheme) {
       ...type.xs,
       color: colors.rustInk,
     },
-    modalBackdrop: {
+    modalRoot: {
       flex: 1,
-      backgroundColor: colors.backdrop,
       justifyContent: "flex-end",
+    },
+    modalBackdrop: {
+      backgroundColor: colors.backdrop,
     },
     modalSheet: {
       backgroundColor: colors.background,

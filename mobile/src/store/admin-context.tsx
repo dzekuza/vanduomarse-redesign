@@ -98,7 +98,9 @@ export function MobileAdminProvider({ children }: { children: React.ReactNode })
       setAuth({ status: "ready", access, data });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Nepavyko užkrauti duomenų.";
-      Alert.alert("Klaida", msg);
+      // The message alone ("undefined is not a function") does not say where: keep the stack in the Metro log, and show it in dev.
+      console.error("Admin data load failed:", err);
+      Alert.alert("Klaida", __DEV__ && err instanceof Error && err.stack ? `${msg}\n\n${err.stack.split("\n").slice(0, 6).join("\n")}` : msg);
     } finally {
       setRefreshing(false);
     }
