@@ -273,6 +273,9 @@ export function toCoupon(r: CouponRow): Coupon {
     redemptions: r.coupon_redemptions
       .toSorted((a, b) => a.created_at.localeCompare(b.created_at))
       .map((x) => ({ id: x.id, amount: x.amount, note: x.note, at: x.created_at })),
+    paidOnline: !!r.stripe_payment_intent_id,
+    paidAmount: Math.round((r.face_value - r.discount_amount) * 100) / 100,
+    refundedAmount: r.refunded_amount,
     riderId: r.rider_id ?? undefined,
   };
 }

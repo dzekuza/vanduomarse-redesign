@@ -310,6 +310,8 @@ export type Database = {
           paid_at: string | null
           product_id: string
           product_name: string
+          refunded_amount: number
+          refunded_at: string | null
           recipient_email: string
           recipient_name: string
           reference: string
@@ -370,6 +372,8 @@ export type Database = {
           paid_at?: string | null
           product_id?: string
           product_name?: string
+          refunded_amount?: number
+          refunded_at?: string | null
           recipient_email?: string
           recipient_name?: string
           reference?: string

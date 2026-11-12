@@ -1,6 +1,7 @@
 "use client";
 
-import { CopyIcon, EnvelopeSimpleIcon } from "@phosphor-icons/react";
+import { CopyIcon, DownloadSimpleIcon, EnvelopeSimpleIcon } from "@phosphor-icons/react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import { CouponStatusBadge } from "../status-badge";
 import { CouponActions } from "./coupon-actions";
@@ -10,6 +11,7 @@ import { COUPON_SERVICE_LABEL, formatCode, formatEuro, formatExpiry } from "@/li
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CustomerLink } from "../customer-link";
+import { useAdmin } from "../admin-store";
 
 interface CouponSheetProps {
   coupon: Coupon | null;
@@ -18,6 +20,23 @@ interface CouponSheetProps {
 
 /** Order details, the code, redemption history and the actions the current status allows. */
 export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
+  const { couponPdf } = useAdmin();
+  const [downloading, startDownload] = useTransition();
+
+  /** Builds the voucher PDF on the server and saves it in the browser. */
+  const download = (id: string) =>
+    startDownload(async () => {
+      const result = await couponPdf(id);
+      if ("error" in result) return;
+      const bytes = Uint8Array.from(atob(result.data.base64), (ch) => ch.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.data.fileName;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
+
   return (
     <Sheet open={!!coupon} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
@@ -55,6 +74,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
                   ["Likutis", formatEuro(coupon.balance)],
                   ["Galioja", COUPON_SERVICE_LABEL[coupon.service]],
                   ["Iki", coupon.expiresAt ? formatExpiry(coupon.expiresAt) : "po apmokėjimo"],
+                  ...(coupon.refundedAmount > 0 ? [["Grąžinta pirkėjui", formatEuro(coupon.refundedAmount)]] : []),
                   ["Gavėjas", coupon.recipientName || "-"],
                   ["Gavėjo el. paštas", coupon.recipientEmail || "-"],
                 ].map(([k, v]) => (
@@ -78,6 +98,12 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
                   <EnvelopeSimpleIcon size={18} /> {coupon.buyer.email}
                 </a>
               </div>
+
+              {coupon.code && coupon.status !== "laukia_apmokejimo" ? (
+                <Button variant="outline" className="min-h-11 w-full" disabled={downloading} onClick={() => download(coupon.id)}>
+                  <DownloadSimpleIcon size={18} /> {downloading ? "Ruošiama..." : "Atsisiųsti PDF"}
+                </Button>
+              ) : null}
 
               <CouponActions coupon={coupon} />
 
