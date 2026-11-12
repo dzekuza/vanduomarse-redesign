@@ -2108,6 +2108,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auth_user_has_password: {
+        Args: { p_user: string }
+        Returns: boolean
+      }
       my_riders: {
         Args: Record<PropertyKey, never>
         Returns: {

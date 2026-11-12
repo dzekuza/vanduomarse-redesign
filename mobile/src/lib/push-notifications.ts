@@ -1,18 +1,34 @@
-import Constants from "expo-constants";
+/* eslint-disable @typescript-eslint/no-require-imports */
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import type { NotificationTopic } from "@/lib/notification-topics";
 import { supabase } from "./supabase";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+type NotificationsModule = typeof import("expo-notifications");
+
+// Remote push does not exist on web or in Expo Go (SDK 53+), and merely importing expo-notifications there logs
+// warnings. The module is therefore loaded lazily, and only in a development or store build on a native platform.
+const isPushSupported =
+  Platform.OS !== "web" && Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+
+let notificationsModule: NotificationsModule | null | undefined;
+
+function getNotifications(): NotificationsModule | null {
+  if (!isPushSupported) return null;
+  if (notificationsModule === undefined) {
+    notificationsModule = require("expo-notifications") as NotificationsModule;
+    notificationsModule.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  }
+  return notificationsModule;
+}
 
 export interface StaffPushRegistration {
   token: string;
@@ -21,8 +37,8 @@ export interface StaffPushRegistration {
 }
 
 export async function getDeviceExpoPushToken(): Promise<string | null> {
-  if (Platform.OS === "web") return null;
-  if (!Device.isDevice) return null;
+  const Notifications = getNotifications();
+  if (!Notifications || !Device.isDevice) return null;
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
@@ -70,7 +86,7 @@ export async function saveMyPushRegistration(
   if (!token) {
     return {
       ok: false,
-      message: "Push pranešimai veikia tik tikrame iPhone / iPad įrenginyje su suteiktu leidimu.",
+      message: "Push pranešimai veikia tik tikrame iPhone / iPad įrenginyje (development arba produkcinėje programoje, ne Expo Go) su suteiktu leidimu.",
     };
   }
 
