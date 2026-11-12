@@ -390,6 +390,9 @@ export default function MoreScreen() {
           </View>
 
           <FlatList
+            automaticallyAdjustKeyboardInsets
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
             data={displayedRiders}
             keyExtractor={(item) => item.id}
             contentContainerStyle={s.listContent}
@@ -439,6 +442,9 @@ export default function MoreScreen() {
 
       {subView === "apzvalga" && canSeeOverview ? (
         <ScrollView
+          automaticallyAdjustKeyboardInsets
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           contentContainerStyle={s.listContent}
           refreshControl={
             <RefreshControl
@@ -482,7 +488,7 @@ export default function MoreScreen() {
       ) : null}
 
       {subView === "paskyra" ? (
-        <ScrollView contentContainerStyle={s.listContent}>
+        <ScrollView automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" contentContainerStyle={s.listContent}>
           <Card style={s.sectionCard}>
             <View style={s.profileHeader}>
               <UserCheck size={theme.spacing.xl} color={theme.colors.rust} />

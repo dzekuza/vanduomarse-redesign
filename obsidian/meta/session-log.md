@@ -1,3 +1,9 @@
+## 2026-11-13 — Mobile keyboard avoidance
+
+- **Found:** screenshot from the simulator: input mid-screen, number pad Done bar visible, no soft keys (hardware keyboard connected), and no layout adjustment when the keyboard opens.
+- **Changed:** `automaticallyAdjustKeyboardInsets` + tap/drag keyboard handling on tab lists; `SheetModal` in a `KeyboardAvoidingView`.
+- **Status:** tsc + iOS export pass; not seen on a device. Stacked on the sheet branch (`fix/mobile-sheet-animation`).
+
 ## 2026-11-13 — Mobile sheet overlay animation
 
 - **Found:** `SheetModal` put the backdrop inside a slide-animated `Modal`, so the overlay slid up with the sheet.

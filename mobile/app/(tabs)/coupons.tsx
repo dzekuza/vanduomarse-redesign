@@ -188,6 +188,9 @@ export default function CouponsScreen() {
       </View>
 
       <FlatList
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         data={filteredCoupons}
         keyExtractor={(item) => item.id}
         contentContainerStyle={s.listContent}

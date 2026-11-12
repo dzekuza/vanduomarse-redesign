@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -288,7 +290,7 @@ export function SheetModal({
 
   return (
     <Modal visible={mounted} animationType="none" transparent onRequestClose={onClose}>
-      <View style={styles.modalRoot}>
+      <KeyboardAvoidingView style={styles.modalRoot} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Animated.View style={[StyleSheet.absoluteFill, styles.modalBackdrop, { opacity: progress }]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Uždaryti" onPress={onClose} style={StyleSheet.absoluteFill} />
         </Animated.View>
@@ -310,12 +312,14 @@ export function SheetModal({
           <ScrollView
             style={styles.modalBody}
             contentContainerStyle={styles.modalBodyContent}
+            automaticallyAdjustKeyboardInsets
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
           >
             {children}
           </ScrollView>
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
