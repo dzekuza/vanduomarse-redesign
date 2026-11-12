@@ -5,7 +5,7 @@ import type { ActionResult } from "@/app/admin/actions";
 import { getCustomer } from "@/lib/customer";
 import { fileRequest } from "@/lib/file-request";
 import { discountCovers, isDiscountService, normalizeDiscountCode, type DiscountService } from "@/lib/discount-codes";
-import { REQUEST_ACTIVITY, checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
+import { MIN_CHARGE_EUR, MIN_CHARGE_MESSAGE, REQUEST_ACTIVITY, checkoutInputSchema, payItemsSchema, type PayItem } from "@/lib/payments";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { MissingStripeKeyError, getStripe, paymentsEnabled, siteOrigin, toCents } from "@/lib/stripe";
@@ -43,6 +43,7 @@ const INTEGRATION_ID = "vanduomarse-reservation-qvtmxkdh";
 
 /** The payment's Checkout Session was already paid: never open another one for it. */
 class PaymentSettledError extends Error {}
+class BelowMinimumError extends Error {}
 
 interface Payable {
   id: string;
@@ -61,6 +62,9 @@ async function checkoutUrl(payable: Payable): Promise<string> {
     if (existing.status === "open" && existing.url) return existing.url;
     if (existing.status === "complete") throw new PaymentSettledError();
   }
+
+  const total = payable.items.reduce((sum, item) => sum + toCents(item.amount), 0);
+  if (total < toCents(MIN_CHARGE_EUR)) throw new BelowMinimumError();
 
   const origin = await siteOrigin();
   const references = payable.items.map((item) => item.reference);
@@ -100,6 +104,7 @@ async function checkoutUrl(payable: Payable): Promise<string> {
 
 function setupFailure(e: unknown) {
   if (e instanceof PaymentSettledError) return fail(SETTLED, "settled");
+  if (e instanceof BelowMinimumError) return fail(MIN_CHARGE_MESSAGE, "payment");
   if (e instanceof MissingStripeKeyError || e instanceof MissingServiceKeyError) {
     console.error(`Payments: ${e.message}`);
     return fail(SETUP, "setup");

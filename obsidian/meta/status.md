@@ -10,13 +10,15 @@ updated: 2026-11-12
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-13 (`create_coupon_order` now service-role only, branch `fix/coupon-order-service-only`; coupon abuse guards, ADR-0076, branch `fix/coupon-order-abuse-guards`: migration applied; code merged via PR if listed in the changelog; no Stripe test payment yet) (latest: wide date-strip tiles `w-18`, coupon Stripe payment migration applied; everything below is uncommitted on `main` and not browser-checked)
+**Last updated:** 2026-11-13 (cancelled Stripe payments free their slots at once, ADR-0077, branch `fix/release-slot-on-cancelled-payment`, uncommitted; `create_coupon_order` now service-role only, branch `fix/coupon-order-service-only`; coupon abuse guards, ADR-0076, branch `fix/coupon-order-abuse-guards`: migration applied; code merged via PR if listed in the changelog; no Stripe test payment yet) (latest: wide date-strip tiles `w-18`, coupon Stripe payment migration applied; everything below is uncommitted on `main` and not browser-checked)
 
 **Current focus / next:** commit the day's work (coupon no-verification + emails + Stripe payment, `/paskyra` pay/cancel, header width, date tile width, birth inputs) on a branch and open a PR; before deploy confirm `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `COUPON_FROM_EMAIL` in Vercel; then a Stripe test-mode coupon purchase (card 4242) and check both inboxes. Migrations are applied by the assistant without asking (memory note `apply-migrations-without-asking`).
 
 **Date-strip tiles (2026-11-13): wide `DayCell` tiles are `w-18` (was `w-14`); uncommitted, not browser-checked.**
 
 **BookingHeader intro (2026-11-13): `max-w-xl` removed from the intro paragraph (shared by booking pages); uncommitted, not browser-checked.**
+
+**Min charge (2026-11-13): totals under 0,50 € are blocked in the checkout dialog and on the server (Stripe minimum); uncommitted, not browser-checked.**
 
 **Discount code in checkout dialog (2026-11-13): field shown again (flag removed); uncommitted, not browser-checked.**
 

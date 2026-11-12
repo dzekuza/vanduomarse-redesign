@@ -1,3 +1,17 @@
+## 2026-11-13 — Checkout below Stripe's 0,50 € minimum
+
+- **Found:** 45 € with code 999 (99 %) = 0,45 €; Stripe Checkout rejects EUR totals under 0,50 €, surfaced as the generic payment-start error.
+- **Changed:** `MIN_CHARGE_EUR` in `lib/payments.ts`; guard in `app/actions/payments.ts` (`BelowMinimumError`); message + disabled button in `reservation-account-dialog.tsx`.
+- **Status:** tsc/eslint clean; NOT browser-checked; uncommitted.
+- **Next:** retry with a 99 % code; a 100 % code (total 0) goes through `payment_free`, untested.
+
+## 2026-11-13 — Release the slot when payment is cancelled
+
+- **Why:** owner screenshot: after leaving Stripe, the payment page said the slots were still held.
+- **Changed:** `lib/payment-release.ts` + the payment page frees the slots on `?atsaukta=1`; copy updated; ADR-0077. Branch `fix/release-slot-on-cancelled-payment`, uncommitted.
+- **Status:** tsc/eslint clean; not browser-checked (needs a real Stripe checkout and back click).
+- **Next:** test: reserve a sauna slot, click back in Stripe, confirm the slot is free again; commit + PR.
+
 ## 2026-11-13 — Discount code field back in the checkout dialog
 
 - **Changed:** `reservation-account-dialog.tsx` always renders `DiscountCodeField` (flag removed); catalog note updated.
@@ -8,7 +22,7 @@
 
 - **Why:** security review: the anon-callable RPC let a caller supply or omit its own `p_ip_hash`, bypassing the per-IP cap.
 - **Changed:** migration `20261113140000` (revoke anon/authenticated, grant service_role, refuse a missing hash); `createCouponOrder` uses the admin client and fails closed without the IP hash.
-- **Order:** merge and deploy the code first, then apply the migration (anon access is revoked only once the deployed code no longer needs it).
+- **Order:** merged and deployed first (PR #47), then the migration was APPLIED and verified (anon/authenticated cannot execute `create_coupon_order`, service_role can).
 - **Next:** Stripe test-mode coupon purchase; confirm env in Vercel.
 
 ## 2026-11-13 — Coupon abuse guards, no staff step

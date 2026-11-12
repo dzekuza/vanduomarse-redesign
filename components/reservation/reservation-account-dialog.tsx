@@ -5,6 +5,7 @@ import { ArrowButton } from "@/components/booking/arrow-button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { Customer } from "@/lib/customer-types";
 import type { CheckedDiscount } from "@/lib/discount-codes";
+import { MIN_CHARGE_EUR, MIN_CHARGE_MESSAGE } from "@/lib/payments";
 import type { PlanLine } from "@/lib/reservation";
 import { AccountStep } from "./account-step";
 import { DialogPhotoClose } from "./dialog-photo-close";
@@ -40,6 +41,7 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
   const returnFocus = useRef<HTMLElement | null>(null);
   const contactForm = useRef<HTMLFormElement>(null);
   const payTotal = Math.round((total - discountAmount) * 100) / 100;
+  const belowMinimum = payments && !payOnSite && payTotal > 0 && payTotal < MIN_CHARGE_EUR;
 
   function dismiss() {
     if (!busy) onClose();
@@ -80,8 +82,13 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
             <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
           </section>
           <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />
+          {belowMinimum ? (
+            <p role="alert" className="text-xs text-rust-ink">
+              {MIN_CHARGE_MESSAGE}
+            </p>
+          ) : null}
           <div className="border-t border-line pt-5">
-            <ArrowButton fullWidth type="submit" disabled={!ready || busy || checkingCode}>
+            <ArrowButton fullWidth type="submit" disabled={!ready || busy || checkingCode || belowMinimum}>
               {redirecting ? "Nukreipiame į mokėjimą..." : busy ? "Siunčiama..." : payments && !payOnSite && payTotal > 0 ? `Mokėti ${payTotal} €` : "Rezervuoti"}
             </ArrowButton>
           </div>

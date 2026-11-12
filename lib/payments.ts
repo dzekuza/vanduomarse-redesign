@@ -54,3 +54,8 @@ export type CheckoutInput = z.infer<typeof checkoutInputSchema>;
 /** One line of a payment: a request and what it costs. */
 export const payItemsSchema = z.array(z.object({ reference: z.string(), label: z.string(), amount: z.number() }));
 export type PayItem = z.infer<typeof payItemsSchema>[number];
+
+/** Stripe refuses Checkout totals below this many euros. */
+export const MIN_CHARGE_EUR = 0.5;
+
+export const MIN_CHARGE_MESSAGE = "Mažiausia mokėjimo suma yra 0,50 €. Pašalinkite nuolaidos kodą arba pasirinkite daugiau paslaugų.";
