@@ -4,7 +4,6 @@
     "strict": true,
     "noEmit": true,
     "paths": {
-      "react": ["./node_modules/@types/react"],
       "@/mobile/*": ["./*"],
       "@/*": ["../*"]
     }
