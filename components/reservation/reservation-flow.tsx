@@ -10,6 +10,7 @@ import { startReservationCheckout } from "@/app/actions/payments";
 import { SERVICE_GALLERY } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { useWakeBooking, WakeBookingChoices, WakeBookingSummary } from "@/components/services/wake-service-booking";
+import { useReleaseOnBrowserBack } from "@/hooks/use-release-on-back";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import type { CouponProduct } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
@@ -186,6 +187,11 @@ export function ReservationFlow({
     ? bookable(plans)
     : Boolean(quadTour?.ok && (chosen(plans).length === 0 || bookable(plans)));
   const ready = selectionReady && customer !== null;
+  // Back from Stripe with the browser's Back button: the unpaid payment is cancelled and the form is usable again.
+  useReleaseOnBrowserBack((released) => {
+    setRedirecting(false);
+    if (released > 0) form.setError("root", { message: "Mokėjimas nebuvo atliktas, todėl rezervacijos vietų nelaikome. Galite pabandyti dar kartą." });
+  });
   const busy = form.formState.isSubmitting || redirecting;
 
   function selectDate(next: Date) {
