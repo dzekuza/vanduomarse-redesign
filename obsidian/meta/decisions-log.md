@@ -10,6 +10,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0077 — A slot is held only while a payment can still happen
+
+- **Decision:** reservations are still filed before Stripe Checkout (that is how the database prices and checks them), but they are released the moment the visitor returns unpaid via the cancel link: `releaseCancelledPayment` expires the Checkout Session (so it cannot be paid afterwards) and calls `abandon_payment`. A session found already paid stops the release.
+- **Why:** the cancel page used to say the slots were still held, and they stayed held until the session expired plus the cron grace.
+- **Authorization:** the release runs on the cancel-page GET, so it only proceeds for the payment's own signed-in customer (read through their session, RLS on `payments`); knowing the payment id alone cannot cancel someone's hold. Idempotent, and the same cancel is also available as the owner-checked `cancelUnpaidPayment` action.
+- **Limit:** a visitor who simply closes the tab holds the slot until the Checkout Session expires (Stripe's minimum is 30 minutes; the expired webhook releases it right then). Not holding at all before payment would allow two people to pay for the same slot.
+
 ## ADR-0076 — Coupons need no staff step; abuse is limited per IP, not by verification (revises ADR-0073/0074/0075)
 
 - **Decision:** a coupon is bought and paid by the buyer alone. Stripe is the only path: without it the order is refused and nothing is stored; if Checkout cannot open the fresh order is cancelled. No email goes to an unverified address before payment (no order receipt, no order alert); emails go out only after Stripe confirms payment.

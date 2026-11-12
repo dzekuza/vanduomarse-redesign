@@ -3,6 +3,7 @@ import { z } from "zod";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { PaymentStatus, type PaymentView } from "@/components/reservation/payment-status";
+import { releaseCancelledPayment } from "@/lib/payment-release";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
@@ -27,6 +28,9 @@ async function loadPayment(raw: string | undefined): Promise<PaymentView | null>
 /** Where Stripe sends the visitor back; the webhook, not this page, decides what happened to the payment. */
 export default async function PaymentPage({ searchParams }: { searchParams: Promise<{ pid?: string; atsaukta?: string }> }) {
   const { pid, atsaukta } = await searchParams;
+  // Back from Stripe without paying: the held slots are freed now, not after the checkout expires.
+  const paymentId = z.uuid().safeParse(pid);
+  if (atsaukta === "1" && paymentId.success) await releaseCancelledPayment(paymentId.data);
   const payment = await loadPayment(pid);
 
   return (

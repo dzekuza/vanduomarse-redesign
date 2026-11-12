@@ -33,8 +33,10 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
   }
 
   const open = payment.status === "laukia";
-  const copy = open && cancelled
-    ? { title: "Mokėjimas nebaigtas", text: "Mokėjimas nebuvo atliktas. Vietas dar laikome trumpai, galite pabandyti dar kartą." }
+  const copy = cancelled && payment.status === "pasibaige"
+    ? { title: "Mokėjimas nebaigtas", text: "Mokėjimas nebuvo atliktas, todėl vietų nelaikome. Rezervuokite iš naujo." }
+    : open && cancelled
+    ? { title: "Mokėjimas nebaigtas", text: "Mokėjimas nebuvo atliktas. Nepavyko iškart atlaisvinti vietų: jos bus atlaisvintos netrukus. Galite pabandyti dar kartą." }
     : (COPY[payment.status] ?? COPY.laukia);
 
   return (
