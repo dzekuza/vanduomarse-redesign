@@ -22,8 +22,20 @@ updated: 2026-11-05
 | `/netrukus` | Netrukus - Vanduo Marse | yes | noindex, nofollow; served with 503 + `Retry-After` while gated |
 | `/renginiai` | Renginiai Marse | yes | — |
 | `/skaiciuokle` | Renginio kainos skaičiuoklė - Vanduo Marse | yes | `/og/renginiai.jpg` |
-| Public activity pages | Service-specific title and description with natural Lithuanian locality terms | yes | Designed 1200x630 image from `SERVICE_OG_IMAGES` (`lib/seo.ts`) where one exists: `/pirtis` -> `/og/pirtis.jpg`, `/nakvyne` -> `/og/nameliai.jpg`, the celebration pages (`/sventes`, `/vestuves`, `/imoniu-renginiai`, `/gimtadieniai`) -> `/og/renginiai.jpg`; the others use their activity cover |
+| Public activity pages | Service-specific title and description with natural Lithuanian locality terms and the page's target keyword (see the keyword table below) | yes | Designed 1200x630 image from `SERVICE_OG_IMAGES` (`lib/seo.ts`) where one exists: `/pirtis` -> `/og/pirtis.jpg`, `/nakvyne` -> `/og/nameliai.jpg`, the celebration pages (`/sventes`, `/vestuves`, `/imoniu-renginiai`, `/gimtadieniai`) -> `/og/renginiai.jpg`; the others use their activity cover |
 | `/admin/*` | "%s · Vanduo Marse valdymas" | — | noindex, nofollow |
+
+## Target keywords (OpenSEO research, 2026-11-12)
+
+| Page | Main terms (searches a month) |
+|------|-------------------------------|
+| `/vandenlentes` | wake parkas 590, wakeboard 480, vandenlenčių parkas 140, wake parkas kaunas 90 |
+| `/pirtis` | pirties nuoma 880, pirtis kaune 390, pirties nuoma kaune 110 |
+| `/nakvyne` | namelis prie ežero 1,000, namelių nuoma 590, namelių nuoma prie ežero 590, nakvynė kaune 480 |
+| `/keturraciu-nuoma` | keturračių nuoma 320, keturračių nuoma kaune 140 |
+| `/` | pramogos kaune 1,300, vandens pramogos 320 |
+
+Keep prices and capacities out of the copy (they come from the database). The full list with tags is in the OpenSEO project "Vanduo Marse" (saved keywords, tags `topic:*` and `page:*`).
 
 ## Gaps
 
