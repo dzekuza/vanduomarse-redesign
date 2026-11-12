@@ -1,3 +1,10 @@
+## 2026-11-13 — Link orders and registration to one customer per contact
+
+- **Found:** PR-1021 and every order since 7 Nov had no `rider_id`; registration always created a new rider. A first draft of the backfill would have created 2 customers (test e-mail, one coupon buyer): changed to link-only. A first draft ranked the OLDEST customer first, which would have attached PR-1021 to the imported record: now a registered customer first.
+- **Changed:** migration `20261113230000_link_customers_by_contact.sql` (indexes, `find_rider`, `find_or_create_rider`, 4 insert triggers, link-only backfill, `register_rider_public` returning `already_registered`, `create_plan_order` without `self_registered`); `registerRider`; the admin matcher order.
+- **Status:** tsc/eslint clean; the migration was run inside a rolled-back transaction (0 → 6 unlinked, 8958 riders unchanged, PR-1021 → the registered profile). APPLIED and verified on the live DB.
+- **Next:** order something with a known phone and check the new order has the existing customer's `rider_id`; register again with the same number and check no new rider row appears.
+
 ## 2026-11-13 — Customer names link to the customer page
 
 - **Found:** PR-1021 had no `rider_id`: orders are only linked by the one-time 7 Nov backfill, so new orders were unlinked (and missing from the new Pirkimai tab).

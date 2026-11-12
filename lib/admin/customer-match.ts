@@ -15,13 +15,16 @@ export type CustomerLookup = (contact: { phone?: string | null; email?: string |
 
 /**
  * Orders carry a stored `riderId` only when they were linked (a one-time backfill, ADR-0042); orders placed since are
- * not. This finds the customer from the order's contact the same way the backfill did (phone, then e-mail; the oldest
- * customer wins), so a customer's name can link to their page and their Pirkimai tab lists every order.
+ * not. This finds the customer from the order's contact the same way the database does now (`private.find_rider`: phone,
+ * then e-mail; a registered customer first, then the oldest), so a customer's name can link to their page and their Pirkimai
+ * tab lists every order. New orders are linked in the database (ADR-0083); this covers the few that are not.
  */
-export function makeCustomerLookup(riders: readonly Pick<Rider, "id" | "phone" | "phone2" | "email" | "createdAt">[]): CustomerLookup {
+export function makeCustomerLookup(riders: readonly Pick<Rider, "id" | "phone" | "phone2" | "email" | "createdAt" | "avatarPath">[]): CustomerLookup {
   const byPhone = new Map<string, string>();
   const byEmail = new Map<string, string>();
-  for (const r of [...riders].sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
+  // A customer who finished registering (has a photo) first, then the oldest: the same order as `private.find_rider`.
+  const ordered = [...riders].sort((a, b) => Number(Boolean(b.avatarPath)) - Number(Boolean(a.avatarPath)) || a.createdAt.localeCompare(b.createdAt));
+  for (const r of ordered) {
     for (const phone of [r.phone, r.phone2]) {
       const n = phone ? normPhone(phone) : "";
       if (n && !byPhone.has(n)) byPhone.set(n, r.id);
