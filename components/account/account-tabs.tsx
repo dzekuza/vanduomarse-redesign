@@ -4,7 +4,6 @@ import { CouponList } from "./coupon-list";
 import { InquiryList } from "./inquiry-list";
 import { RequestList } from "./request-list";
 import { RiderPlans } from "./rider-plans";
-import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { MyCoupon, MyInquiry, MyRequest, MyRider, RequestKind } from "@/lib/account";
 
@@ -24,16 +23,13 @@ export function AccountTabs({ requests, inquiries, riders, coupons }: { requests
     id === "pasiulymai" ? inquiries.length : id === "kuponai" ? coupons.length : id === "vandenlentes" ? riders.length : kinds ? requests.filter((r) => kinds.includes(r.kind)).length : requests.length;
 
   return (
-    <Tabs defaultValue="visi" className="gap-4">
-      <TabsList aria-label="Rezervacijų skiltys" className="grid w-full grid-cols-2 divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto sm:grid-cols-4">
+    <Tabs defaultValue="visi" className="min-w-0 gap-4">
+      <TabsList aria-label="Rezervacijų skiltys" className="scrollbar-ink flex w-full justify-start overflow-x-auto overflow-y-hidden divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto">
         {TABS.map(({ id, label, kinds }) => (
           <TabsTrigger
             key={id}
             value={id}
-            className={cn(
-              "h-full min-h-11 min-w-0 rounded-none px-1 py-2 text-xs wrap-break-word whitespace-normal text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust",
-              id === "kuponai" && "col-span-2",
-            )}
+            className="h-full min-h-11 min-w-max flex-1 basis-0 rounded-none px-4 py-2 text-xs whitespace-nowrap text-ink data-active:bg-ink data-active:text-dust data-active:hover:text-dust"
           >
             {label} <span className="opacity-60">{count(id, kinds)}</span>
           </TabsTrigger>

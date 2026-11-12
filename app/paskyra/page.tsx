@@ -39,10 +39,10 @@ export default async function AccountPage() {
       <div className="theme-reservation space-y-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
         <BookingHeader crumb="Mano rezervacijos" title={["Mano", "rezervacijos"]} />
         <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
-          <div className="lg:col-span-2">
+          <div className="order-2 min-w-0 lg:order-1 lg:col-span-2">
             <AccountTabs requests={requests} inquiries={inquiries} riders={riders} coupons={coupons} />
           </div>
-          <div className="lg:col-span-1">
+          <div className="order-1 min-w-0 lg:order-2 lg:col-span-1">
             <ProfileCard customer={customer} />
           </div>
         </div>

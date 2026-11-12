@@ -1,5 +1,6 @@
 "use client";
 
+import { StatusTag } from "./status-tag";
 import { XIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -48,7 +49,7 @@ export function InquiryList({ inquiries }: { inquiries: MyInquiry[] }) {
                 <span className="block text-sm text-copy">{[dayLabel(q.date), `${q.guests} asm.`, q.space].filter(Boolean).join(", ")}</span>
                 {q.accepted ? (
                   <span className="block text-sm">
-                    <span className="border border-line px-2 py-0.5">Priimta, nameliai ir pirtys užimti</span>
+                    <StatusTag tone="confirmed" label="Priimta, nameliai ir pirtys užimti" />
                   </span>
                 ) : null}
               </span>
@@ -92,7 +93,7 @@ function InquiryDetails({ inquiry: q }: { inquiry: MyInquiry }) {
         <p className="text-micro uppercase text-copy">Skaičiuoklės užklausa</p>
         <DialogTitle className="font-display text-heading! font-bold uppercase">{q.eventType}</DialogTitle>
         <DialogDescription className="text-sm leading-relaxed text-copy">
-          {q.accepted ? <span className="border border-line px-2 py-0.5">Priimta, nameliai ir pirtys užimti</span> : `Išsiųsta ${sent}`}
+          {q.accepted ? <StatusTag tone="confirmed" label="Priimta, nameliai ir pirtys užimti" /> : `Išsiųsta ${sent}`}
         </DialogDescription>
       </header>
 
