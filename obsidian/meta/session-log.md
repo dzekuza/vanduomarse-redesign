@@ -1,3 +1,9 @@
+## 2026-11-12 — Registration draft kept between visits
+
+- **Found:** `/registracija` held the form only in React state, so leaving the page emptied it.
+- **Changed:** step 1 draft saved to `sessionStorage` (`lib/registration-draft.ts`), restored on mount, cleared on success.
+- **Status:** tsc/eslint pass; browser-checked later the same day (fields and phone country come back after leaving and returning); merged in PR #89.
+
 ## 2026-11-12 — Role for existing customer login
 
 - **Found:** `createStaff` always created a new auth user, so a customer with an account hit the duplicate error.
