@@ -307,6 +307,7 @@ export type Database = {
           last_emailed_at: string | null
           kind: Database["public"]["Enums"]["coupon_kind"]
           message: string
+          paid_amount: number | null
           paid_at: string | null
           product_id: string
           product_name: string
@@ -339,6 +340,7 @@ export type Database = {
           last_emailed_at?: string | null
           kind: Database["public"]["Enums"]["coupon_kind"]
           message?: string
+          paid_amount?: number | null
           paid_at?: string | null
           product_id: string
           product_name: string
@@ -369,6 +371,7 @@ export type Database = {
           last_emailed_at?: string | null
           kind?: Database["public"]["Enums"]["coupon_kind"]
           message?: string
+          paid_amount?: number | null
           paid_at?: string | null
           product_id?: string
           product_name?: string
@@ -2124,6 +2127,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      begin_coupon_refund: {
+        Args: { p_coupon: string; p_staff: string }
+        Returns: {
+          amount: number
+          created_at: string
+          payment_intent: string
+          reference: string
+          refund_id: string
+          resumed: boolean
+        }[]
+      }
+      finish_coupon_refund: {
+        Args: { p_id: string; p_stripe_refund_id: string }
+        Returns: undefined
+      }
+      fail_coupon_refund: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       my_coupons: {
         Args: Record<PropertyKey, never>
         Returns: {
