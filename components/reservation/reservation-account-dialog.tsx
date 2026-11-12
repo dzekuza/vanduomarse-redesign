@@ -12,8 +12,6 @@ import { DiscountCodeField } from "./discount-code-field";
 import { PlanSummary } from "./plan-summary";
 import { ReservationSubmitDetails } from "./reservation-submit-details";
 
-const SHOW_DISCOUNT_CODE_FIELD = false;
-
 interface ReservationAccountDialogProps {
   open: boolean;
   onClose: () => void;
@@ -78,9 +76,7 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
           </section>
           <section aria-label="Rezervacijos suvestinė" className="space-y-3">
             <p className="text-micro uppercase text-copy">02 / Rezervacijos suvestinė</p>
-            {SHOW_DISCOUNT_CODE_FIELD ? (
-              <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
-            ) : null}
+            <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
             <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
           </section>
           <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />

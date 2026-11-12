@@ -1,3 +1,9 @@
+## 2026-11-13 — Discount code field back in the checkout dialog
+
+- **Changed:** `reservation-account-dialog.tsx` always renders `DiscountCodeField` (flag removed); catalog note updated.
+- **Status:** tsc pending below; NOT browser-checked (needs a signed-in account and a live code).
+- **Next:** apply a real code in the dialog and pay; check 375 px.
+
 ## 2026-11-13 — Coupon order RPC made service-role only
 
 - **Why:** security review: the anon-callable RPC let a caller supply or omit its own `p_ip_hash`, bypassing the per-IP cap.

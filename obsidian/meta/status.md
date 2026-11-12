@@ -18,6 +18,8 @@ updated: 2026-11-12
 
 **BookingHeader intro (2026-11-13): `max-w-xl` removed from the intro paragraph (shared by booking pages); uncommitted, not browser-checked.**
 
+**Discount code in checkout dialog (2026-11-13): field shown again (flag removed); uncommitted, not browser-checked.**
+
 **Birth date inputs (2026-11-13): rider registration (`/registracija`) uses year / month / day number fields (`BirthdateInput`) instead of the calendar popover; tsc/eslint clean, uncommitted, not browser-checked. Next: check at 375 px (autofill, auto-advance, error).**
 
 **Coupon Stripe payment (2026-11-13, ADR-0075): code done in the working tree, tsc/eslint clean; migration `20261113120000_coupon_stripe_payment.sql` APPLIED to the live DB and verified. Code uncommitted/undeployed; not tested with a real Stripe payment.**
