@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { registrationSchema, type RegistrationInput } from "@/lib/registration-schema";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
+import { BirthdateInput } from "@/components/ui/birthdate-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -51,7 +51,7 @@ export function ContactStep({ defaultValues, onNext }: ContactStepProps) {
           control={control}
           name="birthdate"
           render={({ field }) => (
-            <DatePicker id="reg-birthdate" value={field.value ?? ""} onChange={field.onChange} max={todayKey()} invalid={!!errors.birthdate} />
+            <BirthdateInput id="reg-birthdate" value={field.value ?? ""} onChange={field.onChange} max={todayKey()} invalid={!!errors.birthdate} />
           )}
         />
       </Field>
