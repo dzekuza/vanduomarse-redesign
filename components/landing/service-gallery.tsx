@@ -24,6 +24,7 @@ export function ServiceGallery({ photos, variant = "default", label = "Veiklos n
   const [index, setIndex] = useState(initialIndex);
   const last = photos.length - 1;
   const hero = variant === "hero";
+  const panel = variant === "panel";
 
   useLayoutEffect(() => {
     if (initialIndex && track.current) track.current.scrollLeft = initialIndex * track.current.clientWidth;
@@ -72,7 +73,7 @@ export function ServiceGallery({ photos, variant = "default", label = "Veiklos n
         </div>
       ) : null}
       <div data-vaul-no-drag className={cn("relative", {
-        "aspect-video max-h-48 w-full bg-dust-soft": variant === "panel",
+        "aspect-video max-h-48 w-full overflow-hidden bg-dust-soft": panel,
         "h-44 md:h-60": variant === "default",
         "aspect-4/3 min-w-0 bg-dust-soft lg:col-span-7 lg:aspect-2/1": hero,
         "h-72 bg-ink sm:h-100 lg:h-124": variant === "lightbox",
@@ -92,10 +93,13 @@ export function ServiceGallery({ photos, variant = "default", label = "Veiklos n
             event.preventDefault();
             goTo(next);
           }}
-          className="scrollbar-none flex h-full snap-x snap-mandatory overflow-x-auto"
+          className={cn(
+            "scrollbar-none flex snap-x snap-mandatory overflow-x-auto",
+            panel ? "absolute inset-0 overflow-y-hidden focus-visible:-outline-offset-2" : "h-full",
+          )}
         >
           {photos.map((photo, i) => (
-            <div key={photo.src} className="relative h-full w-full shrink-0 snap-start">
+            <div key={photo.src} className={cn("relative w-full shrink-0 snap-start", !panel && "h-full")}>
               <Image src={photo.src} alt={photo.alt} fill quality={90} loading={i === initialIndex && variant !== "lightbox" ? "eager" : "lazy"} sizes={variant === "panel" ? "(min-width: 1024px) 33vw, 100vw" : hero ? "(min-width: 1024px) 58vw, 100vw" : "(min-width: 640px) 768px, 100vw"} className={variant === "lightbox" ? "object-contain" : "object-cover"} />
             </div>
           ))}

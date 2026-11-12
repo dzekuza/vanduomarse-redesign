@@ -1,10 +1,12 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useRef, type Ref } from "react";
+import { BookingPrice } from "@/components/booking/booking-price";
 import type { ServicePhoto } from "@/components/landing/content";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { ServiceBookingHelp } from "@/components/services/service-booking-help";
 import { EVENTS_EMAIL, MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
+import { formatEuro } from "@/lib/coupons";
 import { PlanLines, type PlanLinesProps } from "./plan-lines";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
 import { activityPhotos } from "./activity-photos";
@@ -27,13 +29,16 @@ interface PlanPanelProps extends PlanDetailsProps {
 /** Side panel that follows the visitor: activity photos and the running reservation total. */
 export function PlanPanel({ activity, photos = activityPhotos(activity), inline, ref, continueAction, secondaryAction, ...details }: PlanPanelProps) {
   const saunaSidebar = inline && activity === "pirtis";
+  const quadSidebar = inline && activity === "keturraciai";
   const saunaOnly = activity === "pirtis" && details.lines.length === 1 && details.lines[0].id === "pirtis";
   const showDetails = !inline || details.lines.length > 0 || activity === "keturraciai";
 
   return (
-    <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline ? "scroll-mt-32 border-t border-line" : "hidden border border-line bg-foam lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
+    <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline
+      ? `scroll-mt-32 ${quadSidebar ? "" : "border-t border-line"}`
+      : "hidden border border-line bg-foam lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
       {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
-      <div className={inline ? "space-y-4 pt-4" : "space-y-6 p-5 sm:p-8"}>
+      <div className={inline ? `space-y-4 ${quadSidebar ? "" : "pt-4"}` : "space-y-6 p-5 sm:p-8"}>
         {inline ? null : <h2 className="text-tile font-bold">Rezervuoti</h2>}
         {showDetails ? <PlanDetails {...details} showLines={!saunaSidebar && !saunaOnly} /> : null}
         {saunaSidebar ? (
@@ -43,7 +48,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
           </p>
         ) : null}
         {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
-        {inline && activity === "keturraciai" ? null : <ServiceBookingHelp stacked={inline && activity === "nakvyne"} contact={{ phone: RESERVATION_PHONE, email: saunaSidebar ? EVENTS_EMAIL : MAIN_CONTACT.email }} />}
+        {quadSidebar ? null : <ServiceBookingHelp stacked={inline && activity === "nakvyne"} contact={{ phone: RESERVATION_PHONE, email: saunaSidebar ? EVENTS_EMAIL : MAIN_CONTACT.email }} />}
       </div>
     </aside>
   );
@@ -61,12 +66,13 @@ export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemov
           onRemove(activity);
         }} />
       ) : null}
-      <div className={showLines ? "border-t border-line pt-4" : "flex items-baseline justify-between gap-2"}>
-        <p ref={totalRef} tabIndex={-1} className="text-micro uppercase text-copy">{showLines ? "Iš viso, su PVM" : "Galutinė kaina, su PVM"}</p>
-        <div aria-live="polite" aria-atomic="true" className={showLines ? undefined : "shrink-0 text-right whitespace-nowrap"}>
-          <p className="font-display text-total font-bold">{total} €</p>
-        </div>
-        {showLines ? <p className="mt-1 text-xs text-copy">Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime.</p> : null}
+      <div className={showLines ? "border-t border-line pt-4" : undefined}>
+        <BookingPrice
+          amount={formatEuro(total)}
+          labelRef={totalRef}
+          label={showLines ? undefined : "Galutinė kaina, su PVM"}
+          note={showLines ? "Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime." : undefined}
+        />
       </div>
     </>
   );

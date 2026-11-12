@@ -5,15 +5,17 @@ export function ArrowButton({
   children,
   onClick,
   disabled,
+  fullWidth,
   type = "button",
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  fullWidth?: boolean;
   type?: "button" | "submit";
 }) {
   return (
-    <Cta tone="dark" small type={type} onClick={onClick} disabled={disabled}>
+    <Cta tone="dark" small type={type} onClick={onClick} disabled={disabled} className={fullWidth ? "w-full" : undefined}>
       {children}
     </Cta>
   );

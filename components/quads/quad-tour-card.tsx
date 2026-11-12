@@ -91,7 +91,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
         <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-item font-bold">{title}{route.badge ? <span className="bg-rust px-1.5 py-0.5 text-micro font-bold text-ink">{route.badge}</span> : null}</h3>
         <p className="text-xs font-bold">{route.price} € / keturračiui</p>
       </header>
-      <QuadRouteDialog route={route} variant="icon" className="absolute top-2 right-2" />
+      <QuadRouteDialog route={route} className="absolute top-2 right-2" />
       <div className="mt-auto space-y-4">
         <div className="space-y-2">
           <p className={`text-micro uppercase ${copy}`}>Pradžios laikas</p>

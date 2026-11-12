@@ -1,13 +1,17 @@
 "use client";
 
 import { useRef } from "react";
-import { ArrowButton } from "@/components/booking/arrow-button";
-import { CompactStepper } from "@/components/booking/stepper";
+import { BookingPrice } from "@/components/booking/booking-price";
+import { Stepper } from "@/components/booking/stepper";
+import { Cta } from "@/components/cta";
 import { AvailabilityCount } from "@/components/services/availability-count";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { SessionRow } from "@/lib/reservation";
+import { formatEuro } from "@/lib/coupons";
 import { toSaunaEvent, type SaunaEventData } from "@/lib/sauna-events";
+import { sessionPartyPrice, type SaunaProgram } from "@/lib/sauna-programs";
 import { DialogPhotoClose } from "./dialog-photo-close";
+import { PLAN_PRIMARY_CLASS } from "./plan-actions";
 
 const sessionDate = new Intl.DateTimeFormat("lt-LT", { dateStyle: "long" });
 
@@ -16,6 +20,17 @@ interface SessionDetails {
   row: SessionRow;
   quantity: { value: number; max: number; onChange: (people: number) => void };
   selected: boolean;
+  program: SaunaProgram | null;
+  children: number;
+}
+
+function SessionPrice({ event, program, quantity, children, row }: SessionDetails) {
+  const { price, adults, children: childCount } = sessionPartyPrice(event.pricePerPerson, program, quantity.value, children);
+  const unit = formatEuro(program?.price ?? event.pricePerPerson);
+  const note = program?.pricing === "group" ? row.rate : program?.pricing === "family"
+    ? `${adults} × ${unit} / suaug.${childCount ? ` + ${childCount} × ${formatEuro(program.childPrice ?? program.price)} / vaikui` : ""}`
+    : `${quantity.value} × ${unit} / asm.`;
+  return <BookingPrice amount={formatEuro(price)} note={note} />;
 }
 
 export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelectedFocus, actionLabel }: {
@@ -80,17 +95,20 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
               </section>
             ) : null}
             <div className="space-y-3 border-t border-line pt-4">
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <p className="text-item font-bold">{details.row.rate}</p>
-                {!details.row.blocked ? <CompactStepper label="Vietų skaičius" {...details.quantity} min={1} editable /> : null}
-              </div>
               {details.row.blocked ? (
-                <p className="text-xs text-rust-ink">{details.event.spotsLeft > 0 ? "Seanso laikas kertasi su tavo planu." : "Laisvų vietų nebeliko."}</p>
+                <>
+                  <p className="text-item font-bold">{details.row.rate}</p>
+                  <p className="text-xs text-rust-ink">{details.event.spotsLeft > 0 ? "Seanso laikas kertasi su tavo planu." : "Laisvų vietų nebeliko."}</p>
+                </>
               ) : (
-                <ArrowButton onClick={() => {
-                  confirmed.current = true;
-                  onSelect();
-                }}>{actionLabel ?? (details.selected ? "Grįžti į planą" : "Pridėti į planą")}</ArrowButton>
+                <>
+                  <Stepper label="Vietų skaičius" {...details.quantity} min={1} editable updateOnInput />
+                  <SessionPrice {...details} />
+                  <Cta tone="dark" small className={PLAN_PRIMARY_CLASS} onClick={() => {
+                    confirmed.current = true;
+                    onSelect();
+                  }}>{actionLabel ?? (details.selected ? "Grįžti į planą" : "Pridėti į planą")}</Cta>
+                </>
               )}
             </div>
           </div>

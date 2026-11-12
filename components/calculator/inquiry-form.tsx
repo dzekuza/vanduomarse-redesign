@@ -7,11 +7,12 @@ import { FormProvider, useForm } from "react-hook-form";
 import { loadCurrentCustomer } from "@/app/actions/customer";
 import { createInquiry } from "@/app/actions/requests";
 import { ArrowButton } from "@/components/booking/arrow-button";
+import { BookingPrice } from "@/components/booking/booking-price";
 import { Cta } from "@/components/cta";
 import { ContactFields } from "@/components/quads/contact-fields";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import type { Estimate, EstimateInput } from "@/lib/event-pricing";
+import { formatMoney, type Estimate, type EstimateInput } from "@/lib/event-pricing";
 import { messageContactSchema, type MessageContactValues } from "@/lib/request-schema";
 
 interface InquiryFormProps {
@@ -94,7 +95,7 @@ export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }:
     );
   }
 
-  if (!open) return <ArrowButton onClick={() => setOpen(true)}>Siųsti užklausą</ArrowButton>;
+  if (!open) return <ArrowButton fullWidth onClick={() => setOpen(true)}>Siųsti užklausą</ArrowButton>;
 
   return (
     <FormProvider {...form}>
@@ -106,7 +107,8 @@ export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }:
             {form.formState.errors.root.message}
           </p>
         ) : null}
-        <ArrowButton type="submit" disabled={form.formState.isSubmitting}>
+        <BookingPrice label="Preliminari kaina, su PVM" amount={formatMoney(estimate.total)} />
+        <ArrowButton fullWidth type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? "Siunčiama..." : "Siųsti užklausą"}
         </ArrowButton>
       </form>

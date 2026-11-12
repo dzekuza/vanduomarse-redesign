@@ -2,6 +2,8 @@
 
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Cta } from "@/components/cta";
+import { formatEuro } from "@/lib/coupons";
+import { BookingPrice } from "./booking-price";
 import { StepFrame, useSteppedBooking } from "./stepped";
 
 export interface BookingStep {
@@ -18,14 +20,14 @@ interface BookingCardProps {
   children?: ReactNode;
   /** The flow as steps: all shown together on the pages, one at a time inside a `SteppedBooking`. */
   steps?: BookingStep[];
-  /** Left side of the footer bar: what is selected and the running total. */
+  /** What is selected and the running total. */
   summary: ReactNode;
-  /** Right side of the footer bar, usually the confirm button. In a stepper it appears on the last step. */
+  /** Full-width confirmation action. In a stepper it appears on the last step. */
   action: ReactNode;
 }
 
 const CARD = "border border-ink bg-foam";
-const BAR = "flex flex-wrap items-center justify-between gap-4 border-t border-ink bg-dust-soft px-4 py-4 sm:px-8 sm:py-5";
+const BAR = "grid gap-4 border-t border-ink bg-dust-soft px-4 py-4 sm:px-8 sm:py-5";
 /** Stepper bar: total on the left, Back / Next on the right, one row even on phones. */
 const BAR_STEPPED = "flex items-center justify-between gap-3 border-t border-ink bg-dust-soft px-4 py-3 sm:gap-4 sm:px-8 sm:py-5";
 
@@ -78,8 +80,9 @@ export function BookingCard({ children, steps, summary, action }: BookingCardPro
       <div key={step.id} className="@container space-y-8 px-4 py-5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-right-2 motion-safe:duration-200 motion-safe:ease-out-strong sm:px-8 sm:py-6">
         <StepFrame>{step.content}</StepFrame>
       </div>
-      <div className={BAR_STEPPED}>
+      <div className={last ? BAR : BAR_STEPPED}>
         <div className="min-w-0">{summary}</div>
+        {last ? action : null}
         <div className="flex shrink-0 items-center gap-3 sm:gap-4">
           {at > 0 ? (
             <button type="button" onClick={() => setIndex(at - 1)} className="inline-flex min-h-11 items-center border-b border-current text-xs font-bold transition-opacity duration-150 active:opacity-70">
@@ -88,13 +91,11 @@ export function BookingCard({ children, steps, summary, action }: BookingCardPro
           ) : (
             <span />
           )}
-          {last ? (
-            action
-          ) : (
+          {!last ? (
             <Cta tone="dark" small disabled={step.ready === false} onClick={() => setIndex(at + 1)}>
               Toliau
             </Cta>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
@@ -104,9 +105,8 @@ export function BookingCard({ children, steps, summary, action }: BookingCardPro
 export function BookingTotal({ note, total, discount = 0 }: { note: string; total: number; discount?: number }) {
   return (
     <>
-      <p className="text-xs leading-snug text-ink/60 sm:text-sm">{note}</p>
       {discount > 0 ? <p className="text-xs text-ink/60 sm:text-sm">Kuponas −{discount} €</p> : null}
-      <p className="font-display text-figure font-bold sm:text-total">{total} €</p>
+      <BookingPrice amount={formatEuro(total)} note={note} />
     </>
   );
 }

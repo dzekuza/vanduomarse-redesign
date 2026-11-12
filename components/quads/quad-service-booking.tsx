@@ -8,7 +8,6 @@ import { DateField } from "@/components/reservation/date-field";
 import type { QuadPageData } from "@/lib/data/public-types";
 import { dateKey } from "@/lib/sauna";
 import { quadTourStarts, type QuadTourPick } from "./quad-tour-plan";
-import { QuadRouteDialog } from "./quad-route-dialog";
 import { QuadRoutePicker } from "./quad-route-picker";
 import { QuadTourFields } from "./quad-tour-fields";
 
@@ -50,7 +49,7 @@ export function QuadServiceBooking({ data, days, date, pick, busyHours, busy, pr
     <div className="space-y-5">
       <div>
         <QuadRoutePicker routes={data.tourRoutes} value={routeId} disabled={busy} onChange={setChosenRoute} />
-        {route ? <QuadRouteDialog route={route} /> : pricesHref ? (
+        {pricesHref ? (
           <Link href={pricesHref} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">Daugiau apie trasas</Link>
         ) : null}
       </div>
