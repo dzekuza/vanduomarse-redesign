@@ -1,4 +1,4 @@
-import { InfoIcon } from "@phosphor-icons/react";
+import { InfoIcon, WavesIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { StepperControls } from "@/components/booking/stepper";
 import { FilterChip } from "@/components/events/filter-chip";
@@ -10,6 +10,7 @@ import { AvailabilityCount } from "./availability-count";
 interface SaunaServiceSessionsProps {
   rows: SessionRow[];
   selectedKey?: string;
+  upcoming?: { dateLabel: string; starts: string[]; onOpen: () => void };
   /** Seat stepper, shown inside the selected card. */
   quantity?: { value: number; max: number; onChange: (value: number) => void };
   familyControls?: ReactNode;
@@ -18,12 +19,26 @@ interface SaunaServiceSessionsProps {
 }
 
 /** The chosen day's sessions as cards; the selected one turns dark and holds its rate, info link and seat count. */
-export function SaunaServiceSessions({ rows, selectedKey, quantity, familyControls, busy, onSelect }: SaunaServiceSessionsProps) {
-  if (!rows.length) return <p role="status" className="text-sm text-copy">Šią dieną seansų nėra. Pasirink kitą datą.</p>;
+export function SaunaServiceSessions({ rows, selectedKey, upcoming, quantity, familyControls, busy, onSelect }: SaunaServiceSessionsProps) {
+  if (!rows.length) {
+    return (
+      <div className="space-y-2">
+        <p role="status" className="text-sm text-copy">Šią dieną seansų nėra.{upcoming ? "" : " Pasirink kitą datą."}</p>
+        {upcoming ? (
+          <FilterChip active={false} disabled={busy} onClick={upcoming.onOpen} className="w-full flex-wrap justify-between gap-x-4 px-3 py-2 text-left">
+            <span className="font-bold">Artimiausi seansai · {upcoming.dateLabel}</span>
+            <span className="tabular-nums text-copy">{upcoming.starts.join(", ")}</span>
+          </FilterChip>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <fieldset disabled={busy} className="min-w-0">
-      <legend className="mb-2 text-sm font-bold">Seansai</legend>
+      <legend className="mb-2 flex items-center gap-2 text-sm font-bold">
+        <WavesIcon size={18} aria-hidden /> Seansai
+      </legend>
       <div className="grid gap-2">
         {rows.map((row) => {
           const active = row.key === selectedKey;
