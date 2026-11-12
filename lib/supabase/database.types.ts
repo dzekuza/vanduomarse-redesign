@@ -2127,6 +2127,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      payment_requests: {
+        Args: { p_payment_id: string }
+        Returns: {
+          date: string
+          guests: number | null
+          hours: number | null
+          kind: string
+          nights: number | null
+          reference: string
+          start_hour: number | null
+          start_time: string | null
+          status: string
+          title: string
+          total: number
+          units: number | null
+        }[]
+      }
       begin_coupon_refund: {
         Args: { p_coupon: string; p_staff: string }
         Returns: {
