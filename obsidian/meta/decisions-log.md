@@ -10,6 +10,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0076 — Coupons need no staff step; abuse is limited per IP, not by verification (revises ADR-0073/0074/0075)
+
+- **Decision:** a coupon is bought and paid by the buyer alone. Stripe is the only path: without it the order is refused and nothing is stored; if Checkout cannot open the fresh order is cancelled. No email goes to an unverified address before payment (no order receipt, no order alert); emails go out only after Stripe confirms payment.
+- **Guards:** `create_coupon_order` refuses a sixth unpaid order from the same IP in an hour (HMAC of the IP in `coupons.ip_hash`; skipped if `PHONE_VERIFICATION_SECRET` is missing) next to the existing global cap of 100; expired Checkout Sessions cancel their orders (ADR-0075).
+- **Why:** a security review noted that, without phone verification, order-time emails could be used to send text to strangers and the global cap could be filled by one script. Removing the manual path removes the first; the per-IP cap narrows the second (a distributed attack can still fill the global cap for about 31 minutes).
+- **Kept:** `/admin/kuponai` activation and resend for old pending orders and manual cases.
+
 ## ADR-0075 — Gift coupons are paid and issued automatically through Stripe
 
 - **Decision:** the order action opens a Checkout Session for the stored coupon value (anonymous buyer, no account) and the form redirects to it. The webhook is the only thing that issues the code (`complete_coupon_payment`, service-role only, idempotent, rejects a paid amount that differs from the value) and then emails the buyer and the recipient and alerts staff. `checkout.session.expired` cancels the pending order; a full `charge.refunded` cancels the coupon. Coupons use their own columns (`stripe_session_id`, `stripe_payment_intent_id`), not the `payments` table, which is tied to signed-in accounts and reservations.

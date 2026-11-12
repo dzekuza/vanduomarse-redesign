@@ -1,12 +1,13 @@
 "use server";
 
-import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
 import { normalizeCode, COUPON_CODE_LENGTH, type CheckedCoupon, type RedeemableService, couponApplies } from "@/lib/coupons";
 import { openCouponCheckout } from "@/lib/coupon-checkout";
-import { notifyCouponOrdered } from "@/lib/notify";
+import { clientIp } from "@/lib/client-ip";
+import { hashIp } from "@/lib/phone-verification";
 import { paymentsEnabled } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -15,14 +16,16 @@ import { createPublicClient } from "@/lib/supabase/public";
  * nothing here can read other customers' coupons.
  */
 
+const FAILED = "Nepavyko pateikti užsakymo. Bandykite dar kartą.";
+
 const fail = (message: string, code?: string): { error: { message: string; code?: string } } => ({ error: { message, code } });
 
 export interface CouponOrderResult {
   reference: string;
   amount: number;
   productName: string;
-  /** Stripe Checkout, when online payment is on; otherwise staff arrange payment and issue the code. */
-  checkoutUrl?: string;
+  /** Stripe Checkout. The buyer pays there and the webhook issues the code: no staff step. */
+  checkoutUrl: string;
 }
 
 export async function createCouponOrder(input: CouponOrderInput): Promise<ActionResult<CouponOrderResult>> {
@@ -30,8 +33,18 @@ export async function createCouponOrder(input: CouponOrderInput): Promise<Action
   if (!parsed.success) return fail("Patikrinkite užsakymo duomenis.", "invalid");
   const v = parsed.data;
 
-  // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
-  if (v.website) return { data: { reference: "KP-0000", amount: 0, productName: "" } };
+  // A bot that filled the honeypot gets a generic failure, and nothing is stored.
+  if (v.website) return fail(FAILED, "db");
+  // Coupons are bought online only: without Stripe there is nothing to pay with, so no order is stored.
+  if (!paymentsEnabled()) return fail("Kuponų pirkimas šiuo metu neveikia. Skambinkite mums ir padėsime.", "setup");
+
+  // Only a hash of the IP is kept, for the per-IP cap on unpaid orders. Without the secret the cap is skipped.
+  let ipHash: string | undefined;
+  try {
+    ipHash = hashIp(await clientIp());
+  } catch (e) {
+    console.error("Coupon order: IP hash unavailable, per-IP cap skipped", e);
+  }
 
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("create_coupon_order", {
@@ -42,22 +55,27 @@ export async function createCouponOrder(input: CouponOrderInput): Promise<Action
     p_recipient_name: v.recipientName,
     p_recipient_email: v.recipientEmail,
     p_message: v.message,
+    p_ip_hash: ipHash,
   });
 
   if (error) {
     if (error.hint === "product_unavailable") return fail("Šio kupono jau nebeparduodame. Atnaujinkite puslapį.", "unavailable");
     if (error.hint === "too_many_orders") return fail("Šiuo metu priimame per daug užsakymų. Bandykite vėliau arba skambinkite.", "busy");
-    return fail("Nepavyko pateikti užsakymo. Bandykite dar kartą.", "db");
+    return fail(FAILED, "db");
   }
   const row = data[0];
-  // Online payment: Stripe Checkout, and the webhook issues the code and sends the emails once paid.
-  if (paymentsEnabled()) {
-    const checkoutUrl = await openCouponCheckout({ id: row.id, reference: row.reference, productName: row.product_name, amount: row.amount, buyerEmail: v.buyerEmail });
-    if (checkoutUrl) return { data: { reference: row.reference, amount: row.amount, productName: row.product_name, checkoutUrl } };
+  // The webhook issues the code and sends the emails once Stripe confirms payment.
+  const checkoutUrl = await openCouponCheckout({ id: row.id, reference: row.reference, productName: row.product_name, amount: row.amount, buyerEmail: v.buyerEmail });
+  if (!checkoutUrl) {
+    // Checkout could not open: drop the order so nothing waits for a payment that cannot happen.
+    try {
+      await createAdminClient().rpc("abandon_coupon_order", { p_coupon_id: row.id });
+    } catch (e) {
+      console.error("Coupon order: could not drop the order", row.reference, e);
+    }
+    return fail("Nepavyko pradėti mokėjimo. Bandykite dar kartą arba skambinkite.", "payment");
   }
-  // No online payment (or Stripe refused): staff arrange payment and issue the code; the buyer and staff are told now.
-  after(() => notifyCouponOrdered({ reference: row.reference, amount: row.amount, productName: row.product_name, buyerName: v.buyerName, buyerEmail: v.buyerEmail, buyerPhone: v.buyerPhone, recipientName: v.recipientName, recipientEmail: v.recipientEmail }));
-  return { data: { reference: row.reference, amount: row.amount, productName: row.product_name } };
+  return { data: { reference: row.reference, amount: row.amount, productName: row.product_name, checkoutUrl } };
 }
 
 /** Looks a code up for a booking flow; says nothing about unknown, unpaid, spent or expired codes. */

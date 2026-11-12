@@ -10,7 +10,7 @@ updated: 2026-11-12
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**Last updated:** 2026-11-13 (latest: wide date-strip tiles `w-18`, coupon Stripe payment migration applied; everything below is uncommitted on `main` and not browser-checked)
+**Last updated:** 2026-11-13 (coupon abuse guards, ADR-0076, branch `fix/coupon-order-abuse-guards`: migration applied; code merged via PR if listed in the changelog; no Stripe test payment yet) (latest: wide date-strip tiles `w-18`, coupon Stripe payment migration applied; everything below is uncommitted on `main` and not browser-checked)
 
 **Current focus / next:** commit the day's work (coupon no-verification + emails + Stripe payment, `/paskyra` pay/cancel, header width, date tile width, birth inputs) on a branch and open a PR; before deploy confirm `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `COUPON_FROM_EMAIL` in Vercel; then a Stripe test-mode coupon purchase (card 4242) and check both inboxes. Migrations are applied by the assistant without asking (memory note `apply-migrations-without-asking`).
 

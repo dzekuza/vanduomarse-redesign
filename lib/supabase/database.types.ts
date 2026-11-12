@@ -299,6 +299,7 @@ export type Database = {
           created_at: string
           expires_at: string | null
           face_value: number
+          ip_hash: string | null
           id: string
           kind: Database["public"]["Enums"]["coupon_kind"]
           message: string
@@ -324,6 +325,7 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           face_value: number
+          ip_hash?: string | null
           id?: string
           kind: Database["public"]["Enums"]["coupon_kind"]
           message?: string
@@ -349,6 +351,7 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           face_value?: number
+          ip_hash?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["coupon_kind"]
           message?: string
@@ -1995,6 +1998,10 @@ export type Database = {
           expires_at: string
         }[]
       }
+      abandon_coupon_order: {
+        Args: { p_coupon_id: string }
+        Returns: undefined
+      }
       attach_coupon_session: {
         Args: { p_coupon_id: string; p_session_id: string }
         Returns: undefined
@@ -2086,6 +2093,7 @@ export type Database = {
           p_buyer_email: string
           p_buyer_name: string
           p_buyer_phone: string
+          p_ip_hash?: string
           p_message?: string
           p_product_id: string
           p_recipient_email?: string

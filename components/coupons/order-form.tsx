@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { createCouponOrder, type CouponOrderResult } from "@/app/actions/coupons";
+import { createCouponOrder } from "@/app/actions/coupons";
 import { ArrowButton } from "@/components/booking/arrow-button";
 import { BookingPrice } from "@/components/booking/booking-price";
 import { Eyebrow } from "@/components/eyebrow";
@@ -39,13 +39,8 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
   );
 }
 
-interface OrderFormProps {
-  product: CouponProduct;
-  onOrdered: (result: CouponOrderResult, email: string) => void;
-}
-
-/** Buyer, recipient and message for the selected coupon. Validates with the same schema as the server action. */
-export function OrderForm({ product, onOrdered }: OrderFormProps) {
+/** Buyer, recipient and message for the selected coupon. Validates with the same schema as the server action, then sends the buyer to Stripe Checkout. */
+export function OrderForm({ product }: { product: CouponProduct }) {
   const [redirecting, setRedirecting] = useState(false);
   const form = useForm<CouponOrderInput>({
     resolver: zodResolver(couponOrderSchema),
@@ -72,12 +67,8 @@ export function OrderForm({ product, onOrdered }: OrderFormProps) {
       setError("root", { message: result.error.message });
       return;
     }
-    if (result.data.checkoutUrl) {
-      setRedirecting(true);
-      goToCheckout(result.data.checkoutUrl);
-      return;
-    }
-    onOrdered(result.data, values.buyerEmail);
+    setRedirecting(true);
+    goToCheckout(result.data.checkoutUrl);
   });
 
   return (
