@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { REQUEST_PAYMENT_TONE, REQUEST_STATUS_TONE, StatusTag } from "./status-tag";
 import { PendingPaymentActions } from "@/components/reservation/payment-actions";
 import { REQUEST_PAYMENT_LABEL, REQUEST_STATUS_LABEL, type MyRequest } from "@/lib/account";
 import { longDateLabel } from "@/lib/sauna";
@@ -30,8 +31,8 @@ export function RequestList({ requests, filtered = false }: { requests: MyReques
                   {[dayLabel(r.date), r.detail].filter(Boolean).join(", ")}
                 </p>
                 <p className="text-sm">
-                  <span className="border border-line px-2 py-0.5">{REQUEST_STATUS_LABEL[r.status]}</span>
-                  {r.payment ? <span className="ml-2 border border-line px-2 py-0.5">{REQUEST_PAYMENT_LABEL[r.payment]}</span> : null}
+                  <StatusTag tone={REQUEST_STATUS_TONE[r.status]} label={REQUEST_STATUS_LABEL[r.status]} />
+                  {r.payment ? <StatusTag tone={REQUEST_PAYMENT_TONE[r.payment]} label={REQUEST_PAYMENT_LABEL[r.payment]} className="ml-2" /> : null}
                 </p>
                 {r.payment === "laukia" && r.paymentId ? <PendingPaymentActions paymentId={r.paymentId} /> : null}
               </div>

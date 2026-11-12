@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatusTag } from "./status-tag";
 import { CouponCodeActions } from "@/components/coupons/coupon-code-actions";
 import type { MyCoupon } from "@/lib/account";
 import { COUPON_SERVICE_LABEL, COUPON_STATUS_LABEL, formatCode, formatEuro, formatExpiry } from "@/lib/coupons";
@@ -32,7 +33,7 @@ export function CouponList({ coupons }: { coupons: MyCoupon[] }) {
                 </p>
                 <h3 className="font-display text-heading font-bold uppercase">{c.productName}</h3>
                 <p className="text-sm">
-                  <span className="border border-line px-2 py-0.5">{label}</span>
+                  <StatusTag tone={expired ? "closed" : c.status === "aktyvus" ? "confirmed" : "done"} label={label} />
                   <span className="ml-2 border border-line px-2 py-0.5">{COUPON_SERVICE_LABEL[c.service]}</span>
                 </p>
               </div>
