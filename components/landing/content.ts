@@ -99,7 +99,7 @@ export const SERVICES: Record<ServiceId, Service> = {
     ],
     priceNote: "Individualus pasiūlymas pagal jūsų progą.",
     contact: "Vanduo Marse",
-    cta: { href: "/skaiciuokle", label: "Apskaičiuok šventės kainą" },
+    cta: { href: "/sventes#rezervuoti", label: "Apskaičiuok šventės kainą" },
   },
   cabins: {
     id: "cabins",

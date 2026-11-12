@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/sauna-photos/**" },
     ],
   },
+  // The standalone calculator page was folded into the celebrations page (/sventes), which has the same calculator.
+  async redirects() {
+    return [{ source: "/skaiciuokle", destination: "/sventes", permanent: true }];
+  },
   async headers() {
     return [{ source: "/((?!embed).*)", headers: SECURITY_HEADERS }];
   },

@@ -101,9 +101,7 @@ export function ServiceReviews({ service }: { service: ServiceId }) {
                 <a href={source.href} className="inline-flex min-h-11 items-center gap-2 text-xs text-copy underline underline-offset-4 hover:text-ink">
                   {source.label}<ArrowUpRightIcon aria-hidden className="size-4 shrink-0" />
                 </a>
-              ) : (
-                <p className="text-xs text-copy">{source.label}</p>
-              )}
+              ) : null}
             </div>
           </li>
         ))}

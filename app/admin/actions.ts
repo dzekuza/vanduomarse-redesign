@@ -856,7 +856,7 @@ const stayTypeInput = z.object({
 });
 
 const revalidateStays = () => {
-  for (const path of ["/rezervacija", "/nakvyne", "/embed/miegas", "/skaiciuokle"]) revalidatePath(path);
+  for (const path of ["/rezervacija", "/nakvyne", "/embed/miegas", "/sventes"]) revalidatePath(path);
 };
 
 /** Owner-only (RLS `owner stay types *`): prices, stock and guest limits drive every public booking. */
