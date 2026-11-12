@@ -1,3 +1,9 @@
+## 2026-11-13 — PR #53 review follow-ups
+
+- **Changed:** unique migration versions (file rename only), `stopPropagation` in `WakeCheckoutDialog`, plan checks before the rider is saved in `registerRider`, error logging for `online_plans` and photo signing.
+- **Status:** tsc/eslint clean; not browser-checked. PR open.
+- **Next:** one full run: register + Stripe test payment, then check the rider's plan, purchase and emails.
+
 ## 2026-11-13 — Plaukimas items from the database
 
 - **Found:** Plaukimas read coupon products (none exist for rides) and the 13 swim plans in `ride_plans` were all `sold_online = false`.
@@ -25,14 +31,14 @@
 
 ## 2026-11-13 — /paskyra Vandenlentės actions
 
-- **Changed:** `RiderPlans` buttons (browse plans, finish registration); `MyRider.registered`; migration `20261113160000_my_riders_registered.sql` (drop + recreate `my_riders()` with `registered`).
+- **Changed:** `RiderPlans` buttons (browse plans, finish registration); `MyRider.registered`; migration `20261113161000_my_riders_registered.sql` (drop + recreate `my_riders()` with `registered`).
 - **Status:** tsc/eslint clean; migration APPLIED and verified (returns `registered`; anon cannot execute, authenticated can). Not browser-checked.
 - **Next:** check with an account whose rider has no photo/waiver.
 
 ## 2026-11-13 — WAKE season pass = bracelet plan purchase
 
 - **Why:** the pass should be an actual apyrankė purchase (registration, payment, plan on the rider), not a coupon code.
-- **Changed:** migration `20261113150000_rider_plan_orders.sql` (applied to the live DB after the user asked again, verified); hand-edited `database.types.ts`; `WakeOffer` + `getWakeOffers()`; `registerRider` takes `planId` and returns a Checkout URL; `lib/plan-checkout.ts`, `lib/plan-payment.ts`, `stripe-events.ts` branch; `/registracija?abonementas=`, `/registracija/apmoketa`; the Wake button links to the registration for plans.
+- **Changed:** migration `20261113151000_rider_plan_orders.sql` (applied to the live DB after the user asked again, verified); hand-edited `database.types.ts`; `WakeOffer` + `getWakeOffers()`; `registerRider` takes `planId` and returns a Checkout URL; `lib/plan-checkout.ts`, `lib/plan-payment.ts`, `stripe-events.ts` branch; `/registracija?abonementas=`, `/registracija/apmoketa`; the Wake button links to the registration for plans.
 - **Status:** tsc/eslint clean; nothing tested end to end.
 - **Next:** register + pay with a Stripe test card and check `riders.plan_id`, `purchases`, `rider_plan_orders` and both emails; add a `sold_online` toggle in /admin/apyrankes → Planai.
 

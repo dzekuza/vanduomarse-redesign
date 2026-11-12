@@ -55,7 +55,13 @@ export function WakeCheckoutDialog({ product, open, onClose }: WakeCheckoutDialo
           <DialogTitle className="font-display text-heading font-bold uppercase">Užbaik užsakymą</DialogTitle>
           <DialogDescription className="text-copy">{product.name}</DialogDescription>
         </header>
-        <form onSubmit={submit} noValidate className="min-h-0 space-y-5 overflow-y-auto p-6 pt-0">
+        <form
+          onSubmit={(event) => {
+            // The dialog is portaled but React still bubbles the event to a surrounding <form> (the reservation form): keep it here.
+            event.stopPropagation();
+            void submit(event);
+          }}
+          noValidate className="min-h-0 space-y-5 overflow-y-auto p-6 pt-0">
           <Field id="wake-name" label="Vardas, pavardė" error={errors.buyerName?.message}>
             <Input id="wake-name" autoComplete="name" aria-invalid={!!errors.buyerName} className="min-h-11" {...register("buyerName")} />
           </Field>

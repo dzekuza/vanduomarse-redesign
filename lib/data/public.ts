@@ -283,6 +283,8 @@ export const getCouponProducts = cache(loadCouponProducts);
 /** WAKE offers: coupon rides, plus the bracelet plans sold online (season passes). Plans need `online_plans()`; without it only coupons show. */
 async function loadWakeOffers(): Promise<WakeOffer[]> {
   const [products, plans] = await Promise.all([getCouponProducts(), createPublicClient().rpc("online_plans")]);
+  // A missing function (migration not applied yet) is expected and quiet; any other failure must leave a trace.
+  if (plans.error && plans.error.code !== "PGRST202") console.error("Public data: online_plans failed", plans.error.message);
   const planOffers: WakeOffer[] = (plans.data ?? []).map((plan) => ({
     id: plan.id,
     kind: "paslauga",

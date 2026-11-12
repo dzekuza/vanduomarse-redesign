@@ -10,7 +10,7 @@ updated: 2026-11-12
 > it (don't append) whenever the state changes. History belongs in [[session-log]]
 > and [[changelog]], not here.
 
-**WAKE season pass as bracelet plan + account registration view (2026-11-13, ADR-0080): in PR `feat/wake-pass-plan-purchase`; migrations `20261113150000/160000/170000` APPLIED to the live DB; nothing tested end to end (register + Stripe test payment still to do).**
+**WAKE season pass as bracelet plan + account registration view (2026-11-13, ADR-0080): in PR `feat/wake-pass-plan-purchase`; migrations `20261113151000/161000/170000` APPLIED to the live DB; nothing tested end to end (register + Stripe test payment still to do).**
 
 **Last updated:** 2026-11-13 (auto-confirm + detailed paid SMS, ADR-0079, branch `feat/auto-confirm-paid-sms` in a separate worktree, uncommitted, migration `20261113150000` not applied; browser-Back release on branch `fix/release-on-browser-back`, uncommitted; payment-release hardening on branch `fix/payment-release-hardening`, uncommitted; PR #48 open: cancelled Stripe payments free their slots at once, ADR-0077; coupon work and abuse guards are merged and live)
 
