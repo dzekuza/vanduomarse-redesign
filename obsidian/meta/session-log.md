@@ -1,3 +1,9 @@
+## 2026-11-13 — Auto-confirm migration applied; sauna sessions classified by category
+
+- **Done:** PR #51 merged and deployed, migration `20261113150000` applied and verified (`complete_payment` returns `confirmed`, `paid_request_details` service-role only). Checking PR-1021 showed sauna sessions are `events.category = 'pirtis'` with no `program_id`, so they would read "Renginys:" in the SMS.
+- **Changed:** migration `20261113160000` (classify by category). PR follows.
+- **Next:** test one real paid sauna booking and read the SMS.
+
 ## 2026-11-13 — Auto-confirm paid reservations and a detailed confirmation SMS
 
 - **Why:** owner: after payment the customer got "Uzklausas patvirtinsime netrukus" and staff had to confirm; they should get the booking details and need no staff step.
