@@ -67,7 +67,7 @@ export function PriceGroupForm({ group, items }: { group: PriceGroup; items: Pri
                     <Input
                       inputMode="decimal"
                       aria-label={`${item.label}, iki`}
-                      className="w-20 text-right tabular-nums sm:w-24"
+                      className="h-11 w-20 text-right tabular-nums"
                       aria-invalid={!!errors?.[i]?.max}
                       {...register(`items.${i}.max`)}
                     />

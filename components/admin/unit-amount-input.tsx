@@ -12,7 +12,7 @@ export function UnitAmountInput({ unit, className, "aria-invalid": ariaInvalid, 
   return (
     <div
       className={cn(
-        "flex h-11 min-w-28 items-center gap-1.5 border border-input bg-card px-3 has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring",
+        "flex h-11 w-fit items-center gap-1.5 border border-input bg-card px-3 has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring",
         ariaInvalid ? "border-destructive has-[:focus-visible]:ring-destructive/20" : "",
         className,
       )}
@@ -21,7 +21,7 @@ export function UnitAmountInput({ unit, className, "aria-invalid": ariaInvalid, 
       <input
         inputMode="decimal"
         aria-invalid={ariaInvalid}
-        className="w-full min-w-0 border-0 bg-transparent p-0 text-right text-base tabular-nums outline-none md:text-sm"
+        className="min-w-12 border-0 bg-transparent p-0 text-right text-base [field-sizing:content] tabular-nums outline-none md:text-sm"
         {...props}
       />
     </div>
