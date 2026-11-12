@@ -2,12 +2,13 @@
 
 import { useSearchParams } from "next/navigation";
 import { AdminPage } from "../admin-page";
+import { CustomersTab } from "./customers-tab";
 import { PlansTab } from "./plans-tab";
 import { SalesTab } from "./sales-tab";
 import { ScanTab } from "./scan-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const TAB_IDS = ["skenavimas", "pardavimas", "planai"] as const;
+const TAB_IDS = ["skenavimas", "pardavimas", "klientai", "planai"] as const;
 
 /** Apyrankės: USB IC/RFID bracelet scanning, plan sales and the plan catalogue. Riders live in Klientai (ADR-0042). */
 export function ApyrankesView() {
@@ -24,6 +25,9 @@ export function ApyrankesView() {
           <TabsTrigger value="pardavimas" className="min-h-11">
             Pardavimas
           </TabsTrigger>
+          <TabsTrigger value="klientai" className="min-h-11">
+            Klientai
+          </TabsTrigger>
           <TabsTrigger value="planai" className="min-h-11">
             Planai
           </TabsTrigger>
@@ -33,6 +37,9 @@ export function ApyrankesView() {
         </TabsContent>
         <TabsContent value="pardavimas" className="mt-6">
           <SalesTab />
+        </TabsContent>
+        <TabsContent value="klientai" className="mt-6">
+          <CustomersTab />
         </TabsContent>
         <TabsContent value="planai" className="mt-6">
           <PlansTab />
