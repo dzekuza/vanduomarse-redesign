@@ -4,7 +4,8 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Card, Field } from "@/mobile/src/components/primitives";
+import { CodeLoginForm } from "@/mobile/src/components/code-login-form";
+import { Button, Card, Chip, Field } from "@/mobile/src/components/primitives";
 import { supabase } from "@/mobile/src/lib/supabase";
 import { useMobileAdmin } from "@/mobile/src/store/admin-context";
 import { useAppTheme, type AppTheme } from "@/mobile/src/theme/use-app-theme";
@@ -20,6 +21,7 @@ export function LoginScreen() {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState<"password" | "code">("password");
 
   const {
     control,
@@ -58,6 +60,15 @@ export function LoginScreen() {
         </View>
 
         <Card>
+          <View style={styles.modes}>
+            <Chip label="Slaptažodis" active={mode === "password"} onPress={() => setMode("password")} />
+            <Chip label="El. pašto kodas" active={mode === "code"} onPress={() => setMode("code")} />
+          </View>
+
+          {mode === "code" ? (
+            <CodeLoginForm />
+          ) : (
+            <>
           <Controller
             control={control}
             name="email"
@@ -103,6 +114,8 @@ export function LoginScreen() {
             disabled={submitting}
             onPress={handleSubmit(onSubmit)}
           />
+            </>
+          )}
         </Card>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -202,6 +215,11 @@ function createStyles(theme: AppTheme) {
     rootError: {
       ...type.xsBold,
       color: colors.rustInk,
+    },
+    modes: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
     },
     actions: {
       gap: spacing.sm,

@@ -10,7 +10,13 @@
       "supportsTablet": true,
       "bundleIdentifier": "lt.vanduomarse.admin",
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "plugins": [
@@ -25,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "owner": "gvozdovicstudios",
+    "extra": {
+      "eas": {
+        "projectId": "455eaf91-ac9f-4f57-a826-08a1bad239db"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/455eaf91-ac9f-4f57-a826-08a1bad239db"
     }
   }
 }
