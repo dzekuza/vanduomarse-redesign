@@ -1,3 +1,10 @@
+## 2026-11-13 — Mobile app to Expo SDK 58
+
+- **Why:** Expo Go on the owner's iPhone is SDK 58; the app was SDK 53 ("Project is incompatible with this version of Expo Go").
+- **Done:** direct upgrade (expo-upgrade skill) in worktree branch `feat/mobile-expo-sdk-58`, stacked on `feat/mobile-admin-app`; two code fixes; doctor/typecheck/iOS export pass.
+- **Not done / watch:** not run on a device; `expo-notifications` push needs a check on a real iPhone; Expo recommends one SDK at a time, this was a direct jump.
+- **Next:** `cd mobile && npx expo start -c`, open in Expo Go; renumber the mobile ADR (it is ADR-0083 on that branch, but 0083 is taken on `main`).
+
 ## 2026-11-13 — Coloured status badges
 
 - **Changed:** `--status-warn/ok/bad` tokens; `StatusPill` tints (exported); sales table and discount-code state use it.
