@@ -4,6 +4,13 @@
 - **Status:** tsc/eslint clean; not tested with a real send.
 - **Open:** which other bookings ("home"?) should show renginiai@ is unclear; phone number unchanged.
 
+## 2026-11-13 — Live updates in the admin
+
+- **Why:** new bookings and payment status changes needed a manual reload.
+- **Found:** `supabase_realtime` had no tables; staff already have SELECT policies on the activity tables; no browser Supabase client existed.
+- **Changed:** migration `20261113220000_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
+- **Status:** tsc/eslint clean; not tested with a live event.
+- **Next:** open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
 ## 2026-11-13 — OTP blocks per channel
 
 - **Found:** the code field always drew 8 blocks, but an SMS code has 6 (e-mail has 8).
