@@ -334,6 +334,12 @@ export interface Coupon {
   /** yyyy-mm-dd */
   expiresAt?: string;
   redemptions: { id: string; amount: number; note: string; at: string }[];
+  /** Paid through Stripe Checkout, so the money can be returned there. */
+  paidOnline: boolean;
+  /** What the buyer paid: the face value minus any discount code. */
+  paidAmount: number;
+  /** Euros already returned to the buyer; 0 = nothing. */
+  refundedAmount: number;
   /** Linked customer (Klientai), the buyer, when matched or created. ADR-0042 */
   riderId?: string;
 }

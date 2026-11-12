@@ -52,6 +52,7 @@ type Action =
   | { type: "program/upsert"; program: SaunaProgram }
   | { type: "program/delete"; id: string }
   | { type: "coupon/cancel"; id: string }
+  | { type: "coupon/refunded"; id: string; amount: number }
   | { type: "couponProduct/upsert"; product: CouponProduct }
   | { type: "couponProduct/delete"; id: string }
   | { type: "discountCode/active"; id: string; active: boolean }
@@ -178,6 +179,8 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, programs: state.programs.filter((p) => p.id !== action.id) };
     case "coupon/cancel":
       return { ...state, coupons: state.coupons.map((c) => (c.id === action.id ? { ...c, status: "atsauktas" } : c)) };
+    case "coupon/refunded":
+      return { ...state, coupons: state.coupons.map((c) => (c.id === action.id ? { ...c, refundedAmount: action.amount } : c)) };
     case "couponProduct/upsert": {
       const exists = state.couponProducts.some((p) => p.id === action.product.id);
       return {
@@ -462,6 +465,14 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "coupon/cancel", id });
         return report(actions.cancelCoupon(id));
       },
+      /** Not optimistic: Stripe decides. Returns the euros refunded. */
+      refundCoupon: async (id: string) => {
+        const result = await report(actions.refundCoupon(id));
+        if ("data" in result) dispatch({ type: "coupon/refunded", id, amount: result.data.refunded });
+        return result;
+      },
+      /** The coupon as a PDF (base64), for the download button. */
+      couponPdf: (id: string) => report(actions.couponPdf(id)),
       /** Not optimistic: the reference and price come from the database. */
       createRental: async (input: StaffRentalInput) => {
         const result = await actions.createRental(input);
