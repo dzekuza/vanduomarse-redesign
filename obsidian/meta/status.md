@@ -5,6 +5,8 @@ updated: 2026-11-12
 
 # Current status — vanduomarse-redesign
 
+**Staff paid notification (2026-11-13, ADR-0084): SMS, e-mail and push now include customer name, phone, e-mail, each request (date, time, people, price) and discount code; migration `20261115110000_paid_staff_details.sql` APPLIED; on branch `feat/paid-notification-details`, uncommitted; tsc/eslint clean, not yet seen from a real payment. Next: make a 1,50 € test payment and read the SMS and e-mail.**
+
 **Page content editor (2026-11-13, ADR-0083): owner-only `/admin/puslapiai` edits texts, info boxes, FAQ and photos of the public service pages; migration `20261115100000_page_content.sql` APPLIED; public merge verified with a temporary row (removed), the editor UI not browser-checked, uncommitted. Next: try it signed in as owner (edit, upload, restore defaults); then extend to the home page, /renginiai and /kontaktai texts.**
 
 **Apyrankės Klientai tab (2026-11-13): `/admin/apyrankes?tab=klientai` lists customers with a plan or plan purchase (`CustomersTab`, filters Visi / Aktyvūs planai / Abonementai); tsc/eslint clean, uncommitted, not browser-checked. Next: check at 375 / 768 / 1024 px signed in; decide whether subscriptions need expiry dates (plans have none, so "active" = has a current plan).**

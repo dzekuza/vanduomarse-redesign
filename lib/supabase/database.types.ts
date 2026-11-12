@@ -2751,6 +2751,20 @@ export type Database = {
         Returns: number
       }
       payment_notify_email: { Args: { p_payment_id: string }; Returns: string }
+      paid_staff_details: {
+        Args: { p_payment_id: string }
+        Returns: {
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          discount_code: string
+          note: string
+          people: number
+          reference: string
+          total: number
+          units: number
+        }[]
+      }
       paid_request_details: {
         Args: { p_payment_id: string }
         Returns: {

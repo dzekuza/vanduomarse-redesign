@@ -1,6 +1,6 @@
 import "server-only";
 import type { NotifyService } from "@/lib/contacts";
-import type { PaidRequest } from "@/lib/paid-request";
+import { staffCustomer, staffRequestLine, type PaidRequest } from "@/lib/paid-request";
 import {
   emailOutcome,
   emailPaid,
@@ -77,18 +77,26 @@ export const notifyPaymentReceived = (
   review: boolean,
   requests: PaidRequest[] = [],
   confirmed = false,
-) =>
-  settle(
+) => {
+  const customer = staffCustomer(requests, contact);
+  return settle(
     notifyPaid(contact.phone, references, amount, requests, confirmed),
     emailPaid(contact.email, references, amount, requests, confirmed),
-    notifyStaffPaid(references, amount, review),
-    emailStaffPaid(references, amount, review),
+    notifyStaffPaid(references, amount, review, requests, contact),
+    emailStaffPaid(references, amount, review, requests, contact),
     sendStaffPush("mokejimai", {
       title: review ? "Patikrinti apmokėjimą" : "Apmokėta rezervacija",
-      body: `${references.join(", ")} · ${Number.isInteger(amount) ? amount : amount.toFixed(2)} €`,
+      body: [
+        `${references.join(", ")} · ${Number.isInteger(amount) ? amount : amount.toFixed(2)} €`,
+        [customer?.name, customer?.phone, customer?.email].filter(Boolean).join(" · "),
+        ...requests.map(staffRequestLine),
+      ]
+        .filter(Boolean)
+        .join("\n"),
       data: { references: references.join(",") },
     }),
   );
+};
 
 export const notifyDuplicatePayment = (references: string[], amount: number) =>
   settle(

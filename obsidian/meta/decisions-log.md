@@ -19,6 +19,12 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0084 — The staff "paid" notification carries who booked and what (extends ADR-0079)
+
+- **Context:** the staff SMS read only "Apmoketa ir patvirtinta MM-1103: 1.50 EUR. Zr. /admin"; staff had to open the admin to learn who paid and for what.
+- **Decision:** service-role function `paid_staff_details(payment_id)` returns, per request, the customer name, e-mail, phone, people, units, price, discount code and note. `loadPaidRequests` merges it into `PaidRequest.staff` and the webhook now loads the requests for every payment (the customer messages still use them only when `confirmed`). Staff SMS (ASCII), staff e-mail (time of payment, customer block, one block per request, code, notes) and the staff push all list the customer and each request with date, time, people and price. A failed read of the details leaves those lines out; the payment's own phone/e-mail are the fallback contact.
+- **Unchanged:** customer messages; duplicate-payment alerts; coupon and plan payments (their own staff mails already list buyer and product).
+
 ## ADR-0083 — One customer per phone number or e-mail: orders and registration link to the existing customer
 
 - **Date:** 2026-11-13. **Status:** code done; migration `20261113230000_link_customers_by_contact.sql` APPLIED to the live project 2026-11-13 and verified (4 triggers, 6 orders left unlinked, rider count unchanged at 8958, PR-1021 on the registered profile).

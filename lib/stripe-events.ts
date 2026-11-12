@@ -55,7 +55,9 @@ async function onPaid(session: Stripe.Checkout.Session) {
   const { data: email, error: emailError } = await admin.rpc("payment_notify_email", { p_payment_id: paid.payment_id });
   if (emailError) console.error("Stripe webhook: payment_notify_email failed, customer email skipped", paid.payment_id);
   // The database confirmed the paid requests itself (`confirmed`): the customer gets what was booked, no staff step.
-  const requests = paid.confirmed ? await loadPaidRequests(paid.payment_id) : [];
+  // Loaded for every payment: staff need who booked and what, also when the payment needs a look. The customer
+  // messages only use the list when `confirmed`.
+  const requests = await loadPaidRequests(paid.payment_id);
   await notifyPaymentReceived({ phone: paid.phone, email: email ?? null }, paid.refs, paid.amount, paid.needs_review, requests, paid.confirmed);
 }
 

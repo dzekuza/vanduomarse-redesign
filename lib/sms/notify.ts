@@ -1,6 +1,6 @@
 import "server-only";
 import { MAIN_CONTACT } from "@/lib/contacts";
-import { contactFor, requestDate, requestHeading, requestTime, type PaidRequest } from "@/lib/paid-request";
+import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, staffExtras, staffRequestLine, type PaidRequest } from "@/lib/paid-request";
 import { formatHour } from "@/lib/sauna";
 import type { MessageTopic } from "@/lib/notification-topics";
 import { sendStaffSms } from "./staff-recipients";
@@ -94,8 +94,19 @@ export const notifyStaffDuplicate = (references: string[], amount: number) =>
   sendStaffSms("mokejimai", `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
 
 /** Heads-up for staff when a reservation is paid; `review` flags a payment that needs a manual look (late or odd amount). */
-export const notifyStaffPaid = (references: string[], amount: number, review: boolean) =>
-  sendStaffSms(
-    "mokejimai",
-    `${review ? "PATIKRINTI APMOKEJIMA" : "Apmoketa ir patvirtinta"} ${references.join(", ")}: ${eur(amount)} EUR. Zr. /admin`,
-  );
+export const notifyStaffPaid = (references: string[], amount: number, review: boolean, requests: PaidRequest[] = [], contact: { phone?: string | null; email?: string | null } = {}) =>
+  sendStaffSms("mokejimai", staffPaidText(references, amount, review, requests, contact));
+
+/** The staff text of a paid reservation: headline, who booked (name, phone, e-mail), each request with date, time, people and price, any code. */
+export function staffPaidText(references: string[], amount: number, review: boolean, requests: PaidRequest[], contact: { phone?: string | null; email?: string | null }): string {
+  const customer = staffCustomer(requests, contact);
+  const { discountCodes } = staffExtras(requests);
+  const lines = [
+    `${review ? "PATIKRINTI APMOKEJIMA" : "Apmoketa ir patvirtinta"} ${references.join(", ")}: ${eur(amount)} EUR`,
+    ...(customer ? [[customer.name, customer.phone, customer.email].filter(Boolean).join(", ")] : []),
+    ...requests.map(staffRequestLine),
+    ...(discountCodes.length ? [`Nuolaida: ${discountCodes.join(", ")}`] : []),
+    "Zr. /admin",
+  ];
+  return ascii(lines.join("\n"));
+}
