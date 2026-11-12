@@ -8,7 +8,7 @@ const EMBED_SRC = `https://www.google.com/maps?q=${PARK_LOCATION.latitude},${PAR
  */
 export function ParkMap() {
   return (
-    <div className="aspect-4/3 w-full overflow-hidden border border-line bg-card sm:aspect-video">
+    <div className="aspect-4/3 w-full overflow-hidden border border-line bg-card lg:aspect-square">
       <iframe
         title="Vanduo Marse vieta žemėlapyje"
         src={EMBED_SRC}
