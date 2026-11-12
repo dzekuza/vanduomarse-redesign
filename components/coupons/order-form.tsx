@@ -15,6 +15,7 @@ import { CouponDiscountField } from "@/components/coupons/coupon-discount-field"
 import { discountFor, type CheckedDiscount } from "@/lib/discount-codes";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
 import { formatEuro, isWakeSeasonPass, type CouponProduct } from "@/lib/coupons";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 const MESSAGE_MAX = 300;
 
@@ -90,7 +91,7 @@ export function OrderForm({ product }: { product: CouponProduct }) {
         <Input id="buyerEmail" type="email" autoComplete="email" aria-invalid={!!errors.buyerEmail} {...register("buyerEmail")} />
       </Field>
       <Field id="buyerPhone" label="Telefonas (nebūtina)" error={errors.buyerPhone?.message}>
-        <Input id="buyerPhone" type="tel" autoComplete="tel" placeholder="+370 612 34567" aria-invalid={!!errors.buyerPhone} {...register("buyerPhone")} />
+        <FormPhoneInput<CouponOrderInput> name="buyerPhone" control={control} id="buyerPhone" invalid={!!errors.buyerPhone} />
       </Field>
       <Field id="recipientName" label="Kam dovanojate (nebūtina)" error={errors.recipientName?.message}>
         <Input id="recipientName" {...register("recipientName")} />

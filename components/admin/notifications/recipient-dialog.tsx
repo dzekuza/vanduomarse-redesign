@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import type { NotificationRecipient } from "@/lib/admin/types";
 import { notificationRecipientInput, type NotificationRecipientInput } from "@/lib/notification-recipient-schema";
 import { NOTIFICATION_TOPICS, type NotificationTopic } from "@/lib/notification-topics";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 interface RecipientDialogProps {
   recipient?: NotificationRecipient;
@@ -59,7 +60,7 @@ export function RecipientDialog({ recipient, onOpenChange }: RecipientDialogProp
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="recipient-phone">Telefono numeris</Label>
-            <Input id="recipient-phone" type="tel" inputMode="tel" autoComplete="off" placeholder="+370 612 34567" aria-invalid={!!err.phone} className="min-h-11" {...register("phone")} />
+            <FormPhoneInput<NotificationRecipientInput> name="phone" control={control} id="recipient-phone" invalid={!!err.phone} />
             {err.phone ? <p className="text-xs text-destructive">{err.phone.message}</p> : null}
           </div>
           <Controller

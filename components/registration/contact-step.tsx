@@ -1,13 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { loadRegistrationDraft, saveRegistrationDraft, type RegistrationDraft } from "@/lib/registration-draft";
 import { registrationSchema, type RegistrationInput } from "@/lib/registration-schema";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { BirthdateInput } from "@/components/ui/birthdate-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 interface ContactStepProps {
   defaultValues: Partial<RegistrationInput>;
@@ -24,14 +27,32 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
   );
 }
 
-/** Step 1: contact details, plus the bot honeypot. */
+/** Step 1: contact details, remembered between page visits. Mounts the form once the saved draft has been read (client only). */
 export function ContactStep({ defaultValues, onNext }: ContactStepProps) {
+  const [draft, setDraft] = useState<RegistrationDraft | null | undefined>(undefined);
+
+  useEffect(() => {
+    setDraft(loadRegistrationDraft());
+  }, []);
+
+  if (draft === undefined) return null;
+  return <ContactForm defaultValues={{ ...defaultValues, ...draft }} onNext={onNext} />;
+}
+
+/** The contact fields, plus the bot honeypot. */
+function ContactForm({ defaultValues, onNext }: ContactStepProps) {
   const {
     register,
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<RegistrationInput>({ resolver: zodResolver(registrationSchema), defaultValues });
+
+  // Keep the draft up to date while typing.
+  const values = useWatch({ control });
+  useEffect(() => {
+    saveRegistrationDraft(values as Partial<RegistrationInput>);
+  }, [values]);
 
   return (
     <form onSubmit={handleSubmit(onNext)} className="space-y-5">
@@ -57,10 +78,10 @@ export function ContactStep({ defaultValues, onNext }: ContactStepProps) {
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="reg-phone" label="Telefonas" error={errors.phone?.message}>
-          <Input id="reg-phone" type="tel" autoComplete="tel" aria-invalid={!!errors.phone} className="min-h-11" {...register("phone")} />
+          <FormPhoneInput<RegistrationInput> name="phone" control={control} id="reg-phone" invalid={!!errors.phone} />
         </Field>
         <Field id="reg-phone2" label="Papildomas telefonas (nebūtina)" error={errors.phone2?.message}>
-          <Input id="reg-phone2" type="tel" autoComplete="tel" className="min-h-11" {...register("phone2")} />
+          <FormPhoneInput<RegistrationInput> name="phone2" control={control} id="reg-phone2" invalid={!!errors.phone2} />
         </Field>
       </div>
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" {...register("website")} />

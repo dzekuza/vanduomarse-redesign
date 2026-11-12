@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 const count = (min: number, max: number) => z.string().regex(/^\d+$/, "Skaičius.").refine((v) => Number(v) >= min && Number(v) <= max, `Nuo ${min} iki ${max}.`);
 
@@ -137,7 +138,7 @@ export function NewRentalDialog({ onOpenChange }: { onOpenChange: (open: boolean
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nr-phone">Telefonas</Label>
-            <Input id="nr-phone" type="tel" aria-invalid={!!err.phone} className="min-h-11" {...register("phone")} />
+            <FormPhoneInput<Values> name="phone" control={control} id="nr-phone" invalid={!!err.phone} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nr-email">El. paštas</Label>
