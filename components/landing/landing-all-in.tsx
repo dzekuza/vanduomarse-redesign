@@ -1,6 +1,7 @@
 import { EVENT_OPTIONS } from "./content";
 import { LandingAccordion } from "./landing-accordion";
-import { ServiceTextCta } from "./service-triggers";
+import Link from "next/link";
+import { TextCtaArrow, textCtaClass } from "@/components/cta";
 import { Reveal } from "@/components/reveal";
 import { SectionKicker } from "@/components/section-kicker";
 
@@ -25,7 +26,10 @@ export function LandingAllIn() {
             Jums nereikia derinti kelių skirtingų vietų – pasakykite, ką švenčiate, o mes pateiksime Jums
             paruoštą planą.
           </p>
-          <ServiceTextCta service="party">Gauti pasiūlymą</ServiceTextCta>
+          <Link href="/skaiciuokle" className={textCtaClass()}>
+            Gauti pasiūlymą
+            <TextCtaArrow />
+          </Link>
         </Reveal>
         <Reveal className="delay-150">
           <LandingAccordion rows={ROWS} variant="events" mode="single" />
