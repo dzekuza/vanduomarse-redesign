@@ -15,6 +15,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 /**
  * Rider/customer profile, documents and comments tabs — shared by Apyrankės's
@@ -139,11 +140,11 @@ export function RiderProfileTab({ rider }: { rider: Rider }) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="r-phone">Telefonas</Label>
-          <Input id="r-phone" type="tel" {...register("phone")} />
+          <FormPhoneInput<ProfileValues> name="phone" control={control} id="r-phone" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="r-phone2">Papildomas telefonas</Label>
-          <Input id="r-phone2" type="tel" {...register("phone2")} />
+          <FormPhoneInput<ProfileValues> name="phone2" control={control} id="r-phone2" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="r-email">El. paštas</Label>

@@ -6,6 +6,7 @@ import type { NewBookingValues } from "./new-booking-schema";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 interface BookingCustomerFieldsProps {
   control: Control<NewBookingValues>;
@@ -52,7 +53,7 @@ export function BookingCustomerFields({ control, register, errors }: BookingCust
         <Input id="nb-name" autoComplete="off" aria-invalid={!!errors.name} {...register("name")} />
       </FormField>
       <FormField id="nb-phone" label="Telefonas" error={errors.phone?.message}>
-        <Input id="nb-phone" type="tel" inputMode="tel" aria-invalid={!!errors.phone} {...register("phone")} />
+        <FormPhoneInput<NewBookingValues> name="phone" control={control} id="nb-phone" invalid={!!errors.phone} />
       </FormField>
       <FormField id="nb-email" label="El. paštas" error={errors.email?.message} hint="Neprivaloma">
         <Input id="nb-email" type="email" aria-invalid={!!errors.email} {...register("email")} />

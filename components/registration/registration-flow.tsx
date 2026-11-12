@@ -5,6 +5,7 @@ import { useState } from "react";
 import { registerRider } from "@/app/actions/registration";
 import { goToCheckout } from "@/components/coupons/order-form";
 import { formatEuro } from "@/lib/coupons";
+import { clearRegistrationDraft } from "@/lib/registration-draft";
 import type { RegistrationInput } from "@/lib/registration-schema";
 import { CameraCapture } from "./camera-capture";
 import { ContactStep } from "./contact-step";
@@ -64,6 +65,7 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
         setError(result.error.message);
         return;
       }
+      clearRegistrationDraft();
       if (result.data.checkoutUrl) {
         setRedirecting(true);
         goToCheckout(result.data.checkoutUrl);

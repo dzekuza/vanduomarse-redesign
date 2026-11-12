@@ -12,6 +12,7 @@ import { phoneCodeSchema, phoneNumberSchema, type PhoneCodeValues, type PhoneNum
 import { ArrowButton } from "./arrow-button";
 import { BookingCard } from "./booking-card";
 import { StepLabel } from "./step-label";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 const STEP_TITLE = "Telefono patvirtinimas";
 
@@ -70,7 +71,7 @@ export function PhoneNumberStep({ onSent, initialPhone = "", description = "Prie
           <p className="text-sm text-ink/80">{description}</p>
           <div className="space-y-1.5">
             <Label htmlFor={id}>Telefonas</Label>
-            <Input id={id} type="tel" autoComplete="tel" placeholder="+370 612 34567" aria-invalid={!!errors.phone} {...form.register("phone")} />
+            <FormPhoneInput<PhoneNumberValues> name="phone" control={form.control} id={id} invalid={!!errors.phone} />
             <FieldError message={errors.phone?.message} />
           </div>
           {/* Shown only while the server allows it; the action re-checks, so the button alone grants nothing. */}

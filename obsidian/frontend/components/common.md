@@ -218,3 +218,4 @@ feature components in `components/<feature>/`. Admin screens build on
 - `ContactDetails` (`components/contact/contact-details.tsx`): address, map link and all contacts for `/kontaktai`.
 - Metadata for any public page: `pageMetadata()` / `metaDescription()` in `lib/seo.ts`.
 - `BookingPage` (`components/booking/booking-page.tsx`) now renders the skip link and the page's only `<main id="turinys">`; pages inside it must not add their own `<main>`.
+| `PhoneInput` / `FormPhoneInput` | `components/ui/phone-input.tsx`, `lib/phone-countries.ts` | Phone number with a country select (Lithuania +370 first). One stored string "+370 61234567"; `FormPhoneInput` binds it to react-hook-form by `name` and `control` (or a surrounding FormProvider). Use it for every phone field instead of a bare `type="tel"` input. |

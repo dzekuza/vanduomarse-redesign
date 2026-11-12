@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Input } from "@/components/ui/input";
 import { couponOrderSchema, type CouponOrderInput } from "@/lib/coupon-schema";
 import { formatEuro, isWakeSeasonPass, type WakeOffer } from "@/lib/coupons";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 interface WakeCheckoutDialogProps {
   product: WakeOffer;
@@ -23,7 +24,7 @@ interface WakeCheckoutDialogProps {
 export function WakeCheckoutDialog({ product, open, onClose }: WakeCheckoutDialogProps) {
   const [redirecting, setRedirecting] = useState(false);
   const season = isWakeSeasonPass(product);
-  const { register, handleSubmit, clearErrors, setError, formState } = useForm<CouponOrderInput>({
+  const { register, control, handleSubmit, clearErrors, setError, formState } = useForm<CouponOrderInput>({
     resolver: zodResolver(couponOrderSchema),
     values: { productId: product.id, buyerName: "", buyerEmail: "", buyerPhone: "", recipientName: "", recipientEmail: "", message: "", website: "" },
     resetOptions: { keepDirtyValues: true },
@@ -69,7 +70,7 @@ export function WakeCheckoutDialog({ product, open, onClose }: WakeCheckoutDialo
             <Input id="wake-email" type="email" autoComplete="email" aria-invalid={!!errors.buyerEmail} className="min-h-11" {...register("buyerEmail")} />
           </Field>
           <Field id="wake-phone" label="Telefonas (nebūtina)" error={errors.buyerPhone?.message}>
-            <Input id="wake-phone" type="tel" autoComplete="tel" placeholder="+370 612 34567" aria-invalid={!!errors.buyerPhone} className="min-h-11" {...register("buyerPhone")} />
+            <FormPhoneInput<CouponOrderInput> name="buyerPhone" control={control} id="wake-phone" invalid={!!errors.buyerPhone} />
           </Field>
           <input type="text" tabIndex={-1} autoComplete="off" aria-hidden className="sr-only" {...register("website")} />
           <BookingPrice

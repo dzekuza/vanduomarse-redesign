@@ -5,6 +5,7 @@ import { VerifiedPhoneField } from "@/components/booking/verified-phone-field";
 import { Input } from "@/components/ui/input";
 import { usePhoneVerification } from "@/hooks/use-phone-verification";
 import { Label } from "@/components/ui/label";
+import { FormPhoneInput } from "@/components/ui/phone-input";
 
 interface ContactValues {
   customerName: string;
@@ -43,7 +44,7 @@ export function ContactFields({ idPrefix }: { idPrefix: string }) {
         <VerifiedPhoneField id={`${idPrefix}-phone`} name="customerPhone" verification={verification} />
       ) : (
         <Field id={`${idPrefix}-phone`} label="Telefonas" error={err.customerPhone?.message}>
-          <Input id={`${idPrefix}-phone`} type="tel" autoComplete="tel" aria-invalid={!!err.customerPhone} {...register("customerPhone")} />
+          <FormPhoneInput<ContactValues> name="customerPhone" id={`${idPrefix}-phone`} invalid={!!err.customerPhone} />
         </Field>
       )}
       <Field id={`${idPrefix}-email`} label="El. paštas" error={err.customerEmail?.message}>

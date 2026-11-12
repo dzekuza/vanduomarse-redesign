@@ -6,6 +6,8 @@ import { confirmPhoneChange, sendPhoneChangeCode } from "@/app/actions/customer"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { phoneDigits } from "@/lib/phone-countries";
 
 /** Adds a phone to the account: number first, then the SMS code; the number counts once the code is confirmed. */
 export function AddPhone() {
@@ -62,9 +64,9 @@ export function AddPhone() {
       ) : (
         <>
           <Label htmlFor="add-phone">Telefono numeris</Label>
-          <Input id="add-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+370 612 34567" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <PhoneInput id="add-phone" value={phone} onChange={setPhone} />
           <div className="flex flex-wrap gap-3">
-            <Button type="button" size="lg" disabled={busy || phone.trim().length < 6} onClick={() => void send()}>
+            <Button type="button" size="lg" disabled={busy || phoneDigits(phone) < 8} onClick={() => void send()}>
               Siųsti kodą
             </Button>
             <Button type="button" variant="outline" size="lg" className="border-ink bg-transparent" disabled={busy} onClick={() => setOpen(false)}>
