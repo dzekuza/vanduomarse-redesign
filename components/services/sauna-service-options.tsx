@@ -9,15 +9,17 @@ export interface SaunaServiceVenue {
   /** The sauna has prices to book by the hour. */
   hasPrices: boolean;
   maxParty: number;
+  /** Announced ("Netrukus atsidarys"): shown, not selectable. */
+  comingSoon?: boolean;
 }
 
 const SAUNA_CONTACT = CONTACTS.find(({ name }) => name === "Pirtis Marse") ?? MAIN_CONTACT;
 
 const FINNISH_SAUNA_ID = "suomiska-sauna";
 
-/** Show the Finnish sauna first, then the other active saunas in catalogue order. */
+/** Show the Finnish sauna first among active venues, followed by announced venues. */
 export function saunaServiceVenues(data: SaunaPageData): SaunaServiceVenue[] {
-  return data.saunas
+  const active = data.saunas
     .filter(({ active }) => active)
     .sort((a, b) => Number(b.id === FINNISH_SAUNA_ID) - Number(a.id === FINNISH_SAUNA_ID))
     .map(({ id, name, rates }) => ({
@@ -26,6 +28,14 @@ export function saunaServiceVenues(data: SaunaPageData): SaunaServiceVenue[] {
       maxParty: rates.maxParty,
       hasPrices: Object.keys(rates.weekdayPrices).length + Object.keys(rates.weekendPrices).length > 0,
     }));
+  const announced = data.comingSoonSaunas.map(({ id, name, rates }) => ({
+    id,
+    label: name,
+    maxParty: rates.maxParty,
+    hasPrices: false,
+    comingSoon: true,
+  }));
+  return [...active, ...announced];
 }
 
 interface SaunaServicePrivateOptionsProps {
@@ -48,10 +58,11 @@ export function SaunaServicePrivateOptions({ venues, venueId, onVenue, disabled 
           <WavesIcon size={18} aria-hidden /> Pirtis
         </legend>
         <div className="grid grid-cols-2 gap-2">
-          {venues.map(({ id, label, maxParty, hasPrices }) => (
-            <FilterChip key={id} active={id === venueId} onClick={() => onVenue(id)} className={hasPrices ? CHOICE : `${CHOICE} border-dashed`}>
+          {venues.map(({ id, label, maxParty, comingSoon }) => (
+            <FilterChip key={id} active={id === venueId} disabled={comingSoon} onClick={() => onVenue(id)} className={comingSoon ? `${CHOICE} border-dashed bg-dust-soft opacity-60` : CHOICE}>
               <span className="font-bold">{label}</span>
               <span className={id === venueId ? "text-dust/80" : "text-copy"}>Iki {maxParty} žmonių</span>
+              {comingSoon ? <span className="text-copy">Netrukus atsidarys</span> : null}
             </FilterChip>
           ))}
         </div>

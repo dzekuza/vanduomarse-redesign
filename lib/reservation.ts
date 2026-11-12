@@ -10,6 +10,8 @@ import { quadTourStarts } from "@/components/quads/quad-tour-plan";
 import { MAX_QUAD_RENTAL_UNITS, fleetRentalPrice, hourLabel, longestForFleet, type QuadRentalItem } from "@/lib/quads";
 import {
   formatHour,
+  FULL_DAY_HOURS,
+  fullDayStartHours,
   hoursLabel,
   isOpenStart,
   maxHoursFrom,
@@ -98,9 +100,12 @@ export interface SaunaPlan {
   /** The chosen pirtininkas (price included in `price`), if any. */
   master: SaunaMaster | null;
   startHour: number | null;
+  /** Real length: for "Visa diena" this is the run from the start to closing. */
   hours: number;
+  /** "Visa diena": billed at the full-day price whatever the start. */
+  fullDay: boolean;
   extras: Record<string, number>;
-  /** Longest session from the chosen start; 0 when the start is not bookable. */
+  /** Longest session from the chosen start (the full-day length when "Visa diena" fits); 0 when the start is not bookable. */
   maxHours: number;
   /** Lengths on offer that day (with the chosen extras), shortest first. */
   lengths: number[];
@@ -365,6 +370,7 @@ export function hourlyStartHours(data: SaunaPageData, sauna: Sauna, day: string,
   const taken = [...saunaTaken(data, sauna.id, day), ...busy];
   const past = pastHourOn(day, data.today, data.nowHour);
   const min = minHoursFor(rates, day, wantedHours);
+  if (min >= FULL_DAY_HOURS) return fullDayStartHours(taken, rates, day, past);
   return startHours(rates, min).filter((hour) => isOpenStart(taken, hour, rates, past, min));
 }
 
@@ -390,11 +396,15 @@ function planHourly(pick: SaunaPick, data: SaunaPageData, when: When, busy: read
     when.people <= rates.maxParty &&
     start >= rates.openHour &&
     isOpenStart(taken, start, rates, pastHourOn(when.day, data.today, data.nowHour), minHours);
-  const maxHours = ok ? maxHoursFrom(taken, start, rates) : 0;
-  const fitting = lengths.filter((h) => h <= maxHours);
-  const hours = fitting.find((h) => h >= pick.hours) ?? fitting[fitting.length - 1] ?? minHours;
+  const run = ok ? maxHoursFrom(taken, start, rates) : 0;
+  // "Visa diena" from a later start runs to closing; it fits when everything up to closing is free.
+  const fullDayOk = ok && lengths.includes(FULL_DAY_HOURS) && fullDayStartHours(taken, rates, when.day, -1).includes(start);
+  const maxHours = fullDayOk ? FULL_DAY_HOURS : run;
+  const fitting = lengths.filter((h) => (h === FULL_DAY_HOURS ? fullDayOk : h <= run));
+  const fullDay = fullDayOk && pick.hours >= FULL_DAY_HOURS;
+  const hours = fullDay ? rates.closeHour - start : (fitting.find((h) => h >= pick.hours) ?? fitting[fitting.length - 1] ?? minHours);
   const extrasPrice = upsells.reduce((sum, u) => sum + upsellTotal(u, extras[u.id] ?? 0, { partySize: when.people, hours }), 0);
-  return { kind: "pirtis", mode: "hourly", sauna, upsells, master, startHour: start, hours, extras, maxHours, lengths, ok, price: ok ? sessionPrice(hours, when.people, rates, when.day) + extrasPrice + (master?.price ?? 0) : 0 };
+  return { kind: "pirtis", mode: "hourly", sauna, upsells, master, startHour: start, hours, fullDay, extras, maxHours, lengths, ok, price: ok ? sessionPrice(hours, when.people, rates, when.day) + extrasPrice + (master?.price ?? 0) : 0 };
 }
 
 export function planQuads(pick: QuadPick, data: QuadPageData, day: string, busy: readonly number[] = []): QuadPlan {
@@ -477,7 +487,7 @@ export function describePlans(plans: Plans, when: When): PlanLine[] {
   if (pirtis?.mode === "hourly") {
     const extras = upsellSummary(pirtis.upsells, pirtis.extras);
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${formatHour(pirtis.startHour)}-${formatHour(pirtis.startHour + pirtis.hours)}`;
-    lines.push({ id: "pirtis", title: pirtis.sauna.name.startsWith("Pirtis") ? pirtis.sauna.name : `Pirtis · ${pirtis.sauna.name}`, detail: [hoursLabel(pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : []), ...extras].join(", "), schedule: `${dayLabel}, ${time}`, price: pirtis.price });
+    lines.push({ id: "pirtis", title: pirtis.sauna.name.startsWith("Pirtis") ? pirtis.sauna.name : `Pirtis · ${pirtis.sauna.name}`, detail: [hoursLabel(pirtis.fullDay ? FULL_DAY_HOURS : pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : []), ...extras].join(", "), schedule: `${dayLabel}, ${time}`, price: pirtis.price });
   } else if (pirtis) {
     const who = `${pirtis.adults} ${pirtis.children ? "suaug." : "žm."}${pirtis.children ? ` + ${pirtis.children} vaik.` : ""}`;
     const start = pirtis.mode === "session" && pirtis.session ? startMinute(pirtis.session.time) : (pirtis.startHour ?? 0) * 60;

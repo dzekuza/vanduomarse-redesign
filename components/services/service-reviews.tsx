@@ -1,10 +1,8 @@
 import { ArrowUpRightIcon, StarIcon } from "@phosphor-icons/react/dist/ssr";
 import type { ServiceId } from "@/components/landing/content";
 
-const GOOGLE_REVIEWS = {
-  label: "„Google Maps“ per „Wanderlog“",
-  href: "https://wanderlog.com/place/details/3272710/vanduo-marse",
-};
+/** Shown as plain text: the reviews are summaries and have no page of their own to link to. */
+const GOOGLE_REVIEWS = { label: "„Google Maps“" };
 
 const BOOKING_REVIEWS = {
   label: "Booking.com",
@@ -16,7 +14,7 @@ interface VisitorReview {
   topic: string;
   summary: string;
   rating?: string;
-  source: { label: string; href: string };
+  source: { label: string; href?: string };
 }
 
 const park: VisitorReview[] = [
@@ -99,9 +97,13 @@ export function ServiceReviews({ service }: { service: ServiceId }) {
             <p className="grow text-sm leading-loose">{summary}</p>
             <div className="border-t border-line pt-3">
               <p className="break-words text-xs font-bold">{name}</p>
-              <a href={source.href} className="inline-flex min-h-11 items-center gap-2 text-xs text-copy underline underline-offset-4 hover:text-ink">
-                {source.label}<ArrowUpRightIcon aria-hidden className="size-4 shrink-0" />
-              </a>
+              {source.href ? (
+                <a href={source.href} className="inline-flex min-h-11 items-center gap-2 text-xs text-copy underline underline-offset-4 hover:text-ink">
+                  {source.label}<ArrowUpRightIcon aria-hidden className="size-4 shrink-0" />
+                </a>
+              ) : (
+                <p className="text-xs text-copy">{source.label}</p>
+              )}
             </div>
           </li>
         ))}

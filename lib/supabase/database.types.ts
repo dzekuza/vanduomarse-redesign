@@ -1728,6 +1728,7 @@ export type Database = {
         Row: {
           active: boolean
           close_hour: number
+          coming_soon: boolean
           created_at: string
           description: string
           extra_guest_fee: number
@@ -1754,6 +1755,7 @@ export type Database = {
         Insert: {
           active?: boolean
           close_hour: number
+          coming_soon?: boolean
           created_at?: string
           description?: string
           extra_guest_fee?: number
@@ -1780,6 +1782,7 @@ export type Database = {
         Update: {
           active?: boolean
           close_hour?: number
+          coming_soon?: boolean
           created_at?: string
           description?: string
           extra_guest_fee?: number

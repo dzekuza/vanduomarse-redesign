@@ -69,8 +69,8 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
   const last = addDays(today, Math.max(availabilityWindow?.days ?? SAUNA_DAYS, eventDays) - 1);
 
   const [saunas, upsells, masters, programs, taken, events] = await Promise.all([
-    // RLS limits anon to active saunas.
-    supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").eq("active", true).order("sort_order").order("created_at"),
+    // RLS limits anon to active and coming-soon saunas.
+    supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").or("active.eq.true,coming_soon.eq.true").order("sort_order").order("created_at"),
     supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"),
     supabase.from("sauna_masters").select("*").eq("active", true).order("sort_order").order("created_at"),
     supabase.from("sauna_programs").select("*").eq("active", true).order("sort_order"),
@@ -104,14 +104,16 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
   const activeUpsells = must(upsells, "Sauna upsells").map(toUpsell);
   const offered = new Set(activeUpsells.map((u) => u.id));
   const { url } = supabaseEnv();
+  const allSaunas = must(saunas, "Saunas").map((r) => {
+    const sauna = toSauna(r, r.sauna_upsell_links, url);
+    return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
+  });
 
   return {
     today,
     nowHour: vilniusHour(now),
-    saunas: must(saunas, "Saunas").map((r) => {
-      const sauna = toSauna(r, r.sauna_upsell_links, url);
-      return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
-    }),
+    saunas: allSaunas.filter((s) => s.active),
+    comingSoonSaunas: allSaunas.filter((s) => s.comingSoon),
     upsells: activeUpsells,
     masters: must(masters, "Sauna masters").map(toSaunaMaster),
     programs: must(programs, "Sauna programs").map(toSaunaProgram),

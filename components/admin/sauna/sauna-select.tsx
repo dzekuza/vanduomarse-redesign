@@ -23,7 +23,7 @@ export function SaunaSelect({ id, value, onChange, className = "w-full", invalid
         {saunas.map((s) => (
           <SelectItem key={s.id} value={s.id}>
             {s.name}
-            {s.active ? null : <span className="text-muted-foreground"> (paslėpta)</span>}
+            {s.active ? null : <span className="text-muted-foreground">{s.comingSoon ? " (netrukus)" : " (paslėpta)"}</span>}
           </SelectItem>
         ))}
       </SelectContent>

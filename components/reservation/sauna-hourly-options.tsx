@@ -2,7 +2,7 @@
 
 import { DurationPicker } from "@/components/booking/duration-picker";
 import { UpsellPicker } from "@/components/booking/upsell-picker";
-import { sessionPrice } from "@/lib/sauna";
+import { FULL_DAY_HOURS, sessionPrice } from "@/lib/sauna";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { SaunaPick, SaunaPlan, When } from "@/lib/reservation";
 import { MasterPicker } from "./master-picker";
@@ -29,7 +29,7 @@ export function SaunaHourlyOptions({ plan, masters, pick, when, onChange }: Saun
       />
       <div>
         <OptionGroupLabel>Trukmė</OptionGroupLabel>
-        <DurationPicker lengths={plan.lengths} price={(h) => sessionPrice(h, when.people, plan.sauna.rates, when.day)} startHour={plan.startHour} maxHours={plan.maxHours} selected={plan.hours} onSelect={(hours) => onChange({ ...pick, hours })} />
+        <DurationPicker lengths={plan.lengths} price={(h) => sessionPrice(h, when.people, plan.sauna.rates, when.day)} startHour={plan.startHour} maxHours={plan.maxHours} selected={plan.fullDay ? FULL_DAY_HOURS : plan.hours} sessionHours={plan.hours} onSelect={(hours) => onChange({ ...pick, hours })} />
       </div>
       {plan.upsells.length ? (
         <div>

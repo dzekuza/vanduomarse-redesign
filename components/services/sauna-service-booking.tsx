@@ -10,7 +10,7 @@ import type { SaunaPageData } from "@/lib/data/public-types";
 import { UpsellPicker } from "@/components/booking/upsell-picker";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { hourlyStartHours, MAX_PEOPLE, pickForRow, sessionRows, type PirtisPlan, type SaunaPick, type SessionRow } from "@/lib/reservation";
-import { dateKey } from "@/lib/sauna";
+import { dateKey, FULL_DAY_HOURS } from "@/lib/sauna";
 import { DateField } from "@/components/reservation/date-field";
 import { SaunaServiceHourly, SaunaServicePeople } from "./sauna-service-hourly";
 import { SaunaServicePrivateOptions, saunaServiceVenues } from "./sauna-service-options";
@@ -79,7 +79,7 @@ export function SaunaServiceBooking({
   /** A private booking is by the hour: one row holding the day's free starts; length and pirtininkas follow the start. */
   const hourlyRow = (day: string): SessionRow[] => {
     if (!sauna) return [];
-    const startHours = hourlyStartHours(data, sauna, day, [], hourly ? hourly.hours : Math.max(draft.hours, draftMaster?.minHours ?? 0));
+    const startHours = hourlyStartHours(data, sauna, day, [], hourly ? (hourly.fullDay ? FULL_DAY_HOURS : Math.max(pick.hours, hourly.hours)) : Math.max(draft.hours, draftMaster?.minHours ?? 0));
     return [{
       key: `h-${sauna.id}`, mode: "private", time: "", title: sauna.name, label: "", description: "", rate: "", seats: "",
       maxPeople: sauna.rates.maxParty, blocked: startHours.length === 0, programId: null, eventId: null, startHours,
@@ -143,11 +143,12 @@ export function SaunaServiceBooking({
           const dayRows = rowsFor(dateKey(day));
           if (mode === "session") return saunaSessionDayDetails(dayRows);
 
-          const available = dayRows.some(({ blocked }) => !blocked);
+          const free = dayRows[0]?.startHours?.length ?? 0;
+          const available = free > 0;
           const label = available ? "Laisva" : "Pilna";
           const color = available ? "text-availability-open" : "text-rust-ink";
           return {
-            label,
+            label: available ? `Laisvų laikų: ${free}` : label,
             available,
             indicator: (
               <span className="@container mx-auto block w-6">

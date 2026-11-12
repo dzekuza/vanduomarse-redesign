@@ -11,7 +11,7 @@ import { SaunaDetailsFields } from "./sauna-details-fields";
 import { SaunaRatesFields } from "./sauna-rates-fields";
 import { saunaSchema, type SaunaValues } from "./sauna-schema";
 import { SaunaUpsellsField } from "./sauna-upsells-field";
-import { DEFAULT_SAUNA_RATES, type Sauna } from "@/lib/sauna";
+import { DEFAULT_SAUNA_RATES, saunaStatus, type Sauna } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -22,7 +22,7 @@ const toValues = (s?: Sauna): SaunaValues => ({
   rates: ratesToValues(s?.rates ?? DEFAULT_SAUNA_RATES),
   upsellIds: s?.upsellIds ?? [],
   // A new sauna starts hidden, so photos can be added before visitors see it.
-  active: s?.active ?? false,
+  status: s ? saunaStatus(s) : "hidden",
 });
 
 /** Create or edit a sauna: details, features, rates with a live price table, and offered extras. */

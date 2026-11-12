@@ -14,11 +14,13 @@ interface DurationPickerProps {
   /** Longest run available from the start, capped by closing and the next booking. */
   maxHours: number;
   selected: number;
+  /** Real length of the chosen session when it differs from the tile (full day from a later start); for the end time. */
+  sessionHours?: number;
   onSelect: (hours: number) => void;
 }
 
 /** Session length from the chosen start: one row of tiles with the price on each, and the end time of the chosen one below. */
-export function DurationPicker({ lengths, price, startHour, maxHours, selected, onSelect }: DurationPickerProps) {
+export function DurationPicker({ lengths, price, startHour, maxHours, selected, sessionHours = selected, onSelect }: DurationPickerProps) {
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-4 gap-2">
@@ -33,7 +35,7 @@ export function DurationPicker({ lengths, price, startHour, maxHours, selected, 
           />
         ))}
       </div>
-      {selected > 0 ? <p className="text-xs text-copy">Seansas {formatHour(startHour)}–{formatHour(startHour + selected)}</p> : null}
+      {selected > 0 ? <p className="text-xs text-copy">Seansas {formatHour(startHour)}–{formatHour(startHour + sessionHours)}</p> : null}
     </div>
   );
 }
