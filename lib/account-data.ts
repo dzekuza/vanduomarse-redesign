@@ -155,7 +155,8 @@ export async function loadMyRiders(): Promise<MyRider[]> {
 /** The profile photo bucket is private: a one-hour signed URL for a path that belongs to a rider matched to this account. */
 async function signedPhotoUrl(path: string): Promise<string | null> {
   try {
-    const { data } = await createAdminClient().storage.from("rider-photos").createSignedUrl(path, 3600);
+    const { data, error } = await createAdminClient().storage.from("rider-photos").createSignedUrl(path, 3600);
+    if (error) console.error("Account data: could not sign the rider photo", error.message);
     return data?.signedUrl ?? null;
   } catch (e) {
     console.error("Account data: could not sign the rider photo", e);

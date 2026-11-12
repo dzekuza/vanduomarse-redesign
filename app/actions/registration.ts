@@ -45,6 +45,14 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
   // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
   if (v.website) return { data: { riderId: "" } };
 
+  // Buying a plan: refuse a bad plan or a missing payment setup BEFORE anything is saved.
+  const planField = form.get("planId");
+  const planId = typeof planField === "string" && planField !== "" ? planField : null;
+  if (planId) {
+    if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
+    if (!paymentsEnabled()) return fail("Mokėjimas šiuo metu neveikia. Skambinkite mums ir užregistruosime jus.", "setup");
+  }
+
   const photo = form.get("photo");
   const signature = form.get("signature");
   if (!(photo instanceof File) || !(signature instanceof File)) return fail("Trūksta nuotraukos arba parašo.", "invalid");
@@ -83,10 +91,7 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
     p_signature_path: signaturePath,
   });
 
-  const planId = form.get("planId");
-  if (typeof planId !== "string" || planId === "") return { data: { riderId } };
-  if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
-  if (!paymentsEnabled()) return fail("Registracija įrašyta, bet mokėjimas šiuo metu neveikia. Skambinkite mums ir užbaigsime užsakymą.", "setup");
+  if (!planId) return { data: { riderId } };
 
   const admin = createAdminClient();
   const { data: order, error: orderError } = await admin.rpc("create_plan_order", { p_rider_id: riderId, p_plan_id: planId });
