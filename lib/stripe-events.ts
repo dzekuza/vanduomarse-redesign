@@ -1,6 +1,7 @@
 import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
+import { couponIdOf, onCouponPaid, onCouponRefund, onCouponSessionClosed } from "@/lib/coupon-payment";
 import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -21,6 +22,8 @@ const paymentIdOf = (session: Stripe.Checkout.Session) => {
 async function onPaid(session: Stripe.Checkout.Session) {
   // A delayed payment method completes the session while it is still unpaid; wait for `async_payment_succeeded`.
   if (session.payment_status === "unpaid") return;
+  const couponId = couponIdOf(session);
+  if (couponId) return onCouponPaid(couponId, session);
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("complete_payment", {
     p_session_id: session.id,
@@ -51,6 +54,7 @@ async function onPaid(session: Stripe.Checkout.Session) {
 }
 
 async function onClosed(sessionId: string, failed: boolean) {
+  await onCouponSessionClosed(sessionId);
   const { error } = await createAdminClient().rpc("expire_payment", { p_session_id: sessionId, p_failed: failed });
   if (error) throw error;
 }
@@ -58,6 +62,7 @@ async function onClosed(sessionId: string, failed: boolean) {
 async function onRefund(charge: Stripe.Charge) {
   const intent = paymentIntentId(charge.payment_intent);
   if (!intent) return;
+  await onCouponRefund(charge);
   const { error } = await createAdminClient().rpc("record_refund", { p_payment_intent: intent, p_refunded: charge.amount_refunded / 100 });
   if (error) throw error;
 }

@@ -10,6 +10,25 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0075 — Gift coupons are paid and issued automatically through Stripe
+
+- **Decision:** the order action opens a Checkout Session for the stored coupon value (anonymous buyer, no account) and the form redirects to it. The webhook is the only thing that issues the code (`complete_coupon_payment`, service-role only, idempotent, rejects a paid amount that differs from the value) and then emails the buyer and the recipient and alerts staff. `checkout.session.expired` cancels the pending order; a full `charge.refunded` cancels the coupon. Coupons use their own columns (`stripe_session_id`, `stripe_payment_intent_id`), not the `payments` table, which is tied to signed-in accounts and reservations.
+- **Fallback:** without Stripe keys, or if Checkout cannot open, the order is stored as before and staff arrange payment and issue the code in `/admin/kuponai` (ADR-0074 emails).
+- **Why:** staff had to confirm every payment by hand before the code was sent.
+- **Needs:** the existing webhook endpoint (same events as reservations), `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY` + `COUPON_FROM_EMAIL`.
+
+## ADR-0074 — Coupon emails reach the buyer and the gift recipient, and staff are alerted
+
+- **Decision:** optional `coupons.recipient_email`. Order placed: buyer receipt + staff alert (`notifyCouponOrdered`, in `after()`). Paid or resent: code to the buyer and, if given, the recipient (`sendCouponEmails`).
+- **Why:** only the buyer ever got the code, and staff learned of orders only by opening the admin.
+- **Notes:** the new RPC argument has a default so old deploys keep working. Staff alert goes to `STAFF_NOTIFY_EMAIL`, else info@, plus `STAFF_BOOKING_COPY`. Needs `RESEND_API_KEY` and `COUPON_FROM_EMAIL` (or `NOTIFY_FROM_EMAIL` for the order-time emails).
+
+## ADR-0073 — Coupon orders skip phone verification (narrows ADR-0018)
+
+- **Decision:** `/kuponai` orders need no SMS code. Phone is an optional field; the `coupons_phone_verified` trigger is dropped. Bookings, events, quads and inquiries keep theirs.
+- **Why:** owner wants gift cards buyable without friction; coupons are paid before use, so a fake phone costs nothing.
+- **Guards kept:** honeypot, and the 100 pending orders/hour brake in `create_coupon_order`.
+
 ## ADR-0071 — Quad tours are booked at any time, for at least 5 quads (reverses ADR-0055)
 
 - **Date:** 2026-11-12

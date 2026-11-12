@@ -1,3 +1,53 @@
+## 2026-11-13 — Coupon Stripe migration applied, wider date tiles
+
+- **Why:** user asked to apply the coupon Stripe migration (and to let the assistant apply migrations without asking), and to widen the sauna date-strip tile.
+- **Changed:** migration `20261113120000` applied to the live DB and verified (5 functions, service-role only); memory note `apply-migrations-without-asking`; `DayCell` wide tiles `w-14` to `w-18`; `BookingHeader` intro `max-w-xl` removal logged.
+- **Status:** tsc clean; nothing committed; no browser check, no Stripe test payment.
+- **Next:** commit + PR; confirm Stripe/Resend env in Vercel; Stripe test-mode coupon purchase; check 375 px date strip.
+
+## 2026-11-13 — Automatic Stripe payment for gift coupons
+
+- **Why:** test order KP-1005 only produced a "we'll tell you how to pay" email; staff had to confirm payment by hand.
+- **Changed:** see ADR-0075 and the changelog. New: `lib/coupon-checkout.ts`, `lib/coupon-payment.ts`, `/kuponai/apmoketa`, migration `20261113120000`; webhook branches for coupons.
+- **Status:** tsc/eslint clean. Migration APPLIED to the live DB and verified (functions callable by service_role only, not anon). No Stripe payment run, no browser check.
+- **Next:** confirm Stripe + Resend env in Vercel, make a test purchase with Stripe test mode/card 4242, check both inboxes and the admin.
+
+## 2026-11-13 — BookingHeader intro width
+
+- **Changed:** removed `max-w-xl` from the intro `<p>` in `components/booking/booking-header.tsx` (affects every page using it, e.g. `/registracija`).
+- **Status:** NOT browser-checked. Catalog note in `frontend/components/common.md` updated.
+- **Next:** check `/registracija`, `/kuponai` and the other booking headers at 375/1024 px.
+
+## 2026-11-13 — Birth date as year / month / day inputs
+
+- **Why:** the registration birth date used the calendar popover, awkward for years far back.
+- **Changed:** new `components/ui/birthdate-input.tsx` (3 numeric fields, auto-advance, emits `yyyy-mm-dd` or ""), used in `contact-step.tsx`; catalogued in `frontend/components/ui.md`.
+- **Status:** tsc/eslint clean; NOT browser-checked.
+- **Next:** check `/registracija` at 375 px (autofill, auto-advance, error message).
+
+## 2026-11-13 — Pay or cancel an unpaid reservation from /paskyra
+
+- **Why:** customer left Stripe Checkout; "Mano rezervacijos" showed "Laukia apmokėjimo" with no way to pay, and the time stayed held.
+- **Found:** `RequestList` only rendered the badge; `resumeCheckout` existed but was reachable only from the return page. The cron frees unpaid slots only about an hour after the session expires.
+- **Changed:** `PendingPaymentActions` (pay / two-step cancel), `cancelUnpaidPayment`, `MyRequest.paymentId`.
+- **Status:** tsc/eslint clean; NOT browser-checked (needs a signed-in account with an unpaid payment).
+- **Next:** test with a real unpaid reservation: pay, cancel, and cancel after the session is paid.
+
+## 2026-11-13 — Coupon emails to buyer and recipient
+
+- **Why:** owner: both payer and receiver must get the coupon; staff should be alerted to orders.
+- **Found:** only the buyer was emailed, only on staff activation; recipient had no email field; no order-time email to anyone; `COUPON_FROM_EMAIL` missing from `.env.local`.
+- **Changed:** see ADR-0074 and the changelog.
+- **Status:** tsc/eslint clean. Migration `20261113110000` APPLIED to the live DB and verified (column present, single 7-arg `create_coupon_order`); no real email sent.
+- **Next:** confirm `RESEND_API_KEY` + `COUPON_FROM_EMAIL` (+ `STAFF_NOTIFY_EMAIL`) in Vercel production; test order, mark paid, check both inboxes.
+
+## 2026-11-13 — Gift coupons without phone verification
+
+- **Why:** owner: dovanų kuponai must be buyable without SMS verification.
+- **Changed:** `/kuponai` form no longer opens the verification dialog (deleted); phone optional; `createCouponOrder` no longer checks a token; migration `20261113100000` drops `coupons_phone_verified`. ADR-0073.
+- **Status:** tsc/eslint clean. Migration APPLIED to the live DB (project `mwngljhcvqkvncwbmgeo`) and verified: `coupons` has only `coupons_reference` and `coupons_updated_at` triggers. Browser check not done.
+- **Next:** submit a test order on /kuponai.
+
 ## 2026-11-12 — Quad tours at any time, min 5 quads
 
 - **Why:** owner: remove "Turų datos" from the admin and the booking page; guests book quads at any time, minimum 5.

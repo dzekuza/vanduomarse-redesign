@@ -55,6 +55,7 @@ export function CouponSheet({ coupon, onOpenChange }: CouponSheetProps) {
                   ["Galioja", COUPON_SERVICE_LABEL[coupon.service]],
                   ["Iki", coupon.expiresAt ? formatExpiry(coupon.expiresAt) : "po apmokėjimo"],
                   ["Gavėjas", coupon.recipientName || "-"],
+                  ["Gavėjo el. paštas", coupon.recipientEmail || "-"],
                 ].map(([k, v]) => (
                   <div key={k}>
                     <dt className="text-muted-foreground">{k}</dt>

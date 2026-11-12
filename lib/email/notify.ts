@@ -121,3 +121,76 @@ export const emailStaffDuplicate = (references: string[], amount: number) =>
     { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
     "Grąžinkite papildomą mokėjimą per Stripe.",
   ], false); // a refund task for the service's staff, not a booking
+
+/* ---------------- gift coupon orders (/kuponai) ---------------- */
+
+export interface CouponOrderNotice {
+  reference: string;
+  amount: number;
+  productName: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  recipientName: string;
+  recipientEmail: string;
+}
+
+/** Right after an order: the buyer gets the reference; payment is arranged by the team. */
+export const emailCouponOrderReceived = (o: CouponOrderNotice) =>
+  sendEmail({
+    to: o.buyerEmail,
+    subject: `Gavome jūsų kupono užsakymą ${o.reference}`,
+    ...body([
+      `Sveiki, ${o.buyerName},`,
+      `gavome jūsų užsakymą ${o.reference}.`,
+      { strong: `${o.productName}, ${formatEuro(o.amount)}${o.recipientName ? `, dovana: ${o.recipientName}` : ""}` },
+      `Susisieksime ir pasakysime, kaip apmokėti. Patvirtinę apmokėjimą atsiųsime kupono kodą${o.recipientEmail ? ` jums ir gavėjui (${o.recipientEmail})` : ""}.`,
+    ]),
+  });
+
+/** Coupon staff alerts: STAFF_NOTIFY_EMAIL (else info@) plus the marketing copy. */
+const couponStaffTo = () => {
+  const configured = emailList(process.env.STAFF_NOTIFY_EMAIL);
+  return [...new Set([...(configured.length ? configured : [MAIN_CONTACT.email]), STAFF_BOOKING_COPY])];
+};
+
+/** New coupon order for staff: info@ (or STAFF_NOTIFY_EMAIL) plus the marketing copy. */
+export const emailStaffCouponOrder = (o: CouponOrderNotice) => {
+  const to = couponStaffTo();
+  const lines = [
+    `${o.productName}, ${formatEuro(o.amount)}`,
+    `Pirkėjas: ${o.buyerName}, ${o.buyerEmail}${o.buyerPhone ? `, ${o.buyerPhone}` : ""}`,
+    ...(o.recipientName || o.recipientEmail ? [`Gavėjas: ${[o.recipientName, o.recipientEmail].filter(Boolean).join(", ")}`] : []),
+    "Laukia apmokėjimo: susisiekite su pirkėju, o gavę pinigus pažymėkite apmokėtu skiltyje Kuponai.",
+  ];
+  return sendEmail({
+    to,
+    subject: `Naujas kupono užsakymas ${o.reference}`,
+    ...body([{ strong: lines[0] }, ...lines.slice(1), ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : [])], false),
+  });
+};
+
+/** A coupon was paid online and issued (or, with `problem`, needs a look). */
+export const emailStaffCouponPaid = (o: Omit<CouponOrderNotice, "buyerPhone"> & { problem?: string }) =>
+  sendEmail({
+    to: couponStaffTo(),
+    subject: o.problem ? `PATIKRINTI KUPONO MOKĖJIMĄ ${o.reference}` : `Apmokėtas kuponas ${o.reference}`,
+    ...body(
+      [
+        { strong: `${o.productName}, ${formatEuro(o.amount)}` },
+        `Pirkėjas: ${o.buyerName}, ${o.buyerEmail}`,
+        ...(o.recipientName || o.recipientEmail ? [`Gavėjas: ${[o.recipientName, o.recipientEmail].filter(Boolean).join(", ")}`] : []),
+        o.problem ?? "Apmokėta per Stripe, kodas išduotas ir išsiųstas automatiškai.",
+        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : []),
+      ],
+      false,
+    ),
+  });
+
+/** A paid coupon was fully refunded in Stripe, so it was cancelled. */
+export const emailStaffCouponCancelled = (reference: string) =>
+  sendEmail({
+    to: couponStaffTo(),
+    subject: `Kuponas ${reference} atšauktas (grąžinti pinigai)`,
+    ...body([{ strong: `Kuponas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : [])], false),
+  });

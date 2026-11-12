@@ -26,8 +26,8 @@ export function OrderConfirmation({ order, email, onReset }: OrderConfirmationPr
         </div>
       </dl>
       <p className="text-sm text-copy">
-        Susisieksime el. paštu <span className="font-normal">{email}</span> ir pasakysime, kaip apmokėti. Patvirtinę apmokėjimą atsiųsime
-        kupono kodą. Užsakymo numerį išsaugokite.
+        Išsiuntėme patvirtinimą į <span className="font-normal">{email}</span>. Susisieksime ir pasakysime, kaip apmokėti. Patvirtinę apmokėjimą atsiųsime
+        kupono kodą jums (ir gavėjui, jei nurodėte jo el. paštą). Užsakymo numerį išsaugokite.
       </p>
       <button type="button" onClick={onReset} className="min-h-11 text-sm font-normal text-muted-foreground underline underline-offset-4 hover:text-rust">
         Užsakyti dar vieną kuponą

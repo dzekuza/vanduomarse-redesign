@@ -13,7 +13,7 @@ import type { CouponProduct } from "@/lib/coupons";
 import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
-import { sendCouponEmail } from "@/lib/email/send-coupon";
+import { sendCouponEmails } from "@/lib/email/send-coupon";
 import { notifyRequestOutcome } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
@@ -705,8 +705,9 @@ export async function activateCoupon(id: string): Promise<ActionResult<Activated
 
   const { data: c } = await supabase.from("coupons").select("*").eq("id", id).single();
   const emailSent = c
-    ? await sendCouponEmail({
+    ? await sendCouponEmails({
         to: c.buyer_email,
+        recipientEmail: c.recipient_email,
         buyerName: c.buyer_name,
         recipientName: c.recipient_name,
         message: c.message,
@@ -727,8 +728,9 @@ export async function resendCouponEmail(id: string): Promise<ActionResult<{ emai
   const { data: c, error } = await ctx.supabase.from("coupons").select("*").eq("id", id).single();
   if (error) return dbError(error);
   if (c.status !== "aktyvus" || !c.code || !c.expires_at) return fail("Kodas išsiunčiamas tik aktyviam kuponui.", "invalid");
-  const emailSent = await sendCouponEmail({
+  const emailSent = await sendCouponEmails({
     to: c.buyer_email,
+    recipientEmail: c.recipient_email,
     buyerName: c.buyer_name,
     recipientName: c.recipient_name,
     message: c.message,

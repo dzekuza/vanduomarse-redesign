@@ -24,11 +24,11 @@ const COPY: Record<string, { title: string; text: string }> = {
 export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | null; cancelled: boolean }) {
   if (!payment) {
     return (
-      <Card title="Mokėjimas nerastas" text={`Nuoroda neteisinga arba pasenusi. Reikia pagalbos? Skambink ${MAIN_CONTACT.phone}.`}>
+      <PaymentCard title="Mokėjimas nerastas" text={`Nuoroda neteisinga arba pasenusi. Reikia pagalbos? Skambink ${MAIN_CONTACT.phone}.`}>
         <Link href="/rezervacija" className={LINK}>
           Į rezervaciją
         </Link>
-      </Card>
+      </PaymentCard>
     );
   }
 
@@ -38,7 +38,7 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
     : (COPY[payment.status] ?? COPY.laukia);
 
   return (
-    <Card title={copy.title} text={copy.text} refs={payment.refs} amount={payment.amount}>
+    <PaymentCard title={copy.title} text={copy.text} refs={payment.refs} amount={payment.amount}>
       {open && !cancelled ? <PaymentPoller /> : null}
       {open && cancelled ? <PayAgain paymentId={payment.id} /> : null}
       {payment.needsReview ? (
@@ -56,11 +56,11 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
           {payment.status === "apmoketa" ? "Rezervuoti dar kartą" : "Atgal į rezervaciją"}
         </Link>
       </div>
-    </Card>
+    </PaymentCard>
   );
 }
 
-function Card({ title, text, refs, amount, children }: { title: string; text: string; refs?: string[]; amount?: number; children?: React.ReactNode }) {
+export function PaymentCard({ title, text, refs, amount, children }: { title: string; text: string; refs?: string[]; amount?: number; children?: React.ReactNode }) {
   return (
     <div className="max-w-xl border border-line bg-foam/15">
       <div className="border-b border-dashed border-ink px-6 py-4">

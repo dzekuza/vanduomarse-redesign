@@ -305,11 +305,14 @@ export type Database = {
           paid_at: string | null
           product_id: string
           product_name: string
+          recipient_email: string
           recipient_name: string
           reference: string
           rider_id: string | null
           service: Database["public"]["Enums"]["coupon_service"]
           status: Database["public"]["Enums"]["coupon_status"]
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
           updated_at: string
         }
         Insert: {
@@ -327,11 +330,14 @@ export type Database = {
           paid_at?: string | null
           product_id: string
           product_name: string
+          recipient_email?: string
           recipient_name?: string
           reference: string
           rider_id?: string | null
           service: Database["public"]["Enums"]["coupon_service"]
           status?: Database["public"]["Enums"]["coupon_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -349,11 +355,14 @@ export type Database = {
           paid_at?: string | null
           product_id?: string
           product_name?: string
+          recipient_email?: string
           recipient_name?: string
           reference?: string
           rider_id?: string | null
           service?: Database["public"]["Enums"]["coupon_service"]
           status?: Database["public"]["Enums"]["coupon_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1986,6 +1995,10 @@ export type Database = {
           expires_at: string
         }[]
       }
+      attach_coupon_session: {
+        Args: { p_coupon_id: string; p_session_id: string }
+        Returns: undefined
+      }
       attach_payment_session: {
         Args: {
           p_expected_session_id?: string
@@ -2021,6 +2034,36 @@ export type Database = {
           value: number
         }[]
       }
+      complete_coupon_payment: {
+        Args: { p_amount: number; p_coupon_id: string; p_payment_intent: string; p_session_id: string }
+        Returns: {
+          amount_ok: boolean
+          buyer_email: string
+          buyer_name: string
+          code: string
+          expires_at: string
+          face_value: number
+          id: string
+          message: string
+          newly_paid: boolean
+          product_name: string
+          recipient_email: string
+          recipient_name: string
+          reference: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          status: Database["public"]["Enums"]["coupon_status"]
+        }[]
+      }
+      coupon_payment_state: {
+        Args: { p_session_id: string }
+        Returns: {
+          face_value: number
+          has_recipient: boolean
+          product_name: string
+          reference: string
+          status: Database["public"]["Enums"]["coupon_status"]
+        }[]
+      }
       complete_payment: {
         Args: {
           p_amount: number
@@ -2045,6 +2088,7 @@ export type Database = {
           p_buyer_phone: string
           p_message?: string
           p_product_id: string
+          p_recipient_email?: string
           p_recipient_name?: string
         }
         Returns: {
@@ -2312,6 +2356,10 @@ export type Database = {
           uses: number
         }[]
       }
+      expire_coupon_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
       expire_payment: {
         Args: { p_failed?: boolean; p_session_id: string }
         Returns: number
@@ -2362,6 +2410,10 @@ export type Database = {
           quad_type_id: string
           taken: number
         }[]
+      }
+      refund_coupon_payment: {
+        Args: { p_payment_intent: string; p_refunded: number }
+        Returns: string
       }
       record_refund: {
         Args: { p_payment_intent: string; p_refunded: number }
