@@ -12,7 +12,7 @@ updated: 2026-11-12
 
 **WAKE season pass as bracelet plan + account registration view (2026-11-13, ADR-0080): in PR `feat/wake-pass-plan-purchase`; migrations `20261113151000/161000/170000` APPLIED to the live DB; nothing tested end to end (register + Stripe test payment still to do).**
 
-**Live admin updates (2026-11-13, ADR-0082): in PR `feat/admin-live-updates`; migration `20261113220000_realtime_admin_tables.sql` NOT applied (classifier blocked it), so no events arrive yet. Not tested with a live event.**
+**Live admin updates (2026-11-13, ADR-0082): in PR `feat/admin-live-updates`; migration `20261113220000_realtime_admin_tables.sql` APPLIED to the live DB (13 tables published). Not tested with a live event.**
 
 **Last updated:** 2026-11-13 (auto-confirm + detailed paid SMS, ADR-0079, branch `feat/auto-confirm-paid-sms` in a separate worktree, uncommitted, migration `20261113150000` not applied; browser-Back release on branch `fix/release-on-browser-back`, uncommitted; payment-release hardening on branch `fix/payment-release-hardening`, uncommitted; PR #48 open: cancelled Stripe payments free their slots at once, ADR-0077; coupon work and abuse guards are merged and live)
 

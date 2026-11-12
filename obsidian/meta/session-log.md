@@ -2,9 +2,9 @@
 
 - **Why:** new bookings and payment status changes needed a manual reload.
 - **Found:** `supabase_realtime` had no tables; staff already have SELECT policies on the activity tables; no browser Supabase client existed.
-- **Changed:** migration `20261113220000_realtime_admin_tables.sql` (NOT applied), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
+- **Changed:** migration `20261113220000_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
 - **Status:** tsc/eslint clean; not tested with a live event.
-- **Next:** apply the migration, open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
+- **Next:** open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
 
 ## 2026-11-13 — Refund hardening (review + Stripe docs)
 
