@@ -22,7 +22,7 @@ type Step = "kontaktai" | "nuotrauka" | "taisykles" | "baigta";
 const STEPS: Step[] = ["kontaktai", "nuotrauka", "taisykles"];
 
 /** The 3-step public registration: contacts, a profile photo, then the rules + signature. */
-export function RegistrationFlow({ plan }: { plan?: RegistrationPlan }) {
+export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /** Details the signed-in customer already gave, to prefill step 1. */ initial?: Partial<RegistrationInput> }) {
   const [step, setStep] = useState<Step>("kontaktai");
   const [contact, setContact] = useState<RegistrationInput | null>(null);
   const [photo, setPhoto] = useState<Blob | null>(null);
@@ -93,7 +93,7 @@ export function RegistrationFlow({ plan }: { plan?: RegistrationPlan }) {
 
       {step === "kontaktai" ? (
         <ContactStep
-          defaultValues={contact ?? {}}
+          defaultValues={contact ?? initial ?? {}}
           onNext={(values) => {
             setContact(values);
             setStep("nuotrauka");

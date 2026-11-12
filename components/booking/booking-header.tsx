@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface BookingHeaderProps {
   /** Last breadcrumb item (after "Marsas /"). */
@@ -13,6 +14,8 @@ interface BookingHeaderProps {
   intro?: string | string[];
   /** The header sits in a half-width column (from `lg`): a smaller title keeps long words inside it. */
   split?: boolean;
+  /** Extra classes for the intro paragraphs, e.g. a max width narrower than a wide title above them. */
+  introClassName?: string;
 }
 
 export function BookingBreadcrumb({ crumb }: { crumb: string }) {
@@ -26,7 +29,7 @@ export function BookingBreadcrumb({ crumb }: { crumb: string }) {
 }
 
 /** Light page header of the booking-style pages (reservation, calculator): breadcrumb, kicker, big title, intro. */
-export function BookingHeader({ crumb, kicker, tagline, title, intro, split = false }: BookingHeaderProps) {
+export function BookingHeader({ crumb, kicker, tagline, title, intro, split = false, introClassName }: BookingHeaderProps) {
   return (
     <header className="space-y-6">
       <BookingBreadcrumb crumb={crumb} />
@@ -49,7 +52,7 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro, split = fa
         ) : null}
       </h1>
       {[intro ?? []].flat().map((paragraph) => (
-        <p key={paragraph} className="text-xs leading-loose text-copy md:text-sm">
+        <p key={paragraph} className={cn("text-xs leading-loose text-copy md:text-sm", introClassName)}>
           {paragraph}
         </p>
       ))}
