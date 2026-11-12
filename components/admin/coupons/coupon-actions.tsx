@@ -22,8 +22,9 @@ export function CouponActions({ coupon }: { coupon: Coupon }) {
     if (coupon.refundedAmount > 0) {
       return <p className="border-t pt-4 text-sm">Pinigai grąžinti: {formatEuro(coupon.refundedAmount)}.</p>;
     }
-    // The unspent share of what the buyer paid (same rule as the server).
-    const refundable = Math.round(((coupon.paidAmount * Math.min(coupon.balance, coupon.faceValue)) / coupon.faceValue) * 100) / 100;
+    // The unspent share of what the buyer paid: the same rule the database applies when it reserves the refund.
+    const spent = coupon.redemptions.reduce((sum, r) => sum + r.amount, 0);
+    const refundable = Math.round(((coupon.paidAmount * Math.max(coupon.faceValue - spent, 0)) / coupon.faceValue) * 100) / 100;
     if (refundable < 0.01) return null;
     return (
       <div className="space-y-2 border-t pt-4">

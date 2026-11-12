@@ -269,6 +269,7 @@ export async function POST(request: NextRequest) {
             faceValue: c.face_value,
             service: c.service,
             expiresAt: issued.expires_at,
+            reference: c.reference,
           })
         : false;
       return done({ code: issued.code, expiresAt: issued.expires_at, emailSent });
@@ -293,6 +294,7 @@ export async function POST(request: NextRequest) {
         faceValue: c.face_value,
         service: c.service,
         expiresAt: c.expires_at,
+        reference: c.reference,
       });
       return NextResponse.json({ data: { emailSent } });
     }

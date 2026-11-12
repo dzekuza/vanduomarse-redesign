@@ -15,7 +15,7 @@ import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@
 import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import { buildCouponPdf } from "@/lib/email/coupon-pdf";
 import { sendCouponEmails } from "@/lib/email/send-coupon";
-import { getStripe, toCents } from "@/lib/stripe";
+import { refundCouponPayment } from "@/lib/coupon-refund";
 import { notifyRequestOutcome } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
@@ -750,6 +750,7 @@ export async function activateCoupon(id: string): Promise<ActionResult<Activated
         faceValue: c.face_value,
         service: c.service,
         expiresAt: issued.expires_at,
+        reference: c.reference,
       })
     : false;
   return done({ code: issued.code, expiresAt: issued.expires_at, emailSent });
@@ -773,6 +774,7 @@ export async function resendCouponEmail(id: string): Promise<ActionResult<{ emai
     faceValue: c.face_value,
     service: c.service,
     expiresAt: c.expires_at,
+    reference: c.reference,
   });
   return { data: { emailSent } };
 }
@@ -805,40 +807,16 @@ export async function couponPdf(id: string): Promise<ActionResult<{ fileName: st
 }
 
 /**
- * Euros to return for a cancelled coupon paid online: what the buyer paid, scaled to the unspent part when some of it was
- * already redeemed (balance / face value), to the cent. Zero when nothing is left.
- */
-const refundableFor = (c: { face_value: number; discount_amount: number; balance: number }) =>
-  Math.round(((c.face_value - c.discount_amount) * Math.min(c.balance, c.face_value)) / c.face_value * 100) / 100;
-
-/**
- * Returns the unspent part of a cancelled, online-paid coupon to the buyer's card through Stripe. Cancelling the coupon
- * does not refund by itself, so staff do it here on purpose. One refund per coupon: the Stripe call carries a key fixed to
- * the coupon and amount, so a repeated click or retry returns the same refund instead of paying twice.
+ * Returns the unspent part of a cancelled, online-paid coupon to the buyer's card through Stripe (`lib/coupon-refund.ts`).
+ * Cancelling the coupon does not refund by itself, so staff do it here on purpose. The refund is reserved in the database
+ * (one per coupon, amount computed there) and sent to Stripe with a fixed key, so a repeated click or retry cannot pay twice.
  */
 export async function refundCoupon(id: string): Promise<ActionResult<{ refunded: number }>> {
   const ctx = await staffClient("kuponai");
   if (!ctx.ok) return ctx.error;
   if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
-  const { data: c, error } = await ctx.supabase.from("coupons").select("*").eq("id", id).single();
-  if (error) return dbError(error);
-  if (c.status !== "atsauktas") return fail("Pinigai grąžinami tik atšauktam kuponui.", "invalid");
-  if (!c.stripe_payment_intent_id) return fail("Šis kuponas nebuvo apmokėtas internetu: grąžinti nėra ko.", "invalid");
-  if (c.refunded_amount > 0) return fail("Šiam kuponui pinigai jau grąžinti.", "invalid");
-  const amount = refundableFor(c);
-  if (amount < 0.01) return fail("Kupono likutis panaudotas: grąžinti nėra ko.", "invalid");
-  try {
-    await getStripe().refunds.create(
-      { payment_intent: c.stripe_payment_intent_id, amount: toCents(amount), metadata: { coupon_id: c.id, coupon_reference: c.reference } },
-      { idempotencyKey: `coupon-refund-${c.id}-${toCents(amount)}` },
-    );
-  } catch (e) {
-    console.error("Coupon refund failed", c.reference, e);
-    return fail("Stripe negrąžino pinigų. Patikrinkite Stripe paskyroje (nekartokite, jei nesate tikri) arba bandykite dar kartą.", "stripe");
-  }
-  const { error: saveError } = await ctx.supabase.from("coupons").update({ refunded_amount: amount, refunded_at: new Date().toISOString() }).eq("id", id);
-  if (saveError) console.error("Coupon refund done at Stripe but not recorded", c.reference, saveError.message);
-  return done({ refunded: amount });
+  const outcome = await refundCouponPayment(id, ctx.userId);
+  return outcome.ok ? done({ refunded: outcome.amount }) : fail(outcome.message, "refund");
 }
 
 const redeemInput = z.object({ id: z.uuid(), amount: z.number().positive().max(10_000), note: z.string().trim().max(200) });
