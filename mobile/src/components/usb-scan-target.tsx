@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
+import { useIsFocused } from "expo-router";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Keyboard, ScanLine } from "lucide-react-native";
 import { Button, Field } from "@/mobile/src/components/primitives";
@@ -16,6 +17,9 @@ import { useAppTheme, type AppTheme } from "@/mobile/src/theme/use-app-theme";
  * - Uses `showSoftInputOnFocus={false}` so iOS never opens the on-screen virtual keyboard
  *   while listening to the USB scanner, plus an optional manual entry toggle for testing
  *   or typing a bracelet number by hand.
+ * - The hidden input exists ONLY while the scanner is active: enabled AND its screen is the one showing. Tab screens
+ *   stay mounted after a visit, so an always-present hidden input kept focus (with the soft keyboard suppressed) and
+ *   the real inputs on other screens did not open the keyboard.
  */
 
 const LT_NUMBER_ROW: Record<string, string> = {
@@ -72,6 +76,8 @@ export function UsbScanTarget({
   const [bufferPreview, setBufferPreview] = useState("");
   const [manualMode, setManualMode] = useState(false);
   const [manualValue, setManualValue] = useState("");
+  const focused = useIsFocused();
+  const active = enabled && focused;
 
   const clearIdle = useCallback(() => {
     if (idleTimerRef.current) {
@@ -94,19 +100,19 @@ export function UsbScanTarget({
   );
 
   useEffect(() => {
-    if (enabled && !manualMode) {
+    if (active && !manualMode) {
       const id = setTimeout(() => {
         hiddenInputRef.current?.focus();
       }, 150);
       return () => clearTimeout(id);
     }
     return undefined;
-  }, [enabled, manualMode]);
+  }, [active, manualMode]);
 
   useEffect(() => () => clearIdle(), [clearIdle]);
 
   const handleHiddenChange = (text: string) => {
-    if (!enabled) return;
+    if (!active) return;
     bufferRef.current = text;
     setBufferPreview(normalizeScannedCard(text));
     clearIdle();
@@ -140,23 +146,24 @@ export function UsbScanTarget({
           onPress={() => hiddenInputRef.current?.focus()}
           style={styles.scanArea}
         >
-          <TextInput
-            ref={hiddenInputRef}
-            value={bufferRef.current}
-            onChangeText={handleHiddenChange}
-            onSubmitEditing={() => commitScan(bufferRef.current, "enter")}
-            autoFocus={enabled}
-            showSoftInputOnFocus={false}
-            caretHidden
-            autoCapitalize="none"
-            autoCorrect={false}
-            blurOnSubmit={false}
-            style={styles.hiddenInput}
-          />
-          <View style={[styles.circle, { backgroundColor: enabled ? theme.colors.primary : theme.colors.muted }]}>
+          {active ? (
+            <TextInput
+              ref={hiddenInputRef}
+              value={bufferRef.current}
+              onChangeText={handleHiddenChange}
+              onSubmitEditing={() => commitScan(bufferRef.current, "enter")}
+              showSoftInputOnFocus={false}
+              caretHidden
+              autoCapitalize="none"
+              autoCorrect={false}
+              blurOnSubmit={false}
+              style={styles.hiddenInput}
+            />
+          ) : null}
+          <View style={[styles.circle, { backgroundColor: active ? theme.colors.primary : theme.colors.muted }]}>
             <ScanLine
               size={64}
-              color={enabled ? theme.colors.primaryForeground : theme.colors.mutedForeground}
+              color={active ? theme.colors.primaryForeground : theme.colors.mutedForeground}
             />
           </View>
           <Text style={styles.title}>{title}</Text>

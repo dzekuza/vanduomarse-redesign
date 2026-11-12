@@ -4,11 +4,21 @@
 - **Changed:** `automaticallyAdjustKeyboardInsets` + tap/drag keyboard handling on tab lists; `SheetModal` in a `KeyboardAvoidingView`.
 - **Status:** tsc + iOS export pass; not seen on a device. Stacked on the sheet branch (`fix/mobile-sheet-animation`).
 
+## 2026-11-13 — Mobile keyboard not opening
+
+- **Found:** the only code touching the soft keyboard is the scanner's hidden input (`showSoftInputOnFocus={false}`, `autoFocus`), mounted for as long as its tab screen stays mounted.
+- **Changed:** `usb-scan-target.tsx` (active = enabled && focused; input only mounted while active).
+- **Status:** tsc + iOS export pass; not tested on a device. If it still fails, note which screen's input and whether the Skenavimas tab was visited first.
 ## 2026-11-13 — Mobile sheet overlay animation
 
 - **Found:** `SheetModal` put the backdrop inside a slide-animated `Modal`, so the overlay slid up with the sheet.
 - **Changed:** `mobile/src/components/primitives.tsx` (fade backdrop + sliding sheet, tap backdrop to close).
 - **Status:** tsc + iOS export pass; not seen on a device.
+## 2026-11-13 — Mobile sign-in "undefined is not a function"
+
+- **Found:** the alert is the message of an exception thrown while loading admin data after sign-in (`loadForSession`), in shared website code. `toSorted` is called there and Hermes may lack it.
+- **Changed:** `mobile/src/lib/polyfills.ts`, import in `app/_layout.tsx`, stack logging in `admin-context.tsx`.
+- **Status:** tsc + iOS export pass; polyfill tested in Node; NOT run on a device. If it still fails, the dev alert now shows the stack: send it.
 
 ## 2026-11-13 — Mobile app to Expo SDK 58
 
