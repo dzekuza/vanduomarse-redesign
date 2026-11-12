@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FormPhoneInput } from "@/components/ui/phone-input";
+import { WaiverPdfButton } from "./waiver-pdf-button";
 
 /**
  * Rider/customer profile, documents and comments tabs — shared by Apyrankės's
@@ -49,16 +50,19 @@ function WaiverStatus({ riderId }: { riderId: string }) {
   }
 
   return (
-    <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
-      Taisyklės pasirašytos {formatDateTime(waiver.signedAt)}.{" "}
-      {waiver.signaturePath ? (
-        <button type="button" className="underline underline-offset-4 disabled:opacity-50" disabled={opening} onClick={openSignature}>
-          Peržiūrėti parašą
-        </button>
-      ) : (
-        "Parašo failas nerastas."
-      )}
-    </p>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+      <p>
+        Taisyklės pasirašytos {formatDateTime(waiver.signedAt)}.{" "}
+        {waiver.signaturePath ? (
+          <button type="button" className="underline underline-offset-4 disabled:opacity-50" disabled={opening} onClick={openSignature}>
+            Peržiūrėti parašą
+          </button>
+        ) : (
+          "Parašo failas nerastas."
+        )}
+      </p>
+      {waiver.signaturePath ? <WaiverPdfButton riderId={riderId} className="min-h-9" /> : null}
+    </div>
   );
 }
 
@@ -169,7 +173,8 @@ export function RiderProfileTab({ rider }: { rider: Rider }) {
 }
 
 export function RiderDocumentsTab({ riderId }: { riderId: string }) {
-  const { riderDocuments, addRiderDocument, deleteRiderDocument, getRiderFileUrl } = useAdmin();
+  const { riderDocuments, riderWaivers, addRiderDocument, deleteRiderDocument, getRiderFileUrl } = useAdmin();
+  const waiver = riderWaivers.find((w) => w.riderId === riderId);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const docs = riderDocuments.filter((d) => d.riderId === riderId);
@@ -192,6 +197,17 @@ export function RiderDocumentsTab({ riderId }: { riderId: string }) {
       <Button type="button" variant="outline" size="sm" className="min-h-9" disabled={uploading} onClick={() => fileRef.current?.click()}>
         <UploadSimpleIcon size={16} /> Įkelti dokumentą
       </Button>
+
+      {waiver?.signaturePath ? (
+        <div className="flex items-center gap-3 rounded-xl bg-secondary px-3 py-3">
+          <FileIcon size={20} className="shrink-0 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">Pasirašytos taisyklės (PDF)</p>
+            <p className="text-xs text-muted-foreground">Pasirašyta {formatDateTime(waiver.signedAt)}, parašas dokumento apačioje</p>
+          </div>
+          <WaiverPdfButton riderId={riderId} className="min-h-9 shrink-0" />
+        </div>
+      ) : null}
 
       {docs.length === 0 ? (
         <p className="py-3 text-sm text-muted-foreground">Dokumentų nėra.</p>

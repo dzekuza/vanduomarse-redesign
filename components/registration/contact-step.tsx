@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { loadRegistrationDraft, saveRegistrationDraft, type RegistrationDraft } from "@/lib/registration-draft";
+import { parseRegistrationDraft, readRegistrationDraftRaw, saveRegistrationDraft } from "@/lib/registration-draft";
 import { registrationSchema, type RegistrationInput } from "@/lib/registration-schema";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
@@ -27,16 +27,14 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
   );
 }
 
+const subscribeNever = () => () => {};
+
 /** Step 1: contact details, remembered between page visits. Mounts the form once the saved draft has been read (client only). */
 export function ContactStep({ defaultValues, onNext }: ContactStepProps) {
-  const [draft, setDraft] = useState<RegistrationDraft | null | undefined>(undefined);
-
-  useEffect(() => {
-    setDraft(loadRegistrationDraft());
-  }, []);
-
-  if (draft === undefined) return null;
-  return <ContactForm defaultValues={{ ...defaultValues, ...draft }} onNext={onNext} />;
+  // The server (and hydration) snapshot is `undefined`, so the form only mounts on the client, after the draft is known.
+  const raw = useSyncExternalStore(subscribeNever, readRegistrationDraftRaw, () => undefined);
+  if (raw === undefined) return null;
+  return <ContactForm defaultValues={{ ...defaultValues, ...parseRegistrationDraft(raw) }} onNext={onNext} />;
 }
 
 /** The contact fields, plus the bot honeypot. */
