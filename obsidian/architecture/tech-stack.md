@@ -45,10 +45,10 @@ Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 
 | Package | Version | Why |
 |---------|---------|-----|
-| expo / expo-router | ~53.0.0 / ~5.0.0 | iOS staff admin app with file-based tab routing |
+| expo / expo-router | ~58.0.25 / ~58.0.31 (React Native 0.88, React 19.3) | iOS staff admin app with file-based tab routing |
 | react-native | 0.79.2 | Native iOS runtime |
 | @react-native-async-storage/async-storage | 2.1.2 | Persists Supabase staff session and light/dark theme mode |
-| expo-notifications / expo-device | ~0.31.1 / ~7.1.0 | Native iOS Push notifications for new bookings, inquiries and payments |
+| expo-notifications / expo-device | ~58.1.9 / ~58.0.5 | Native iOS Push notifications for new bookings, inquiries and payments |
 | lucide-react-native + react-native-svg | ^0.511.0 / 15.11.2 | Mobile tab and action icons |
 
 ## Tooling

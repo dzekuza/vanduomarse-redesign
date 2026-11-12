@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Keyboard, ScanLine } from "lucide-react-native";
 import { Button, Field } from "@/mobile/src/components/primitives";
@@ -66,7 +66,7 @@ export function UsbScanTarget({
 }) {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const hiddenInputRef = useRef<TextInput | null>(null);
+  const hiddenInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bufferRef = useRef("");
   const [bufferPreview, setBufferPreview] = useState("");
