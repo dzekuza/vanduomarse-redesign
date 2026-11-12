@@ -1,3 +1,9 @@
+## 2026-11-13 — Customer names link to the customer page
+
+- **Found:** PR-1021 had no `rider_id`: orders are only linked by the one-time 7 Nov backfill, so new orders were unlinked (and missing from the new Pirkimai tab).
+- **Changed:** `lib/admin/customer-match.ts`, `CustomerLink`, used in the sheets and two lists; `buildSales` links by contact too.
+- **Status:** tsc/eslint clean; matcher checked with sample numbers; not browser-checked. A permanent fix would link new orders in the database when they are created.
+
 ## 2026-11-13 — Pirkimai tab on the customer page
 
 - **Changed:** `CustomerPurchasesTab`; `Sale.riderId` in `lib/admin/sales.ts`; `useSaleDetails` extracted from `SalesTable`.
