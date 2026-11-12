@@ -20,7 +20,7 @@ export default function ContactPage() {
       <JsonLd data={breadcrumbSchema({ name: "Kontaktai", path: "/kontaktai" })} />
       <div className="theme-reservation px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
-          <div className="min-w-0 max-w-3xl space-y-10 lg:col-span-7">
+          <div className="min-w-0 max-w-3xl space-y-10 lg:col-span-8">
             <BookingHeader
               crumb="Kontaktai"
               title={["Susisiek", "su Marsu"]}
@@ -28,7 +28,7 @@ export default function ContactPage() {
             />
             <ContactDetails />
           </div>
-          <section aria-label="Žemėlapis" className="min-w-0 lg:sticky lg:top-32 lg:col-span-5 lg:self-start">
+          <section aria-label="Žemėlapis" className="min-w-0 lg:sticky lg:top-32 lg:col-span-4 lg:self-start">
             <ParkMap />
           </section>
         </div>
