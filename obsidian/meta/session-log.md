@@ -1,3 +1,8 @@
+## 2026-11-13 — Mobile keyboard not opening
+
+- **Found:** the only code touching the soft keyboard is the scanner's hidden input (`showSoftInputOnFocus={false}`, `autoFocus`), mounted for as long as its tab screen stays mounted.
+- **Changed:** `usb-scan-target.tsx` (active = enabled && focused; input only mounted while active).
+- **Status:** tsc + iOS export pass; not tested on a device. If it still fails, note which screen's input and whether the Skenavimas tab was visited first.
 ## 2026-11-13 — Mobile sheet overlay animation
 
 - **Found:** `SheetModal` put the backdrop inside a slide-animated `Modal`, so the overlay slid up with the sheet.
