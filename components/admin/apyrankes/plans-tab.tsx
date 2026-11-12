@@ -63,6 +63,18 @@ export function PlansTab() {
                         {p.description ? <p className="truncate text-xs text-muted-foreground">{p.description}</p> : null}
                       </div>
                       <p className="shrink-0 font-display text-sm font-bold tabular-nums">{formatPlanPrice(p.price)}</p>
+                      <label className="hidden shrink-0 items-center gap-2 text-xs text-muted-foreground sm:flex">
+                        <Switch
+                          checked={p.soldOnline}
+                          disabled={!p.price}
+                          aria-label={`Parduoti internetu: ${p.name}`}
+                          onCheckedChange={(v) => {
+                            saveRidePlan({ ...p, soldOnline: v });
+                            toast.success(v ? `${p.name}: parduodamas internetu` : `${p.name}: nebeparduodamas internetu`);
+                          }}
+                        />
+                        Internetu
+                      </label>
                       <Switch
                         checked={p.active}
                         aria-label={`Rodyti „${p.name}“`}

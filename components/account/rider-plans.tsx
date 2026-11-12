@@ -1,8 +1,27 @@
-import Link from "next/link";
+import { RegistrationDetails } from "@/components/account/registration-details";
+import { Cta } from "@/components/cta";
 import type { MyRider } from "@/lib/account";
 import { formatPlanPrice } from "@/lib/ride-plans";
 
 const dayLabel = (iso: string) => new Date(iso).toLocaleDateString("lt-LT");
+
+const BROWSE_PLANS_HREF = "/rezervacija?veikla=wake";
+
+/** Browse plans and passes, plus a way to finish /registracija when this account has not. */
+function RiderActions({ needsRegistration }: { needsRegistration: boolean }) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row">
+      <Cta tone="dark" small href={BROWSE_PLANS_HREF} className="sm:min-w-64">
+        Naršyti planus ir abonementus
+      </Cta>
+      {needsRegistration ? (
+        <Cta tone="cream" small href="/registracija" className="sm:min-w-64">
+          Užbaigti registraciją
+        </Cta>
+      ) : null}
+    </div>
+  );
+}
 
 /** The customer's wakeboard plan (apyrankė): current plan, bracelet number and what they bought before. */
 export function RiderPlans({ riders }: { riders: MyRider[] }) {
@@ -12,14 +31,13 @@ export function RiderPlans({ riders }: { riders: MyRider[] }) {
         <p className="text-copy">
           Vandenlenčių plano ar apyrankės šiai paskyrai dar nėra. Jei jau važinėji pas mus, įsitikink, kad paskyroje naudojamas tas pats el. paštas ar telefonas, kuriuos nurodei parke.
         </p>
-        <Link href="/registracija" className="inline-flex min-h-11 items-center border-b border-current text-sm font-bold">
-          Registruotis vandenlentininku
-        </Link>
+        <RiderActions needsRegistration />
       </div>
     );
   }
   return (
     <div className="space-y-4">
+      <RiderActions needsRegistration={!riders.some((rider) => rider.registered)} />
       {riders.map((rider) => (
         <article key={rider.id} aria-label={`${rider.name} ${rider.surname}`} className="space-y-5 border border-line p-5 sm:p-6">
           <header className="space-y-1">
@@ -42,6 +60,8 @@ export function RiderPlans({ riders }: { riders: MyRider[] }) {
             <dt className="text-micro uppercase text-copy">Apyrankė</dt>
             <dd className="mt-1 font-bold">{rider.cards.length ? rider.cards.join(", ") : "Dar nepriskirta"}</dd>
           </dl>
+
+          {rider.registration ? <RegistrationDetails registration={rider.registration} registered={rider.registered} /> : null}
 
           {rider.purchases.length > 0 ? (
             <section className="space-y-2">

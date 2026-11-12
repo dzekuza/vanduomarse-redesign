@@ -1068,6 +1068,7 @@ const ridePlanInput = z.object({
   price: z.number().min(0).max(100_000).nullable(),
   category: ridePlanCategory,
   active: z.boolean(),
+  soldOnline: z.boolean(),
   sortOrder: z.number().int().min(0).max(1000),
 });
 
@@ -1079,7 +1080,7 @@ export async function saveRidePlan(plan: RidePlan): Promise<ActionResult<RidePla
   const p = parsed.data;
   const { data, error } = await ctx.supabase
     .from("ride_plans")
-    .upsert({ id: plan.id || undefined, name: p.name, description: p.description, price: p.price, category: p.category, active: p.active, sort_order: p.sortOrder })
+    .upsert({ id: plan.id || undefined, name: p.name, description: p.description, price: p.price, category: p.category, active: p.active, sold_online: p.soldOnline && p.price !== null && p.price > 0, sort_order: p.sortOrder })
     .select("*")
     .single();
   if (error) return dbError(error);

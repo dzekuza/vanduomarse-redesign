@@ -181,3 +181,49 @@ export const emailStaffCouponCancelled = (reference: string) =>
     subject: `Kuponas ${reference} atšauktas (grąžinti pinigai)`,
     ...body([{ strong: `Kuponas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : [])], false),
   });
+
+/* ---------------- bracelet plan orders (WAKE season passes, /registracija) ---------------- */
+
+export interface PlanPaidNotice {
+  reference: string;
+  planName: string;
+  amount: number;
+  riderName: string;
+  riderEmail: string;
+}
+
+/** The buyer's receipt: the plan is on their profile and staff bind the bracelet at the park. Returns true when sent. */
+export const emailPlanPaidCustomer = (o: { to: string; riderName: string; planName: string; amount: number; reference: string }) =>
+  sendEmail({
+    to: o.to,
+    subject: `Apmokėta: ${o.planName} (${o.reference})`,
+    ...body([
+      `Sveiki, ${o.riderName}!`,
+      { strong: `${o.planName}, ${formatEuro(o.amount)}: apmokėta. Dėkojame!` },
+      "Planas priskirtas jūsų profiliui. Atvykę į parką, kasoje pasakykite savo vardą: darbuotojas priskirs jums apyrankę.",
+    ]),
+  });
+
+/** A plan was paid online and attached (or, with `problem`, needs a look). */
+export const emailStaffPlanPaid = (o: PlanPaidNotice & { problem?: string }) =>
+  sendEmail({
+    to: couponStaffTo(),
+    subject: o.problem ? `PATIKRINTI PLANO MOKĖJIMĄ ${o.reference}` : `Apmokėtas planas ${o.reference}`,
+    ...body(
+      [
+        { strong: `${o.planName}, ${formatEuro(o.amount)}` },
+        `Pirkėjas: ${o.riderName}, ${o.riderEmail}`,
+        o.problem ?? "Apmokėta per Stripe, planas priskirtas. Reikia tik priskirti apyrankę parke.",
+        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : []),
+      ],
+      false,
+    ),
+  });
+
+/** A paid plan order was fully refunded in Stripe, so the order was cancelled (the rider's plan needs a manual change). */
+export const emailStaffPlanCancelled = (reference: string) =>
+  sendEmail({
+    to: couponStaffTo(),
+    subject: `Plano užsakymas ${reference} atšauktas (grąžinti pinigai)`,
+    ...body([{ strong: `Užsakymas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja.", ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : [])], false),
+  });

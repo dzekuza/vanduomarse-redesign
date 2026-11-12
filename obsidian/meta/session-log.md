@@ -1,3 +1,48 @@
+## 2026-11-13 — Plaukimas items from the database
+
+- **Found:** Plaukimas read coupon products (none exist for rides) and the 13 swim plans in `ride_plans` were all `sold_online = false`.
+- **Changed:** `WakeOffer.planCategory`, `isWakeSeasonPass` by category, plan wording; migration `20261113190000_sell_swim_plans_online.sql` (applied and verified).
+- **Status:** tsc/eslint clean; not browser-checked. Added the admin "Internetu" toggle (`RidePlan.soldOnline`, `PlanDialog`, `PlansTab`).
+- **Next:** check /rezervacija → Wake and /admin/apyrankes → Planai in the browser; test one purchase.
+
+## 2026-11-13 — my_riders() security fix (review finding)
+
+- **Found:** automated security review: a `phone2` match (staff-entered, maybe a parent's number) returned the rider's birth date, e-mail, phones and photo.
+- **Changed:** migration `20261113180000_my_riders_primary_match.sql` (applied, verified, smoke-tested as an unknown user: 0 rows); `loadMyRiders` ignores non-primary rows for registration and the "registered" check.
+- **Status:** tsc/eslint clean; not tested with a real second account. An owner link (`riders.user_id`) is the cleaner long-term fix.
+
+## 2026-11-13 — "Užbaigti registraciją" kept showing
+
+- **Found:** the owner's email matched 10 rider rows: one finished registration (today) plus 8 old unfinished test attempts (7 Nov) and a Grabby import. The button showed when ANY row was unfinished.
+- **Changed:** button only when no matched rider is registered; `visibleRiders` (`lib/account.ts`) hides unfinished rows with no plan/bracelet/purchase once one is registered.
+- **Status:** tsc/eslint clean; not browser-checked. The old rows still exist in the database (staff can delete them in Klientai).
+
+## 2026-11-13 — Customer can view their registration
+
+- **Changed:** `RegistrationDetails` component; `MyRider.registration`; `loadMyRiders` signs the photo URL (service role, only for riders `my_riders()` matched to the account); migration `20261113170000_my_riders_registration_details.sql` (drop + recreate `my_riders()`), APPLIED and verified.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open /paskyra → Vandenlentės with a registered account.
+
+## 2026-11-13 — /paskyra Vandenlentės actions
+
+- **Changed:** `RiderPlans` buttons (browse plans, finish registration); `MyRider.registered`; migration `20261113160000_my_riders_registered.sql` (drop + recreate `my_riders()` with `registered`).
+- **Status:** tsc/eslint clean; migration APPLIED and verified (returns `registered`; anon cannot execute, authenticated can). Not browser-checked.
+- **Next:** check with an account whose rider has no photo/waiver.
+
+## 2026-11-13 — WAKE season pass = bracelet plan purchase
+
+- **Why:** the pass should be an actual apyrankė purchase (registration, payment, plan on the rider), not a coupon code.
+- **Changed:** migration `20261113150000_rider_plan_orders.sql` (applied to the live DB after the user asked again, verified); hand-edited `database.types.ts`; `WakeOffer` + `getWakeOffers()`; `registerRider` takes `planId` and returns a Checkout URL; `lib/plan-checkout.ts`, `lib/plan-payment.ts`, `stripe-events.ts` branch; `/registracija?abonementas=`, `/registracija/apmoketa`; the Wake button links to the registration for plans.
+- **Status:** tsc/eslint clean; nothing tested end to end.
+- **Next:** register + pay with a Stripe test card and check `riders.plan_id`, `purchases`, `rider_plan_orders` and both emails; add a `sold_online` toggle in /admin/apyrankes → Planai.
+
+## 2026-11-13 — WAKE purchase opens a checkout dialog
+
+- **Why:** "Užsakyti abonementą" linked to `/kuponai?produktas=…`; owner wants a checkout in place.
+- **Changed:** new `components/services/wake-checkout-dialog.tsx`; `WakeBookingSummary` button opens it; `Field`/`goToCheckout` exported from `coupons/order-form.tsx`.
+- **Status:** tsc/eslint clean; NOT browser-checked (no dev server running); uncommitted.
+- **Next:** open /rezervacija → Wake → pick a pass → pay with a Stripe test card; check 375 px.
+
 ## 2026-11-13 — Auto-confirm migration applied; sauna sessions classified by category
 
 - **Done:** PR #51 merged and deployed, migration `20261113150000` applied and verified (`complete_payment` returns `confirmed`, `paid_request_details` service-role only). Checking PR-1021 showed sauna sessions are `events.category = 'pirtis'` with no `program_id`, so they would read "Renginys:" in the SMS.

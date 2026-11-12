@@ -197,6 +197,10 @@
   --text-display: clamp(2.5rem, 5.25vw, 5.25rem);
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.065em;
+  /* The display title inside a half-width column (two-column pages): sized so "REZERVACIJOS" stays within the column. */
+  --text-display-split: clamp(2.5rem, 4.2vw, 4.5rem);
+  --text-display-split--line-height: 1.05;
+  --text-display-split--letter-spacing: -0.065em;
   --text-jumbo-sm: 13vw;
   --text-jumbo-sm--line-height: 1.08;
   --text-jumbo-sm--letter-spacing: -0.07em;

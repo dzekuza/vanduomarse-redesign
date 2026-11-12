@@ -24,8 +24,19 @@ export interface CouponProduct {
 }
 
 /** Season passes use the same checkout and are activated in person from the paid coupon code. */
-export function isWakeSeasonPass(product: CouponProduct): boolean {
+export function isWakeSeasonPass(product: WakeOffer): boolean {
+  if (product.planId) return product.planCategory === "Abonementai";
   return product.service === "kabelis" && product.id.startsWith("wake-abonementas-");
+}
+
+/**
+ * A WAKE offer on the booking pages: a coupon product (rides), or a bracelet plan (season passes, ADR-0080)
+ * with `planId` set. Season passes are bought through /registracija, never as a coupon.
+ */
+export interface WakeOffer extends CouponProduct {
+  planId?: string;
+  /** The plan's category (`Plaukimas` = rides, `Abonementai` = season passes); set with `planId`. */
+  planCategory?: string;
 }
 
 /** What a customer learns about a code: its remaining balance and scope, nothing about the buyer. */

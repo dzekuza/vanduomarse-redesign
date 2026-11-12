@@ -21,6 +21,7 @@ const schema = z.object({
   price: z.string().trim(),
   category: z.enum(RIDE_PLAN_CATEGORIES),
   active: z.boolean(),
+  soldOnline: z.boolean(),
 });
 type Values = z.infer<typeof schema>;
 
@@ -43,6 +44,7 @@ export function PlanDialog({ plan, defaultCategory, onOpenChange }: PlanDialogPr
       price: plan?.price != null ? String(plan.price) : "",
       category: plan?.category ?? defaultCategory,
       active: plan?.active ?? true,
+      soldOnline: plan?.soldOnline ?? false,
     },
   });
   const err = formState.errors;
@@ -59,6 +61,7 @@ export function PlanDialog({ plan, defaultCategory, onOpenChange }: PlanDialogPr
       price: free ? null : Number(v.price),
       category: v.category,
       active: v.active,
+      soldOnline: !free && v.soldOnline,
       sortOrder: plan?.sortOrder ?? ridePlans.filter((p) => p.category === v.category).length,
     });
     if ("error" in result) return;
@@ -122,6 +125,19 @@ export function PlanDialog({ plan, defaultCategory, onOpenChange }: PlanDialogPr
               <label className="flex min-h-11 items-center gap-3 text-sm">
                 <Switch checked={field.value} onCheckedChange={field.onChange} />
                 Rodomas pardavimo sąraše
+              </label>
+            )}
+          />
+          <Controller
+            control={control}
+            name="soldOnline"
+            render={({ field }) => (
+              <label className="flex min-h-11 items-center gap-3 text-sm">
+                <Switch checked={field.value && !free} disabled={free} onCheckedChange={field.onChange} />
+                <span>
+                  Parduodamas internetu
+                  <span className="block text-xs text-muted-foreground">Rodomas svetainėje (Wake): pirkėjas užsiregistruoja ir apmoka kortele. Reikia kainos.</span>
+                </span>
               </label>
             )}
           />

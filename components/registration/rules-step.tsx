@@ -11,6 +11,8 @@ interface RulesStepProps {
   error: string | null;
   onBack: () => void;
   onSubmit: (signature: Blob) => void;
+  /** Label of the final button; the plan purchase says it continues to payment. */
+  submitLabel?: string;
 }
 
 function RuleText({ title, text }: { title: string; text: string }) {
@@ -29,7 +31,7 @@ function RuleText({ title, text }: { title: string; text: string }) {
 const today = new Date().toLocaleDateString("lt-LT", { day: "numeric", month: "long", year: "numeric" });
 
 /** Step 3: scrollable rules, a consent line, a signature pad, and the final submit. */
-export function RulesStep({ fullName, submitting, error, onBack, onSubmit }: RulesStepProps) {
+export function RulesStep({ fullName, submitting, error, onBack, onSubmit, submitLabel = "Sutinku ir pasirašau" }: RulesStepProps) {
   const padRef = useRef<SignaturePadHandle>(null);
   const [hasInk, setHasInk] = useState(false);
 
@@ -67,7 +69,7 @@ export function RulesStep({ fullName, submitting, error, onBack, onSubmit }: Rul
           Atgal
         </Button>
         <Button type="button" className="min-h-11 flex-1" disabled={!hasInk || submitting} onClick={handleSubmit}>
-          {submitting ? "Siunčiama…" : "Sutinku ir pasirašau"}
+          {submitting ? "Siunčiama…" : submitLabel}
         </Button>
       </div>
     </div>

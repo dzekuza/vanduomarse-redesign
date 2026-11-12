@@ -10,6 +10,15 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0080 — WAKE season passes are bracelet plans bought online, not coupons (supersedes the season-pass part of ADR-0069)
+
+- **Date:** 2026-11-13. **Status:** code done; migrations `20261113150000_rider_plan_orders.sql`, `…160000_my_riders_registered.sql` and `…170000_my_riders_registration_details.sql` APPLIED to the live project 2026-11-13 and verified (2 online plans, coupon passes inactive, RLS on, order RPCs executable by `service_role` only, `online_plans()` by anon).
+- **Context:** the owner wants "WAKE abonementas" to be a real purchase of an apyrankė plan, not a coupon code. The buyer must be registered (contacts, photo, signed rules); after payment the plan is attached to the rider and staff bind the physical bracelet at the park.
+- **Decision:** `ride_plans.sold_online` marks the plans for sale; the two passes (750 € / 950 €) are inserted as category `Abonementai` and the matching coupon products are deactivated. Public read through `online_plans()` (security definer, nothing else of `ride_plans` is exposed). New `rider_plan_orders` (reference `AB-…`, plan snapshot, status `laukia_apmokejimo` / `apmoketa` / `atsauktas`, Stripe ids, `purchase_id`), staff-read only (`apyrankes`). All order RPCs are service-role only: `create_plan_order`, `attach_plan_order_session`, `abandon_plan_order`, `complete_plan_order_payment`, `expire_plan_order_session`, `refund_plan_order_payment`, `plan_order_state`. `/registracija?abonementas=<plan id>` runs the registration, and `registerRider` creates the order for the rider it just made (never a client-supplied rider id) and returns a Stripe Checkout URL. The webhook (`lib/plan-payment.ts`, dispatched by `metadata.plan_order_id`) sets the order paid, inserts a `purchases` row, sets `riders.plan_id`, and emails the buyer and staff once (`newly_paid`).
+- **Consequences:** swim plans (category Plaukimas) are sold the same way: migration `20261113190000_sell_swim_plans_online.sql` flags all but "Papildoma valanda" (applied 2026-11-13). Staff switch plans on or off with the "Internetu" toggle in /admin/apyrankes → Planai. The coupon ride dialog only serves leftover `kabelis` coupon products. A visitor who cancels Checkout must register again (a second rider row; staff merge duplicates). A full refund cancels the order but leaves the rider's plan for staff to change. The admin plan price is the online price.
+
+- **Security review follow-up (applied 2026-11-13, verified):** `my_riders()` matches a rider by e-mail, `phone` or `phone2`, and `phone2` is staff-entered, so it can be someone else's number. `20261113180000_my_riders_primary_match.sql` adds `primary_match` (confirmed account e-mail = `riders.email`, or confirmed account phone = `riders.phone`). A `phone2`-only match still returns name, plan, bracelets and purchases (ADR-0062) but every registration field (e-mail, phones, birth date, photo path, waiver date) is null, no photo URL is signed, and it does not count as the customer's registration. An explicit owner link (`riders.user_id`) would be cleaner but needs a backfill: not done.
+---
 ## ADR-0079 — A paid reservation is confirmed automatically and the customer gets what was booked (revises ADR-0026)
 
 - **Decision:** `complete_payment` now sets the payment's requests (`bookings`, `quad_rentals`, `event_tickets`) from `laukia` to `patvirtinta` itself, and returns `confirmed`. A payment that needs a look (`needs_review`: odd amount, or slots not restorable after a late payment) is not confirmed and stays for staff. The webhook then sends the SMS and email built from `paid_request_details` (what, date, time) instead of "we will confirm shortly".
@@ -193,6 +202,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Decision:** Remove the Big Shoulders import and variable. `font-display` falls back to `--font-termina`; `font-wordmark` uses Termina Bold (sizes 18cqw / 10cqw from `md`, since Termina is wider).
 - **Consequences:** One font family, no Google Fonts request, no warning. The coming-soon wordmark changed look and needs a visual check.
 
+- **Registration details follow-up (ADR-0080):** the function now also returns the customer's own registration fields, but only for `primary_match` rows (the confirmed e-mail or `phone`, never `phone2`); see ADR-0080.
 ---
 
 ## ADR-0056 — Staff SMS recipients are an owner-managed list with topics, not one env var

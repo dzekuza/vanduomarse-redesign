@@ -8,8 +8,9 @@ import { BOOKING_CHOICE_CLASS, FilterChip } from "@/components/events/filter-chi
 import { BookingDetailCard } from "@/components/reservation/booking-detail-card";
 import { PLAN_PRIMARY_CLASS } from "@/components/reservation/plan-actions";
 import type { Contact } from "@/lib/contacts";
-import { formatEuro, isWakeSeasonPass, type CouponProduct } from "@/lib/coupons";
+import { formatEuro, isWakeSeasonPass, type WakeOffer } from "@/lib/coupons";
 import { ServiceBookingHelp } from "./service-booking-help";
+import { WakeCheckoutDialog } from "./wake-checkout-dialog";
 
 const TYPES = [
   { id: "ride", label: "Plaukimas" },
@@ -18,10 +19,10 @@ const TYPES = [
 
 type WakeType = (typeof TYPES)[number]["id"];
 
-export function useWakeBooking(products?: CouponProduct[], { autoSelect = false } = {}) {
+export function useWakeBooking(products?: WakeOffer[], { autoSelect = false } = {}) {
   const [type, setType] = useState<WakeType | null>(autoSelect ? "ride" : null);
   const [selected, setSelected] = useState<Partial<Record<WakeType, string>>>({});
-  const offers: Record<WakeType, CouponProduct[]> = { ride: [], season: [] };
+  const offers: Record<WakeType, WakeOffer[]> = { ride: [], season: [] };
   for (const product of products ?? []) {
     offers[isWakeSeasonPass(product) ? "season" : "ride"].push(product);
   }
@@ -99,8 +100,9 @@ export function WakeBookingChoices({ type, setType, offers, offerType, options, 
   );
 }
 
-export function WakeBookingSummary({ product, contact }: { product?: CouponProduct; contact: Contact }) {
+export function WakeBookingSummary({ product, contact }: { product?: WakeOffer; contact: Contact }) {
   const season = product && isWakeSeasonPass(product);
+  const [checkout, setCheckout] = useState(false);
 
   return (
     <>
@@ -108,21 +110,24 @@ export function WakeBookingSummary({ product, contact }: { product?: CouponProdu
         <BookingPrice
           amount={formatEuro(product?.value ?? 0)}
           note={!product ? "Pasirink pasiūlymą, kad matytum kainą."
+            : product.planId ? `Užsiregistruosi (kontaktai, nuotrauka, taisyklės) ir apmokėsi. ${season ? "Abonementas" : "Planas"} priskiriamas tau, apyrankę parke priskirs darbuotojas.`
             : season ? "Apmokėjus gausi kupono kodą. Abonementą su šiuo kodu aktyvuos komanda parke."
               : "Apmokėjus gausi plaukimo kupono kodą. Plaukimo laiką suderink su Marso Akademija."}
         />
         <Cta tone="dark" small className={PLAN_PRIMARY_CLASS}
-          href={product ? `/kuponai?produktas=${encodeURIComponent(product.id)}#uzsakymas` : undefined}
+          href={product?.planId ? `/registracija?abonementas=${encodeURIComponent(product.planId)}` : undefined}
+          onClick={product?.planId ? undefined : () => setCheckout(true)}
           disabled={!product}>
           {!product ? "Užsakyti" : season ? "Užsakyti abonementą" : "Užsakyti plaukimą"}
         </Cta>
       </div>
+      {product && !product.planId ? <WakeCheckoutDialog product={product} open={checkout} onClose={() => setCheckout(false)} /> : null}
       <ServiceBookingHelp contact={contact} />
     </>
   );
 }
 
-export function WakeServiceBooking({ products, contact }: { products: CouponProduct[]; contact: Contact }) {
+export function WakeServiceBooking({ products, contact }: { products: WakeOffer[]; contact: Contact }) {
   const booking = useWakeBooking(products, { autoSelect: true });
 
   return (

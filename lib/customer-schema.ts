@@ -8,6 +8,9 @@ export const loginTargetSchema = z.discriminatedUnion("channel", [
 export type LoginTarget = z.infer<typeof loginTargetSchema>;
 
 /** Supabase Auth's default code length is 6 and can be raised to 10. */
+/** Digits drawn in the sign-in code field. Supabase Auth sets the real length; the schema below still accepts 4 to 10. */
+export const LOGIN_CODE_LENGTH = 8;
+
 export const loginCodeSchema = z.string().trim().regex(/^\d{4,10}$/, "Įveskite kodą iš žinutės.");
 
 export const customerNameSchema = z.string().trim().min(2, "Įveskite vardą").max(80, "Per ilgas vardas");
