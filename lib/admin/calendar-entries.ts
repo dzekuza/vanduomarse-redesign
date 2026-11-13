@@ -36,15 +36,15 @@ export interface CalendarEntry {
   status: BookingStatus;
   reference: string;
   /** Set for events: seats taken and the limit (null = unlimited). Their bookings are the event's tickets. */
-  event?: { sold: number; capacity: number | null; published: boolean };
+  event?: { sold: number; held: number; capacity: number | null; published: boolean };
 }
 
 type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events">;
 
 const EVENT_KIND: Record<EventCategory, CalendarKind> = { pirtis: "pirtis", keturratis: "keturraciai", vakarai: "renginys", akademija: "renginys", sventes: "renginys" };
 
-/** Seats taken out of the limit, e.g. "8/12"; "12 asm." when unlimited. */
-export const seatsLabel = (event: NonNullable<CalendarEntry["event"]>) => (event.capacity ? `${event.sold}/${event.capacity}` : `${event.sold} asm.`);
+/** Seats taken out of the limit, e.g. "8/12" (tickets plus places staff set aside); "12 asm." when unlimited. */
+export const seatsLabel = (event: NonNullable<CalendarEntry["event"]>) => (event.capacity ? `${event.sold + event.held}/${event.capacity}` : `${event.sold} asm.`);
 
 /** An event's tickets: quad-tour and other event requests share one shape. */
 export const ticketsFor = (eventId: string, ...lists: readonly TourTicket[][]) => lists.flat().filter((t) => t.eventId === eventId);
@@ -109,7 +109,7 @@ export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, e
       customer: { name: "", email: "", phone: "" },
       status: "patvirtinta",
       reference: "",
-      event: { sold: e.sold, capacity: e.capacity, published: e.published },
+      event: { sold: e.sold, held: e.held, capacity: e.capacity, published: e.published },
     });
   }
 

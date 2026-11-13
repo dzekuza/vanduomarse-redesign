@@ -6,9 +6,14 @@
 
 ## 2026-11-13 — Split admin actions, add tests
 
-- **Changed:** `app/admin/actions.ts` → `app/admin/actions/*.ts` + barrel; Vitest + 5 test files (40 tests); `settle()` logging; `.gitignore`; docs (ADR-0090).
+- **Changed:** `app/admin/actions.ts` → `app/admin/actions/*.ts` + barrel; Vitest + 5 test files (40 tests); `settle()` logging; `.gitignore`; docs (ADR-0091).
 - **Status:** tsc, eslint, `pnpm test`, `pnpm build` pass. Admin screens not clicked through (login needed), only the login route compiled and answered. The WIP from earlier today (emails, tabs, footer, plan lines) is still uncommitted on the working tree.
 - **Next:** click through /admin once to confirm the barrel works at runtime; then the real-booking test from the earlier entries.
+## 2026-11-13 — Held spots on sessions
+
+- **Changed:** `events.held` + capacity trigger, `setEventHeld` action, store `event/held`, `HeldSpots` stepper in `EventSheet`, public `spotsLeft`, labels count held.
+- **Status:** migration applied and DB-tested; UI untested (worktree dev server had no styles); branch not merged.
+- **Next:** test on a real session, PR + merge.
 
 ## 2026-11-13 — Remove cancelled requests
 

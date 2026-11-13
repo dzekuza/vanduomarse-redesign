@@ -115,11 +115,11 @@ export function EventsView() {
                 <TableCell className="hidden xl:table-cell">
                   {e.capacity ? (
                     <div className="w-28">
-                      <p className="text-xs tabular-nums">{e.sold} / {e.capacity}</p>
+                      <p className="text-xs tabular-nums">{e.sold + e.held} / {e.capacity}</p>
                       <progress
-                        value={e.sold}
+                        value={e.sold + e.held}
                         max={e.capacity}
-                        aria-label={`Parduota ${e.sold} iš ${e.capacity}`}
+                        aria-label={`Užimta ${e.sold + e.held} iš ${e.capacity}`}
                         className="mt-1 block h-1.5 w-full appearance-none [&::-moz-progress-bar]:bg-ink [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-ink"
                       />
                     </div>

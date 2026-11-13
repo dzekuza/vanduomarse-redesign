@@ -134,13 +134,18 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0090 — Admin server actions are split by domain; unit tests cover the money rules
+## ADR-0091 — Admin server actions are split by domain; unit tests cover the money rules
 
 - **Context:** `app/admin/actions.ts` had grown to 1,550 lines and every admin feature touched it. The refund, cancel-policy and pricing rules had no automated tests.
 - **Decision:** one `"use server"` file per domain in `app/admin/actions/`; `index.ts` is deliberately NOT a `"use server"` file so it can re-export them, which keeps `@/app/admin/actions` as the one import path (`import * as actions` in `admin-store.tsx` still works). Helpers shared by two files live in `lib/admin/action-helpers.ts`, because a `"use server"` file may only export async functions. Vitest (`pnpm test`) runs `lib/**/*.test.ts`; `server-only` is aliased to an empty stub and Supabase / Stripe are mocked, so no test touches a real database or Stripe. `settle()` in `lib/notify.ts` logs rejected channels and events that reached nobody (event name only, no contact data).
 - **Consequences:** new admin actions go into the matching domain file. Tests sit next to the code they cover. There is still no browser end-to-end test: the booking flow writes to the live database, so it stays a manual check until there is a test project.
 
 ---
+## ADR-0090 — Staff can hold places on a limited event with `events.held`
+
+- **Context:** the owner wanted to take some places of a sauna session (family, friends) without creating fake bookings.
+- **Decision:** `events.held` (integer, default 0): places set aside by staff. `enforce_ticket_capacity` counts `held` next to the real tickets, the public `spotsLeft` is `capacity - sold - held`, and `private.check_event_held` refuses `held + sold > capacity` and any `held` on an unlimited event. `sold` stays real tickets only (the sync trigger is unchanged). `setEventHeld(id, held)` (renginiai / keturraciai) checks the same rule first for a clear message; the UI is a stepper (`HeldSpots`) in the event panel, hidden for quad tour departures (their capacity counts quads).
+- **Consequences:** held places have no customer, price or reference, so nothing shows in sales or revenue. Lowering a capacity below `sold + held` on an event that has held places is refused.
 
 ## ADR-0089 — Cancelled requests can be removed, but not while their money is unrefunded
 
