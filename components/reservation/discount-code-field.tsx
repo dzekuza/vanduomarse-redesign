@@ -87,9 +87,9 @@ export function DiscountCodeField({ discount, amount, disabled, onChange, onPend
 
   if (!open && !error) {
     return (
-      <Button type="button" variant="outline" size="lg" className="border-ink bg-transparent" disabled={disabled} onClick={() => setOpen(true)}>
+      <button type="button" disabled={disabled} onClick={() => setOpen(true)} className="inline-flex min-h-11 items-center text-sm font-bold underline underline-offset-4 disabled:opacity-50">
         Turiu nuolaidos kodą
-      </Button>
+      </button>
     );
   }
 
