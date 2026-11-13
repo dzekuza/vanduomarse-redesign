@@ -2481,6 +2481,10 @@ export type Database = {
           service: Database["public"]["Enums"]["coupon_service"]
         }[]
       }
+      confirm_cash_request: {
+        Args: { p_reference: string }
+        Returns: boolean
+      }
       complete_payment: {
         Args: {
           p_amount: number

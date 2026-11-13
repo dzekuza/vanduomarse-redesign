@@ -8,7 +8,7 @@ export function ReservationSubmitDetails({ payments, payOnSite }: { payments: bo
   const { formState } = useFormContext<AccountValues>();
   const error = formState.errors.root;
   const note = payOnSite
-    ? "Atsiskaitysi vietoje grynais. Mokėti internetu nereikia. Užklausą patvirtinsime telefonu arba el. paštu."
+    ? "Atsiskaitysi vietoje grynais. Mokėti internetu nereikia. Patvirtinus telefoną SMS kodu, rezervacija patvirtinama iškart."
     : payments
       ? "Apmokėjimas saugus, per Stripe. Kortelės duomenų mes nematome. Vietas laikome 30 min., kol mokate. Apmokėjus užklausas patvirtinsime telefonu arba el. paštu."
       : null;

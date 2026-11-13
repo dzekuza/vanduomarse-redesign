@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
+import type { Customer } from "@/lib/customer-types";
 import { phoneDigits } from "@/lib/phone-countries";
 
 /** Adds a phone to the account: number first, then the SMS code; the number counts once the code is confirmed. */
-export function AddPhone() {
+export function AddPhone({ onAdded, startOpen = false }: { onAdded?: (customer: Customer) => void; startOpen?: boolean }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [phone, setPhone] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -35,7 +36,8 @@ export function AddPhone() {
     const result = await confirmPhoneChange({ phone: sentTo, code }).catch(() => null);
     setBusy(false);
     if (!result || "error" in result) return setError(result?.error.message ?? "Nepavyko patvirtinti. Bandykite dar kartą.");
-    router.refresh();
+    if (onAdded) onAdded(result.data);
+    else router.refresh();
   }
 
   if (!open) {

@@ -21,7 +21,7 @@ export function ReservationDone({ compact, lines, outcome, payOnSite, busy, onRe
   return (
     <div className="border border-line bg-foam/15 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-97 motion-safe:duration-300 motion-safe:ease-out-strong">
       <div className={`border-b border-dashed border-ink ${pad} py-4`}>
-        <p className="font-display text-figure font-bold uppercase">{pending ? "Dar ne viskas išsiųsta" : "Gavom. Susisieksim."}</p>
+        <p className="font-display text-figure font-bold uppercase">{pending ? "Dar ne viskas išsiųsta" : payOnSite ? "Patvirtinta. Iki pasimatymo!" : "Gavom. Susisieksim."}</p>
       </div>
       <ul className={`divide-y divide-line ${pad}`}>
         {lines.map((l) => (
@@ -43,7 +43,7 @@ export function ReservationDone({ compact, lines, outcome, payOnSite, busy, onRe
         {pending
           ? `Išsiųstos užklausos jau pas mus, pakartojus jos nesiunčiamos antrą kartą. Reikia pagalbos? Skambink ${MAIN_CONTACT.phone}.`
           : payOnSite
-            ? "Užklausas gavome. Patvirtinsime telefonu arba el. paštu. Atsiskaitysi vietoje grynais; kol kas vietos dar nėra garantuotos."
+            ? "Rezervacija patvirtinta, vietos užtikrintos. Atsiskaitysi vietoje grynais."
             : "Užklausas gavome. Patvirtinsime telefonu arba el. paštu; kol kas vietos dar nėra garantuotos ir mokėti nereikia."}
       </p>
       <div className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-ink ${pad} py-3`}>
