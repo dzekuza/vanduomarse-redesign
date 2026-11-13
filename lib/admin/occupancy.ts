@@ -1,5 +1,6 @@
 import { parseDay } from "@/lib/admin/format";
-import type { Block, Booking } from "./types";
+import type { Block, Booking, ManagedEvent } from "./types";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { StayType } from "@/lib/cabin";
 import { dateKey, type SaunaRates } from "@/lib/sauna";
 
@@ -15,6 +16,19 @@ export function saunaBookingAt(bookings: Booking[], day: string, hour: number): 
   return bookings.find(
     (b) => active(b) && b.kind === "pirtis" && b.date === day && b.startHour !== undefined && hour >= b.startHour && hour < b.startHour + (b.hours ?? 0),
   );
+}
+
+/** The sauna the public sessions are held in; they occupy it even when every ticket is sold. */
+export const SESSION_SAUNA_ID = "pirtis-marse";
+
+/** The published public sauna session covering `hour` on `day` (same-day part of the session), if any. */
+export function saunaSessionAt(events: readonly ManagedEvent[], programs: readonly SaunaProgram[], day: string, hour: number): ManagedEvent | undefined {
+  return events.find((e) => {
+    if (!e.published || e.category !== "pirtis" || e.date !== day) return false;
+    const start = Number(e.time.slice(0, 2)) * 60 + Number(e.time.slice(3, 5));
+    const minutes = e.durationMinutes ?? programs.find((p) => p.id === e.programId)?.durationMinutes ?? 60;
+    return hour * 60 < start + minutes && (hour + 1) * 60 > start;
+  });
 }
 
 /** Cabin or camper units occupied during the night of `day`, of one stay type when `typeId` is given. */
