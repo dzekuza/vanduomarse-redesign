@@ -3,7 +3,7 @@
 import { CheckSquareIcon, LockSimpleIcon, LockSimpleOpenIcon, PencilSimpleIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useAdmin } from "../admin-store";
-import { saunaBookingAt, saunaSlice } from "@/lib/admin/occupancy";
+import { SESSION_SAUNA_ID, saunaBookingAt, saunaSessionAt, saunaSlice } from "@/lib/admin/occupancy";
 import { formatDay } from "@/lib/admin/format";
 import { formatHour, type Sauna } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
@@ -14,16 +14,19 @@ interface SaunaGridProps {
   sauna: Sauna;
   days: string[];
   onOpenBooking: (id: string) => void;
+  /** Opens a public session (the main sauna only). */
+  onOpenEvent?: (id: string) => void;
   onCreateBooking: (day: string, hour: number) => void;
 }
 
 const cellKey = (day: string, hour: number) => `${day}_${hour}`;
 
 /** Hour-by-day grid for one sauna: booked, closed by staff, or free. Click a free cell to start a booking; right-click for more (edit, select, close); with cells selected, bulk-close or bulk-reopen them. */
-export function SaunaGrid({ sauna, days, onOpenBooking, onCreateBooking }: SaunaGridProps) {
+export function SaunaGrid({ sauna, days, onOpenBooking, onOpenEvent, onCreateBooking }: SaunaGridProps) {
   const admin = useAdmin();
   const { bookings, blocks } = saunaSlice(admin.bookings, admin.blocks, sauna.id);
   const { openHour, closeHour } = sauna.rates;
+  const sessionsHere = sauna.id === SESSION_SAUNA_ID;
   const hours = Array.from({ length: closeHour - openHour }, (_, i) => openHour + i);
   const cols = days.length === 1 ? "grid-cols-[4rem_minmax(0,1fr)]" : "grid-cols-[4rem_repeat(7,minmax(0,1fr))]";
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -43,7 +46,7 @@ export function SaunaGrid({ sauna, days, onOpenBooking, onCreateBooking }: Sauna
       const hour = Number(hourStr);
       return { key, day, hour, blocked: blocks.some((b) => b.date === day && b.hour === hour) };
     })
-    .filter((c) => !saunaBookingAt(bookings, c.day, c.hour));
+    .filter((c) => !saunaBookingAt(bookings, c.day, c.hour) && !(sessionsHere && saunaSessionAt(admin.events, admin.programs, c.day, c.hour)));
 
   const bulkClose = () => {
     selectedCells.filter((c) => !c.blocked).forEach((c) => admin.toggleBlock(sauna.id, c.day, c.hour));
@@ -81,6 +84,7 @@ export function SaunaGrid({ sauna, days, onOpenBooking, onCreateBooking }: Sauna
             {days.map((day) => {
               const booking = saunaBookingAt(bookings, day, hour);
               const blocked = blocks.find((b) => b.date === day && b.hour === hour);
+              const session = !booking && sessionsHere ? saunaSessionAt(admin.events, admin.programs, day, hour) : undefined;
               const key = cellKey(day, hour);
               const isSelected = selected.has(key);
 
@@ -110,6 +114,27 @@ export function SaunaGrid({ sauna, days, onOpenBooking, onCreateBooking }: Sauna
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
+                );
+              }
+
+              if (session) {
+                const first = hour === Math.floor(Number(session.time.slice(0, 2)));
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => onOpenEvent?.(session.id)}
+                    className="min-h-11 border-r border-b bg-lake px-2 py-1 text-left text-foam hover:opacity-90"
+                  >
+                    {first ? (
+                      <>
+                        <span className="block truncate font-normal">{session.title}</span>
+                        <span className="block truncate opacity-75">{session.capacity ? `${session.sold + session.held}/${session.capacity}` : session.sold} asm.</span>
+                      </>
+                    ) : (
+                      <span className="sr-only">{session.title}</span>
+                    )}
+                  </button>
                 );
               }
 

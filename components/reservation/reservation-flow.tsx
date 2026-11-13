@@ -190,7 +190,8 @@ export function ReservationFlow({
   const selectionReady = tourPick === null
     ? bookable(plans)
     : Boolean(quadTour?.ok && (chosen(plans).length === 0 || bookable(plans)));
-  const ready = selectionReady && customer !== null;
+  // Pay on site confirms the booking at once, so it needs an account with an SMS-confirmed phone.
+  const ready = selectionReady && customer !== null && (!payOnSite || customer.phone !== null);
   // Back from Stripe with the browser's Back button: the unpaid payment is cancelled and the form is usable again.
   useReleaseOnBrowserBack((released) => {
     setRedirecting(false);
@@ -321,6 +322,7 @@ export function ReservationFlow({
         customerPhone: customer.phone ?? "",
         customerEmail: customer.email ?? "",
         viaAccount: true,
+        payOnSite,
       };
       const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount, tourPick);
       // The code stopped holding (used up, expired) part-way: drop it so "Bandyti dar kartą" files the rest without it.

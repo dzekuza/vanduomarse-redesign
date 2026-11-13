@@ -4,9 +4,10 @@ import { after } from "next/server";
 import type { ActionResult } from "@/app/admin/actions";
 import { mixedQuadRentalSchema, quadRentalSchema, quadTourRentalSchema, tourTicketSchema, type MixedQuadRentalInput, type QuadRentalInput, type QuadTourRentalInput, type TourTicketInput } from "@/lib/quad-schema";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
+import { confirmCashRequest, PHONE_REQUIRED } from "@/lib/cash-confirm";
 import { requester } from "@/lib/request-identity";
 import { hourLabel } from "@/lib/quads";
-import { notifyRequestFiled } from "@/lib/notify";
+import { notifyRequestFiled, notifyRequestOutcome } from "@/lib/notify";
 import { describeRequest } from "@/lib/sms/notify";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -51,9 +52,18 @@ function dbFail(e: DbError) {
 }
 
 /** Text the visitor's verified phone, email only a signed-in account's confirmed address (null for anonymous requests), and always alert staff; never delays or fails the request. */
-function notify(phone: string | null, email: string | null | undefined, reference: string, summary: string) {
+function notify(phone: string | null, email: string | null | undefined, reference: string, summary: string, confirmed = false) {
+  // Confirmed on the spot (pay on site): staff still hear of it, the customer gets the confirmation instead of "received".
+  if (confirmed) {
+    after(() => Promise.all([notifyRequestFiled("keturraciai", { phone: null, email: null }, reference, summary), notifyRequestOutcome({ phone, email }, reference, "patvirtinta", summary)]));
+    return;
+  }
   after(() => notifyRequestFiled("keturraciai", { phone, email }, reference, summary));
 }
+
+/** "Pay on site" from a signed-in account: confirm the request just filed (see `confirmCashRequest`). */
+const cashConfirmed = (v: { payOnSite?: boolean; viaAccount?: boolean }, supabase: Parameters<typeof confirmCashRequest>[0], reference: string) =>
+  v.payOnSite && v.viaAccount ? confirmCashRequest(supabase, reference) : Promise.resolve(false);
 
 export interface RequestReceipt {
   reference: string;
@@ -84,6 +94,7 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   const { data, error } = await supabase.rpc("create_quad_rental", {
     ...rentalArgs(v, phone, email),
@@ -91,7 +102,8 @@ export async function createQuadRental(input: QuadRentalInput): Promise<ActionRe
     p_units: v.units,
   });
   if (error) return dbFail(error);
-  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]));
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
+  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour)]), confirmed);
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -103,6 +115,7 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   const { data, error } = await supabase.rpc("create_mixed_quad_rental", {
     ...rentalArgs(v, phone, email),
@@ -110,7 +123,8 @@ export async function createMixedQuadRental(input: MixedQuadRentalInput): Promis
   });
   if (error) return dbFail(error);
   const units = v.allocations.reduce((sum, a) => sum + a.units, 0);
-  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]));
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
+  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${units} vnt.`]), confirmed);
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -122,6 +136,7 @@ export async function createQuadTourRental(input: QuadTourRentalInput): Promise<
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   // The database prices the tour from its route and gear rows and takes the quads from the fleet for the whole route.
   const { data, error } = await supabase.rpc("create_quad_tour_rental", {
@@ -137,7 +152,8 @@ export async function createQuadTourRental(input: QuadTourRentalInput): Promise<
     p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error);
-  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${v.units} vnt.`]));
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
+  if (!v.awaitingPayment) notify(phone, notifyEmail, data[0].reference, describeRequest(["Keturraciai", v.date, hourLabel(v.startHour), `${v.units} vnt.`]), confirmed);
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 

@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { signOutCustomer } from "@/app/actions/customer";
+import { AddPhone } from "@/components/account/add-phone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,7 @@ export interface AccountValues {
  * Checkout step: sign in or create an account (`LoginForm`), then the name for the booking. Sits inside
  * the reservation form, so Enter in its fields must not submit that form.
  */
-export function AccountStep({ customer, onCustomer }: { customer: Customer | null; onCustomer: (customer: Customer | null) => void }) {
+export function AccountStep({ customer, onCustomer, needPhone = false }: { customer: Customer | null; onCustomer: (customer: Customer | null) => void; needPhone?: boolean }) {
   const { register, setValue, getValues, formState } = useFormContext<AccountValues>();
   const id = useId();
   const [busy, setBusy] = useState(false);
@@ -58,6 +59,12 @@ export function AccountStep({ customer, onCustomer }: { customer: Customer | nul
           Keisti paskyrą
         </Button>
       </div>
+      {needPhone && !customer.phone ? (
+        <div className="space-y-3 border border-line p-4">
+          <p className="text-sm text-copy">Atsiskaitant vietoje rezervacija patvirtinama iškart, todėl reikia patvirtinto telefono numerio. Patvirtink jį SMS kodu.</p>
+          <AddPhone startOpen onAdded={onCustomer} />
+        </div>
+      ) : null}
       <div className="space-y-1.5">
         <Label htmlFor={`${id}-name`}>Vardas, pavardė</Label>
         <Input id={`${id}-name`} autoComplete="name" aria-invalid={!!formState.errors.customerName} {...register("customerName")} />

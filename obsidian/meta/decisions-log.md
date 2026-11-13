@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0092 — Pay-on-site bookings are confirmed by an SMS-verified phone, not by staff
+
+- **Context:** cash bookings were filed `laukia` and staff had to confirm each by hand, though the customer is already a signed-in account.
+- **Decision:** `payOnSite` bookings require an account with a confirmed phone (email-only accounts add one with `AddPhone` in the checkout dialog). Right after filing, `confirm_cash_request(reference)` (security definer, `authenticated` only) sets the caller's own pending, unpaid website request to `patvirtinta`; it refuses without a confirmed phone.
+- **Consequences:** cash bookings take the slot at once; abuse is bounded by the verified phone. Anonymous and embed forms are unchanged (still staff-confirmed). Staff can still cancel.
+
+---
+
 ## ADR-0085 — Cookie consent gates Google Analytics and Meta Pixel
 
 - **Status:** Accepted

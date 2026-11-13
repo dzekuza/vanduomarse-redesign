@@ -8,8 +8,11 @@ import { SaunaGrid } from "../availability/sauna-grid";
 import { StaysStrip } from "../availability/stays-strip";
 import { daysFrom } from "@/lib/admin/occupancy";
 import { SaunaSelect } from "../sauna/sauna-select";
+import { EventSheet } from "../calendar/event-sheet";
+import { EventDialog } from "../events/event-dialog";
 import { BookingSheet } from "./booking-sheet";
 import { NewBookingDialog } from "./new-booking-dialog";
+import type { ManagedEvent } from "@/lib/admin/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,13 +25,16 @@ function startOfToday(): Date {
 const LEGEND = [
   { swatch: "bg-ink", label: "Patvirtinta" },
   { swatch: "bg-rust/85", label: "Laukia" },
+  { swatch: "bg-lake", label: "Viešas seansas" },
   { swatch: "bg-hatch border", label: "Uždaryta" },
   { swatch: "border bg-card", label: "Laisva (spustelėkite, kad sukurtumėte rezervaciją; dešiniu pelės mygtuku – daugiau)" },
 ];
 
 /** Rezervacijos' "Kalendorius" tab: nightly stays and quad fleet load for the week, plus sauna hours. Merged from the old Užimtumas page. */
 export function BookingCalendarTab() {
-  const { bookings, saunas } = useAdmin();
+  const { bookings, saunas, events } = useAdmin();
+  const [openEventId, setOpenEventId] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
   const [saunaId, setSaunaId] = useState(() => (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "");
   const sauna = saunas.find((s) => s.id === saunaId) ?? saunas[0];
   const mobile = useIsMobile();
@@ -88,6 +94,7 @@ export function BookingCalendarTab() {
               sauna={sauna}
               days={days}
               onOpenBooking={setOpenId}
+              onOpenEvent={setOpenEventId}
               onCreateBooking={(date, startHour) => setCreating({ saunaId: sauna.id, date, startHour })}
             />
           ) : (
@@ -97,6 +104,8 @@ export function BookingCalendarTab() {
       </Card>
 
       <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
+      <EventSheet event={events.find((e) => e.id === openEventId) ?? null} onOpenChange={(o) => !o && setOpenEventId(null)} onEdit={(event) => { setOpenEventId(null); setEditingEvent(event); }} />
+      {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
       {creating ? (
         <NewBookingDialog
           initial={creating}

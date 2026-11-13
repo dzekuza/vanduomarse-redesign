@@ -74,7 +74,7 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
         <form ref={contactForm} onSubmit={onSubmit} noValidate className="min-h-0 space-y-6 overflow-y-auto p-6 pt-0">
           <section aria-label="Kontaktai" className="space-y-3">
             <p className="text-micro uppercase text-copy">01 / Kontaktai</p>
-            <AccountStep customer={customer} onCustomer={onCustomer} />
+            <AccountStep customer={customer} onCustomer={onCustomer} needPhone={payOnSite} />
           </section>
           <div className="space-y-3">
             <section aria-label="Rezervacijos suvestinė" className="space-y-3">

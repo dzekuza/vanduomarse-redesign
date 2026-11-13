@@ -20,6 +20,11 @@ export const contactFields = z.object({
    * phone or email, read from the session) instead of a typed phone with an SMS token.
    */
   viaAccount: z.boolean().optional(),
+  /**
+   * Set by the reservation page for "pay on site": the account's confirmed phone is the proof, so the
+   * database confirms the request at once (`confirm_cash_request`) and staff need not.
+   */
+  payOnSite: z.boolean().optional(),
   /** Reservation discount code; every booking RPC validates it and prices it again (ADR-0036). */
   discountCode: z.string().trim().max(40).optional(),
 });

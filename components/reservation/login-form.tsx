@@ -5,6 +5,8 @@ import { confirmLoginCode, sendLoginCode, type CodeSent } from "@/app/actions/cu
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { phoneDigits } from "@/lib/phone-countries";
 import type { Customer } from "@/lib/customer-types";
 import type { LoginTarget } from "@/lib/customer-schema";
 import { LoginCodeStep } from "./login-code-step";
@@ -124,19 +126,25 @@ export function LoginForm({ onCustomer, showAccountNote = true }: { onCustomer: 
       </div>
       <div className="space-y-1.5">
         <Label htmlFor={`${id}-contact`}>{channel === "phone" ? "Telefono numeris" : "El. paštas"}</Label>
-        <Input
-          id={`${id}-contact`}
-          type={channel === "phone" ? "tel" : "email"}
-          autoComplete={channel === "phone" ? "tel" : "email"}
-          placeholder={channel === "phone" ? "+370 612 34567" : "vardas@pastas.lt"}
-          aria-invalid={!!error}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={onEnter(() => void send())}
-        />
+        {channel === "phone" ? (
+          <div onKeyDown={onEnter(() => void send())}>
+            <PhoneInput id={`${id}-contact`} value={value} onChange={setValue} invalid={!!error} />
+          </div>
+        ) : (
+          <Input
+            id={`${id}-contact`}
+            type="email"
+            autoComplete="email"
+            placeholder="vardas@pastas.lt"
+            aria-invalid={!!error}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={onEnter(() => void send())}
+          />
+        )}
         <FieldError message={error ?? undefined} />
       </div>
-      <Button type="button" variant="default" size="lg" className="w-full sm:w-auto" disabled={busy || value.trim().length < 5} onClick={() => void send()}>
+      <Button type="button" variant="default" size="lg" className="w-full sm:w-auto" disabled={busy || (channel === "phone" ? phoneDigits(value) < 8 : value.trim().length < 5)} onClick={() => void send()}>
         {busy ? "Siunčiama..." : "Siųsti kodą"}
       </Button>
       {showAccountNote ? <p className="text-sm text-copy">Jei paskyros dar nėra, ją sukursime. Slaptažodžio nereikia.</p> : null}

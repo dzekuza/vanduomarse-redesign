@@ -22,7 +22,8 @@ import type { Json } from "@/lib/supabase/database.types";
 import { UNVERIFIED, verifiedPhone } from "@/lib/phone-verification";
 import { requester } from "@/lib/request-identity";
 import type { NotifyService } from "@/lib/contacts";
-import { notifyRequestFiled } from "@/lib/notify";
+import { confirmCashRequest, PHONE_REQUIRED } from "@/lib/cash-confirm";
+import { notifyRequestFiled, notifyRequestOutcome } from "@/lib/notify";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -91,6 +92,10 @@ export interface TicketReceipt {
   total: number;
 }
 
+/** "Pay on site" from a signed-in account: confirm the request just filed (see `confirmCashRequest`). */
+const cashConfirmed = (v: { payOnSite?: boolean; viaAccount?: boolean }, supabase: Parameters<typeof confirmCashRequest>[0], reference: string) =>
+  v.payOnSite && v.viaAccount ? confirmCashRequest(supabase, reference) : Promise.resolve(false);
+
 const TAKEN = "Šis laikas jau užimtas. Pasirinkite kitą.";
 
 /**
@@ -105,7 +110,13 @@ function notify(
   reference: string | undefined,
   summary: string,
   variant: "request" | "booking" = "request",
+  confirmed = false,
 ) {
+  // Confirmed on the spot (pay on site): staff still hear of it, the customer gets the confirmation instead of "received".
+  if (confirmed && reference) {
+    after(() => Promise.all([notifyRequestFiled(service, { phone: null, email: null }, reference, summary, variant), notifyRequestOutcome({ phone, email }, reference, "patvirtinta", summary)]));
+    return;
+  }
   after(() => notifyRequestFiled(service, { phone, email }, reference, summary, variant));
 }
 
@@ -123,6 +134,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   const { data, error } = await supabase.rpc("create_sauna_booking", {
     p_sauna_id: v.saunaId,
@@ -139,6 +151,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
     p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error, TAKEN);
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
   if (!v.awaitingPayment) {
     notify(
       "pirtis",
@@ -147,6 +160,7 @@ export async function createSaunaBooking(input: SaunaBookingInput): Promise<Acti
       data[0].reference,
       saunaSummary({ date: v.date, startHour: v.startHour, hours: v.hours, party: v.party, total: data[0].total }),
       "booking",
+      confirmed,
     );
   }
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
@@ -160,6 +174,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   const units = v.units ?? 1;
   const args = {
@@ -177,7 +192,8 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
     : await supabase.rpc("create_stay_booking_with_units", { ...args, p_units: units, p_guests: v.guests });
   if (error) return dbFail(error, BY_HINT.stay_full);
   const quantity = units > 1 ? `${v.stayTypeId === "kemperis" ? "Kemperiu vietos" : "Nameliai"}: ${units}` : undefined;
-  if (!v.awaitingPayment) notify("nakvyne", phone, notifyEmail, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]));
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
+  if (!v.awaitingPayment) notify("nakvyne", phone, notifyEmail, data[0].reference, describeRequest(["Nakvyne", v.date, `${v.nights} n.`, quantity]), "request", confirmed);
   return { data: { reference: data[0].reference, total: data[0].total, discount: data[0].discount } };
 }
 
@@ -210,6 +226,7 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   const { data, error } = await supabase.rpc("create_program_ticket", {
     p_event_id: v.eventId,
@@ -221,7 +238,8 @@ export async function createProgramTicket(input: ProgramTicketInput): Promise<Ac
     p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error, BY_HINT.event_full);
-  if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]));
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
+  if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", `${v.adults + v.children} asm.`]), "request", confirmed);
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
@@ -235,6 +253,7 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
   const who = await requester(v);
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
+  if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
   const { data, error } = await supabase.rpc("create_program_booking", {
     p_program_id: v.programId,
@@ -248,7 +267,8 @@ export async function createProgramBooking(input: ProgramBookingInput): Promise<
     p_discount_code: v.discountCode || undefined,
   });
   if (error) return dbFail(error, TAKEN);
-  if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]));
+  const confirmed = await cashConfirmed(v, supabase, data[0].reference);
+  if (!v.awaitingPayment) notify("pirtis", phone, notifyEmail, data[0].reference, describeRequest(["Pirtis", v.date, `${String(v.startHour).padStart(2, "0")}:00`]), "request", confirmed);
   return { data: { reference: data[0].reference, total: data[0].total } };
 }
 
