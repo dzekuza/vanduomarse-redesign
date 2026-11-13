@@ -76,7 +76,7 @@ export function PhoneNumberStep({ onSent, initialPhone = "", description = "Prie
           </div>
           {/* Shown only while the server allows it; the action re-checks, so the button alone grants nothing. */}
           {canSkip ? (
-            <Button type="button" variant="outline" size="lg" className="w-full border-dashed border-ink bg-transparent" onClick={skip}>
+            <Button type="button" variant="outline" size="lg" className="h-auto min-h-11 w-full whitespace-normal border-dashed border-ink bg-transparent py-2 text-center" onClick={skip}>
               Praleisti telefono patvirtinimą (tik testavimui)
             </Button>
           ) : null}
