@@ -247,6 +247,8 @@ export async function fetchMobileAdminData(me: StaffAccess): Promise<AdminData> 
     notifications: [],
     notificationsReadAt: null,
     siteSettings: null,
+    pageContent: {},
+    riderAccountIds: [],
     ridePlans: (ridePlans.data ?? []).map(toRidePlan),
     riders: (riders.data ?? []).map(toRider),
     riderCards: (riderCards.data ?? []).map(toRiderCard),

@@ -4,7 +4,9 @@ import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type
 import { formatEuro } from "@/lib/coupons";
 import { bookingTopics, paymentTopics, type MessageTopic } from "@/lib/notification-topics";
 import { staffEmailsFor } from "@/lib/staff-recipients";
-import { emailList, escapeHtml, sendEmail } from "./resend";
+import { SITE_URL } from "@/lib/site";
+import { brandedEmailHtml, type EmailParagraph } from "./layout";
+import { emailList, sendEmail } from "./resend";
 
 /**
  * Customer and staff notification emails, sent next to the SMS in `lib/notify.ts`.
@@ -15,18 +17,19 @@ const siteUrl = () => (process.env.SITE_URL ?? "").replace(/\/$/, "");
 
 const footer = [`Klausimai? ${MAIN_CONTACT.email}, ${MAIN_CONTACT.phone}`, "Vanduo Marse"];
 
-/** Builds the text and HTML bodies from paragraphs; `strong` paragraphs are bold in HTML. */
-function body(paragraphs: (string | { strong: string })[], withFooter = true) {
+/** Every customer mail ends with this button: the account page lists the booking and its cancel option. */
+const CANCEL_BUTTON = { label: "Atšaukti rezervaciją", href: `${SITE_URL}/paskyra` };
+
+/**
+ * Builds the text and HTML bodies from paragraphs; `strong` paragraphs are bold in HTML. `cancel` adds the
+ * "Atšaukti rezervaciją" button (customer mails only). The HTML has its own contact band, so the text footer is text only.
+ */
+function body(paragraphs: EmailParagraph[], withFooter = true, cancel = false) {
   const all = withFooter ? [...paragraphs, footer.join("\n")] : paragraphs;
-  const text = all.map((p) => (typeof p === "string" ? p : p.strong)).join("\n\n");
-  const html = all
-    .map((p) =>
-      typeof p === "string"
-        ? `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`
-        : `<p><strong>${escapeHtml(p.strong)}</strong></p>`,
-    )
-    .join("\n");
-  return { text, html };
+  const textParts = all.map((p) => (typeof p === "string" ? p : p.strong));
+  if (cancel) textParts.push(`${CANCEL_BUTTON.label}: ${CANCEL_BUTTON.href}`);
+  const html = brandedEmailHtml({ paragraphs, button: cancel ? CANCEL_BUTTON : undefined });
+  return { text: textParts.join("\n\n"), html };
 }
 
 const accountLink = () => (siteUrl() ? [`Savo rezervacijas matote paskyroje: ${siteUrl()}/paskyra`] : []);
@@ -45,7 +48,7 @@ export const emailReceived = (to: string | null | undefined, reference: string |
           { strong: summary },
           "Ji dar nepatvirtinta: patvirtinsime netrukus ir pranešime atskirai.",
           ...accountLink(),
-        ]),
+        ], true, true),
       })
     : Promise.resolve(false);
 
@@ -64,6 +67,8 @@ export const emailOutcome = (
           outcome === "patvirtinta"
             ? ["Sveiki,", `jūsų rezervacija ${reference} patvirtinta.`, { strong: summary }, "Iki pasimatymo Vanduo Marse!", ...accountLink()]
             : ["Sveiki,", `jūsų rezervacija ${reference} atšaukta.`, { strong: summary }, "Jei tai klaida arba norite kito laiko, susisiekite su mumis."],
+          true,
+          outcome === "patvirtinta",
         ),
       })
     : Promise.resolve(false);
@@ -83,7 +88,7 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
         `gavome jūsų apmokėjimą: ${formatEuro(amount)} už ${references.join(", ")}.`,
         confirmed ? "Rezervacija patvirtinta." : "Patikrinsime ir patvirtinsime netrukus, pranešime atskirai.",
         ...accountLink(),
-      ]),
+      ], true, true),
     });
   }
   const contact = contactFor(requests);
@@ -95,7 +100,7 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
       ...requests.map((r) => ({ strong: [requestHeading(r), `Data: ${requestDate(r)}`, ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : [])].join("\n") })),
       `Turite klausimų? Skambinkite ${contact.phone} arba rašykite ${contact.email}`,
       ...accountLink(),
-    ], false),
+    ], false, true),
   });
 };
 
@@ -170,15 +175,15 @@ export const emailStaffPaid = (
   ]);
 };
 
+/** The customer cancelled their own request (`refund` says what happened to the money). Booking mail rules apply: the service's people, else its inbox. */
+export const emailStaffCancelled = (service: NotifyService, reference: string, summary: string, refund: string) =>
+  toStaff(bookingTopics(service), [service], `Klientas atšaukė ${reference}`, [{ strong: summary }, refund]);
+
 export const emailStaffDuplicate = (references: string[], amount: number) =>
   toStaff(paymentTopics(servicesOf(references)), servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [
     { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
     "Grąžinkite papildomą mokėjimą per Stripe.",
   ], false); // a refund task for the service's staff, not a booking
-/** The customer cancelled their own request (`refund` says what happened to the money). Booking mail rules apply: the service's people, else its inbox. */
-export const emailStaffCancelled = (service: NotifyService, reference: string, summary: string, refund: string) =>
-  toStaff(bookingTopics(service), [service], `Klientas atšaukė ${reference}`, [{ strong: summary }, refund]);
-
 
 /* ---------------- gift coupon orders (/kuponai) ---------------- */
 

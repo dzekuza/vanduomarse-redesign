@@ -5,6 +5,7 @@ updated: 2026-11-13
 
 # Current status — vanduomarse-redesign
 
+**Housekeeping (2026-11-13, ADR-0091): admin actions split into `app/admin/actions/*.ts`, Vitest (`pnpm test`, 40 tests) for cancel policy / refunds / sauna pricing / occupancy / notify `settle`, `.gitignore` for tool dirs. Committed on `refactor/split-admin-actions` (not pushed). tsc/eslint/test/build pass; admin screens not clicked through. Next: log into /admin and open bookings, events and riders once; push and PR.**
 **Held spots on sessions (2026-11-13, ADR-0090): staff can set aside places on a limited event (sauna session) without a booking, from the event panel stepper ("Užimta rankiniu būdu"); the site, checkout and capacity check count them as taken. Migration `20261115140000_event_held_spots.sql` APPLIED and verified (rolled-back test: 20 places, 4 held: a 17-person ticket refused, 16 accepted; held above free refused; unlimited event cannot hold). On branch `feat/event-held-spots` in worktree `../vanduomarse-held` (not merged); tsc/eslint clean; the stepper UI is NOT browser-checked. Next: try it on a real session, then PR + merge.**
 
 **Remove cancelled requests (2026-11-13, ADR-0089): "Pašalinti" on cancelled bookings / rentals / tickets, guarded server-side (cancelled only; paid online needs a recorded refund). tsc/eslint clean, not browser-tested. Next: try it on a cancelled test booking and on a paid-but-unrefunded one (should refuse).**

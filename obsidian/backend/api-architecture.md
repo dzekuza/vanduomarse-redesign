@@ -31,19 +31,19 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | Action | File | Purpose | Validation |
 |--------|------|---------|------------|
-| `signIn` / `signOut` | `app/admin/actions.ts` | Supabase password login → redirect `/admin`; sign-out → login page | Zod (`email`, `password ≥ 6`) |
-| `createBooking` | `app/admin/actions.ts` | Manual booking; DB assigns the reference; extras re-priced server-side from active upsells; returns the saved `Booking` | Zod; `23P01` → message for the slot field |
-| `setBookingStatus` / `toggleBlock` | `app/admin/actions.ts` | Status change; close/reopen a sauna hour (`created_by` = user) | Zod |
-| `setInquiryStatus` / `addInquiryNote` | `app/admin/actions.ts` | Inquiry pipeline; notes carry `author_id` | Zod |
-| `saveEvent` / `deleteEvent` / `setEventPublished` | `app/admin/actions.ts` | Upsert by UUID; delete refuses events with tickets (`23503`) | Zod |
-| `updatePrices` | `app/admin/actions.ts` | Value/max per price item | Zod (max ≥ value) |
-| `updateSaunaRates` / `saveUpsell` / `deleteUpsell` | `app/admin/actions.ts` | Sauna settings and extras; also revalidate `/rezervacija` and `/embed/pirtis` | `ratesSchema` / Zod |
+| `signIn` / `signOut` | `app/admin/actions/` (by domain) | Supabase password login → redirect `/admin`; sign-out → login page | Zod (`email`, `password ≥ 6`) |
+| `createBooking` | `app/admin/actions/` (by domain) | Manual booking; DB assigns the reference; extras re-priced server-side from active upsells; returns the saved `Booking` | Zod; `23P01` → message for the slot field |
+| `setBookingStatus` / `toggleBlock` | `app/admin/actions/` (by domain) | Status change; close/reopen a sauna hour (`created_by` = user) | Zod |
+| `setInquiryStatus` / `addInquiryNote` | `app/admin/actions/` (by domain) | Inquiry pipeline; notes carry `author_id` | Zod |
+| `saveEvent` / `deleteEvent` / `setEventPublished` | `app/admin/actions/` (by domain) | Upsert by UUID; delete refuses events with tickets (`23503`) | Zod |
+| `updatePrices` | `app/admin/actions/` (by domain) | Value/max per price item | Zod (max ≥ value) |
+| `updateSaunaRates` / `saveUpsell` / `deleteUpsell` | `app/admin/actions/` (by domain) | Sauna settings and extras; also revalidate `/rezervacija` and `/embed/pirtis` | `ratesSchema` / Zod |
 
 | `createCouponOrder` | `app/actions/coupons.ts` | Public checkout: stores an order awaiting payment via the anon-callable RPC `create_coupon_order` (amount comes from the product row); honeypot field; no phone verification (ADR-0073), phone optional; optional `recipientEmail`; emails the buyer and staff after the insert (`notifyCouponOrdered`, ADR-0074) | `couponOrderSchema` (`lib/coupon-schema.ts`, shared with the form) |
 | `checkCoupon` | `app/actions/coupons.ts` | Public booking flows: RPC `check_coupon` returns balance/scope only; wrong service gets its own message | code normalised to 12 chars |
-| `saveCouponProduct` / `deleteCouponProduct` | `app/admin/actions.ts` | Coupon catalogue; also revalidates `/kuponai`; delete refuses sold products (`23503`) | Zod (euro coupon ⇔ service `visi`) |
-| `activateCoupon` | `app/admin/actions.ts` | Staff confirm payment: RPC `activate_coupon` issues the code + 12-month expiry, then `sendCouponEmail`; returns `{ code, expiresAt, emailSent }` | Zod |
-| `resendCouponEmail` / `redeemCoupon` / `cancelCoupon` | `app/admin/actions.ts` | Re-send code; insert a `coupon_redemptions` row (trigger spends the balance, hints `coupon_balance` / `coupon_inactive` / `coupon_expired`); cancel an order or coupon | Zod |
+| `saveCouponProduct` / `deleteCouponProduct` | `app/admin/actions/` (by domain) | Coupon catalogue; also revalidates `/kuponai`; delete refuses sold products (`23503`) | Zod (euro coupon ⇔ service `visi`) |
+| `activateCoupon` | `app/admin/actions/` (by domain) | Staff confirm payment: RPC `activate_coupon` issues the code + 12-month expiry, then `sendCouponEmail`; returns `{ code, expiresAt, emailSent }` | Zod |
+| `resendCouponEmail` / `redeemCoupon` / `cancelCoupon` | `app/admin/actions/` (by domain) | Re-send code; insert a `coupon_redemptions` row (trigger spends the balance, hints `coupon_balance` / `coupon_inactive` / `coupon_expired`); cancel an order or coupon | Zod |
 
 | `createQuadRental` / `createTourTicket` | `app/actions/quads.ts` | Public: file a rental request / tour seats via anon RPCs; DB hints map to Lithuanian messages; honeypot field | `quadRentalSchema` / `tourTicketSchema` (`lib/quad-schema.ts`) |
 | `createMixedQuadRental` | `app/actions/quads.ts` | Public: book a mix of fleet types for one slot with one reference through `create_mixed_quad_rental`. Requires a verified phone | `mixedQuadRentalSchema` (`lib/quad-schema.ts`): distinct types, up to 20 quads total. Database checks seats and hourly stock |
@@ -55,26 +55,26 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 | `releaseMyUnpaidPayments` | `app/actions/payments.ts` | Browser Back from Stripe: cancels the signed-in customer's own `laukia` payments through `releaseCancelledPayment` (session expired first, a paid one is left alone). ADR-0078 | none |
 | `cancelUnpaidPayment` | `app/actions/payments.ts` | "Atšaukti rezervaciją" on `/paskyra`: signed-in customer gives up their own unpaid payment (checked through RLS); expires its Stripe session (a paid one stops it), then `abandon_payment` releases the slots | uuid |
 | `resumeCheckout` | `app/actions/payments.ts` | "Mokėti dar kartą" on `/rezervacija/mokejimas`: the open session of a payment still `laukia` (by its unguessable id) | uuid |
-| `saveQuadType` / `deleteQuadType` / `updateQuadSettings` | `app/admin/actions.ts` | Fleet and rules; also revalidate `/rezervacija` and `/embed/keturraciai`; delete refused once rented (`23503`) | Zod (close > open) |
-| `createRental` / `setRentalStatus` / `setTourTicketStatus` | `app/admin/actions.ts` | Staff-entered rental (price from the fleet row, DB guards capacity); status changes (reopening a cancelled row re-checks capacity) | Zod |
+| `saveQuadType` / `deleteQuadType` / `updateQuadSettings` | `app/admin/actions/` (by domain) | Fleet and rules; also revalidate `/rezervacija` and `/embed/keturraciai`; delete refused once rented (`23503`) | Zod (close > open) |
+| `createRental` / `setRentalStatus` / `setTourTicketStatus` | `app/admin/actions/` (by domain) | Staff-entered rental (price from the fleet row, DB guards capacity); status changes (reopening a cancelled row re-checks capacity) | Zod |
 
 | `createStaff` / `resetStaffPassword` / `removeStaff` | `app/admin/staff-actions.ts` | Owner-only. Creates the login (service-role key, server only) with a generated temporary password shown once; reset; remove (staff row first, so the last-owner guard runs) | Zod |
 | `setStaffRole` / `setStaffActive` / `saveRole` / `deleteRole` | `app/admin/staff-actions.ts` | Owner-only. Role changes take effect on the next request; deleting a role in use is refused; yourself can't be switched off or removed | Zod, `PERMISSION_IDS` |
-| `changeOwnPassword` | `app/admin/actions.ts` | Any active staff member, via their own session | Zod (8-72 chars) |
+| `changeOwnPassword` | `app/admin/actions/` (by domain) | Any active staff member, via their own session | Zod (8-72 chars) |
 
-| `saveRidePlan` / `deleteRidePlan` | `app/admin/actions.ts` | `/admin/apyrankes` plan catalogue, grouped by `category`; delete refused while a rider is still on it (`23503`) | Zod |
-| `createRider` / `updateRiderPlan` | `app/admin/actions.ts` | New guest + plan, or reassign an existing rider's plan; both also insert a snapshotted `purchases` row (the sale) | Zod |
-| `updateRiderProfile` | `app/admin/actions.ts` | Name, surname, phone, additional phone, email, birthdate. `apyrankes` or `klientai` (ADR-0042) | Zod |
-| `uploadRiderAvatar` / `removeRiderAvatar` | `app/admin/actions.ts` | Profile photo in the private `rider-photos` bucket; upload replaces (and removes) any previous one. `apyrankes` or `klientai` | File type/size |
-| `getRiderFileUrl` | `app/admin/actions.ts` | 1-hour signed URL for a private `rider-photos`, `rider-documents` or `rider-waivers` object. `apyrankes` or `klientai` | Zod |
-| `addRiderComment` / `deleteRiderComment` | `app/admin/actions.ts` | Staff notes on a rider; `author_name` snapshotted from `staff.display_name` at write time. `apyrankes` or `klientai` | Zod |
-| `addRiderDocument` / `deleteRiderDocument` | `app/admin/actions.ts` | Files (ID scan, signed waiver, …) in the private `rider-documents` bucket. `apyrankes` or `klientai` | File type/size |
-| `deleteRider` | `app/admin/actions.ts` | Removes the rider and their avatar/document storage objects; bracelet, purchases, comments and documents cascade in the database. `apyrankes` or `klientai` | uuid |
-| `bindRiderCard` | `app/admin/actions.ts` | Binds a scanned bracelet UID to a rider; one UID → one rider, rebinding moves it; returns the rider it was moved from, if any | Zod (digits only, 6-32 chars) |
+| `saveRidePlan` / `deleteRidePlan` | `app/admin/actions/` (by domain) | `/admin/apyrankes` plan catalogue, grouped by `category`; delete refused while a rider is still on it (`23503`) | Zod |
+| `createRider` / `updateRiderPlan` | `app/admin/actions/` (by domain) | New guest + plan, or reassign an existing rider's plan; both also insert a snapshotted `purchases` row (the sale) | Zod |
+| `updateRiderProfile` | `app/admin/actions/` (by domain) | Name, surname, phone, additional phone, email, birthdate. `apyrankes` or `klientai` (ADR-0042) | Zod |
+| `uploadRiderAvatar` / `removeRiderAvatar` | `app/admin/actions/` (by domain) | Profile photo in the private `rider-photos` bucket; upload replaces (and removes) any previous one. `apyrankes` or `klientai` | File type/size |
+| `getRiderFileUrl` | `app/admin/actions/` (by domain) | 1-hour signed URL for a private `rider-photos`, `rider-documents` or `rider-waivers` object. `apyrankes` or `klientai` | Zod |
+| `addRiderComment` / `deleteRiderComment` | `app/admin/actions/` (by domain) | Staff notes on a rider; `author_name` snapshotted from `staff.display_name` at write time. `apyrankes` or `klientai` | Zod |
+| `addRiderDocument` / `deleteRiderDocument` | `app/admin/actions/` (by domain) | Files (ID scan, signed waiver, …) in the private `rider-documents` bucket. `apyrankes` or `klientai` | File type/size |
+| `deleteRider` | `app/admin/actions/` (by domain) | Removes the rider and their avatar/document storage objects; bracelet, purchases, comments and documents cascade in the database. `apyrankes` or `klientai` | uuid |
+| `bindRiderCard` | `app/admin/actions/` (by domain) | Binds a scanned bracelet UID to a rider; one UID → one rider, rebinding moves it; returns the rider it was moved from, if any | Zod (digits only, 6-32 chars) |
 
 | `registerRider` | `app/actions/registration.ts` | Public: `/registracija` self-registration. Anon RPC `register_rider_public` creates the rider + `rider_waivers` row, then uploads the photo (`rider-photos` bucket) and signature (`rider-waivers` bucket, both via Storage insert policies scoped to that new row), then anon RPC `finalize_rider_registration_public` links the two paths. No service role, no raw table/storage write — same contract as the rest of this section (ADR-0010, ADR-0043) | `registrationSchema` (`lib/registration-schema.ts`); file type/size checked server-side; honeypot field |
 
-Every action in `app/admin/actions.ts`: `staffClient(need)` (`lib/admin/action-helpers.ts`) (session + `public.staff` row, else `unauthorized`
+Every action in `app/admin/actions/` (by domain): `staffClient(need)` (`lib/admin/action-helpers.ts`) (session + `public.staff` row, else `unauthorized`
 / `forbidden`; `need` is the page permission, a list of alternatives, `"owner"` or `"any"`), Zod parse, write as the user (RLS), then
 `revalidatePath("/admin", "layout")`. Returns `ActionResult<T>`
 (`{ data } | { error: { message, code } }`); Postgres errors map to Lithuanian

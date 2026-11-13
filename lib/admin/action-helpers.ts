@@ -1,5 +1,6 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { isPermissionId, type PermissionId } from "@/lib/admin/permissions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -81,3 +82,6 @@ export function done<T>(data: T): { data: T } {
   revalidatePath("/admin", "layout");
   return { data };
 }
+
+/** Sauna ids are slugs; shared by the sauna and booking actions. */
+export const saunaIdSchema = z.string().regex(/^[a-z0-9-]+$/).max(60);

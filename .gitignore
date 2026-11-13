@@ -52,3 +52,9 @@ mobile/web-build
 mobile/ios
 mobile/android
 mobile/expo-env.d.ts
+
+# local tooling, scratch screenshots
+/.playwright-mcp/
+/.codex/
+/.claude/worktrees/
+/*.png

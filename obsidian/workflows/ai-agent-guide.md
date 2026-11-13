@@ -64,7 +64,7 @@ for a checkpoint commit authorizes a local commit at that point. Once the task
 is ready, run the checks and stage the files for the task.
 
 ```bash
-pnpm lint && npx tsc --noEmit
+pnpm lint && npx tsc --noEmit && pnpm test
 git add <files>
 git commit -m "feat: describe the change"
 git push -u origin feat/short-description

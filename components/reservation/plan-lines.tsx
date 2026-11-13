@@ -39,7 +39,7 @@ export function PlanLines({ lines, quantities, saunaTime, busy, onRemove }: Plan
           const editing = expanded === l.id;
           const editorId = `${id}-${l.id}`;
           return (
-            <li key={l.id} className={`relative pl-11 ${last ? "" : "pb-10"}`}>
+            <li key={l.id} className={`relative pl-11 motion-safe:transition-[opacity,translate] motion-safe:duration-200 motion-safe:ease-out-strong motion-safe:starting:translate-y-1.5 motion-safe:starting:opacity-0 ${last ? "" : "pb-10"}`}>
               {last ? null : (
                 <>
                   <span aria-hidden className="absolute bottom-6 left-4 top-9 w-px bg-ink/30" />
