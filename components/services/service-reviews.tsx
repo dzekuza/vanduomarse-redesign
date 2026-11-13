@@ -63,10 +63,7 @@ const food: VisitorReview = {
   name: "rrickasstley",
   topic: "Restoranas",
   summary: "Palankiai atsiliepė apie svetingą priėmimą, maistą ir parko patogumus.",
-  source: {
-    label: "„Google Maps“ per „Restaurant Guru“",
-    href: "https://restaurantguru.com/Vanduo-Marse-Kaunas",
-  },
+  source: GOOGLE_REVIEWS,
 };
 
 const BY_SERVICE: Partial<Record<ServiceId, VisitorReview[]>> = {

@@ -22,7 +22,7 @@ export function ProductPicker({ products, value, onChange }: ProductPickerProps)
         return (
           <div key={kind} role="group" aria-label={title}>
             <OptionGroupLabel>{title}</OptionGroupLabel>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {items.map((p) => (
                 <OptionCard
                   key={p.id}

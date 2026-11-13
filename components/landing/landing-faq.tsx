@@ -17,10 +17,9 @@ export function LandingFaq() {
           <br />
           <span className="text-rust">KLAUSIMAS.</span>
         </h2>
-        <p className="mt-7 text-xs leading-loose">
+        <p className="mt-7 flex flex-wrap items-center gap-x-3 text-xs leading-loose">
           Neradai atsakymo?
-          <br />
-          <a href={`mailto:${MAIN_CONTACT_EMAIL}`} className="mt-3 inline-flex min-h-11 items-center gap-1 border-b border-line">
+          <a href={`mailto:${MAIN_CONTACT_EMAIL}`} className="inline-flex min-h-11 items-center gap-1 border-b border-line">
             Parašyk mums
             <ArrowUpRightIcon aria-hidden className="size-4" />
           </a>

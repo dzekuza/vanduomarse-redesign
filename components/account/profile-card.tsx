@@ -4,13 +4,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { saveCustomerName, signOutCustomer } from "@/app/actions/customer";
 import { AddPhone } from "./add-phone";
+import { ProfileAvatar } from "./profile-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Customer } from "@/lib/customer-types";
 
 /** The signed-in customer: how they sign in, the name used on bookings, and sign out. */
-export function ProfileCard({ customer }: { customer: Customer }) {
+export function ProfileCard({ customer, photoUrl }: { customer: Customer; photoUrl?: string | null }) {
   const router = useRouter();
   const [name, setName] = useState(customer.name);
   const [busy, setBusy] = useState(false);
@@ -34,9 +35,12 @@ export function ProfileCard({ customer }: { customer: Customer }) {
 
   return (
     <section aria-labelledby="profile-title" className="space-y-5 border border-line p-5 sm:p-6">
-      <h2 id="profile-title" className="font-display text-item font-bold uppercase">
-        Paskyra
-      </h2>
+      <div className="flex items-center gap-4">
+        <ProfileAvatar name={customer.name || customer.email || ""} photoUrl={photoUrl} />
+        <h2 id="profile-title" className="font-display text-item font-bold uppercase">
+          Paskyra
+        </h2>
+      </div>
       <dl className="space-y-3 text-sm">
         {customer.phone ? (
           <div>

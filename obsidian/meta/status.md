@@ -5,6 +5,8 @@ updated: 2026-11-13
 
 # Current status — vanduomarse-redesign
 
+**Footer + stay cards (2026-11-13): footer spacing/underlines merged in PR #100; `StayUnitCard` stepper and button inline with space between (uncommitted, not browser-checked); stay options grid is now three columns. Next: check both at 375 / 768 / 1440 px, commit the stay card change.**
+
 **Header reservation dropdown (2026-11-13): "Rezervacija" opens a list of Pirties seansai / Privati pirtis / Nakvynė / Keturračiai / Wake (desktop dropdown, mobile menu sub-links), deep-linking into /rezervacija; branch `feat/header-reservation-dropdown`, uncommitted, browser-checked. Next: review, commit, PR.**
 
 **Cookie consent (2026-11-13, ADR-0085): banner, settings dialog and opt-in GA4 / Meta Pixel are in, off until `NEXT_PUBLIC_GA_MEASUREMENT_ID` and `NEXT_PUBLIC_META_PIXEL_ID` are set; uncommitted on `main`, tsc/eslint clean, checked with fake IDs only. Next: create the GA4 property and Pixel, add the IDs (`.env.local`, Vercel), accept in a real browser and confirm events.**
