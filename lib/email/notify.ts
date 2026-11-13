@@ -32,6 +32,13 @@ function body(paragraphs: EmailParagraph[], withFooter = true, cancel = false) {
   return { text: textParts.join("\n\n"), html };
 }
 
+/** Arrival instructions added to the confirmation of a sauna reservation (sauna session or program). */
+const SAUNA_DAY_NOTE: (string | { strong: string })[] = [
+  { strong: "Pirties dieną:" },
+  "Atvykus automobilį palikite pagrindinėje parko automobilių stovėjimo aikštelėje. Įėjus į parką keliaukite tiesiai į pirtį (dešinė parko pusė). Parodykite pirtininkui rezervacijos kodą, papildomai registruotis nereikia.",
+  "Tikimės, kad Jūsų poilsis bus kupinas gerų emocijų, ramybės ir malonių akimirkų! 🌿",
+];
+
 const accountLink = () => (siteUrl() ? [`Savo rezervacijas matote paskyroje: ${siteUrl()}/paskyra`] : []);
 
 /* ---------------- customer ---------------- */
@@ -65,7 +72,14 @@ export const emailOutcome = (
         subject: outcome === "patvirtinta" ? `Rezervacija ${reference} patvirtinta` : `Rezervacija ${reference} atšaukta`,
         ...body(
           outcome === "patvirtinta"
-            ? ["Sveiki,", `jūsų rezervacija ${reference} patvirtinta.`, { strong: summary }, "Iki pasimatymo Vanduo Marse!", ...accountLink()]
+            ? [
+                "Sveiki,",
+                `jūsų rezervacija ${reference} patvirtinta.`,
+                { strong: summary },
+                ...(serviceOfReference(reference) === "pirtis" ? SAUNA_DAY_NOTE : []),
+                "Iki pasimatymo Vanduo Marse!",
+                ...accountLink(),
+              ]
             : ["Sveiki,", `jūsų rezervacija ${reference} atšaukta.`, { strong: summary }, "Jei tai klaida arba norite kito laiko, susisiekite su mumis."],
           true,
           outcome === "patvirtinta",
@@ -97,7 +111,15 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
     subject: `Jūsų mokėjimas gautas (${references.join(", ")})`,
     ...body([
       "Jūsų mokėjimas gautas. Jūsų rezervacija:",
-      ...requests.map((r) => ({ strong: [requestHeading(r), `Data: ${requestDate(r)}`, ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : [])].join("\n") })),
+      ...requests.map((r) => ({
+        strong: [
+          requestHeading(r),
+          `Data: ${requestDate(r)}`,
+          ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : []),
+          ...(r.service === "pirtis" ? [`Rezervacijos kodas: ${r.reference}`] : []),
+        ].join("\n"),
+      })),
+      ...(requests.some((r) => r.service === "pirtis") ? SAUNA_DAY_NOTE : []),
       `Turite klausimų? Skambinkite ${contact.phone} arba rašykite ${contact.email}`,
       ...accountLink(),
     ], false, true),
