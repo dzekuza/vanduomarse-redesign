@@ -22,6 +22,7 @@ import { notifyRequestOutcome } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { MAX_SAUNA_PHOTOS, SAUNA_PHOTO_BUCKET, slugify } from "@/lib/sauna";
+import { sessionBlocksBooking } from "@/lib/sauna-events";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
@@ -365,12 +366,42 @@ const eventInput = z.object({
 /** Events are managed with `renginiai`; staff with only `keturraciai` manage the guided per-person tours (RLS limits them to category keturratis). */
 const EVENT_STAFF = ["renginiai", "keturraciai"] as const;
 
+/**
+ * A published sauna session blocks the private sauna while it runs and for an hour after (ADR-0091). The database refuses
+ * new private bookings in that window; this is the other direction: a session may not be put on top of a private booking
+ * that already exists. Returns the message to show, or null. Read with the service role so staff who can edit events but not
+ * bookings are checked too.
+ */
+async function privateBookingUnderSession(e: { id: string; category: string; published: boolean; capacity: number | null; date: string; time: string; durationMinutes?: number; programId?: string }): Promise<string | null> {
+  if (e.category !== "pirtis" || !e.published || e.capacity === null) return null;
+  const admin = createAdminClient();
+  const program = e.programId ? (await admin.from("sauna_programs").select("duration_minutes").eq("id", e.programId).maybeSingle()).data : null;
+  const minutes = e.durationMinutes ?? program?.duration_minutes ?? 60;
+  const start = Number(e.time.slice(0, 2)) * 60 + Number(e.time.slice(3, 5));
+  const lastDay = new Date(Date.parse(e.date) + Math.ceil((start + minutes + 60) / 1440) * 86_400_000).toISOString().slice(0, 10);
+  const { data } = await admin
+    .from("bookings")
+    .select("reference, date, start_hour, hours")
+    .eq("kind", "pirtis")
+    .eq("sauna_id", "pirtis-marse")
+    .neq("status", "atsaukta")
+    .gte("date", e.date)
+    .lte("date", lastDay);
+  const clash = (data ?? []).filter((b) => b.start_hour !== null && b.hours !== null
+    && sessionBlocksBooking(start, minutes, Math.round((Date.parse(b.date) - Date.parse(e.date)) / 86_400_000), b.start_hour, b.hours));
+  if (clash.length === 0) return null;
+  const list = clash.map((b) => `${b.reference} (${b.date}, ${String(b.start_hour).padStart(2, "0")}:00-${String((b.start_hour ?? 0) + (b.hours ?? 0)).padStart(2, "0")}:00)`).join(", ");
+  return `Šiuo metu jau yra privati pirties rezervacija: ${list}. Seansas blokuoja pirtį jo metu ir valandą po jo. Atšaukite rezervaciją arba pasirinkite kitą laiką.`;
+}
+
 export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
   const ctx = await staffClient(EVENT_STAFF);
   if (!ctx.ok) return ctx.error;
   const parsed = eventInput.safeParse(event);
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const e = parsed.data;
+  const clash = await privateBookingUnderSession(e);
+  if (clash) return fail(clash, "conflict");
   const { error } = await ctx.supabase.from("events").upsert({
     id: e.id,
     title: e.title,

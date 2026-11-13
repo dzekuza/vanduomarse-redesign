@@ -24,7 +24,7 @@ import {
   sessionPrice,
   type Sauna,
 } from "@/lib/sauna";
-import type { SaunaEventData } from "@/lib/sauna-events";
+import { SESSION_BUFFER_MINUTES, type SaunaEventData } from "@/lib/sauna-events";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import { durationLabel, programRateLine, sessionPartyPrice, type SaunaProgram } from "@/lib/sauna-programs";
 import { upsellMax, upsellSummary, upsellTotal, type Upsell } from "@/lib/sauna-upsells";
@@ -205,14 +205,14 @@ function sessionMinutes(event: SaunaEventData, program?: SaunaProgram | null): n
   return event.minutes ?? program?.durationMinutes ?? 60;
 }
 
-/** Public sessions occupy the main sauna even when every ticket is sold. */
+/** Public sessions occupy the main sauna even when every ticket is sold, and for `SESSION_BUFFER_MINUTES` after they end. */
 function saunaTaken(data: SaunaPageData, saunaId: string, day: string): number[] {
   const taken = data.takenBySauna[saunaId]?.[day] ?? [];
   if (saunaId !== "pirtis-marse") return taken;
 
   // Also account for events in the public payload while the availability RPC is being upgraded.
   const sessionHours = data.events.flatMap((event) => {
-    const minutes = sessionMinutes(event, data.programs.find((program) => program.id === event.programId));
+    const minutes = sessionMinutes(event, data.programs.find((program) => program.id === event.programId)) + SESSION_BUFFER_MINUTES;
     const start = startMinute(event.time);
     if (event.date === day) return spanHours(start, minutes).filter((hour) => hour < 24);
     const daysSinceStart = Math.round((Date.parse(day) - Date.parse(event.date)) / 86400000);

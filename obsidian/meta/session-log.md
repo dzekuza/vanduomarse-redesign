@@ -1,3 +1,9 @@
+## 2026-11-13 — Sessions block the private sauna
+
+- **Changed:** trigger `enforce_session_clear`, `SESSION_BUFFER_MINUTES` / `sessionBlocksBooking` (`lib/sauna-events.ts`), `saunaTaken` buffer, `privateBookingUnderSession` in `saveEvent`, `session_overlap` messages.
+- **Status:** migration applied and DB-tested; not merged; UI untested.
+- **Next:** merge, check a Monday session in the booking page.
+
 ## 2026-11-13 — Held spots on sessions
 
 - **Changed:** `events.held` + capacity trigger, `setEventHeld` action, store `event/held`, `HeldSpots` stepper in `EventSheet`, public `spotsLeft`, labels count held.

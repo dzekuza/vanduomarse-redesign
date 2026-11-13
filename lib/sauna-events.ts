@@ -46,3 +46,17 @@ export function saunaSessionHref(id: string, page: "pirtis" | "rezervacija" = "p
 export function openEventCount(events: readonly { spotsLeft: number }[]): number {
   return events.filter((e) => e.spotsLeft > 0).length;
 }
+
+/** A session blocks the private sauna while it runs and this long after it ends (cleaning), see ADR-0091. */
+export const SESSION_BUFFER_MINUTES = 60;
+
+/**
+ * Whether a private booking collides with a session: the booking `[startHour, startHour + hours)` on the day `dayOffset`
+ * days after the session's date, against `[session start, session end + SESSION_BUFFER_MINUTES)`. Minutes count from the
+ * session date's midnight (`sessionStart` = HH:MM in minutes).
+ */
+export function sessionBlocksBooking(sessionStart: number, sessionMinutes: number, dayOffset: number, startHour: number, hours: number): boolean {
+  const from = dayOffset * 1440 + startHour * 60;
+  const to = from + hours * 60;
+  return from < sessionStart + sessionMinutes + SESSION_BUFFER_MINUTES && to > sessionStart;
+}

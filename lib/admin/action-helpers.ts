@@ -24,6 +24,7 @@ export function dbError(e: DbError) {
     const byHint: Record<string, string> = {
       sauna_blocked: "Šis pirties laikas uždarytas.",
       sauna_booked: "Šis pirties laikas jau užimtas.",
+      session_overlap: "Tuo metu vyksta pirties seansas (ir valandą po jo pirtis ruošiama).",
       stay_full: "Visi šio tipo nameliai tomis naktimis užimti.",
       event_full: "Renginyje nebėra vietų.",
       quad_full: "Tiek keturračių šiuo laiku nebėra.",
