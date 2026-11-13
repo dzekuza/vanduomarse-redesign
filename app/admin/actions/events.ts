@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
-import type { ManagedEvent, PriceItem } from "@/lib/admin/types";
+import { toTourTicket } from "@/lib/admin/mappers";
+import type { ManagedEvent, PriceItem, TourTicket } from "@/lib/admin/types";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 
 /* ---------------- events ---------------- */
@@ -103,4 +104,57 @@ export async function updatePrices(items: PriceItem[]): Promise<ActionResult> {
     if (error) return dbError(error);
   }
   return done(null);
+}
+
+/* ---------------- staff-entered tickets ---------------- */
+
+const eventTicketInput = z.object({
+  eventId: z.uuid(),
+  customer: z.object({ name: z.string().trim().min(2), phone: z.string().trim(), email: z.union([z.literal(""), z.email()]) }),
+  people: z.number().int().min(1).max(500),
+  status: z.enum(["patvirtinta", "laukia"]),
+  source: z.enum(["telefonu", "vietoje"]),
+}).refine((v) => v.customer.phone !== "" || v.customer.email !== "");
+
+export type NewEventTicketInput = z.infer<typeof eventTicketInput>;
+
+/**
+ * Adds tickets to an event or public sauna session for someone who phoned or walked in. The price is the event's ticket
+ * price times the people, read here, never from the browser; the database refuses more people than places left
+ * (`event_full`, sold and held places count) and links the ticket to the customer by contact. Staff-entered tickets
+ * notify nobody, like staff-entered bookings. Quad tour departures are sold as rentals, not here.
+ */
+export async function createEventTicket(input: NewEventTicketInput): Promise<ActionResult<TourTicket>> {
+  // Like the tickets table's policy: Renginiai for any event, Keturračiai only for guided quad tours (category keturratis).
+  const ctx = await staffClient(EVENT_STAFF);
+  if (!ctx.ok) return ctx.error;
+  const parsed = eventTicketInput.safeParse(input);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+  const { supabase } = ctx;
+
+  const { data: event, error: eventError } = await supabase.from("events").select("price, tour_route_id, calendar_private").eq("id", v.eventId).maybeSingle();
+  if (eventError) return dbError(eventError);
+  if (!event) return fail("Renginys nerastas.", "invalid");
+  if (event.tour_route_id) return fail("Keturračių turai parduodami kaip nuoma.", "invalid");
+  if (event.calendar_private) return fail("Privatus įrašas bilietų neturi.", "invalid");
+
+  const { data, error } = await supabase
+    .from("event_tickets")
+    .insert({
+      // Assigned by the event_tickets_reference trigger.
+      reference: undefined as unknown as string,
+      event_id: v.eventId,
+      customer_name: v.customer.name,
+      customer_phone: v.customer.phone || null,
+      customer_email: v.customer.email || null,
+      people: v.people,
+      total: (event.price ?? 0) * v.people,
+      status: v.status,
+      source: v.source,
+    })
+    .select("*, events!inner(title, date, start_time, category)")
+    .single();
+  if (error) return dbError(error);
+  return done(toTourTicket(data));
 }

@@ -1,3 +1,111 @@
+## 2026-11-14 — Short month in the date picker
+
+- **Changed:** `DatePicker` field text uses `MONTH_SHORT` ("lapkr.").
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** check the field text in the booking form, the tour form and the other admin date fields.
+
+## 2026-11-14 — Stacked steppers in the tour form
+
+- **Changed:** `Stepper` `stacked` prop; tour gear and quad count use it.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** look at the tour form at 375 px and desktop width.
+
+## 2026-11-14 — Steppers in the tour form
+
+- **Changed:** `TourGearFields` and the quads field of `NewTourDialog` use `Stepper`.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open a tour in the booking flow; use − / + on gear and quads, and check the min / max stop at the route minimum and the free quads.
+
+## 2026-11-14 — Quad tours in the staff booking flow
+
+- **Changed:** `NewTourDialog`, `TourGearFields`, `createQuadTour` (+ store), `lib/admin/quad-availability.ts` (+5 tests), chooser Keturračiai section (tours + hourly rental), `NewRentalDialog` free starts / no past days (ADR-0101).
+- **Status:** tsc/eslint clean, 64 tests pass; not browser-checked; the RPC path not run against the live database.
+- **Next:** book a Mini tour for 5 quads from the calendar and check it in Keturračiai (price, status, channel, reference); try fewer than the minimum, and a full hour; check an hourly rental still saves.
+
+## 2026-11-14 — No past days in the booking form, date picker border
+
+- **Changed:** `min` on the chooser and form date pickers, default date clamped, schema check; `DatePicker` popover border colour.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open the booking form from a past calendar day: it should start on today, and earlier days should be greyed out.
+
+## 2026-11-14 — Booking chooser and staff event tickets
+
+- **Changed:** `BookingChooser` + `bookingOptionsOn` (+4 tests), `NewBookingDialog` rewritten as chooser → form, `createEventTicket` action + store `ticket/add`, optional `stayTypeId` on `createBooking`, `NewRentalDialog` takes a date, schema gets `renginys` / `stayTypeId` / `eventId` (ADR-0100).
+- **Status:** tsc/eslint clean, 59 tests pass; not browser-checked.
+- **Next:** from the calendar pick a day with a session: add tickets (check sold count and the sale in Pardavimai); pick a cabin type; open the Keturračiai card; open a sauna grid cell (should skip the chooser). Decide on quad tour departures.
+
+## 2026-11-14 — GlobalSearch effect error
+
+- **Changed:** `components/admin/global-search/global-search.tsx`: scroll effect uses a block body.
+- **Status:** tsc clean; the reported errors were not reproduced, so the fix is unverified (may be stale HMR state).
+- **Next:** hard-reload /admin; if the useEffect / `destroy is not a function` error returns, investigate further.
+
+## 2026-11-14 — Global admin search
+
+- **Changed:** `lib/admin/global-search.ts` (+6 tests), `GlobalSearch` palette in the header (ADR-0099).
+- **Status:** tsc/eslint clean, 55 tests pass; not browser-checked.
+- **Next:** press ⌘K, search a known customer, a phone number and a reservation number; open a result of each kind; check the icon on a phone-width screen.
+
+## 2026-11-14 — Customer suggestions in the new-booking form
+
+- **Changed:** `lib/admin/customer-search.ts` (+ tests), `CustomerSuggestions`, `BookingCustomerFields` / `NewBookingDialog` wiring.
+- **Status:** tsc/eslint clean, 49 tests pass; not browser-checked.
+- **Next:** open "Nauja rezervacija", type a name and a phone of a known customer; pick one and check all three fields fill; then save and check the booking shows under that customer in Klientai.
+
+## 2026-11-14 — Renginiai rows open details
+
+- **Changed:** `EventsView` rows open `EventSheet` (details + bookings, edit button); controls inside the row stop the click.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** click a row in /admin/renginiai; check the checkbox, switch and ⋯ menu still work alone, and that "Redaguoti renginį" opens the dialog.
+
+## 2026-11-14 — Till: drop the "Planai" label
+
+- **Changed:** `SalesTab` no longer renders the "Planai" `Label`.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** none beyond the till payment-step check.
+
+## 2026-11-14 — Payment step after the bracelet scan
+
+- **Changed:** migration `20261116110000_purchase_payment_method.sql` APPLIED (`purchases.payment_method`, `set_purchase_payment`); `setPurchasePayment` action + store; `SalesTab` gets a "payment" phase between scan and done (ADR-0098); types, mapper, `sales.ts` show the method.
+- **Status:** tsc/eslint clean; SQL verified (rolled back); dialog not clicked through.
+- **Next:** in Pardavimas sell a plan: pick rider → scan (or skip) → choose Kortele / Grynaisiais → "Priskirta"; check the method in Klientai → purchases.
+
+## 2026-11-14 — Fix "Neturite teisės" when assigning a plan
+
+- **Changed:** migration `20261116100000_norm_phone_execute.sql` APPLIED (EXECUTE on `private.norm_phone` for `authenticated` / `service_role`); database.md rule.
+- **Status:** verified as the owner in a rolled-back transaction (update, purchase, rider insert); not retried in the browser.
+- **Next:** in Pardavimas assign a plan to an existing rider and to a new guest; also edit a rider profile in Klientai.
+
+## 2026-11-14 — Flat tabs in Pardavimas
+
+- **Changed:** `PlanGroupTabs` `flat` prop; `RidePlanPicker` uses it.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open Pardavimas: tabs Bilietai / Abonementai / Įranga in one row.
+
+## 2026-11-14 — Planai as 4-column cards
+
+- **Changed:** `PlanCard` (new), `PlansTab` renders a card grid instead of rows.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open Planai at 375 / 768 / 1024 px; check the switches and the menu still work on a card.
+
+## 2026-11-14 — Abonementai under Plaukimas
+
+- **Changed:** `PlanGroupTabs` + `RIDE_PLAN_GROUPS`; `plans-tab`, `ride-plan-picker`, `plan-dialog` use them (ADR-0097). No data or migration change.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open /admin/apyrankes → Pardavimas and Planai: Plaukimas → Bilietai / Abonementai, Įranga.
+
+## 2026-11-14 — Trim bracelet plan categories
+
+- **Changed:** `lib/ride-plans.ts` (3 categories left), migration `20261116090000_ride_plan_categories_trim.sql` APPLIED.
+- **Status:** tsc/eslint clean; not browser-checked.
+- **Next:** open /admin/apyrankes → Planai and Pardavimas, confirm only three tabs.
+
+## 2026-11-13 — Remove inquiries from the Užklausos board
+
+- **Changed:** `deleteInquiry` action + store action/reducer, `useDeleteInquiry` hook, trash button on `InquiryCard`, remove button in `InquirySheet` (ADR-0095).
+- **Status:** tsc and eslint clean; not clicked through (dev server was down, /admin needs login).
+- **Next:** delete a test inquiry on the board, and check an accepted one is refused until released.
+
 ## 2026-11-13 — Split the mobile Today screen
 
 - **Changed:** `mobile/app/(tabs)/index.tsx` → 172-line screen + 12 files in `mobile/src/components/today/`; `admin-api.ts` placeholders for `pageContent` / `riderAccountIds` (fixed the standing mobile tsc error).

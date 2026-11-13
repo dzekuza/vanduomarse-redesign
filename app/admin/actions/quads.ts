@@ -204,3 +204,65 @@ export async function createRental(input: StaffRentalInput): Promise<ActionResul
   if (error) return dbError(error);
   return done(toQuadRental(row));
 }
+
+const staffTourInput = z.object({
+  routeId: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  date: z.iso.date(),
+  startHour: z.number().int().min(0).max(23),
+  units: z.number().int().min(1).max(20),
+  gear: z.array(z.object({ id: z.string().regex(/^[a-z0-9-]+$/).max(60), units: z.number().int().min(1).max(40) })).max(10),
+  customer: z.object({ name: z.string().trim().min(2).max(80), phone: z.string().trim().max(30), email: z.union([z.literal(""), z.email().max(120)]) }),
+  status: z.enum(["laukia", "patvirtinta"]),
+  source: z.enum(["telefonu", "vietoje"]),
+  note: z.string().trim().max(300),
+});
+
+export type StaffTourInput = z.infer<typeof staffTourInput>;
+
+const TOUR_ERRORS: Record<string, string> = {
+  quad_tour_unavailable: "Šio turo nebėra arba jis išjungtas.",
+  quad_units: "Šiam turui reikia daugiau keturračių (žr. mažiausią skaičių).",
+  quad_gear: "Netinkama turo įranga: iki 2 vienetų vienam keturračiui.",
+  quad_closed: "Turas netelpa į darbo valandas.",
+  quad_past: "Praėjusios dienos ar laiko užsakyti negalima.",
+  quad_full: "Tiek keturračių šiuo laiku nebėra.",
+};
+
+/**
+ * A guided tour (Mini / Midi / Maxi) taken by phone or on site. It goes through the same database function as the
+ * website (`create_quad_tour_rental`), so the route price, gear, minimum quads, opening hours and the shared fleet are
+ * checked and priced there, never from the browser; the rental is then marked as staff-entered (status and channel).
+ */
+export async function createQuadTour(input: StaffTourInput): Promise<ActionResult<QuadRental>> {
+  const ctx = await staffClient("keturraciai");
+  if (!ctx.ok) return ctx.error;
+  const parsed = staffTourInput.safeParse(input);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+  if (!v.customer.phone && !v.customer.email) return fail("Nurodykite telefoną arba el. paštą.", "invalid");
+
+  const { data: created, error } = await ctx.supabase.rpc("create_quad_tour_rental", {
+    p_route_id: v.routeId,
+    p_date: v.date,
+    p_start_hour: v.startHour,
+    p_units: v.units,
+    p_accessories: v.gear,
+    p_name: v.customer.name,
+    p_email: v.customer.email || undefined,
+    p_phone: v.customer.phone || undefined,
+    p_note: v.note || undefined,
+  });
+  if (error) return error.hint && TOUR_ERRORS[error.hint] ? fail(TOUR_ERRORS[error.hint], "invalid") : dbError(error);
+  const id = created?.[0]?.id;
+  if (!id) return fail("Nepavyko sukurti turo.", "db");
+
+  // The function files a website request (pending); a staff-entered tour is confirmed and marked by its channel.
+  const { data: row, error: updateError } = await ctx.supabase
+    .from("quad_rentals")
+    .update({ status: v.status, source: v.source })
+    .eq("id", id)
+    .select("*, quad_rental_items(quad_type_id, units)")
+    .single();
+  if (updateError) return dbError(updateError);
+  return done(toQuadRental(row));
+}

@@ -5,7 +5,10 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
+import { freeForRental, rentalStartsOn } from "@/lib/admin/quad-availability";
 import { hourLabel, rentalPrice } from "@/lib/quads";
+import { todayKey } from "@/lib/sauna";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -34,15 +37,15 @@ const schema = z
   .refine((v) => v.phone !== "" || v.email !== "", { message: "Nurodykite telefoną arba el. paštą.", path: ["phone"] });
 type Values = z.infer<typeof schema>;
 
-/** A rental taken by phone or on site. The database refuses it when the hours are full. */
-export function NewRentalDialog({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
-  const { quadTypes, quadSettings: s, createRental } = useAdmin();
-  const { register, control, handleSubmit, setError, formState } = useForm<Values>({
+/** A rental taken by phone or on site, for `date` when given (from the booking chooser). The database refuses it when the hours are full. */
+export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (open: boolean) => void; date?: string }) {
+  const { quadTypes, quadSettings: s, quadRentals, createRental } = useAdmin();
+  const { register, control, handleSubmit, setError, setValue, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       quadTypeId: quadTypes[0]?.id ?? "",
-      date: "",
-      startHour: String(s.openHour),
+      date,
+      startHour: "",
       hours: "1",
       units: "1",
       riders: "1",
@@ -55,12 +58,18 @@ export function NewRentalDialog({ onOpenChange }: { onOpenChange: (open: boolean
     },
   });
   const err = formState.errors;
-  const [typeId, hours, units] = useWatch({ control, name: ["quadTypeId", "hours", "units"] });
+  const [typeId, hours, units, day] = useWatch({ control, name: ["quadTypeId", "hours", "units", "date"] });
   const type = quadTypes.find((t) => t.id === typeId);
   const price = type && /^\d+$/.test(hours) && /^\d+$/.test(units) ? rentalPrice(type, Number(hours), Number(units)) : null;
-  const startHours = Array.from({ length: s.closeHour - s.openHour }, (_, i) => s.openHour + i);
+  const fleet = { types: quadTypes, settings: s, rentals: quadRentals };
+  const whole = (v: string) => (/^\d+$/.test(v) ? Number(v) : 0);
+  // Only start hours where this type stays free for the whole rental (the website's rule); none until a date is picked.
+  const startHours = type && day ? rentalStartsOn(day, type, Math.max(1, whole(units)), whole(hours), fleet) : [];
 
   const submit = handleSubmit(async (v) => {
+    if (type && v.date < todayKey()) return setError("date", { message: "Praėjusios dienos užsakyti negalima." });
+    if (type && whole(v.units) > type.units) return setError("units", { message: `Šio tipo yra ${type.units}.` });
+    if (type && whole(v.units) > freeForRental(v.date, type, Number(v.startHour), whole(v.hours), fleet)) return setError("units", { message: "Tiek keturračių šiuo laiku nebėra." });
     const result = await createRental({
       quadTypeId: v.quadTypeId,
       date: v.date,
@@ -113,11 +122,12 @@ export function NewRentalDialog({ onOpenChange }: { onOpenChange: (open: boolean
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nr-date">Data</Label>
-            <Input id="nr-date" type="date" aria-invalid={!!err.date} className="min-h-11" {...register("date")} />
+            <Controller control={control} name="date" render={({ field }) => <DatePicker id="nr-date" value={field.value} min={todayKey()} invalid={!!err.date} onChange={(v) => { field.onChange(v); setValue("startHour", ""); }} />} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nr-start">Pradžia</Label>
             {select("startHour", "nr-start", startHours.map((h) => ({ value: String(h), label: hourLabel(h) })))}
+            {day && type && startHours.length === 0 ? <p className="text-xs text-muted-foreground">Šią dieną tokiam kiekiui laisvo laiko nėra.</p> : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nr-hours">Valandų</Label>

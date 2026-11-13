@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
 import type { RidePlan, RidePlanCategory } from "@/lib/admin/types";
-import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
+import { RIDE_PLAN_CATEGORIES, RIDE_PLAN_CATEGORY_LABELS } from "@/lib/ride-plans";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -99,7 +99,7 @@ export function PlanDialog({ plan, defaultCategory, onOpenChange }: PlanDialogPr
                   <SelectContent>
                     {RIDE_PLAN_CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>
-                        {c}
+                        {RIDE_PLAN_CATEGORY_LABELS[c]}
                       </SelectItem>
                     ))}
                   </SelectContent>

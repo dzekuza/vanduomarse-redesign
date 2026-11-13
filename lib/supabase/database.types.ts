@@ -933,6 +933,7 @@ export type Database = {
       purchases: {
         Row: {
           id: string
+          payment_method: string | null
           plan_category: string
           plan_id: string | null
           plan_name: string
@@ -943,6 +944,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          payment_method?: string | null
           plan_category: string
           plan_id?: string | null
           plan_name: string
@@ -953,6 +955,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          payment_method?: string | null
           plan_category?: string
           plan_id?: string | null
           plan_name?: string
@@ -2313,6 +2316,10 @@ export type Database = {
           space: string
           status: Database["public"]["Enums"]["inquiry_status"]
         }[]
+      }
+      set_purchase_payment: {
+        Args: { p_method: string; p_purchase_id: string }
+        Returns: boolean
       }
       accept_inquiry_stays: {
         Args: { p_inquiry_id: string }

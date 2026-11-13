@@ -4,6 +4,7 @@ import { toCsv } from "./export";
 import { BOOKING_STATUS } from "./labels";
 import type { AdminData, BookingStatus } from "./types";
 import { COUPON_STATUS_LABEL, type CouponStatus } from "@/lib/coupons";
+import { PURCHASE_PAYMENT_LABELS } from "@/lib/ride-plans";
 import { todayKey } from "@/lib/sauna";
 
 /** The product areas a sale belongs to; the filter tabs on the overview. */
@@ -160,7 +161,7 @@ export function buildSales(data: SalesSource): Sale[] {
       category: "vandenlentes",
       soldOn: soldOn(p.soldAt),
       item: p.planName,
-      when: "",
+      when: p.paymentMethod ? PURCHASE_PAYMENT_LABELS[p.paymentMethod] : "",
       customer: riderName.get(p.riderId) ?? "—",
       reference: "",
       total: p.price ?? 0,

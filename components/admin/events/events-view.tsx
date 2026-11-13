@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
+import { EventSheet } from "../calendar/event-sheet";
 import { DeleteEventDialog } from "./delete-event-dialog";
 import { DeleteEventsDialog } from "./delete-events-dialog";
 import { EventDialog } from "./event-dialog";
@@ -20,15 +21,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+/** Controls inside a clickable row must not also open the row. */
+const stop = (e: React.MouseEvent) => e.stopPropagation();
+
 type Editing = { mode: "new" } | { mode: "edit"; event: ManagedEvent } | null;
 
-/** Events list: publish toggle, sales, edit, delete and bulk delete. */
+/** Events list: publish toggle, sales, edit, delete and bulk delete; a row opens the event's details and bookings. */
 export function EventsView() {
   const { events, setEventPublished } = useAdmin();
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<ManagedEvent | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
   const today = dateKey(new Date());
   const upcoming = events.filter((e) => e.date >= today);
 
@@ -94,8 +99,8 @@ export function EventsView() {
           </TableHeader>
           <TableBody>
             {upcoming.map((e) => (
-              <TableRow key={e.id} data-state={selected.has(e.id) ? "selected" : undefined}>
-                <TableCell>
+              <TableRow key={e.id} data-state={selected.has(e.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => setOpenId(e.id)}>
+                <TableCell onClick={stop}>
                   <Checkbox
                     checked={selected.has(e.id)}
                     onCheckedChange={(on) => toggleOne(e.id, on === true)}
@@ -107,7 +112,9 @@ export function EventsView() {
                   <p className="text-xs text-muted-foreground">{e.time}</p>
                 </TableCell>
                 <TableCell className="max-w-40 sm:max-w-none">
-                  <p className="truncate font-medium">{e.title}</p>
+                  <button type="button" className="block max-w-full truncate text-left font-medium focus-visible:underline focus-visible:outline-none" onClick={(ev) => { ev.stopPropagation(); setOpenId(e.id); }}>
+                    {e.title}
+                  </button>
                   <p className="truncate text-xs text-muted-foreground">{e.place}</p>
                   {!e.published ? <Badge variant="outline" className={e.calendarPrivate ? "mt-1" : "mt-1 sm:hidden"}>{e.calendarPrivate ? "Privatus" : "Paslėptas"}</Badge> : null}
                 </TableCell>
@@ -128,7 +135,7 @@ export function EventsView() {
                   )}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell text-right tabular-nums">{e.price === null ? "Nemok." : formatEur(e.price)}</TableCell>
-                <TableCell className="hidden sm:table-cell">
+                <TableCell className="hidden sm:table-cell" onClick={stop}>
                   <Switch
                     checked={e.published}
                     disabled={e.calendarPrivate}
@@ -136,7 +143,7 @@ export function EventsView() {
                     onCheckedChange={() => togglePublished(e)}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={stop}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon-sm" aria-label={`Veiksmai: ${e.title}`}>
@@ -160,6 +167,14 @@ export function EventsView() {
         </Table>
       </Card>
 
+      <EventSheet
+        event={events.find((e) => e.id === openId) ?? null}
+        onOpenChange={(o) => !o && setOpenId(null)}
+        onEdit={(event) => {
+          setOpenId(null);
+          setEditing({ mode: "edit", event });
+        }}
+      />
       {editing ? (
         <EventDialog
           key={editing.mode === "edit" ? editing.event.id : "new"}

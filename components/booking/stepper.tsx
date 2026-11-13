@@ -71,8 +71,16 @@ export function StepperControls({ value, onChange, min, max, label, editable = f
   );
 }
 
-/** Boxed field: label on the left, controls on the right. */
-export function Stepper(props: StepperProps) {
+/** Boxed field: label on the left, controls on the right; `stacked` puts the label above the controls (narrow cards, long labels). */
+export function Stepper({ stacked = false, ...props }: StepperProps & { stacked?: boolean }) {
+  if (stacked) {
+    return (
+      <div className="grid gap-2 border border-line p-3">
+        <span className="min-w-0 text-sm leading-snug text-ink">{props.label}</span>
+        <StepperControls {...props} tone="line" />
+      </div>
+    );
+  }
   return (
     <div className="flex min-h-15 items-center justify-between gap-3 border border-line py-2 pl-4 pr-2">
       <span className="min-w-0 text-sm leading-snug text-ink">{props.label}</span>

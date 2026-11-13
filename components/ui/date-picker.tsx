@@ -22,9 +22,13 @@ interface DatePickerProps {
   calendarFooter?: ReactNode
 }
 
-const longDate = (key: string) => {
+/** Standard Lithuanian month abbreviations ("lapkr."): the browser's own short form is just a number for lt. */
+const MONTH_SHORT = ["saus.", "vas.", "kov.", "bal.", "geg.", "birž.", "liep.", "rugp.", "rugs.", "spal.", "lapkr.", "gruod."]
+
+/** "2026 m. lapkr. 14 d." */
+const shortDate = (key: string) => {
   const [y, m, d] = key.split("-").map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString("lt-LT", { year: "numeric", month: "long", day: "numeric" })
+  return `${y} m. ${MONTH_SHORT[m - 1]} ${d} d.`
 }
 
 /** Date field that opens a month calendar; the value stays a plain yyyy-mm-dd string, like `<input type="date">`. */
@@ -50,11 +54,11 @@ export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasir
             className
           )}
         >
-          <span className={value ? undefined : "text-muted-foreground"}>{value ? longDate(value) : placeholder}</span>
+          <span className={value ? undefined : "text-muted-foreground"}>{value ? shortDate(value) : placeholder}</span>
           <CalendarBlankIcon aria-hidden size={20} />
         </button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent className="border-border">
         <CalendarGrid value={value} min={min} max={max} onSelect={pick} dayDetails={dayDetails} />
         {calendarFooter ? <div className="mt-2 border-t border-line pt-3">{calendarFooter}</div> : null}
         <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-xs font-bold">

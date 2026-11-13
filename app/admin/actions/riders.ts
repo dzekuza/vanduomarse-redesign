@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { toPurchase, toRider, toRiderComment, toRiderDocument, toRiderSession, toRidePlan } from "@/lib/admin/mappers";
 import type { Purchase, Rider, RiderComment, RiderDocument, RiderSession, RidePlan } from "@/lib/admin/types";
-import { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
+import { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import { TERMS_VERSION } from "@/lib/park-rules";
 import { buildWaiverPdf } from "@/lib/waiver-pdf";
 import { dbError, done, fail, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
@@ -96,6 +96,18 @@ export async function updateRiderPlan(riderId: string, planId: string): Promise<
   if (error) return dbError(error);
   const purchase = await recordPurchase(ctx, riderId, planId);
   return done({ purchase });
+}
+
+/** Records how a plan sold at the till was paid (card / cash). Set once: a purchase that already has a method is refused. */
+export async function setPurchasePayment(purchaseId: string, method: (typeof PURCHASE_PAYMENT_METHODS)[number]): Promise<ActionResult> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = z.object({ purchaseId: z.uuid(), method: z.enum(PURCHASE_PAYMENT_METHODS) }).safeParse({ purchaseId, method });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data, error } = await ctx.supabase.rpc("set_purchase_payment", { p_purchase_id: purchaseId, p_method: method });
+  if (error) return dbError(error);
+  if (!data) return fail("Apmokėjimo būdas jau nurodytas.", "already_set");
+  return done(null);
 }
 
 const riderProfileInput = z.object({

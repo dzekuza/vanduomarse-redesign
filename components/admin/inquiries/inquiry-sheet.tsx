@@ -1,9 +1,10 @@
 "use client";
 
-import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
+import { EnvelopeSimpleIcon, PhoneIcon, TrashIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { NoteForm } from "./note-form";
+import type { DeleteInquiryTarget } from "./use-delete-inquiry";
 import { INQUIRY_SOURCE, INQUIRY_STATUS } from "@/lib/admin/labels";
 import { formatDateTime, formatDay, formatEurRange } from "@/lib/admin/format";
 import type { Inquiry, InquiryStatus } from "@/lib/admin/types";
@@ -18,10 +19,11 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 interface InquirySheetProps {
   inquiry: Inquiry | null;
   onOpenChange: (open: boolean) => void;
+  onRemove: (target: DeleteInquiryTarget) => void;
 }
 
 /** Inquiry details: request, estimate, contact, status pipeline and notes. */
-export function InquirySheet({ inquiry, onOpenChange }: InquirySheetProps) {
+export function InquirySheet({ inquiry, onOpenChange, onRemove }: InquirySheetProps) {
   const { setInquiryStatus, addInquiryNote, acceptInquiry, releaseInquiry, stayTypes, saunas, programs, upsells } = useAdmin();
   const holdable = !!inquiry && (inquiry.stays.length > 0 || inquiry.saunas.length > 0);
   return (
@@ -138,6 +140,13 @@ export function InquirySheet({ inquiry, onOpenChange }: InquirySheetProps) {
                     toast.success("Pastaba pridėta");
                   }}
                 />
+              </div>
+
+              <div className="border-t pt-4">
+                <Button variant="outline" className="min-h-11 text-destructive hover:text-destructive" disabled={!!inquiry.acceptedAt} onClick={() => onRemove({ id: inquiry.id, title: inquiry.eventType })}>
+                  <TrashIcon size={18} /> Pašalinti užklausą
+                </Button>
+                {inquiry.acceptedAt ? <p className="mt-2 text-xs text-muted-foreground">Užklausa užima namelius ar pirtis. Pirmiausia ją atlaisvinkite.</p> : null}
               </div>
             </div>
           </>
