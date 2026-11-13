@@ -10,6 +10,7 @@ import { BookingActions } from "./booking-actions";
 import { BookingCalendarTab } from "./booking-calendar-tab";
 import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
+import { BookedOnCell } from "./booked-on-cell";
 import { SessionTicketRow } from "./session-ticket-row";
 import { EventSheet } from "../calendar/event-sheet";
 import { EventDialog } from "../events/event-dialog";
@@ -106,6 +107,7 @@ export function BookingsView() {
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Klientas</TableHead>
+                  <TableHead className="hidden md:table-cell">Rezervuota</TableHead>
                   <TableHead className="hidden md:table-cell">Tipas</TableHead>
                   <TableHead className="hidden lg:table-cell">Svečiai</TableHead>
                   <TableHead className="hidden sm:table-cell text-right">Suma</TableHead>
@@ -133,6 +135,7 @@ export function BookingsView() {
                         ) : null}
                       </p>
                     </TableCell>
+                    <BookedOnCell createdAt={b.createdAt} payment={b.payment} />
                     <TableCell className="hidden md:table-cell">{bookingTypeLabel(b, stayTypes)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{b.guests ?? "—"}</TableCell>
                     <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(b.total)}</TableCell>
@@ -147,7 +150,7 @@ export function BookingsView() {
                 ) : null)}
                 {list.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Rezervacijų pagal filtrus nėra.</TableCell>
+                    <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">Rezervacijų pagal filtrus nėra.</TableCell>
                   </TableRow>
                 ) : null}
               </TableBody>

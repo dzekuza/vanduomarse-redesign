@@ -1,6 +1,7 @@
 "use client";
 
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
+import { BookedOnCell } from "./booked-on-cell";
 import { CustomerLink } from "../customer-link";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import type { TourTicket } from "@/lib/admin/types";
@@ -20,6 +21,7 @@ export function SessionTicketRow({ ticket, onOpen }: { ticket: TourTicket; onOpe
         </p>
         <p className="truncate text-xs text-muted-foreground">{ticket.reference}</p>
       </TableCell>
+      <BookedOnCell createdAt={ticket.createdAt} payment={ticket.payment} />
       <TableCell className="hidden md:table-cell">Pirties seansas</TableCell>
       <TableCell className="hidden lg:table-cell">{ticket.people}</TableCell>
       <TableCell className="hidden sm:table-cell text-right tabular-nums">{formatEur(ticket.total)}</TableCell>
