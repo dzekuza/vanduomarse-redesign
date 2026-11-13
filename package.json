@@ -12,7 +12,8 @@
     "mobile:ios": "pnpm --filter vanduomarse-mobile ios",
     "mobile:web": "pnpm --filter vanduomarse-mobile web",
     "mobile:typecheck": "pnpm --filter vanduomarse-mobile typecheck",
-    "design:check": "node tools/zero-slop-design/zsd.mjs lint DESIGN.md && node tools/zero-slop-design/zsd.mjs check-code DESIGN.md --config design-check.config.json"
+    "design:check": "node tools/zero-slop-design/zsd.mjs lint DESIGN.md && node tools/zero-slop-design/zsd.mjs check-code DESIGN.md --config design-check.config.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
@@ -49,7 +50,8 @@
     "fflate": "^0.8.3",
     "react-grab": "^0.2.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.1.0"
   },
   "packageManager": "pnpm@11.17.0"
 }
