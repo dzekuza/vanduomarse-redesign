@@ -5,6 +5,8 @@ updated: 2026-11-13
 
 # Current status — vanduomarse-redesign
 
+**Housekeeping (2026-11-13, ADR-0090): admin actions split into `app/admin/actions/*.ts`, Vitest (`pnpm test`, 40 tests) for cancel policy / refunds / sauna pricing / occupancy / notify `settle`, `.gitignore` for tool dirs. Committed on `refactor/split-admin-actions` (not pushed). tsc/eslint/test/build pass; admin screens not clicked through. Next: log into /admin and open bookings, events and riders once; push and PR.**
+
 **Remove cancelled requests (2026-11-13, ADR-0089): "Pašalinti" on cancelled bookings / rentals / tickets, guarded server-side (cancelled only; paid online needs a recorded refund). tsc/eslint clean, not browser-tested. Next: try it on a cancelled test booking and on a paid-but-unrefunded one (should refuse).**
 
 **Admin notification bell (2026-11-13, ADR-0088): bell with popover in the admin header, live through Supabase Realtime (`staff_notifications`, migration `20261115130000_staff_notifications_feed.sql` APPLIED, verified); fed by `lib/notify.ts` (new requests, payments, payments to check, double payments, customer cancels) and the coupon / plan payment handlers; per-role visibility by RLS, per-staff read marker, toast on arrival. Browser-checked with test rows (removed): badge, popover, live arrival. Not yet seen from a real booking/payment. Uncommitted. Next: make a 1,50 € test booking and watch the bell; commit.**

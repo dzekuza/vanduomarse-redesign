@@ -134,6 +134,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0090 — Admin server actions are split by domain; unit tests cover the money rules
+
+- **Context:** `app/admin/actions.ts` had grown to 1,550 lines and every admin feature touched it. The refund, cancel-policy and pricing rules had no automated tests.
+- **Decision:** one `"use server"` file per domain in `app/admin/actions/`; `index.ts` is deliberately NOT a `"use server"` file so it can re-export them, which keeps `@/app/admin/actions` as the one import path (`import * as actions` in `admin-store.tsx` still works). Helpers shared by two files live in `lib/admin/action-helpers.ts`, because a `"use server"` file may only export async functions. Vitest (`pnpm test`) runs `lib/**/*.test.ts`; `server-only` is aliased to an empty stub and Supabase / Stripe are mocked, so no test touches a real database or Stripe. `settle()` in `lib/notify.ts` logs rejected channels and events that reached nobody (event name only, no contact data).
+- **Consequences:** new admin actions go into the matching domain file. Tests sit next to the code they cover. There is still no browser end-to-end test: the booking flow writes to the live database, so it stays a manual check until there is a test project.
+
+---
+
 ## ADR-0089 — Cancelled requests can be removed, but not while their money is unrefunded
 
 - **Context:** a cancelled (often refunded) request stayed in the admin lists forever, and the restore button was removed so it could not be revived (ADR-0087 context).

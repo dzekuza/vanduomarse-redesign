@@ -36,7 +36,21 @@ export interface CustomerContact {
   email?: string | null;
 }
 
-const settle = (...sends: Promise<boolean>[]) => Promise.allSettled(sends).then(() => undefined);
+/**
+ * Waits for every channel of one event. Each channel logs its own refusals (HTTP status, timeout) and returns false; this
+ * adds what no channel can see: a channel that rejected outright, and an event that reached nobody at all. Only the event
+ * name is logged (no contact details), so the line is safe to ship to Sentry or the log drain.
+ */
+export async function settle(event: string, ...sends: Promise<boolean>[]): Promise<void> {
+  const results = await Promise.allSettled(sends);
+  results.forEach((r, i) => {
+    if (r.status === "rejected") console.error(`Notify ${event}: channel ${i} threw`, r.reason);
+  });
+  // `next dev` skips most channels on purpose, so "nobody told" only means something in production.
+  if (process.env.NODE_ENV !== "development" && !results.some((r) => r.status === "fulfilled" && r.value)) {
+    console.error(`Notify ${event}: no channel delivered`);
+  }
+}
 
 /**
  * A request was filed. `service` picks the staff inbox (pirtis/keturraciai → renginiai@, nakvyne → miegas@);
@@ -51,7 +65,7 @@ export const notifyRequestFiled = (
 ) => {
   // Push has the three broad topics only; SMS and e-mail also route by service (bookingTopics).
   const pushTopic: PushTopic = service === "kita" ? "uzklausos" : "rezervacijos";
-  return settle(
+  return settle("request-filed",
     contact.phone
       ? variant === "booking" && reference
         ? notifyBookingReceived(contact.phone, reference, summary)
@@ -81,14 +95,14 @@ export const notifyRequestOutcome = (
   reference: string,
   outcome: "patvirtinta" | "atsaukta",
   summary: string,
-) => settle(notifyOutcome(contact.phone, reference, outcome, summary), emailOutcome(contact.email, reference, outcome, summary));
+) => settle("request-outcome", notifyOutcome(contact.phone, reference, outcome, summary), emailOutcome(contact.email, reference, outcome, summary));
 
 /**
  * The customer cancelled their own request on /paskyra: they get the usual "atšaukta" message, staff are told who
  * cancelled and what happened to the money (`refund`: "Grąžinta 40 €." or what staff still have to do).
  */
 export const notifyCancelledByCustomer = (service: NotifyService, contact: CustomerContact, reference: string, summary: string, refund: string) =>
-  settle(
+  settle("cancelled-by-customer",
     notifyOutcome(contact.phone, reference, "atsaukta", summary),
     emailOutcome(contact.email, reference, "atsaukta", summary),
     notifyStaffCancelled(bookingTopics(service), reference, summary, refund),
@@ -111,7 +125,7 @@ export const notifyPaymentReceived = (
   requests: PaidRequest[] = [],
   confirmed = false,
 ) => {
-  return settle(
+  return settle("payment-received",
     notifyPaid(contact.phone, references, amount, requests, confirmed),
     emailPaid(contact.email, references, amount, requests, confirmed),
     notifyStaffPaid(references, amount, review, requests, contact),
@@ -134,7 +148,7 @@ export const notifyPaymentReceived = (
 };
 
 export const notifyDuplicatePayment = (references: string[], amount: number) =>
-  settle(
+  settle("duplicate-payment",
     notifyStaffDuplicate(references, amount),
     emailStaffDuplicate(references, amount),
     recordStaffNotification({

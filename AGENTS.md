@@ -64,6 +64,7 @@ architectural choices).
 ```bash
 pnpm dev     # http://localhost:3000
 pnpm lint
+pnpm test     # vitest, lib/**/*.test.ts
 pnpm build
 npx tsc --noEmit
 ```

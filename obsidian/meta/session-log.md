@@ -1,3 +1,9 @@
+## 2026-11-13 — Split admin actions, add tests
+
+- **Changed:** `app/admin/actions.ts` → `app/admin/actions/*.ts` + barrel; Vitest + 5 test files (40 tests); `settle()` logging; `.gitignore`; docs (ADR-0090).
+- **Status:** tsc, eslint, `pnpm test`, `pnpm build` pass. Admin screens not clicked through (login needed), only the login route compiled and answered. The WIP from earlier today (emails, tabs, footer, plan lines) is still uncommitted on the working tree.
+- **Next:** click through /admin once to confirm the barrel works at runtime; then the real-booking test from the earlier entries.
+
 ## 2026-11-13 — Remove cancelled requests
 
 - **Changed:** `deleteRequest` action, store `request/delete`, `useDeleteRequest`, buttons in `StatusActions` and booking row menu / sheet; restore-to-laukia removed earlier.
