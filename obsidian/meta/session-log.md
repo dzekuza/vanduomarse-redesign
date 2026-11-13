@@ -1,3 +1,9 @@
+## 2026-11-13 — Split the mobile Today screen
+
+- **Changed:** `mobile/app/(tabs)/index.tsx` → 172-line screen + 12 files in `mobile/src/components/today/`; `admin-api.ts` placeholders for `pageContent` / `riderAccountIds` (fixed the standing mobile tsc error).
+- **Status:** `mobile` tsc clean, root tsc clean. Not run in the simulator or on a device; mobile is not covered by the root eslint config.
+- **Next:** open the Šiandien tab once (agenda, pending, sauna hours, each sheet, new booking).
+
 ## 2026-11-13 — Split admin actions, add tests
 
 - **Changed:** `app/admin/actions.ts` → `app/admin/actions/*.ts` + barrel; Vitest + 5 test files (40 tests); `settle()` logging; `.gitignore`; docs (ADR-0090).
