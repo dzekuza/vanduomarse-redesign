@@ -13,7 +13,7 @@ import type { NotificationRecipient } from "@/lib/admin/types";
 
 type Editing = { recipient?: NotificationRecipient } | null;
 
-/** Owner-only: which phone numbers get staff SMS (new bookings, enquiries, payments) and for which topics. */
+/** Owner-only: which phone numbers get staff SMS and which e-mail addresses get staff e-mail (new bookings, enquiries, payments), and for which topics. */
 export function NotificationsView() {
   const { notificationRecipients, setNotificationRecipientActive, deleteNotificationRecipient } = useAdmin();
   const [editing, setEditing] = useState<Editing>(null);
@@ -22,7 +22,7 @@ export function NotificationsView() {
   return (
     <AdminPage
       title="Pranešimai"
-      description="Telefono numeriai, kuriuos pasiekia SMS apie naujas rezervacijas, užklausas ir mokėjimus. Kiekvienam numeriui pasirinkite, apie ką pranešti."
+      description="Telefono numeriai ir el. pašto adresai, kuriuos pasiekia SMS ir laiškai apie naujas rezervacijas, užklausas ir mokėjimus. Kiekvienam gavėjui pasirinkite, apie ką pranešti: apie viską, apie mokėjimus ar tik apie pirtį, keturračius, nakvynę."
       actions={
         <Button onClick={() => setEditing({})} className="min-h-11">
           <PlusIcon size={18} /> Naujas gavėjas
@@ -31,8 +31,8 @@ export function NotificationsView() {
     >
       {notificationRecipients.length === 0 ? (
         <p className="max-w-2xl border border-dashed p-6 text-sm text-muted-foreground">
-          Gavėjų dar nėra. Kol sąrašas tuščias, visus personalo SMS gauna numeris, nurodytas serverio nustatymuose (STAFF_NOTIFY_PHONE), jei jis nustatytas. Pridėjus bent vieną gavėją,
-          pranešimai siunčiami tik pagal šį sąrašą.
+          Gavėjų dar nėra. Kol sąraše nėra telefono numerio, visus personalo SMS gauna numeris, nurodytas serverio nustatymuose (STAFF_NOTIFY_PHONE). Kol sąraše nėra el. pašto, laiškai
+          siunčiami į paslaugų dėžutes (pirtis ir keturračiai: renginiai@, nakvynė: miegas@) ir marketingas@. Pridėjus bent vieną numerį ar el. paštą, to tipo pranešimai siunčiami tik pagal šį sąrašą.
         </p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -54,7 +54,7 @@ export function NotificationsView() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Pašalinti gavėją „{deleting?.name}“?</DialogTitle>
-            <DialogDescription>Šis numeris nebegaus personalo SMS. Vėliau galėsite pridėti iš naujo.</DialogDescription>
+            <DialogDescription>Šis gavėjas nebegaus personalo SMS ir laiškų. Vėliau galėsite pridėti iš naujo.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleting(null)}>

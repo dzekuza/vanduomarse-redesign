@@ -1,5 +1,5 @@
 import "server-only";
-import type { MessageTopic } from "@/lib/notification-topics";
+import type { PushTopic } from "@/lib/notification-topics";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
@@ -10,7 +10,7 @@ export interface StaffPushPayload {
   data?: Record<string, string>;
 }
 
-async function tokensFor(topic: MessageTopic): Promise<string[]> {
+async function tokensFor(topic: PushTopic): Promise<string[]> {
   try {
     const { data, error } = await createAdminClient().rpc("staff_push_tokens_for", { p_topic: topic });
     if (error) {
@@ -27,7 +27,7 @@ async function tokensFor(topic: MessageTopic): Promise<string[]> {
  * Dispatches an Expo push notification to every active staff device subscribed
  * to `topic`. Never throws; callers run this inside `Promise.allSettled`.
  */
-export async function sendStaffPush(topic: MessageTopic, payload: StaffPushPayload): Promise<boolean> {
+export async function sendStaffPush(topic: PushTopic, payload: StaffPushPayload): Promise<boolean> {
   const tokens = await tokensFor(topic);
   if (tokens.length === 0) return false;
 

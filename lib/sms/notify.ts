@@ -1,8 +1,8 @@
 import "server-only";
-import { MAIN_CONTACT } from "@/lib/contacts";
+import { MAIN_CONTACT, serviceOfReference } from "@/lib/contacts";
 import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, staffExtras, staffRequestLine, type PaidRequest } from "@/lib/paid-request";
 import { formatHour } from "@/lib/sauna";
-import type { MessageTopic } from "@/lib/notification-topics";
+import { paymentTopics, type MessageTopic } from "@/lib/notification-topics";
 import { sendStaffSms } from "./staff-recipients";
 import { sendSms } from "./twilio";
 
@@ -46,9 +46,12 @@ export const notifyOutcome = (phone: string | null | undefined, reference: strin
       : `Vanduo Marse: ${reference}${what(summary)} atsaukta. Klausimai: ${MAIN_CONTACT.phone}`,
   );
 
-/** Heads-up for staff when a request lands; goes to the numbers subscribed to `topic` (/admin/pranesimai). */
-export const notifyStaff = (topic: MessageTopic, reference: string | undefined, summary: string) =>
-  sendStaffSms(topic, `Nauja uzklausa${ref(reference)}: ${summary}. Zr. /admin`);
+/** Heads-up for staff when a request lands; goes to the numbers subscribed to any of `topics` (/admin/pranesimai). */
+export const notifyStaff = (topics: MessageTopic[], reference: string | undefined, summary: string) =>
+  sendStaffSms(topics, `Nauja uzklausa${ref(reference)}: ${summary}. Zr. /admin`);
+
+/** The topics a payment is sent under: all payments, plus each service the references belong to. */
+const paidTopics = (references: string[]) => paymentTopics(references.map(serviceOfReference));
 
 const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amount.toFixed(2));
 
@@ -91,11 +94,11 @@ export const notifyPaid = (phone: string | null | undefined, references: string[
 
 /** A reservation was paid twice (two Checkout Sessions): staff refund the extra payment in Stripe. */
 export const notifyStaffDuplicate = (references: string[], amount: number) =>
-  sendStaffSms("mokejimai", `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
+  sendStaffSms(paidTopics(references), `DVIGUBAS MOKEJIMAS ${references.join(", ")}: ${eur(amount)} EUR. Grazinkite per Stripe. Zr. /admin`);
 
 /** Heads-up for staff when a reservation is paid; `review` flags a payment that needs a manual look (late or odd amount). */
 export const notifyStaffPaid = (references: string[], amount: number, review: boolean, requests: PaidRequest[] = [], contact: { phone?: string | null; email?: string | null } = {}) =>
-  sendStaffSms("mokejimai", staffPaidText(references, amount, review, requests, contact));
+  sendStaffSms(paidTopics(references), staffPaidText(references, amount, review, requests, contact));
 
 /** The staff text of a paid reservation: headline, who booked (name, phone, e-mail), each request with date, time, people and price, any code. */
 export function staffPaidText(references: string[], amount: number, review: boolean, requests: PaidRequest[], contact: { phone?: string | null; email?: string | null }): string {

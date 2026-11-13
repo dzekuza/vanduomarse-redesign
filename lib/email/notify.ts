@@ -2,6 +2,8 @@ import "server-only";
 import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, staffExtras, type PaidRequest } from "@/lib/paid-request";
 import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
+import { bookingTopics, paymentTopics, type MessageTopic } from "@/lib/notification-topics";
+import { staffEmailsFor } from "@/lib/staff-recipients";
 import { emailList, escapeHtml, sendEmail } from "./resend";
 
 /**
@@ -97,13 +99,16 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
   });
 };
 
-/* ---------------- staff: the service's inbox (STAFF_INBOX), else STAFF_NOTIFY_EMAIL ---------------- */
+/* ---------------- staff: the people in /admin/pranesimai, else the service inbox (STAFF_INBOX), else STAFF_NOTIFY_EMAIL ---------------- */
 
 /**
- * Inboxes for these services; services without one fall back to STAFF_NOTIFY_EMAIL (comma-separated).
- * Booking emails also go to STAFF_BOOKING_COPY (marketing), once.
+ * Who gets a staff e-mail. Owners' list first (`/admin/pranesimai`, filtered by topic); only while nobody
+ * there has an e-mail address does it fall back to the inboxes for these services (services without one use
+ * STAFF_NOTIFY_EMAIL, comma-separated), plus STAFF_BOOKING_COPY (marketing) once for booking mails.
  */
-function staffTo(services: NotifyService[], withBookingCopy: boolean): string[] {
+async function staffTo(topics: MessageTopic[], services: NotifyService[], withBookingCopy: boolean): Promise<string[]> {
+  const listed = await staffEmailsFor(topics);
+  if (listed) return [...new Set(listed)];
   const fallback = emailList(process.env.STAFF_NOTIFY_EMAIL);
   const to = services.flatMap((s) => (STAFF_INBOX[s] ? [STAFF_INBOX[s]] : fallback));
   return [...new Set(withBookingCopy ? [...to, STAFF_BOOKING_COPY] : to)];
@@ -113,19 +118,20 @@ const servicesOf = (references: string[]) => references.map(serviceOfReference);
 /** Without SITE_URL a relative "/admin" would not work in a mail client, so the line is left out. */
 const adminLink = () => (siteUrl() ? [`Atidaryti: ${siteUrl()}/admin`] : []);
 
-function toStaff(
+async function toStaff(
+  topics: MessageTopic[],
   services: NotifyService[],
   subject: string,
   paragraphs: (string | { strong: string })[],
   withBookingCopy = true,
 ) {
-  const to = staffTo(services, withBookingCopy);
-  if (to.length === 0) return Promise.resolve(false);
+  const to = await staffTo(topics, services, withBookingCopy);
+  if (to.length === 0) return false;
   return sendEmail({ to, subject, ...body([...paragraphs, ...adminLink()], false) });
 }
 
 export const emailStaffNew = (service: NotifyService, reference: string | undefined, summary: string) =>
-  toStaff([service], `Nauja užklausa${reference ? ` ${reference}` : ""}`, [{ strong: summary }]);
+  toStaff(bookingTopics(service), [service], `Nauja užklausa${reference ? ` ${reference}` : ""}`, [{ strong: summary }]);
 
 /** "2026-11-13 14:05" in Vilnius time. */
 const vilniusNow = () =>
@@ -141,7 +147,7 @@ export const emailStaffPaid = (
 ) => {
   const customer = staffCustomer(requests, contact);
   const { discountCodes, notes } = staffExtras(requests);
-  return toStaff(servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`, [
+  return toStaff(paymentTopics(servicesOf(references)), servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`, [
     { strong: `${formatEuro(amount)} už ${references.join(", ")}` },
     ...(review ? ["Apmokėta pavėluotai arba kita suma: patikrinkite ir, jei reikia, grąžinkite per Stripe."] : []),
     `Apmokėjimo laikas: ${vilniusNow()}`,
@@ -165,7 +171,7 @@ export const emailStaffPaid = (
 };
 
 export const emailStaffDuplicate = (references: string[], amount: number) =>
-  toStaff(servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [
+  toStaff(paymentTopics(servicesOf(references)), servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [
     { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
     "Grąžinkite papildomą mokėjimą per Stripe.",
   ], false); // a refund task for the service's staff, not a booking
@@ -182,16 +188,18 @@ export interface CouponPaidNotice {
   recipientEmail: string;
 }
 
-/** Coupon staff alerts: STAFF_NOTIFY_EMAIL (else info@) plus the marketing copy. */
-const couponStaffTo = () => {
+/** Coupon and plan staff alerts are payments: the people on `mokejimai` in /admin/pranesimai, else STAFF_NOTIFY_EMAIL (else info@) plus the marketing copy. */
+const couponStaffTo = async () => {
+  const listed = await staffEmailsFor(["mokejimai"]);
+  if (listed) return [...new Set(listed)];
   const configured = emailList(process.env.STAFF_NOTIFY_EMAIL);
   return [...new Set([...(configured.length ? configured : [MAIN_CONTACT.email]), STAFF_BOOKING_COPY])];
 };
 
 /** A coupon was paid online and issued (or, with `problem`, needs a look). */
-export const emailStaffCouponPaid = (o: CouponPaidNotice & { problem?: string }) =>
+export const emailStaffCouponPaid = async (o: CouponPaidNotice & { problem?: string }) =>
   sendEmail({
-    to: couponStaffTo(),
+    to: await couponStaffTo(),
     subject: o.problem ? `PATIKRINTI KUPONO MOKĖJIMĄ ${o.reference}` : `Apmokėtas kuponas ${o.reference}`,
     ...body(
       [
@@ -206,9 +214,9 @@ export const emailStaffCouponPaid = (o: CouponPaidNotice & { problem?: string })
   });
 
 /** A paid coupon was fully refunded in Stripe, so it was cancelled. */
-export const emailStaffCouponCancelled = (reference: string) =>
+export const emailStaffCouponCancelled = async (reference: string) =>
   sendEmail({
-    to: couponStaffTo(),
+    to: await couponStaffTo(),
     subject: `Kuponas ${reference} atšauktas (grąžinti pinigai)`,
     ...body([{ strong: `Kuponas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : [])], false),
   });
@@ -236,9 +244,9 @@ export const emailPlanPaidCustomer = (o: { to: string; riderName: string; planNa
   });
 
 /** A plan was paid online and attached (or, with `problem`, needs a look). */
-export const emailStaffPlanPaid = (o: PlanPaidNotice & { problem?: string }) =>
+export const emailStaffPlanPaid = async (o: PlanPaidNotice & { problem?: string }) =>
   sendEmail({
-    to: couponStaffTo(),
+    to: await couponStaffTo(),
     subject: o.problem ? `PATIKRINTI PLANO MOKĖJIMĄ ${o.reference}` : `Apmokėtas planas ${o.reference}`,
     ...body(
       [
@@ -252,9 +260,9 @@ export const emailStaffPlanPaid = (o: PlanPaidNotice & { problem?: string }) =>
   });
 
 /** A paid plan order was fully refunded in Stripe, so the order was cancelled (the rider's plan needs a manual change). */
-export const emailStaffPlanCancelled = (reference: string) =>
+export const emailStaffPlanCancelled = async (reference: string) =>
   sendEmail({
-    to: couponStaffTo(),
+    to: await couponStaffTo(),
     subject: `Plano užsakymas ${reference} atšauktas (grąžinti pinigai)`,
     ...body([{ strong: `Užsakymas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja.", ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : [])], false),
   });

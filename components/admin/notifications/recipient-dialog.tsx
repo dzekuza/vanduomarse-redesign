@@ -8,18 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import type { NotificationRecipient } from "@/lib/admin/types";
 import { notificationRecipientInput, type NotificationRecipientInput } from "@/lib/notification-recipient-schema";
-import { NOTIFICATION_TOPICS, type NotificationTopic } from "@/lib/notification-topics";
 import { FormPhoneInput } from "@/components/ui/phone-input";
+import { TopicFields } from "./topic-fields";
 
 interface RecipientDialogProps {
   recipient?: NotificationRecipient;
   onOpenChange: (open: boolean) => void;
 }
 
-/** Add or edit a number and its topics. "Visi pranešimai" covers every other topic, so picking it clears them. Remounted per recipient (key). */
+/** Add or edit a recipient (phone and/or e-mail) and its topics. "Visi pranešimai" covers every other topic, so picking it clears them. Remounted per recipient (key). */
 export function RecipientDialog({ recipient, onOpenChange }: RecipientDialogProps) {
   const { saveNotificationRecipient } = useAdmin();
   const { register, control, handleSubmit, formState, setError } = useForm<NotificationRecipientInput>({
@@ -28,6 +27,7 @@ export function RecipientDialog({ recipient, onOpenChange }: RecipientDialogProp
       id: recipient?.id ?? null,
       name: recipient?.name ?? "",
       phone: recipient?.phone ?? "",
+      email: recipient?.email ?? "",
       topics: recipient?.topics ?? ["visi"],
       active: recipient?.active ?? true,
     },
@@ -37,8 +37,9 @@ export function RecipientDialog({ recipient, onOpenChange }: RecipientDialogProp
   const submit = handleSubmit(async (v) => {
     const result = await saveNotificationRecipient(v);
     if ("error" in result) {
-      // The number is the only field the database can refuse on its own (a duplicate).
-      if (result.error.code === "duplicate" || result.error.code === "invalid") setError("phone", { message: result.error.message });
+      // The number and the address are the only fields the database can refuse on its own (a duplicate).
+      if (result.error.code === "duplicate-email") setError("email", { message: result.error.message });
+      else if (result.error.code === "duplicate" || result.error.code === "invalid") setError("phone", { message: result.error.message });
       return;
     }
     toast.success(recipient ? "Gavėjas atnaujintas" : "Gavėjas pridėtas");
@@ -50,7 +51,7 @@ export function RecipientDialog({ recipient, onOpenChange }: RecipientDialogProp
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{recipient ? "Redaguoti gavėją" : "Naujas gavėjas"}</DialogTitle>
-          <DialogDescription>Šiam numeriui bus siunčiami SMS apie pažymėtus įvykius.</DialogDescription>
+          <DialogDescription>Telefono numeriu siunčiami SMS, el. paštu: laiškai apie pažymėtus įvykius. Užpildykite bent vieną.</DialogDescription>
         </DialogHeader>
         <form id="recipient-form" onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
@@ -59,39 +60,19 @@ export function RecipientDialog({ recipient, onOpenChange }: RecipientDialogProp
             {err.name ? <p className="text-xs text-destructive">{err.name.message}</p> : null}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="recipient-phone">Telefono numeris</Label>
+            <Label htmlFor="recipient-phone">Telefono numeris (SMS)</Label>
             <FormPhoneInput<NotificationRecipientInput> name="phone" control={control} id="recipient-phone" invalid={!!err.phone} />
             {err.phone ? <p className="text-xs text-destructive">{err.phone.message}</p> : null}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="recipient-email">El. paštas</Label>
+            <Input id="recipient-email" type="email" inputMode="email" autoComplete="off" placeholder="vardas@vanduomarse.lt" aria-invalid={!!err.email} className="min-h-11" {...register("email")} />
+            {err.email ? <p className="text-xs text-destructive">{err.email.message}</p> : null}
           </div>
           <Controller
             control={control}
             name="topics"
-            render={({ field }) => {
-              const toggle = (id: NotificationTopic, on: boolean) => {
-                if (id === "visi") return field.onChange(on ? ["visi"] : []);
-                const rest = field.value.filter((t) => t !== "visi" && t !== id);
-                field.onChange(on ? [...rest, id] : rest);
-              };
-              return (
-                <fieldset className="space-y-1">
-                  <legend className="mb-2 text-sm font-medium">Apie ką pranešti</legend>
-                  {NOTIFICATION_TOPICS.map((t) => {
-                    const everything = field.value.includes("visi");
-                    const checked = t.id === "visi" ? everything : everything || field.value.includes(t.id);
-                    return (
-                      <label key={t.id} className="flex min-h-11 cursor-pointer items-start gap-3 border-b py-2.5 last:border-b-0">
-                        <Switch className="mt-0.5" checked={checked} disabled={t.id !== "visi" && everything} onCheckedChange={(on) => toggle(t.id, on)} aria-label={t.label} />
-                        <span>
-                          <span className="block text-sm font-medium">{t.label}</span>
-                          <span className="block text-xs text-muted-foreground">{t.hint}</span>
-                        </span>
-                      </label>
-                    );
-                  })}
-                  {err.topics ? <p className="pt-1 text-xs text-destructive">{err.topics.message}</p> : null}
-                </fieldset>
-              );
-            }}
+            render={({ field }) => <TopicFields value={field.value} onChange={field.onChange} error={err.topics?.message} />}
           />
         </form>
         <DialogFooter>

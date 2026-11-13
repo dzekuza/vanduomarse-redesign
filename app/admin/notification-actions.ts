@@ -6,7 +6,7 @@ import { notificationRecipientInput, type NotificationRecipientInput } from "@/l
 import { toE164 } from "@/lib/sms/twilio";
 
 /**
- * /admin/pranesimai writes: which phone numbers get staff SMS, and for which topics.
+ * /admin/pranesimai writes: which phone numbers get staff SMS and which e-mail addresses get staff e-mail, and for which topics.
  * Owner-only (RLS enforces the same). `done` revalidates the admin layout so the store
  * resets to what the database holds.
  */
@@ -17,14 +17,19 @@ export async function saveNotificationRecipient(input: NotificationRecipientInpu
   const parsed = notificationRecipientInput.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Netinkamos reikšmės.", "invalid");
   const v = parsed.data;
-  const phone = toE164(v.phone);
-  if (!phone) return fail("Netinkamas telefono numeris. Pavyzdys: +370 612 34567.", "invalid");
+  const phone = v.phone ? toE164(v.phone) : null;
+  if (v.phone && !phone) return fail("Netinkamas telefono numeris. Pavyzdys: +370 612 34567.", "invalid");
+  const email = v.email ? v.email.toLowerCase() : null;
 
-  const row = { name: v.name, phone, topics: v.topics, active: v.active };
+  const row = { name: v.name, phone, email, topics: v.topics, active: v.active };
   const { error } = v.id
     ? await ctx.supabase.from("notification_recipients").update(row).eq("id", v.id)
     : await ctx.supabase.from("notification_recipients").insert(row);
-  if (error?.code === "23505") return fail("Šis numeris jau yra sąraše.", "duplicate");
+  if (error?.code === "23505") {
+    return error.message.includes("_email_idx")
+      ? fail("Šis el. paštas jau yra sąraše.", "duplicate-email")
+      : fail("Šis numeris jau yra sąraše.", "duplicate");
+  }
   return error ? dbError(error) : done(null);
 }
 

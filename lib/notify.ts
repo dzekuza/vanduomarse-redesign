@@ -19,6 +19,7 @@ import {
   notifyStaffPaid,
 } from "@/lib/sms/notify";
 import { sendStaffPush } from "@/lib/push/staff-push";
+import { bookingTopics, type PushTopic } from "@/lib/notification-topics";
 
 /**
  * One call per event, every channel: SMS (Twilio, `lib/sms/notify.ts`), email (Resend,
@@ -45,7 +46,8 @@ export const notifyRequestFiled = (
   summary: string,
   variant: "request" | "booking" = "request",
 ) => {
-  const topic = service === "kita" ? "uzklausos" : "rezervacijos";
+  // Push has the three broad topics only; SMS and e-mail also route by service (bookingTopics).
+  const pushTopic: PushTopic = service === "kita" ? "uzklausos" : "rezervacijos";
   return settle(
     contact.phone
       ? variant === "booking" && reference
@@ -53,9 +55,9 @@ export const notifyRequestFiled = (
         : notifyReceived(contact.phone, reference, summary)
       : Promise.resolve(false),
     emailReceived(contact.email, reference, summary),
-    notifyStaff(topic, reference, summary),
+    notifyStaff(bookingTopics(service), reference, summary),
     emailStaffNew(service, reference, summary),
-    sendStaffPush(topic, {
+    sendStaffPush(pushTopic, {
       title: reference ? `Nauja užklausa · ${reference}` : "Nauja užklausa",
       body: summary,
       data: reference ? { reference } : undefined,

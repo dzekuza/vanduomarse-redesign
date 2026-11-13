@@ -162,7 +162,7 @@ export interface StaffMember {
   createdAt: string;
 }
 
-/** A phone number that receives staff SMS, and the topics it is texted about. Owners only. */
+/** A person who receives staff SMS (phone) and/or e-mail (email), and the topics they are told about. Owners only. */
 /** Site-wide switches owners flip at /admin/svetaine. */
 export interface SiteSettings {
   /** The public site shows the "coming soon" page (503) instead of its pages. */
@@ -172,8 +172,10 @@ export interface SiteSettings {
 export interface NotificationRecipient {
   id: string;
   name: string;
-  /** E.164, e.g. +37061234567. */
-  phone: string;
+  /** E.164, e.g. +37061234567. Null for an e-mail-only recipient. */
+  phone: string | null;
+  /** Null for an SMS-only recipient. At least one of phone and email is set. */
+  email: string | null;
   topics: NotificationTopic[];
   active: boolean;
 }

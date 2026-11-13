@@ -422,5 +422,5 @@ export function toStaffMember(r: Tables<"staff">): StaffMember {
 }
 
 export function toNotificationRecipient(r: Tables<"notification_recipients">): NotificationRecipient {
-  return { id: r.id, name: r.name, phone: r.phone, topics: r.topics.filter(isNotificationTopic), active: r.active };
+  return { id: r.id, name: r.name, phone: r.phone, email: r.email, topics: r.topics.filter(isNotificationTopic), active: r.active };
 }

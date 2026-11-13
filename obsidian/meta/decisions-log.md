@@ -134,6 +134,10 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0086 — Staff notifications route by topic arrays, e-mail joins the recipient list
+
+Recipients in `notification_recipients` have an optional phone and an optional e-mail (at least one). A message carries a list of topics (`bookingTopics(service)` = rezervacijos + the service, or uzklausos; `paymentTopics(services)` = mokejimai + each service); a recipient gets it when subscribed to any of them or to `visi`. SMS and e-mail both read the list through `staff_notify_phones_for` / `staff_notify_emails_for` (null while nobody has that channel, then the old routing applies: STAFF_NOTIFY_PHONE, `STAFF_INBOX` + STAFF_NOTIFY_EMAIL + marketing copy). Once anyone has an e-mail, only the list is used, so marketingas@ must be added as a recipient to keep its copies. Push keeps the three broad topics (`PushTopic`; the mobile registrations' constraint is unchanged).
+
 ## ADR-0072 — Public booking facts use the booking catalogue
 
 - **Context:** Fixed capacity, route and minimum-group claims could disagree with the admin settings. The public sauna reader also replaced legacy seed copy.

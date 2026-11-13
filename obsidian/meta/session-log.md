@@ -1,3 +1,15 @@
+## 2026-11-13 — Notification e-mails and service topics
+
+- **Changed:** `notification_recipients` gets `email` (phone now optional, one of them required) and topics `pirtis`/`keturraciai`/`nakvyne`; new `lib/staff-recipients.ts` (`staffPhonesFor`/`staffEmailsFor`), SMS and staff e-mail route by topic arrays (`bookingTopics`, `paymentTopics`); push untouched (`PushTopic`). Form: optional phone + e-mail, grouped topic switches (`topic-fields.tsx`).
+- **Status:** migration applied; browser-checked dialog and validation; real sends not tested.
+- **Next:** add recipients, watch a real booking.
+
+## 2026-11-13 — Header dropdown URLs
+
+- **Changed:** `nav-links.ts` uses new `serviceHref` (`lib/reservation-links.ts`) so the dropdown links to /pirtis, /nakvyne, /keturraciu-nuoma, /vandenlentes instead of /rezervacija?veikla=….
+- **Status:** uncommitted, not browser-checked.
+- **Next:** check dropdown + mobile menu in the browser.
+
 ## 2026-11-13 — FAQ help line inline
 
 - **Changed:** `landing-faq.tsx` question and mail link in one flex row.

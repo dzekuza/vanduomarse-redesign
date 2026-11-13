@@ -19,7 +19,7 @@ interface RecipientCardProps {
 /** "+37061234567" → "+370 612 34567" for reading; other countries are shown as stored. */
 export const formatRecipientPhone = (phone: string) => (/^\+370\d{8}$/.test(phone) ? `${phone.slice(0, 4)} ${phone.slice(4, 7)} ${phone.slice(7)}` : phone);
 
-/** One person: name, number, the topics they are texted about; on/off switch, edit and delete. */
+/** One person: name, phone and/or e-mail, the topics they are texted about; on/off switch, edit and delete. */
 export function RecipientCard({ recipient, onActive, onEdit, onDelete }: RecipientCardProps) {
   return (
     <Card className={recipient.active ? "" : "opacity-70"}>
@@ -28,7 +28,10 @@ export function RecipientCard({ recipient, onActive, onEdit, onDelete }: Recipie
           <span className="min-w-0 wrap-anywhere">{recipient.name}</span>
           {recipient.active ? null : <Badge variant="secondary">Išjungta</Badge>}
         </CardTitle>
-        <CardDescription className="tabular-nums">{formatRecipientPhone(recipient.phone)}</CardDescription>
+        <CardDescription className="space-y-0.5">
+          {recipient.phone ? <span className="block tabular-nums">{formatRecipientPhone(recipient.phone)}</span> : null}
+          {recipient.email ? <span className="block wrap-anywhere">{recipient.email}</span> : null}
+        </CardDescription>
         <CardAction className="flex items-center gap-1">
           <Switch checked={recipient.active} aria-label={`${recipient.name}: pranešimai įjungti`} onCheckedChange={onActive} />
           <DropdownMenu>
