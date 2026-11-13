@@ -369,10 +369,16 @@ const EVENT_STAFF = ["renginiai", "keturraciai"] as const;
 /**
  * A published sauna session blocks the private sauna while it runs and for an hour after (ADR-0091). The database refuses
  * new private bookings in that window; this is the other direction: a session may not be put on top of a private booking
- * that already exists. Returns the message to show, or null. Read with the service role so staff who can edit events but not
- * bookings are checked too.
+ * that already exists. Returns the message to show, or null. The clash is found with the service role, so staff who can edit
+ * events but not bookings are blocked too; but the message names bookings only when the caller's own session (row level
+ * security, the `rezervacijos` permission) can read them, otherwise it is generic and leaks no booking details.
  */
-async function privateBookingUnderSession(e: { id: string; category: string; published: boolean; capacity: number | null; date: string; time: string; durationMinutes?: number; programId?: string }): Promise<string | null> {
+type StaffDb = Extract<Awaited<ReturnType<typeof staffClient>>, { ok: true }>["supabase"];
+
+async function privateBookingUnderSession(
+  e: { id: string; category: string; published: boolean; capacity: number | null; date: string; time: string; durationMinutes?: number; programId?: string },
+  callerDb: StaffDb,
+): Promise<string | null> {
   if (e.category !== "pirtis" || !e.published || e.capacity === null) return null;
   const admin = createAdminClient();
   const program = e.programId ? (await admin.from("sauna_programs").select("duration_minutes").eq("id", e.programId).maybeSingle()).data : null;
@@ -390,7 +396,11 @@ async function privateBookingUnderSession(e: { id: string; category: string; pub
   const clash = (data ?? []).filter((b) => b.start_hour !== null && b.hours !== null
     && sessionBlocksBooking(start, minutes, Math.round((Date.parse(b.date) - Date.parse(e.date)) / 86_400_000), b.start_hour, b.hours));
   if (clash.length === 0) return null;
-  const list = clash.map((b) => `${b.reference} (${b.date}, ${String(b.start_hour).padStart(2, "0")}:00-${String((b.start_hour ?? 0) + (b.hours ?? 0)).padStart(2, "0")}:00)`).join(", ");
+  const refs = clash.map((b) => b.reference);
+  const { data: visible } = await callerDb.from("bookings").select("reference, date, start_hour, hours").in("reference", refs);
+  const named = (visible ?? []).filter((b) => b.start_hour !== null && b.hours !== null);
+  if (named.length === 0) return "Šiuo metu jau yra privati pirties rezervacija. Seansas blokuoja pirtį jo metu ir valandą po jo. Pasirinkite kitą laiką arba kreipkitės į rezervacijų administratorių.";
+  const list = named.map((b) => `${b.reference} (${b.date}, ${String(b.start_hour).padStart(2, "0")}:00-${String((b.start_hour ?? 0) + (b.hours ?? 0)).padStart(2, "0")}:00)`).join(", ");
   return `Šiuo metu jau yra privati pirties rezervacija: ${list}. Seansas blokuoja pirtį jo metu ir valandą po jo. Atšaukite rezervaciją arba pasirinkite kitą laiką.`;
 }
 
@@ -400,7 +410,7 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
   const parsed = eventInput.safeParse(event);
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const e = parsed.data;
-  const clash = await privateBookingUnderSession(e);
+  const clash = await privateBookingUnderSession(e, ctx.supabase);
   if (clash) return fail(clash, "conflict");
   const { error } = await ctx.supabase.from("events").upsert({
     id: e.id,
