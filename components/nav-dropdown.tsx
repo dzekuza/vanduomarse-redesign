@@ -55,7 +55,7 @@ export function NavDropdown({ link }: { link: NavLink & { children: NonNullable<
       </div>
       {/* The padding bridges the gap to the header so the pointer can travel from the link into the list. */}
       <div id={listId} hidden={!open} className="absolute top-full left-0 z-30 pt-2">
-        <ul className="min-w-56 border border-line-on-ink bg-ink py-2 shadow-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-150">
+        <ul className="min-w-56 border border-line-on-ink bg-ink py-2 text-dust shadow-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-150">
           {link.children.map((child) => (
             <li key={child.href}>
               <Link href={child.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center px-4 text-xs font-bold hover:bg-ink-soft hover:text-rust focus-visible:bg-ink-soft focus-visible:text-rust">

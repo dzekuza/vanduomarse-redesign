@@ -22,7 +22,18 @@ export function formatDateTime(iso: string): string {
   const d = new Date(iso);
   return `${longDateLabel(d)}, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
-export const formatEur = (n: number) => `${Math.round(n).toLocaleString("lt-LT")} €`;
+/** "ką tik", "prieš 5 min.", "prieš 3 val.", older: "19 Spalio, 14:05". */
+export function formatAgo(iso: string, now: number = Date.now()): string {
+  const minutes = Math.floor((now - new Date(iso).getTime()) / 60_000);
+  if (minutes < 1) return "ką tik";
+  if (minutes < 60) return `prieš ${minutes} min.`;
+  if (minutes < 24 * 60) return `prieš ${Math.floor(minutes / 60)} val.`;
+  return formatDateTime(iso);
+}
+export const formatEur = (n: number) => {
+  const cents = Math.round(n * 100) / 100;
+  return `${cents.toLocaleString("lt-LT", { minimumFractionDigits: Number.isInteger(cents) ? 0 : 2, maximumFractionDigits: 2 })} €`;
+};
 export const formatEurRange = (r: { min: number; max: number }) =>
   r.min === r.max ? formatEur(r.min) : `${Math.round(r.min).toLocaleString("lt-LT")}–${formatEur(r.max)}`;
 

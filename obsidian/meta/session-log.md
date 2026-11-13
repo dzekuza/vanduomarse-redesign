@@ -1,3 +1,46 @@
+## 2026-11-13 — Remove cancelled requests
+
+- **Changed:** `deleteRequest` action, store `request/delete`, `useDeleteRequest`, buttons in `StatusActions` and booking row menu / sheet; restore-to-laukia removed earlier.
+- **Status:** tsc/eslint clean; UI untested.
+- **Next:** test on a cancelled test booking.
+
+## 2026-11-13 — Notification bell
+
+- **Changed:** `staff_notifications` + `staff_notification_reads` (migration applied), `lib/staff-notifications.ts`, `NotificationBell`/`NotificationItem`, store/repository/types (`notifications`, `notificationsReadAt`, `markNotificationsRead`), live updates table list, mobile `admin-api.ts` defaults. Also `formatEur` keeps cents (earlier).
+- **Status:** tsc/eslint clean; bell browser-checked with test rows; real events untested.
+- **Next:** real test booking; commit.
+
+## 2026-11-13 — Motion pass
+
+- **Changed:** `SectionTabs` scroll-spy (service pages), enter motion on `PlanLines` rows and `ReservationDone`.
+- **Status:** uncommitted; tsc/eslint clean; tabs browser-checked at 1280 px; plan lines and done panel not exercised. Dev server showed repeated Fast Refresh churn (a stale hot-swapped listener once left a tab stuck; fresh loads are fine).
+- **Also uncommitted (not mine):** `formatEur` now keeps cents.
+- **Next:** click through a booking to see the plan line and done panel; check tabs at 375 px; commit.
+
+## 2026-11-13 — Customer cancel and refund
+
+- **Changed:** `lib/request-cancel.ts` (24 h rule), `app/actions/cancel-request.ts`, `CancelRequestButton`, `MyRequest.cancel/refund`, `notifyCancelledByCustomer`.
+- **Status:** tsc/eslint clean, rule script-tested; UI and refund untested (no customer session).
+- **Next:** test with a real signed-in customer.
+
+## 2026-11-13 — Footer star rotates on hover
+
+- **Changed:** `FooterWord` star rotates 180° on hover (Tailwind transition, `motion-safe`).
+- **Status:** uncommitted, tsc not affected, not browser-checked.
+- **Next:** check on desktop hover.
+
+## 2026-11-13 — Dropdown text colour
+
+- **Changed:** `nav-dropdown.tsx` list gets `text-dust` (items were invisible on the ink panel).
+- **Status:** browser-checked, uncommitted.
+- **Next:** commit with the header work.
+
+## 2026-11-13 — Branded emails + cancel button
+
+- **Changed:** `lib/email/layout.ts` (shared HTML shell); `body()` in `notify.ts` uses it for all emails; customer booking mails get the "Atšaukti rezervaciją" button to `/paskyra`.
+- **Status:** uncommitted; tsc/eslint clean; no real send tested. Also uncommitted: `text-dust` on the header dropdown list (`nav-dropdown.tsx`).
+- **Next:** send a test payment email and check it in Gmail (light/dark); decide whether paid bookings need a request-cancel flow.
+
 ## 2026-11-13 — Header dropdown URLs and sticky tabs
 
 - **Changed:** header dropdown links to service pages (`serviceHref`), one "Pirtis" entry (duplicate-key fix, uncommitted); service-page section tabs sticky under the header, beige, full-width tabs, no bottom border (pushed in 16ba0ca).

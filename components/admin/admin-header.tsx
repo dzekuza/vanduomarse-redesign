@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeNavItem, NEW_BOOKING_HREF } from "./admin-nav";
 import { useAdmin } from "./admin-store";
+import { NotificationBell } from "./notification-bell/notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export function AdminHeader() {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-2">
+        <NotificationBell />
         <ThemeToggle />
         {hasPermission(me, "rezervacijos") ? (
           <Button asChild className="hidden min-h-11 active:scale-[0.98] lg:inline-flex">

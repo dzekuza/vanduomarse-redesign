@@ -2,6 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { emailPlanPaidCustomer, emailStaffPlanCancelled, emailStaffPlanPaid } from "@/lib/email/notify";
+import { recordStaffNotification } from "@/lib/staff-notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -33,13 +34,24 @@ export async function onPlanOrderPaid(orderId: string, session: Stripe.Checkout.
     console.error("Stripe webhook: paid plan session without a matching order", session.id);
     return;
   }
+  const feed = (review: boolean) =>
+    recordStaffNotification({
+      kind: review ? "mokejimas_patikrinti" : "mokejimas",
+      permissions: ["apyrankes"],
+      title: review ? `Patikrinti plano mokėjimą · ${o.reference}` : `Apmokėtas planas · ${o.reference}`,
+      body: `${o.plan_name}, ${review ? paidAmount : o.price} €. ${o.rider_name}`,
+      reference: o.reference,
+      href: "/admin/apyrankes",
+    });
   if (!o.amount_ok) {
+    await feed(true);
     await emailStaffPlanPaid({ reference: o.reference, planName: o.plan_name, amount: paidAmount, riderName: o.rider_name, riderEmail: o.rider_email, problem: `Apmokėta ${paidAmount} €, o plano kaina ${o.price} €. Planas nepriskirtas: patikrinkite ir, jei reikia, grąžinkite per Stripe.` });
     return;
   }
   if (!o.newly_paid) return;
 
   const emailed = await emailPlanPaidCustomer({ to: o.rider_email, riderName: o.rider_name, planName: o.plan_name, amount: o.price, reference: o.reference });
+  await feed(false);
   await emailStaffPlanPaid({
     reference: o.reference,
     planName: o.plan_name,

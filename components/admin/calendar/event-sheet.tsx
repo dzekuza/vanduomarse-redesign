@@ -9,7 +9,7 @@ import { formatDay, formatEur } from "@/lib/admin/format";
 import type { ManagedEvent } from "@/lib/admin/types";
 import { EVENT_CATEGORIES } from "@/lib/park-events";
 import { useCancelRequest } from "@/components/admin/use-cancel-request";
-import { Badge } from "@/components/ui/badge";
+import { useDeleteRequest } from "@/components/admin/use-delete-request";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -18,6 +18,8 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
   const { tourTickets, eventTickets, setTourTicketStatus, quadRentals, setRentalStatus } = useAdmin();
   const { cancel: cancelRental, dialog: rentalDialog } = useCancelRequest("rental");
   const { cancel: cancelTicket, dialog: ticketDialog } = useCancelRequest("ticket");
+  const { remove: removeRental, dialog: removeRentalDialog } = useDeleteRequest("rental");
+  const { remove: removeTicket, dialog: removeTicketDialog } = useDeleteRequest("ticket");
   const tickets = event ? ticketsFor(event.id, tourTickets, eventTickets) : [];
   // Bookings of a quad tour departure are quad rentals joined to the event.
   const rentals = event ? quadRentals.filter((r) => r.tourEventId === event.id) : [];
@@ -25,6 +27,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
   const people = active.reduce((sum, t) => sum + t.people, 0);
   const quads = rentals.filter((r) => r.status !== "atsaukta").reduce((sum, r) => sum + r.units, 0);
   const category = EVENT_CATEGORIES.find((c) => c.id === event?.category)?.label;
+  const seats = event ? (event.tourRouteId ? `Keturračiai: ${event.capacity ? `${quads}/${event.capacity}` : quads}` : event.capacity ? `Vietos: ${seatsLabel(event)}` : `Registracijų: ${people} asm.`) : "";
 
   return (
     <Sheet open={!!event} onOpenChange={onOpenChange}>
@@ -34,24 +37,23 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
             <SheetHeader>
               <SheetTitle className="wrap-anywhere">{event.title}</SheetTitle>
               <SheetDescription>
-                {category} · {formatDay(event.date)} · {event.time} · {event.place}
+                {[category, formatDay(event.date), event.time, event.place, seats, event.price === null ? "Nemokamai" : formatEur(event.price), event.published ? null : "Paslėptas"].filter(Boolean).join(" · ")}
               </SheetDescription>
             </SheetHeader>
             <div className="space-y-5 px-4 pb-6">
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <Badge variant="outline">{event.tourRouteId ? `Keturračiai: ${event.capacity ? `${quads}/${event.capacity}` : quads}` : event.capacity ? `Vietos: ${seatsLabel(event)}` : `Registracijų: ${people} asm.`}</Badge>
-                <Badge variant="outline">{event.price === null ? "Nemokamai" : formatEur(event.price)}</Badge>
-                {event.published ? null : <Badge variant="outline">Paslėptas</Badge>}
-                <Button variant="outline" size="sm" className="ml-auto min-h-11" onClick={() => onEdit(event)}>
-                  Redaguoti renginį
-                </Button>
-              </div>
+              <Button variant="outline" size="sm" className="min-h-11" onClick={() => onEdit(event)}>
+                Redaguoti renginį
+              </Button>
               <section className="space-y-3">
                 <h3 className="text-sm font-medium">Rezervacijos ({tickets.length + rentals.length})</h3>
                 {tickets.length + rentals.length === 0 ? <p className="text-sm text-muted-foreground">Rezervacijų dar nėra.</p> : null}
                 {rentals.map((r) => (
                   <div key={r.id} className="space-y-2 border p-3">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <BookingStatusBadge status={r.status} />
+                        <PaymentBadge payment={r.payment} />
+                      </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
                           <CustomerLink name={r.customer.name} riderId={r.riderId} phone={r.customer.phone} email={r.customer.email} />
@@ -59,10 +61,6 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         <p className="truncate text-xs text-muted-foreground">
                           {r.units} keturr. · {formatEur(r.total)} · {r.reference}
                         </p>
-                      </div>
-                      <div className="flex flex-wrap justify-end gap-1">
-                        <BookingStatusBadge status={r.status} />
-                        <PaymentBadge payment={r.payment} />
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-x-4 text-xs">
@@ -77,12 +75,16 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         </a>
                       ) : null}
                     </div>
-                    <StatusActions status={r.status} onSet={(s) => setRentalStatus(r.id, s)} onCancel={() => cancelRental({ id: r.id, reference: r.reference, total: r.total, payment: r.payment })} />
+                    <StatusActions status={r.status} onSet={(s) => setRentalStatus(r.id, s)} onCancel={() => cancelRental({ id: r.id, reference: r.reference, total: r.total, payment: r.payment })} onDelete={() => removeRental({ id: r.id, reference: r.reference })} />
                   </div>
                 ))}
                 {tickets.map((t) => (
                   <div key={t.id} className="space-y-2 border p-3">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <BookingStatusBadge status={t.status} />
+                        <PaymentBadge payment={t.payment} />
+                      </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
                           <CustomerLink name={t.customer.name} riderId={t.riderId} phone={t.customer.phone} email={t.customer.email} />
@@ -90,10 +92,6 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         <p className="truncate text-xs text-muted-foreground">
                           {t.people} asm. · {formatEur(t.total)} · {t.reference}
                         </p>
-                      </div>
-                      <div className="flex flex-wrap justify-end gap-1">
-                        <BookingStatusBadge status={t.status} />
-                        <PaymentBadge payment={t.payment} />
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-x-4 text-xs">
@@ -108,7 +106,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         </a>
                       ) : null}
                     </div>
-                    <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} onCancel={() => cancelTicket({ id: t.id, reference: t.reference, total: t.total, payment: t.payment })} />
+                    <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} onCancel={() => cancelTicket({ id: t.id, reference: t.reference, total: t.total, payment: t.payment })} onDelete={() => removeTicket({ id: t.id, reference: t.reference })} />
                   </div>
                 ))}
               </section>
@@ -117,6 +115,8 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
         ) : null}
         {rentalDialog}
         {ticketDialog}
+        {removeRentalDialog}
+        {removeTicketDialog}
       </SheetContent>
     </Sheet>
   );

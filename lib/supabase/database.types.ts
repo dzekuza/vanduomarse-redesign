@@ -754,6 +754,54 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_notification_reads: {
+        Row: {
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      staff_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          href: string
+          id: string
+          kind: string
+          permissions: string[]
+          reference: string | null
+          title: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          href?: string
+          id?: string
+          kind: string
+          permissions: string[]
+          reference?: string | null
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          href?: string
+          id?: string
+          kind?: string
+          permissions?: string[]
+          reference?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       staff_push_tokens: {
         Row: {
           active: boolean

@@ -5,6 +5,20 @@ updated: 2026-11-13
 
 # Current status — vanduomarse-redesign
 
+**Remove cancelled requests (2026-11-13, ADR-0089): "Pašalinti" on cancelled bookings / rentals / tickets, guarded server-side (cancelled only; paid online needs a recorded refund). tsc/eslint clean, not browser-tested. Next: try it on a cancelled test booking and on a paid-but-unrefunded one (should refuse).**
+
+**Admin notification bell (2026-11-13, ADR-0088): bell with popover in the admin header, live through Supabase Realtime (`staff_notifications`, migration `20261115130000_staff_notifications_feed.sql` APPLIED, verified); fed by `lib/notify.ts` (new requests, payments, payments to check, double payments, customer cancels) and the coupon / plan payment handlers; per-role visibility by RLS, per-staff read marker, toast on arrival. Browser-checked with test rows (removed): badge, popover, live arrival. Not yet seen from a real booking/payment. Uncommitted. Next: make a 1,50 € test booking and watch the bell; commit.**
+
+**Motion pass (2026-11-13): scroll-spy `SectionTabs` on service pages (browser-checked), plan-line and booking-done enter motion (not yet seen). All uncommitted together with the branded emails, dropdown and footer-star tweaks. Next: click through a booking, check tabs at 375 px, commit.**
+
+**Customer cancel + refund (2026-11-13, ADR-0087): /paskyra shows "Atšaukti rezervaciją" on each open request; paid ones are refunded through Stripe when cancelled 24 h or more before the start, otherwise the customer is asked to call; staff get an SMS/e-mail. No migration. tsc/eslint clean, rule tested; the button and a real refund NOT tested in a browser (needs a signed-in customer). Next: sign in as a customer, cancel an unpaid and a paid test booking, check the refund in Stripe and the staff message.**
+
+**Footer star (2026-11-13): rotates 180° on hover of the "SUSITINKAM MARSE" word (CSS only). Uncommitted with the branded-email and dropdown tweaks; not browser-checked.**
+
+**Header dropdown colour (2026-11-13): `NavDropdown` list is `text-dust` so items show on the ink panel; browser-checked on /kuponai, uncommitted. Next: commit it with the header work.**
+
+**Branded emails (2026-11-13): all notification emails share `lib/email/layout.ts`; customer booking mails have an "Atšaukti rezervaciją" button to /paskyra (unpaid-only cancel exists there). Uncommitted (with a `text-dust` tweak to the header dropdown list), not sent for real. Next: test payment email in Gmail; decide on a cancel flow for paid bookings.**
+
 **Header dropdown + sticky tabs (2026-11-13): dropdown links to /pirtis, /nakvyne, /keturraciu-nuoma, /vandenlentes; service-page tabs sticky (pushed 16ba0ca); duplicate-key fix in `nav-links.ts` uncommitted. Next: commit it, browser-check both at 375 / 768 / 1440 px.**
 
 **Staff notification e-mails + service topics (2026-11-13, ADR-0086): `/admin/pranesimai` recipients can have a phone, an e-mail or both, and topics now include Pirtis, Keturračiai, Nakvynė; migration `20261115120000_notification_recipient_emails.sql` APPLIED and verified (rolled-back test of routing/constraints); dialog browser-checked (layout, validation), uncommitted on `main`, tsc/eslint clean. Next: add real recipients at /admin/pranesimai and watch a real booking e-mail; add `marketingas@` as a recipient if it should keep getting copies.**

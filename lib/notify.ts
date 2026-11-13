@@ -1,10 +1,11 @@
 import "server-only";
-import type { NotifyService } from "@/lib/contacts";
+import { serviceOfReference, type NotifyService } from "@/lib/contacts";
 import { staffRequestLine, type PaidRequest } from "@/lib/paid-request";
 import {
   emailOutcome,
   emailPaid,
   emailReceived,
+  emailStaffCancelled,
   emailStaffDuplicate,
   emailStaffNew,
   emailStaffPaid,
@@ -15,11 +16,13 @@ import {
   notifyPaid,
   notifyReceived,
   notifyStaff,
+  notifyStaffCancelled,
   notifyStaffDuplicate,
   notifyStaffPaid,
 } from "@/lib/sms/notify";
 import { sendStaffPush } from "@/lib/push/staff-push";
 import { bookingTopics, type PushTopic } from "@/lib/notification-topics";
+import { hrefOfServices, permissionsOfServices, recordStaffNotification } from "@/lib/staff-notifications";
 
 /**
  * One call per event, every channel: SMS (Twilio, `lib/sms/notify.ts`), email (Resend,
@@ -57,6 +60,14 @@ export const notifyRequestFiled = (
     emailReceived(contact.email, reference, summary),
     notifyStaff(bookingTopics(service), reference, summary),
     emailStaffNew(service, reference, summary),
+    recordStaffNotification({
+      kind: "uzklausa",
+      permissions: permissionsOfServices([service]),
+      title: reference ? `Nauja užklausa · ${reference}` : "Nauja užklausa",
+      body: summary,
+      reference,
+      href: hrefOfServices([service]),
+    }),
     sendStaffPush(pushTopic, {
       title: reference ? `Nauja užklausa · ${reference}` : "Nauja užklausa",
       body: summary,
@@ -72,6 +83,26 @@ export const notifyRequestOutcome = (
   summary: string,
 ) => settle(notifyOutcome(contact.phone, reference, outcome, summary), emailOutcome(contact.email, reference, outcome, summary));
 
+/**
+ * The customer cancelled their own request on /paskyra: they get the usual "atšaukta" message, staff are told who
+ * cancelled and what happened to the money (`refund`: "Grąžinta 40 €." or what staff still have to do).
+ */
+export const notifyCancelledByCustomer = (service: NotifyService, contact: CustomerContact, reference: string, summary: string, refund: string) =>
+  settle(
+    notifyOutcome(contact.phone, reference, "atsaukta", summary),
+    emailOutcome(contact.email, reference, "atsaukta", summary),
+    notifyStaffCancelled(bookingTopics(service), reference, summary, refund),
+    emailStaffCancelled(service, reference, summary, refund),
+    recordStaffNotification({
+      kind: "atsaukta",
+      permissions: permissionsOfServices([service]),
+      title: `Klientas atšaukė ${reference}`,
+      body: `${summary}. ${refund}`,
+      reference,
+      href: hrefOfServices([service]),
+    }),
+  );
+
 export const notifyPaymentReceived = (
   contact: CustomerContact,
   references: string[],
@@ -85,6 +116,14 @@ export const notifyPaymentReceived = (
     emailPaid(contact.email, references, amount, requests, confirmed),
     notifyStaffPaid(references, amount, review, requests, contact),
     emailStaffPaid(references, amount, review, requests, contact),
+    recordStaffNotification({
+      kind: review ? "mokejimas_patikrinti" : "mokejimas",
+      permissions: permissionsOfServices(references.map(serviceOfReference)),
+      title: review ? `Patikrinti apmokėjimą · ${references.join(", ")}` : `Apmokėta rezervacija · ${references.join(", ")}`,
+      body: [`${Number.isInteger(amount) ? amount : amount.toFixed(2)} €`, ...requests.map(staffRequestLine)].join("\n"),
+      reference: references[0],
+      href: hrefOfServices(references.map(serviceOfReference)),
+    }),
     sendStaffPush("mokejimai", {
       title: review ? "Patikrinti apmokėjimą" : "Apmokėta rezervacija",
       // No name, phone or e-mail here: the push passes through a third-party provider and shows on lock screens.
@@ -98,6 +137,14 @@ export const notifyDuplicatePayment = (references: string[], amount: number) =>
   settle(
     notifyStaffDuplicate(references, amount),
     emailStaffDuplicate(references, amount),
+    recordStaffNotification({
+      kind: "dvigubas",
+      permissions: permissionsOfServices(references.map(serviceOfReference)),
+      title: `Dvigubas mokėjimas · ${references.join(", ")}`,
+      body: `${Number.isInteger(amount) ? amount : amount.toFixed(2)} €: grąžinkite papildomą mokėjimą per Stripe.`,
+      reference: references[0],
+      href: hrefOfServices(references.map(serviceOfReference)),
+    }),
     sendStaffPush("mokejimai", {
       title: "DVIGUBAS MOKĖJIMAS",
       body: `${references.join(", ")} · ${Number.isInteger(amount) ? amount : amount.toFixed(2)} € (grąžinkite per Stripe)`,

@@ -1160,6 +1160,34 @@ export async function cancelRequest(kind: "booking" | "rental" | "ticket", id: s
   return done(outcome.ok ? { refunded: outcome.amount } : { refunded: 0, refundError: outcome.message });
 }
 
+/**
+ * Removes a CANCELLED booking, quad rental or event ticket from the lists. Only a cancelled request can go, and one that was
+ * paid online only once its refund is recorded (or the whole payment was refunded in Stripe): deleting a paid request whose
+ * money is still with us would hide that it needs refunding. The payment and refund records stay (they are not removed with it).
+ */
+export async function deleteRequest(kind: "booking" | "rental" | "ticket", id: string): Promise<ActionResult> {
+  const parsed = z.object({ kind: z.enum(["booking", "rental", "ticket"]), id: z.uuid() }).safeParse({ kind, id });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const ctx = await staffClient(kind === "booking" ? "rezervacijos" : kind === "rental" ? "keturraciai" : ["keturraciai", "renginiai"]);
+  if (!ctx.ok) return ctx.error;
+
+  const table = kind === "booking" ? "bookings" : kind === "rental" ? "quad_rentals" : "event_tickets";
+  const { data: row, error } = await ctx.supabase.from(table).select("status, payment_id, payments(status)").eq("id", id).maybeSingle();
+  if (error) return dbError(error);
+  if (!row) return fail("Užklausa nerasta.", "invalid");
+  if (row.status !== "atsaukta") return fail("Pašalinti galima tik atšauktą užklausą.", "not_cancelled");
+
+  if (row.payment_id && row.payments?.status === "apmoketa") {
+    const { data: refund } = await createAdminClient().from("request_refunds").select("status").eq("kind", kind).eq("request_id", id).maybeSingle();
+    if (refund?.status !== "done") return fail("Užklausa apmokėta internetu ir pinigai negrąžinti. Pirmiausia grąžinkite pinigus Stripe paskyroje.", "not_refunded");
+  }
+
+  const { data: removed, error: deleteError } = await ctx.supabase.from(table).delete().eq("id", id).eq("status", "atsaukta").select("id");
+  if (deleteError) return dbError(deleteError);
+  if (!removed?.length) return fail("Užklausos pašalinti nepavyko.", "failed");
+  return done(null);
+}
+
 // ---------------------------------------------------------------------------
 // Apyrankės: ride plans, riders, purchases, comments, documents, bracelet
 // bindings. Riders are also Klientai's customer records (ADR-0042): profile,

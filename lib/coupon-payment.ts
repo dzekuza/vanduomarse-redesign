@@ -2,6 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { emailStaffCouponCancelled, emailStaffCouponPaid } from "@/lib/email/notify";
+import { recordStaffNotification } from "@/lib/staff-notifications";
 import { voucherUrl } from "@/lib/coupon-voucher";
 import { sendCouponEmails } from "@/lib/email/send-coupon";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -35,7 +36,17 @@ export async function onCouponPaid(couponId: string, session: Stripe.Checkout.Se
     return;
   }
   const paidAmount = (session.amount_total ?? 0) / 100;
+  const feed = (review: boolean) =>
+    recordStaffNotification({
+      kind: review ? "mokejimas_patikrinti" : "mokejimas",
+      permissions: ["kuponai"],
+      title: review ? `Patikrinti kupono mokėjimą · ${c.reference}` : `Apmokėtas kuponas · ${c.reference}`,
+      body: `${c.product_name}, ${paidAmount} €`,
+      reference: c.reference,
+      href: "/admin/kuponai",
+    });
   if (!c.amount_ok) {
+    await feed(true);
     await emailStaffCouponPaid({ reference: c.reference, productName: c.product_name, amount: paidAmount, buyerName: c.buyer_name, buyerEmail: c.buyer_email, recipientName: c.recipient_name, recipientEmail: c.recipient_email, problem: `Apmokėta ${paidAmount} €, o kupono vertė ${c.face_value} €. Kodas neišduotas: patikrinkite ir, jei reikia, grąžinkite per Stripe.` });
     return;
   }
@@ -55,6 +66,7 @@ export async function onCouponPaid(couponId: string, session: Stripe.Checkout.Se
     reference: c.reference,
     voucherUrl: await voucherUrl(session.id),
   });
+  await feed(false);
   await emailStaffCouponPaid({
     reference: c.reference,
     productName: c.product_name,
