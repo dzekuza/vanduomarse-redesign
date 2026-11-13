@@ -10,8 +10,11 @@ import { supabaseEnv } from "@/lib/supabase/env";
 
 const PHOTO_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png", "image/avif": "avif" };
 
+/** The object path of a photo in our own bucket on our own Supabase host; null for anything else (another host, a local file). */
+const ownBucketPath = (src: string) => (src.startsWith(`${supabaseEnv().url}/`) ? pagePhotoPath(src) : null);
+
 /** A photo is either one of the site's own files (`/landing/...`) or one uploaded for this page. */
-const isOwnPhoto = (slug: string, src: string) => src.startsWith("/landing/") || pagePhotoPath(src)?.startsWith(`${slug}/`) === true;
+const isOwnPhoto = (slug: string, src: string) => (src.startsWith("/landing/") && !src.includes("..")) || ownBucketPath(src)?.startsWith(`${slug}/`) === true;
 
 /** Refreshes the cached page and the sitemap (its `lastmod` comes from `page_content`) so visitors and crawlers see the change at once. */
 const revalidatePage = (slug: string) => {
@@ -42,7 +45,7 @@ export async function savePageContent(slug: string, input: unknown): Promise<Act
     const { error } = await supabase.from("page_content").upsert({ slug, content });
     if (error) return dbError(error);
   }
-  const paths = orphaned.map(pagePhotoPath).filter((p): p is string => p !== null);
+  const paths = orphaned.map(ownBucketPath).filter((p): p is string => p !== null);
   if (paths.length) await supabase.storage.from(PAGE_PHOTO_BUCKET).remove(paths);
   revalidatePage(slug);
   return done(content);
