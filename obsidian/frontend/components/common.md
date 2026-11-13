@@ -212,6 +212,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `CouponPaymentStatus` | `components/coupons/coupon-payment-status.tsx` | `/kuponai/apmoketa`: paid / checking / cancelled for a coupon payment, built on the exported `PaymentCard` from `payment-status.tsx` (ADR-0075) | stable |
 | `PaymentStatus` / `PaymentPoller` / `PayAgain` | `components/reservation/payment-status.tsx`, `payment-actions.tsx` | The page Stripe returns to (`/rezervacija/mokejimas?pid=`): paid (references and amount), still being checked (re-reads the status every 2.5 s, 12 times), cancelled at Stripe ("Mokėti dar kartą" via `resumeCheckout`), expired / failed (requests cancelled) or refunded. It only reads the state; the webhook decides it | stable |
 | `PaymentBadge` (status + card/cash method) / `PaymentNote` | `components/admin/status-badge.tsx`, `payment-note.tsx` | Admin lists and sheets show the Stripe payment next to the request status; a paid request's sheet reminds staff that cancelling means a refund in Stripe | stable |
+| `SortableHead` / `nextSort` | `components/admin/sortable-head.tsx` | Table header cell that sorts its column on press (asc, desc, default); used by the bookings list | stable |
 | `ArrowButton` | `components/booking/arrow-button.tsx` | Primary form button = dark small `Cta` (label left, arrow right); `type`, `disabled`, `onClick`, `fullWidth` | stable |
 
 ## Related
