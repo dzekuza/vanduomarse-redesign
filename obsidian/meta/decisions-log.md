@@ -10,6 +10,19 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0085 — Cookie consent gates Google Analytics and Meta Pixel
+
+- **Status:** Accepted
+- **Date:** 2026-11-13
+
+**Context.** The site set only strictly necessary cookies (login session, admin theme, preview gate), so it needed no banner. The owner will add Google Analytics 4 and Meta Pixel, which set cookies and send data to Google and Meta, so the ePrivacy rules and GDPR require prior opt-in.
+
+**Decision.** `ConsentManager` (root layout) shows a first-visit bar with equal-weight "Tik būtini" and "Priimti visus" plus "Nustatymai" (a dialog with per-category switches, also opened from the footer's "Slapukų nustatymai"). The choice is stored in this browser's `localStorage` (`vm_consent`, versioned, asked again after a year). The tracker scripts (`GoogleAnalytics`, `MetaPixel`) are mounted only for what was allowed; their IDs come from `NEXT_PUBLIC_GA_MEASUREMENT_ID` and `NEXT_PUBLIC_META_PIXEL_ID`, and with neither set there is no banner, no footer link and nothing loads. A category without an ID is never offered. Withdrawing a category reloads the page and tracker cookies of every disallowed category are deleted on each load. `/admin/*` and `/embed/*` are never tracked and never show the banner. No Consent Mode: nothing Google or Meta loads before consent.
+
+**Consequences.** Adding a tracker means a new category in `consent-categories.ts` and a bump of `CONSENT_VERSION` so everyone is asked again. The privacy policy has a "Slapukai ir analitika" section. Consent is per browser, not per account. Embeds on other sites are the host site's responsibility.
+
+---
+
 ## ADR-0084 — Simplified React Native (Expo) iOS staff admin app in `mobile/`
 
 - **Date:** 2026-11-13. **Status:** code done; migration `20261113180000_staff_push_tokens.sql` created (NOT yet applied to the live DB).

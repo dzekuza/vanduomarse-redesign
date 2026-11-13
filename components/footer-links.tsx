@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookieSettingsLink } from "@/components/consent/cookie-settings-link";
 import type { ServiceId } from "@/components/landing/content";
 import { SERVICE_PAGES } from "@/components/services/service-content";
 
@@ -40,6 +41,7 @@ export function FooterLinks() {
             {links.map(({ href, label }) => (
               <li key={href}><Link href={href} className={LINK}>{label}</Link></li>
             ))}
+            {title === "Informacija" ? <li><CookieSettingsLink className={LINK} /></li> : null}
           </ul>
         </div>
       ))}
