@@ -130,6 +130,7 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     price: r.price,
     capacity: r.capacity,
     sold: r.sold,
+    held: r.held,
     published: r.published,
     calendarPrivate: r.calendar_private ?? false,
     programId: r.program_id ?? undefined,

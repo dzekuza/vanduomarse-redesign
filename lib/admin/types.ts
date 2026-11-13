@@ -123,6 +123,8 @@ export interface ManagedEvent {
   /** null = no ticket limit */
   capacity: number | null;
   sold: number;
+  /** Places staff set aside without a booking (family, friends); counted as taken on the site. */
+  held: number;
   published: boolean;
   calendarPrivate?: boolean;
   /** Sauna program this session belongs to (its price then follows the program). */

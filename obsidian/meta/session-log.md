@@ -1,3 +1,9 @@
+## 2026-11-13 — Held spots on sessions
+
+- **Changed:** `events.held` + capacity trigger, `setEventHeld` action, store `event/held`, `HeldSpots` stepper in `EventSheet`, public `spotsLeft`, labels count held.
+- **Status:** migration applied and DB-tested; UI untested (worktree dev server had no styles); branch not merged.
+- **Next:** test on a real session, PR + merge.
+
 ## 2026-11-13 — Remove cancelled requests
 
 - **Changed:** `deleteRequest` action, store `request/delete`, `useDeleteRequest`, buttons in `StatusActions` and booking row menu / sheet; restore-to-laukia removed earlier.

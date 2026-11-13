@@ -134,6 +134,12 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0090 — Staff can hold places on a limited event with `events.held`
+
+- **Context:** the owner wanted to take some places of a sauna session (family, friends) without creating fake bookings.
+- **Decision:** `events.held` (integer, default 0): places set aside by staff. `enforce_ticket_capacity` counts `held` next to the real tickets, the public `spotsLeft` is `capacity - sold - held`, and `private.check_event_held` refuses `held + sold > capacity` and any `held` on an unlimited event. `sold` stays real tickets only (the sync trigger is unchanged). `setEventHeld(id, held)` (renginiai / keturraciai) checks the same rule first for a clear message; the UI is a stepper (`HeldSpots`) in the event panel, hidden for quad tour departures (their capacity counts quads).
+- **Consequences:** held places have no customer, price or reference, so nothing shows in sales or revenue. Lowering a capacity below `sold + held` on an event that has held places is refused.
+
 ## ADR-0089 — Cancelled requests can be removed, but not while their money is unrefunded
 
 - **Context:** a cancelled (often refunded) request stayed in the admin lists forever, and the restore button was removed so it could not be revived (ADR-0087 context).

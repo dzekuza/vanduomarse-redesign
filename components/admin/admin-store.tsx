@@ -42,6 +42,7 @@ type Action =
   | { type: "event/upsert"; event: ManagedEvent }
   | { type: "event/delete"; id: string }
   | { type: "event/publish"; id: string; published: boolean }
+  | { type: "event/held"; id: string; held: number }
   | { type: "prices/update"; items: PriceItem[] }
   | { type: "sauna/active"; id: string; active: boolean }
   | { type: "sauna/order"; ids: string[] }
@@ -136,6 +137,8 @@ function reducer(state: AdminData, action: Action): AdminData {
     }
     case "event/delete":
       return { ...state, events: state.events.filter((e) => e.id !== action.id) };
+    case "event/held":
+      return { ...state, events: state.events.map((e) => (e.id === action.id ? { ...e, held: action.held } : e)) };
     case "event/publish":
       return { ...state, events: state.events.map((e) => (e.id === action.id ? { ...e, published: action.published } : e)) };
     case "prices/update": {
@@ -377,6 +380,12 @@ function useAdminReducer(initial: AdminData) {
       deleteEvent: (id: string) => {
         dispatch({ type: "event/delete", id });
         return report(actions.deleteEvent(id));
+      },
+      /** Not optimistic: the database refuses more than the free places. */
+      setEventHeld: async (id: string, held: number) => {
+        const result = await report(actions.setEventHeld(id, held));
+        if ("data" in result) dispatch({ type: "event/held", id, held });
+        return result;
       },
       setEventPublished: async (id: string, published: boolean) => {
         const result = await report(actions.setEventPublished(id, published));

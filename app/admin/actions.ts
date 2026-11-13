@@ -406,6 +406,26 @@ export async function setEventPublished(id: string, published: boolean): Promise
   return error ? dbError(error) : done(null);
 }
 
+/**
+ * Sets how many places of a limited event staff keep for themselves (family, friends) without a booking. They count as
+ * taken on the site and in the capacity check. Refused above what is still free, or on an event without a limit.
+ */
+export async function setEventHeld(id: string, held: number): Promise<ActionResult> {
+  const ctx = await staffClient(EVENT_STAFF);
+  if (!ctx.ok) return ctx.error;
+  const parsed = z.object({ id: z.uuid(), held: z.number().int().min(0).max(10_000) }).safeParse({ id, held });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data: event, error: readError } = await ctx.supabase.from("events").select("capacity, sold").eq("id", id).maybeSingle();
+  if (readError) return dbError(readError);
+  if (!event) return fail("Renginys nerastas.", "invalid");
+  if (event.capacity === null && held > 0) return fail("Renginiui vietų riba nenustatyta, todėl vietų užimti negalima.", "invalid");
+  if (event.capacity !== null && held + event.sold > event.capacity) {
+    return fail(`Laisvų vietų: ${Math.max(0, event.capacity - event.sold)}. Daugiau užimti negalima.`, "invalid");
+  }
+  const { error } = await ctx.supabase.from("events").update({ held }).eq("id", id);
+  return error ? dbError(error) : done(null);
+}
+
 /* ---------------- prices ---------------- */
 
 const priceInput = z.array(
