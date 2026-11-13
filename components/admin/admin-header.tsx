@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeNavItem, NEW_BOOKING_HREF } from "./admin-nav";
 import { useAdmin } from "./admin-store";
+import { GlobalSearch } from "./global-search/global-search";
 import { NotificationBell } from "./notification-bell/notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -14,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { hasPermission } from "@/lib/admin/permissions";
 
-/** Sticky, translucent top bar: section breadcrumb, theme switch, new-booking shortcut. */
+/** Sticky, translucent top bar: section breadcrumb, global search, notifications, theme switch, new-booking shortcut. */
 export function AdminHeader() {
   const section = activeNavItem(usePathname()).item;
   const { me } = useAdmin();
@@ -51,6 +52,7 @@ export function AdminHeader() {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-2">
+        <GlobalSearch />
         <NotificationBell />
         <ThemeToggle />
         {hasPermission(me, "rezervacijos") ? (

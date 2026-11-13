@@ -1,12 +1,56 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-12
+updated: 2026-11-14
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0101 — Staff quad tours go through the website's database function; availability is computed from the store
+
+- **Context:** the staff booking flow only had a plain hourly rental, while /rezervacija sells Mini / Midi / Maxi tours at any hour with a minimum number of quads, gear, and start times that follow the free fleet.
+- **Decision:** `createQuadTour` calls `create_quad_tour_rental` (granted to authenticated), so route price, gear, minimum quads, opening hours and the shared fleet are enforced in one place for both channels, then sets `status` and `source` (the function files a pending website request). Start hours in the staff forms come from `tourStartsOn` / `rentalStartsOn`, which rebuild `QuadTaken` from the rentals the admin already holds and reuse the public `quadTourStarts`; the database remains the last check.
+- **Consequences:** a tour filed by staff briefly exists as a pending website-source row between the function call and the update (a failed update leaves it pending, with the error shown). Tour departure events (`tourRouteId`) stay unused (ADR from 2026-11-12). Staff tours send no SMS or e-mail.
+
+## ADR-0100 — Staff bookings start from a chooser, and staff can add event / session tickets
+
+- **Context:** the new-booking form opened pre-filled with the first sauna on the picked day, so a stray click created a private sauna booking. Staff also had no way to add a ticket to an event or public sauna session (tickets came only from the website).
+- **Decision:** step 1 lists the day's options (`bookingOptionsOn`) and nothing is preselected; the form (step 2) is for what was chosen. `createEventTicket` inserts into `event_tickets` as staff: permission Renginiai, or Keturračiai for category `keturratis` (the same rule as the tickets RLS policy); total = event price × people read server-side; the existing triggers give the reference, enforce capacity (`event_full`), skip phone verification for staff and link the customer by contact. A picked cabin type is passed as `stayTypeId` and used when valid.
+- **Consequences:** no migration. Staff-entered tickets send no SMS / e-mail and carry no note, like staff bookings. Tickets have no price override. Quad tour departures (events joined to rentals via `tourEventId`) still have no staff booking path.
+
+## ADR-0099 — Admin search runs in the browser over the data the admin already holds
+
+- **Context:** the owner wants one search box in the admin header. Every admin screen already loads its tables into the store (`useAdmin()`, RLS-filtered per role), and customers run into the thousands but not millions.
+- **Decision:** `searchAdmin` filters those arrays client-side (no new endpoint, no index): words must all match, diacritics ignored, digit runs match stored phone numbers via `normPhone`. Hits reuse `SaleTarget`, so `useSaleDetails` opens the existing panels. The palette is a dialog opened from the header and by Ctrl/⌘+K.
+- **Consequences:** a role only finds what it may read (a Rezervacijos-only role finds no customers). Inquiries open their page, not a panel (no deep link yet). If the data grows past what the store holds (the 1000-row page limit on riders is already worked around in the repository), search needs a server query.
+
+## ADR-0098 — Till payment method is set once through a function, not an update policy
+
+- **Context:** the till assigns the plan (a `purchases` row is written) before the bracelet is scanned; the owner wants the card / cash choice as the step after the scan. `purchases` is an append-only audit log for staff (insert and read policies only).
+- **Decision:** nullable `purchases.payment_method` (`kortele`, `grynais`) and `public.set_purchase_payment(purchase, method)`: security definer, requires the `apyrankes` permission, only updates a row whose method is still null, returns whether it did. No update policy was added, so staff still cannot edit or delete sales.
+- **Consequences:** a wrong choice cannot be corrected from the app (the function refuses a second set); correcting needs SQL. "Nurodysiu vėliau" and closing the dialog leave it null, and there is no screen yet to fill it in later. Existing purchases stay null.
+
+## ADR-0097 — Abonementai is a sub-tab of Plaukimas in the UI, not a separate category
+
+- **Context:** after ADR-0096 the till had Plaukimas, Įranga and Abonementai tabs; the owner wants season passes under Plaukimas, as Bilietai and Abonementai.
+- **Decision:** presentation only. `RIDE_PLAN_GROUPS` (`lib/ride-plans.ts`) maps the unchanged categories to tabs; `PlanGroupTabs` renders it for both the till picker and the catalogue. `ride_plans.category` keeps `Abonementai`, because `lib/coupons.ts` (season-pass products) and the Klientai subscription filter read it. No migration.
+- **Consequences:** a new group or section is a change to `RIDE_PLAN_GROUPS`; a new stored category still needs ADR-0096's list and a migration.
+
+## ADR-0096 — Bracelet plan categories reduced to three (amends ADR-0039)
+
+- **Context:** the owner does not sell Pramogos, Apgyvendinimas, Parduotuvė or Dubenėlyje through the bracelet till; their empty tabs cluttered Pardavimas and Planai. No plan or purchase used them.
+- **Decision:** `RIDE_PLAN_CATEGORIES` is `Plaukimas`, `Įranga`, `Abonementai`. The `ride_plans.category` check constraint was replaced to match (migration `20261116090000_ride_plan_categories_trim.sql`, applied).
+- **Consequences:** adding a category again needs a new migration as well as the list entry. `purchases.plan_category` is free text, so old sales keep their stored label.
+
+## ADR-0095 — Inquiries can be removed from the board, but not while they hold cabins or saunas
+
+- **Context:** the Užklausos board had no way to delete an inquiry (test and spam entries piled up). The `uzklausos` delete RLS policy already existed.
+- **Decision:** `deleteInquiry(id)` (`app/admin/actions/bookings.ts`, permission `uzklausos`) hard-deletes the inquiry; notes cascade. It refuses an accepted one (`accepted_at` set) with "release it first", and the delete repeats `accepted_at is null`. UI: a trash button on each card and "Pašalinti užklausą" in the panel, both through `useDeleteInquiry` (confirm dialog). No migration.
+- **Consequences:** no "undo". Releasing first keeps the cabin and sauna bookings' own cancel trail instead of orphaning confirmed bookings (`bookings.inquiry_id` is `on delete set null`).
 
 ---
 

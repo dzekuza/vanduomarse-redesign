@@ -1,20 +1,23 @@
 "use client";
 
+import { TrashIcon } from "@phosphor-icons/react";
 import { INQUIRY_SOURCE } from "@/lib/admin/labels";
 import { formatDateTime, formatDay, formatEurRange } from "@/lib/admin/format";
 import type { Inquiry } from "@/lib/admin/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InquiryCardProps {
   inquiry: Inquiry;
   dragging: boolean;
   onOpen: () => void;
+  onRemove: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }
 
 /** One inquiry on the board: draggable to another status column; the title opens its panel. */
-export function InquiryCard({ inquiry: q, dragging, onOpen, onDragStart, onDragEnd }: InquiryCardProps) {
+export function InquiryCard({ inquiry: q, dragging, onOpen, onRemove, onDragStart, onDragEnd }: InquiryCardProps) {
   return (
     <Card
       draggable
@@ -32,6 +35,11 @@ export function InquiryCard({ inquiry: q, dragging, onOpen, onDragStart, onDragE
             {q.eventType}
           </button>
         </CardTitle>
+        <CardAction>
+          <Button type="button" variant="ghost" size="icon" className="relative z-10 -mt-3 -mr-2 size-11 text-muted-foreground hover:text-destructive" aria-label={`Pašalinti: ${q.eventType}`} onClick={onRemove}>
+            <TrashIcon size={18} />
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
         <p>

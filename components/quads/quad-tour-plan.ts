@@ -51,7 +51,7 @@ export function quadTourAccessories(catalogue: readonly QuadTourAccessory[], acc
 }
 
 /** Future starts with per-type inventory held for the full route, including full slots. */
-export function quadTourSlots(data: QuadPageData, day: string, hours: number, busy: readonly number[] = []): QuadTourSlot[] {
+export function quadTourSlots(data: Pick<QuadPageData, "settings" | "types" | "taken" | "today" | "nowHour">, day: string, hours: number, busy: readonly number[] = []): QuadTourSlot[] {
   const { settings, types, taken, today, nowHour } = data;
   if (day < today || !Number.isInteger(hours) || hours < 1) return [];
   const past = pastHourOn(day, today, nowHour);
@@ -69,7 +69,7 @@ export function quadTourSlots(data: QuadPageData, day: string, hours: number, bu
 }
 
 /** Starts of a route on a day: any hour the free fleet covers the whole route with at least its minimum number of quads. */
-export function quadTourStarts(data: QuadPageData, day: string, route: QuadTourRoute, busy: readonly number[] = []) {
+export function quadTourStarts(data: Pick<QuadPageData, "settings" | "types" | "taken" | "today" | "nowHour">, day: string, route: QuadTourRoute, busy: readonly number[] = []) {
   return quadTourSlots(data, day, route.hours, busy).filter(({ free }) => free >= route.minUnits);
 }
 

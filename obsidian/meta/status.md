@@ -1,9 +1,31 @@
 ---
 tags: [meta, status]
-updated: 2026-11-13
+updated: 2026-11-14
 ---
 
+**GlobalSearch effect error (2026-11-14): scroll effect changed to a block body; error not reproduced, fix unverified (may be stale HMR). Next: hard-reload /admin and press ⌘K; if the error persists, dig further.**
+
 # Current status — vanduomarse-redesign
+
+**Booking chooser (2026-11-14, ADR-0100): the staff booking form starts with the day's options (events and sauna sessions with places, cabins, quads, private saunas) and no default; staff can add event/session tickets. No migration. None of today's UI work is browser-checked (chooser, global search, customer suggestions, renginiai rows, till payment step). Staff quad tours (Mini/Midi/Maxi, min quads, gear) now work like /rezervacija (ADR-0101). Past days are blocked in the booking form. Next: walk through each once; quad tour departures still have no staff booking path.**
+
+**Global search (2026-11-14, ADR-0099): header search palette (⌘K) over customers, reservations, rentals, tickets, events, coupons, inquiries. Also new today, none browser-checked: new-booking customer suggestions, renginiai row details, till payment step (ADR-0098). Next: try each once.**
+
+**New-booking customer suggestions (2026-11-14): typing a name or phone in the manual booking form suggests existing customers and fills name/phone/e-mail; renginiai rows open details; till payment step (ADR-0098). None browser-checked. Next: try the new-booking form with a known customer and save.**
+
+**Till payment step (2026-11-14, ADR-0098): after the scan the Pardavimas dialog asks Kortele / Grynaisiais; stored on `purchases.payment_method` via `set_purchase_payment` (migration APPLIED, verified in SQL). Not browser-checked. Next: sell a test plan end to end and look at the method in Klientai.**
+
+**Plan assignment fixed (2026-11-14): all writes to `riders` were failing with 42501 (`private.norm_phone` not executable by `authenticated`); migration `20261116100000` APPLIED, verified in SQL. Next: assign a plan in Pardavimas (existing rider and new guest) and edit a rider in Klientai in the browser.**
+
+**Pardavimas tabs (2026-11-14): flat row Bilietai / Abonementai / Įranga (no Plaukimas parent); Planai is a 4-column card grid, still grouped under Plaukimas (ADR-0097). Not browser-checked. Next: open both screens once.**
+
+**Planai cards (2026-11-14): the plan catalogue is a 4-column card grid (`PlanCard`); plan tabs are Plaukimas (Bilietai / Abonementai) and Įranga (ADR-0097). Not browser-checked. Next: open Planai at three widths.**
+
+**Plan tabs (2026-11-14, ADR-0097): Abonementai is now a sub-tab of Plaukimas (Bilietai / Abonementai) in the till and the catalogue; UI only. Not browser-checked. Next: open Pardavimas and Planai once.**
+
+**Plan categories (2026-11-14): bracelet plans now only Plaukimas / Įranga / Abonementai; migration APPLIED. Not browser-checked.**
+
+**Remove inquiries (2026-11-13, ADR-0095): trash on Užklausos cards and a button in the panel, confirm dialog; accepted inquiries must be released first. tsc/eslint clean, not browser-tested. Next: delete a test inquiry; try an accepted one (should refuse).**
 
 **Pay on site confirms at once (2026-11-13, ADR-0092): cash bookings need an account with an SMS-confirmed phone and are `patvirtinta` on filing (`confirm_cash_request`, migration APPLIED). tsc/eslint/tests clean; not browser-tested. Next: book a pay-on-site test as an email-only account (add phone, then book) and as a phone account; check status in admin and the SMS.**
 

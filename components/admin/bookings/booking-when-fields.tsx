@@ -4,7 +4,7 @@ import { Controller, type Control, type FieldErrors, type UseFormRegister } from
 import { FormField } from "../form-field";
 import type { NewBookingValues } from "./new-booking-schema";
 import { SaunaSelect } from "../sauna/sauna-select";
-import { formatHour } from "@/lib/sauna";
+import { formatHour, todayKey } from "@/lib/sauna";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +68,7 @@ export function BookingWhenFields({
             <DatePicker
               id="nb-date"
               value={field.value}
+              min={todayKey()}
               invalid={!!errors.date}
               onChange={(v) => {
                 field.onChange(v);

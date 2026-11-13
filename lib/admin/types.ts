@@ -4,7 +4,7 @@ import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
-import type { RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
+import type { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
@@ -243,6 +243,7 @@ export interface TourTicket {
 
 /** The plan catalogue's category: which /admin/apyrankes tab (and which till tab) it belongs to. */
 export type RidePlanCategory = (typeof RIDE_PLAN_CATEGORIES)[number];
+export type PurchasePaymentMethod = (typeof PURCHASE_PAYMENT_METHODS)[number];
 
 /** A plan a rider can be sold: a day pass, an hour slot, a subscription, … */
 export interface RidePlan {
@@ -301,6 +302,8 @@ export interface Purchase {
   planName: string;
   planCategory: RidePlanCategory;
   price: number | null;
+  /** How it was paid at the till; null until staff record it. */
+  paymentMethod: PurchasePaymentMethod | null;
   soldAt: string;
 }
 

@@ -310,7 +310,7 @@ export function toRiderSession(r: Tables<"rider_sessions">): RiderSession {
 }
 
 export function toPurchase(r: Tables<"purchases">): Purchase {
-  return { id: r.id, riderId: r.rider_id, planId: r.plan_id, planName: r.plan_name, planCategory: r.plan_category as RidePlanCategory, price: r.price, soldAt: r.sold_at };
+  return { id: r.id, riderId: r.rider_id, planId: r.plan_id, planName: r.plan_name, planCategory: r.plan_category as RidePlanCategory, price: r.price, paymentMethod: r.payment_method === "kortele" || r.payment_method === "grynais" ? r.payment_method : null, soldAt: r.sold_at };
 }
 
 export function toRiderComment(r: Tables<"rider_comments">): RiderComment {

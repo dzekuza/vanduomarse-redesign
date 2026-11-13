@@ -81,6 +81,8 @@ const newBookingInput = z
     kind: z.enum(["pirtis", "namelis", "kemperis"]),
     /** Sauna only. */
     saunaId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
+    /** Stays only: the type staff picked; used when it is active, of this kind and fits the party, else the usual pick. */
+    stayTypeId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
     date: z.iso.date(),
     startHour: z.number().int().min(0).max(23).optional(),
     hours: z.number().int().min(1).max(24).optional(),
@@ -102,10 +104,11 @@ export type NewBookingInput = z.infer<typeof newBookingInput>;
  * Stay type for a phone booking (the form asks only for cabin or camper and the party size):
  * the cheapest-capacity active type of the kind that fits the party, else the largest one.
  */
-async function stayTypeFor(supabase: Extract<StaffContext, { ok: true }>["supabase"], kind: NewBookingInput["kind"], guests: number): Promise<string | null> {
+async function stayTypeFor(supabase: Extract<StaffContext, { ok: true }>["supabase"], kind: NewBookingInput["kind"], guests: number, preferred?: string): Promise<string | null> {
   if (kind === "pirtis") return null;
   const { data } = await supabase.from("stay_types").select("id, max_guests").eq("kind", kind).eq("active", true).order("max_guests");
-  const fits = (data ?? []).find((t) => t.max_guests >= guests) ?? data?.at(-1);
+  const chosen = preferred ? (data ?? []).find((t) => t.id === preferred && t.max_guests >= guests) : undefined;
+  const fits = chosen ?? (data ?? []).find((t) => t.max_guests >= guests) ?? data?.at(-1);
   return fits?.id ?? null;
 }
 
@@ -132,7 +135,7 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
       start_hour: sauna ? v.startHour : null,
       hours: sauna ? v.hours : null,
       nights: sauna ? null : v.nights,
-      stay_type_id: await stayTypeFor(supabase, v.kind, v.guests),
+      stay_type_id: await stayTypeFor(supabase, v.kind, v.guests, v.stayTypeId),
       guests: v.guests,
       total: v.total,
       status: v.status,
@@ -247,6 +250,24 @@ export async function releaseInquiry(id: string): Promise<ActionResult> {
   const { error } = await ctx.supabase.rpc("release_inquiry_stays", { p_inquiry_id: id });
   if (error) return dbError(error);
   revalidateStayHolds();
+  return done(null);
+}
+
+/**
+ * Removes an inquiry (and its notes, which cascade) from the board. One that was accepted still holds cabins and saunas
+ * through bookings, so it must be released first; the delete repeats `accepted_at is null` so it cannot race an acceptance.
+ */
+export async function deleteInquiry(id: string): Promise<ActionResult> {
+  const ctx = await staffClient("uzklausos");
+  if (!ctx.ok) return ctx.error;
+  if (!z.uuid().safeParse(id).success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data: row, error } = await ctx.supabase.from("inquiries").select("accepted_at").eq("id", id).maybeSingle();
+  if (error) return dbError(error);
+  if (!row) return fail("Užklausa nerasta.", "invalid");
+  if (row.accepted_at) return fail("Užklausa užima namelius ar pirtis. Pirmiausia ją atlaisvinkite.", "inquiry_accepted");
+  const { data: removed, error: deleteError } = await ctx.supabase.from("inquiries").delete().eq("id", id).is("accepted_at", null).select("id");
+  if (deleteError) return dbError(deleteError);
+  if (!removed?.length) return fail("Užklausos pašalinti nepavyko.", "failed");
   return done(null);
 }
 

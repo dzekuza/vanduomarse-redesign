@@ -9,10 +9,10 @@ import * as pageContentActions from "@/app/admin/page-content-actions";
 import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import { formatEuro } from "@/lib/coupons";
-import type { ActionResult, NewBookingInput, StaffRentalInput } from "@/app/admin/actions";
+import type { ActionResult, NewBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
-import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, PurchasePaymentMethod, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { PageContentOverride } from "@/lib/page-content";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
@@ -39,6 +39,7 @@ type Action =
   | { type: "inquiry/status"; id: string; status: InquiryStatus }
   | { type: "inquiry/note"; id: string; text: string }
   | { type: "inquiry/accepted"; id: string; acceptedAt?: string }
+  | { type: "inquiry/delete"; id: string }
   | { type: "event/upsert"; event: ManagedEvent }
   | { type: "event/delete"; id: string }
   | { type: "event/publish"; id: string; published: boolean }
@@ -69,6 +70,7 @@ type Action =
   | { type: "rental/status"; id: string; status: BookingStatus }
   | { type: "rental/add"; rental: QuadRental }
   | { type: "ticket/status"; id: string; status: BookingStatus }
+  | { type: "ticket/add"; ticket: TourTicket }
   | { type: "stayType/upsert"; stayType: StayType }
   | { type: "stayType/delete"; id: string }
   | { type: "quadType/upsert"; quadType: QuadType }
@@ -94,6 +96,7 @@ type Action =
   | { type: "riderCard/bind"; cardNumber: string; riderId: string }
   | { type: "riderSession/scan"; session: RiderSession }
   | { type: "purchase/add"; purchase: Purchase }
+  | { type: "purchase/payment"; id: string; method: PurchasePaymentMethod }
   | { type: "riderComment/add"; comment: RiderComment }
   | { type: "riderComment/delete"; id: string }
   | { type: "riderDocument/add"; document: RiderDocument }
@@ -123,6 +126,8 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, inquiries: state.inquiries.map((q) => (q.id === action.id ? { ...q, status: action.status } : q)) };
     case "inquiry/accepted":
       return { ...state, inquiries: state.inquiries.map((q) => (q.id === action.id ? { ...q, acceptedAt: action.acceptedAt } : q)) };
+    case "inquiry/delete":
+      return { ...state, inquiries: state.inquiries.filter((q) => q.id !== action.id) };
     case "inquiry/note":
       return {
         ...state,
@@ -230,6 +235,12 @@ function reducer(state: AdminData, action: Action): AdminData {
       const apply = (t: TourTicket) => (t.id === action.id ? { ...t, status: action.status } : t);
       return { ...state, tourTickets: state.tourTickets.map(apply), eventTickets: state.eventTickets.map(apply) };
     }
+    case "ticket/add":
+      return {
+        ...state,
+        eventTickets: [action.ticket, ...state.eventTickets],
+        events: state.events.map((e) => (e.id === action.ticket.eventId ? { ...e, sold: e.sold + action.ticket.people } : e)),
+      };
     case "stayType/upsert": {
       const rest = state.stayTypes.filter((t) => t.id !== action.stayType.id);
       return { ...state, stayTypes: [...rest, action.stayType].toSorted((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)) };
@@ -313,6 +324,8 @@ function reducer(state: AdminData, action: Action): AdminData {
       };
     case "purchase/add":
       return { ...state, purchases: [action.purchase, ...state.purchases] };
+    case "purchase/payment":
+      return { ...state, purchases: state.purchases.map((p) => (p.id === action.id ? { ...p, paymentMethod: action.method } : p)) };
     case "riderComment/add":
       return { ...state, riderComments: [action.comment, ...state.riderComments] };
     case "riderComment/delete":
@@ -366,6 +379,12 @@ function useAdminReducer(initial: AdminData) {
       releaseInquiry: async (id: string) => {
         const result = await report(actions.releaseInquiry(id));
         if ("data" in result) dispatch({ type: "inquiry/accepted", id });
+        return result;
+      },
+      /** Not optimistic: the server refuses an inquiry that still holds cabins or saunas. */
+      deleteInquiry: async (id: string) => {
+        const result = await report(actions.deleteInquiry(id));
+        if ("data" in result) dispatch({ type: "inquiry/delete", id });
         return result;
       },
       addInquiryNote: (id: string, text: string) => {
@@ -520,6 +539,12 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "rental/add", rental: result.data });
         return result;
       },
+      /** Not optimistic: the price, reference and fleet allocation come from the database. */
+      createQuadTour: async (input: StaffTourInput) => {
+        const result = await actions.createQuadTour(input);
+        if ("data" in result) dispatch({ type: "rental/add", rental: result.data });
+        return result;
+      },
       /** Not optimistic: the database re-checks capacity when a cancelled rental is reopened. */
       setRentalStatus: async (id: string, status: BookingStatus) => {
         const result = await report(actions.setRentalStatus(id, status));
@@ -537,6 +562,12 @@ function useAdminReducer(initial: AdminData) {
           if (result.data.refundError) toast.error(`Atšaukta, bet pinigų grąžinti nepavyko. ${result.data.refundError}`);
           else if (result.data.refunded > 0) toast.success(`Atšaukta. Klientui grąžinama ${formatEuro(result.data.refunded)} (Stripe).`);
         }
+        return result;
+      },
+      /** Staff-entered tickets for an event or session. Not optimistic: the database checks the places left. */
+      createEventTicket: async (input: NewEventTicketInput) => {
+        const result = await report(actions.createEventTicket(input));
+        if ("data" in result) dispatch({ type: "ticket/add", ticket: result.data });
         return result;
       },
       /** Removes a cancelled request (refunded, or never paid online). Not optimistic: the server checks the refund first. */
@@ -640,6 +671,12 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "rider/plan", id, planId });
         const result = await report(actions.updateRiderPlan(id, planId));
         if ("data" in result && result.data.purchase) dispatch({ type: "purchase/add", purchase: result.data.purchase });
+        return result;
+      },
+      /** Not optimistic: the server refuses a purchase whose payment method is already recorded. */
+      setPurchasePayment: async (purchaseId: string, method: PurchasePaymentMethod) => {
+        const result = await report(actions.setPurchasePayment(purchaseId, method));
+        if ("data" in result) dispatch({ type: "purchase/payment", id: purchaseId, method });
         return result;
       },
       updateRiderProfile: async (id: string, input: RiderProfileInput) => {

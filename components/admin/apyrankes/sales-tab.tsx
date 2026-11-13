@@ -7,12 +7,11 @@ import { useAdmin } from "../admin-store";
 import { RidePlanPicker } from "./ride-plan-picker";
 import { RiderSelect } from "./rider-select";
 import { ScanTarget } from "./scan-target";
-import type { Rider } from "@/lib/admin/types";
-import { formatPlanPrice } from "@/lib/ride-plans";
+import type { PurchasePaymentMethod, Rider } from "@/lib/admin/types";
+import { formatPlanPrice, PURCHASE_PAYMENT_LABELS, PURCHASE_PAYMENT_METHODS } from "@/lib/ride-plans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 
 /** A new guest is created with no details up front — staff fill in a real name later from their profile, if at all. Each gets a short random tag so cards stay distinguishable in the list. */
 function guestIdentity() {
@@ -26,17 +25,21 @@ interface CartItem {
   status: "pending" | "sold";
   rider: Rider | null;
   cardNumber: string | null;
+  /** The sale row in the history, once the plan is assigned; the payment method is recorded on it. */
+  purchaseId: string | null;
+  paymentMethod: PurchasePaymentMethod | null;
 }
 
 type Recipient = "rider" | "guest";
 type ActiveDialog =
   | { phase: "pick"; item: CartItem }
   | { phase: "scan"; item: CartItem; rider: Rider }
-  | { phase: "done"; item: CartItem; rider: Rider; cardNumber: string | null; replaced: Rider | null };
+  | { phase: "payment"; item: CartItem; rider: Rider; cardNumber: string | null; replaced: Rider | null }
+  | { phase: "done"; item: CartItem; rider: Rider; cardNumber: string | null; replaced: Rider | null; paymentMethod: PurchasePaymentMethod | null };
 
 /** Sell plans at the till: add one or more plan cards, assign a customer to each (existing rider or new guest), then scan their bracelet to bind it. */
 export function SalesTab() {
-  const { riders, ridePlans, createRider, updateRiderPlan, bindRiderCard } = useAdmin();
+  const { riders, ridePlans, createRider, updateRiderPlan, bindRiderCard, setPurchasePayment } = useAdmin();
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [active, setActive] = useState<ActiveDialog | null>(null);
@@ -49,7 +52,7 @@ export function SalesTab() {
     return acc;
   }, {});
 
-  const addPlan = (planId: string) => setCart((c) => [...c, { id: crypto.randomUUID(), planId, status: "pending", rider: null, cardNumber: null }]);
+  const addPlan = (planId: string) => setCart((c) => [...c, { id: crypto.randomUUID(), planId, status: "pending", rider: null, cardNumber: null, purchaseId: null, paymentMethod: null }]);
   const removeItem = (id: string) => setCart((c) => c.filter((i) => i.id !== id));
 
   const resetPickFields = () => {
@@ -67,8 +70,8 @@ export function SalesTab() {
     resetPickFields();
   };
 
-  function markSold(itemId: string, rider: Rider) {
-    setCart((c) => c.map((i) => (i.id === itemId ? { ...i, status: "sold", rider } : i)));
+  function markSold(itemId: string, rider: Rider, purchaseId: string | null) {
+    setCart((c) => c.map((i) => (i.id === itemId ? { ...i, status: "sold", rider, purchaseId } : i)));
   }
 
   async function assignExistingRider(item: CartItem, id: string) {
@@ -78,8 +81,9 @@ export function SalesTab() {
       if ("error" in result) return;
       const rider = riders.find((r) => r.id === id);
       if (!rider) return;
-      markSold(item.id, rider);
-      setActive({ phase: "scan", item: { ...item, status: "sold", rider }, rider });
+      const purchaseId = result.data.purchase?.id ?? null;
+      markSold(item.id, rider, purchaseId);
+      setActive({ phase: "scan", item: { ...item, status: "sold", rider, purchaseId }, rider });
     } finally {
       setSaving(false);
     }
@@ -94,8 +98,9 @@ export function SalesTab() {
         return;
       }
       const rider = result.data.rider;
-      markSold(item.id, rider);
-      setActive({ phase: "scan", item: { ...item, status: "sold", rider }, rider });
+      const purchaseId = result.data.purchase?.id ?? null;
+      markSold(item.id, rider, purchaseId);
+      setActive({ phase: "scan", item: { ...item, status: "sold", rider, purchaseId }, rider });
     } finally {
       setSaving(false);
     }
@@ -108,7 +113,7 @@ export function SalesTab() {
       const result = await bindRiderCard(cardNumber, active.rider.id);
       if ("error" in result) return;
       setCart((c) => c.map((i) => (i.id === active.item.id ? { ...i, cardNumber } : i)));
-      setActive({ phase: "done", item: active.item, rider: active.rider, cardNumber, replaced: result.data.replaced });
+      setActive({ phase: "payment", item: active.item, rider: active.rider, cardNumber, replaced: result.data.replaced });
     } finally {
       setSaving(false);
     }
@@ -116,17 +121,35 @@ export function SalesTab() {
 
   function handleSkipScan() {
     if (active?.phase !== "scan") return;
-    setActive({ phase: "done", item: active.item, rider: active.rider, cardNumber: null, replaced: null });
+    setActive({ phase: "payment", item: active.item, rider: active.rider, cardNumber: null, replaced: null });
   }
+
+  /** Records how the plan was paid (when a sale row exists), shows it on the cart line and finishes. */
+  async function handlePayment(method: PurchasePaymentMethod) {
+    if (active?.phase !== "payment") return;
+    setSaving(true);
+    try {
+      if (active.item.purchaseId) {
+        const result = await setPurchasePayment(active.item.purchaseId, method);
+        if ("error" in result) return;
+      }
+      setCart((c) => c.map((i) => (i.id === active.item.id ? { ...i, paymentMethod: method } : i)));
+      setActive({ phase: "done", item: active.item, rider: active.rider, cardNumber: active.cardNumber, replaced: active.replaced, paymentMethod: method });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const skipPayment = () => {
+    if (active?.phase !== "payment") return;
+    setActive({ phase: "done", item: active.item, rider: active.rider, cardNumber: active.cardNumber, replaced: active.replaced, paymentMethod: null });
+  };
 
   const total = cart.reduce((sum, item) => sum + (ridePlans.find((p) => p.id === item.planId)?.price ?? 0), 0);
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6">
-      <div className="space-y-2">
-        <Label>Planai</Label>
-        <RidePlanPicker counts={counts} onAdd={addPlan} />
-      </div>
+      <RidePlanPicker counts={counts} onAdd={addPlan} />
 
       <Card className="lg:sticky lg:top-4">
         <CardHeader>
@@ -162,6 +185,7 @@ export function SalesTab() {
                         <CheckIcon size={14} className="text-primary" />
                         {item.rider.name} {item.rider.surname}
                         {item.cardNumber ? <span className="font-mono text-foreground"> · {item.cardNumber}</span> : " · be apyrankės"}
+                        {item.paymentMethod ? ` · ${PURCHASE_PAYMENT_LABELS[item.paymentMethod]}` : ""}
                       </p>
                     ) : (
                       <Button type="button" size="sm" variant="outline" className="h-8 w-full" onClick={() => openPick(item)}>
@@ -244,6 +268,29 @@ export function SalesTab() {
             </>
           ) : null}
 
+          {active?.phase === "payment" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Apmokėjimas</DialogTitle>
+                <DialogDescription>
+                  {ridePlans.find((p) => p.id === active.item.planId)?.name ?? "Planas"} · {active.rider.name} {active.rider.surname}
+                </DialogDescription>
+              </DialogHeader>
+              <p className="font-display text-figure font-bold tabular-nums">{formatPlanPrice(ridePlans.find((p) => p.id === active.item.planId)?.price ?? null)}</p>
+              <p className="text-sm text-muted-foreground">Kaip klientas sumokėjo?</p>
+              <div className="grid grid-cols-2 gap-3">
+                {PURCHASE_PAYMENT_METHODS.map((method) => (
+                  <Button key={method} type="button" variant="outline" className="min-h-14 text-base font-bold" disabled={saving} onClick={() => void handlePayment(method)}>
+                    {PURCHASE_PAYMENT_LABELS[method]}
+                  </Button>
+                ))}
+              </div>
+              <Button type="button" variant="ghost" className="min-h-11" disabled={saving} onClick={skipPayment}>
+                Nurodysiu vėliau
+              </Button>
+            </>
+          ) : null}
+
           {active?.phase === "done" ? (
             <div className="flex flex-col items-center gap-4 py-4 text-center">
               <div className="flex size-16 items-center justify-center rounded-full bg-primary">
@@ -259,6 +306,7 @@ export function SalesTab() {
                   </>
                 ) : null}
               </p>
+              {active.paymentMethod ? <p className="text-sm text-muted-foreground">Apmokėta: {PURCHASE_PAYMENT_LABELS[active.paymentMethod]}</p> : null}
               {active.replaced ? (
                 <p className="text-sm text-destructive">
                   Perkelta nuo {active.replaced.name} {active.replaced.surname} — jie nebeturi apyrankės.

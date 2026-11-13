@@ -6,11 +6,12 @@ import { useAdmin } from "../admin-store";
 import { InquiryCard } from "./inquiry-card";
 import { INQUIRY_STATUS } from "@/lib/admin/labels";
 import type { Inquiry, InquiryStatus } from "@/lib/admin/types";
+import type { DeleteInquiryTarget } from "./use-delete-inquiry";
 
 const STATUSES = Object.keys(INQUIRY_STATUS) as InquiryStatus[];
 
 /** One column per status; drag a card into another column to change its status (the panel's select does the same without a mouse). */
-export function InquiriesBoard({ inquiries, onOpen }: { inquiries: Inquiry[]; onOpen: (id: string) => void }) {
+export function InquiriesBoard({ inquiries, onOpen, onRemove }: { inquiries: Inquiry[]; onOpen: (id: string) => void; onRemove: (target: DeleteInquiryTarget) => void }) {
   const { setInquiryStatus } = useAdmin();
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStatus, setOverStatus] = useState<InquiryStatus | null>(null);
@@ -53,7 +54,7 @@ export function InquiriesBoard({ inquiries, onOpen }: { inquiries: Inquiry[]; on
               <span className="font-normal text-muted-foreground">{cards.length}</span>
             </h2>
             {cards.map((q) => (
-              <InquiryCard key={q.id} inquiry={q} dragging={dragId === q.id} onOpen={() => onOpen(q.id)} onDragStart={() => setDragId(q.id)} onDragEnd={() => { setDragId(null); setOverStatus(null); }} />
+              <InquiryCard key={q.id} inquiry={q} dragging={dragId === q.id} onOpen={() => onOpen(q.id)} onRemove={() => onRemove({ id: q.id, title: q.eventType })} onDragStart={() => setDragId(q.id)} onDragEnd={() => { setDragId(null); setOverStatus(null); }} />
             ))}
             {cards.length === 0 ? <p className="py-4 text-center text-xs text-muted-foreground">{dragId ? "Nuleisk čia" : "Užklausų nėra"}</p> : null}
           </section>
