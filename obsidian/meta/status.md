@@ -5,6 +5,8 @@ updated: 2026-11-13
 
 # Current status — vanduomarse-redesign
 
+**Header reservation dropdown (2026-11-13): "Rezervacija" opens a list of Pirties seansai / Privati pirtis / Nakvynė / Keturračiai / Wake (desktop dropdown, mobile menu sub-links), deep-linking into /rezervacija; branch `feat/header-reservation-dropdown`, uncommitted, browser-checked. Next: review, commit, PR.**
+
 **Cookie consent (2026-11-13, ADR-0085): banner, settings dialog and opt-in GA4 / Meta Pixel are in, off until `NEXT_PUBLIC_GA_MEASUREMENT_ID` and `NEXT_PUBLIC_META_PIXEL_ID` are set; uncommitted on `main`, tsc/eslint clean, checked with fake IDs only. Next: create the GA4 property and Pixel, add the IDs (`.env.local`, Vercel), accept in a real browser and confirm events.**
 
 **Storefront check (2026-11-13): all public pages, booking tabs, form validation, API guards and Supabase logs checked, no errors; one fix: the test-only skip-verification button wraps so the pirtis/miegas/keturračiai embeds no longer overflow at 375 px (uncommitted on `main`). Next: the 1,50 € test payment (read the SMS and e-mail); watch the slow `realtime.list_changes` query after the realtime publication.**

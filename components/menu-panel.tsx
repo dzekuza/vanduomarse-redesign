@@ -6,6 +6,8 @@ import { MAIN_CONTACT } from "@/lib/contacts";
 export interface MenuLink {
   href: string;
   label: string;
+  /** Small links shown under the big one. */
+  children?: readonly { href: string; label: string }[];
 }
 
 const LINK_DELAY = ["motion-safe:delay-50", "motion-safe:delay-100", "motion-safe:delay-150", "motion-safe:delay-200"] as const;
@@ -30,16 +32,27 @@ export function MenuPanel({ items, secondary, secondaryTitle, account, onNavigat
     >
       <nav aria-label="Mobilus meniu">
         {items.map((l, i) => (
-          <Link
+          <div
             key={l.href}
-            href={l.href}
-            onClick={onNavigate}
-            className={`flex items-center border-b border-ink/40 py-6 text-menu font-bold uppercase motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-400 motion-safe:ease-out-strong motion-safe:fill-mode-both md:py-5.5 ${LINK_DELAY[Math.min(i, 3)]}`}
+            className={`border-b border-ink/40 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-400 motion-safe:ease-out-strong motion-safe:fill-mode-both ${LINK_DELAY[Math.min(i, 3)]}`}
           >
-            <small className="mr-4 text-micro font-normal tracking-normal md:mr-8">{String(i + 1).padStart(2, "0")}</small>
-            {l.label}
-            <ArrowUpRightIcon aria-hidden className="ml-auto size-8 md:size-12" />
-          </Link>
+            <Link href={l.href} onClick={onNavigate} className="flex items-center py-6 text-menu font-bold uppercase md:py-5.5">
+              <small className="mr-4 text-micro font-normal tracking-normal md:mr-8">{String(i + 1).padStart(2, "0")}</small>
+              {l.label}
+              <ArrowUpRightIcon aria-hidden className="ml-auto size-8 md:size-12" />
+            </Link>
+            {l.children ? (
+              <ul aria-label={`${l.label}: pasirinkimai`} className="-mt-2 flex flex-wrap gap-x-5 pb-3 md:pl-12">
+                {l.children.map((child) => (
+                  <li key={child.href}>
+                    <Link href={child.href} onClick={onNavigate} className="inline-flex min-h-11 items-center border-b border-transparent text-xs font-bold hover:border-ink">
+                      {child.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         ))}
       </nav>
       {account ? (
