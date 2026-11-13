@@ -1,9 +1,13 @@
 ---
 tags: [meta, status]
-updated: 2026-11-12
+updated: 2026-11-13
 ---
 
 # Current status — vanduomarse-redesign
+
+**Cookie consent (2026-11-13, ADR-0085): banner, settings dialog and opt-in GA4 / Meta Pixel are in, off until `NEXT_PUBLIC_GA_MEASUREMENT_ID` and `NEXT_PUBLIC_META_PIXEL_ID` are set; uncommitted on `main`, tsc/eslint clean, checked with fake IDs only. Next: create the GA4 property and Pixel, add the IDs (`.env.local`, Vercel), accept in a real browser and confirm events.**
+
+**Storefront check (2026-11-13): all public pages, booking tabs, form validation, API guards and Supabase logs checked, no errors; one fix: the test-only skip-verification button wraps so the pirtis/miegas/keturračiai embeds no longer overflow at 375 px (uncommitted on `main`). Next: the 1,50 € test payment (read the SMS and e-mail); watch the slow `realtime.list_changes` query after the realtime publication.**
 
 **Staff paid notification (2026-11-13, ADR-0084): SMS, e-mail and push now include customer name, phone, e-mail, each request (date, time, people, price) and discount code; migration `20261115110000_paid_staff_details.sql` APPLIED; on branch `feat/paid-notification-details`, uncommitted; tsc/eslint clean, not yet seen from a real payment. Next: make a 1,50 € test payment and read the SMS and e-mail.**
 

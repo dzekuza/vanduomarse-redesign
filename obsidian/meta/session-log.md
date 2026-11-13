@@ -1,3 +1,15 @@
+## 2026-11-13 — Cookie consent for analytics
+
+- **Changed:** consent banner, settings dialog and gated GA4 / Meta Pixel scripts (ADR-0085); privacy policy section; `.env.example` vars.
+- **Status:** tsc/eslint pass; verified on a scratch copy with fake IDs. Nothing loads until the IDs are set. Uncommitted on `main`.
+- **Next:** create the GA4 property and Meta Pixel, add the two IDs to `.env.local` and Vercel, accept in a real browser and confirm events arrive; have the privacy policy text reviewed.
+
+## 2026-11-13 — Storefront check
+
+- **Checked:** ~40 public routes, 375/768/1024 px overflow and console errors, booking flows up to checkout (no payment submitted), form validation, API guards, Supabase postgres/auth/edge logs and advisors. All clean.
+- **Changed:** skip-verification button wraps (embed overflow at 375 px). The "empty cart" I first reported is the plan-summary sheet, not a bug.
+- **Next:** the 1,50 EUR test payment and reading the SMS/e-mail; watch the slow `realtime.list_changes` query.
+
 ## 2026-11-13 — Code quality pass
 
 - **Checked:** `pnpm lint` and `tsc` clean; scanned the 37 files changed today for inline styles, hex/arbitrary values, `any` (none) and the 150-line rule.

@@ -11,6 +11,7 @@ Shared hooks live in `hooks/`; feature-only hooks sit next to their feature. Add
 | Hook | File | Purpose | Client only? |
 |------|------|---------|--------------|
 | `useIsMobile(breakpoint = 768)` | `hooks/use-mobile.ts` | Media-query flag via `useSyncExternalStore`; admin sidebar passes 1024 | yes |
+| `useConsent()` | `hooks/use-consent.ts` | `{ ready, choice }` from the stored cookie-consent choice (`useSyncExternalStore`; `ready` is false on the server and first render, so the banner never mismatches hydration). ADR-0085 | yes |
 | `useReleaseOnBrowserBack(onBack)` | `hooks/use-release-on-back.ts` | Back from Stripe Checkout with the browser Back button (a `back_forward` navigation, or a bfcache restore via `pageshow` `persisted`): calls `releaseMyUnpaidPayments`, then `onBack(released)` so the page leaves its "redirecting" state and can say the unpaid payment was cancelled (used by `ReservationFlow`, ADR-0078) | yes |
 | `usePhoneVerification()` / `setPhoneVerification()` | `hooks/use-phone-verification.ts` | The tab's verified phone + signed token (`{ phone, token, expiresAt }` or null). One `useSyncExternalStore` store shared by every gate and contact form, persisted in `sessionStorage` (works in the `/embed` iframe; storage errors are swallowed), cleared a minute before expiry. ADR-0018 | yes |
 | `useAdmin()` | `components/admin/admin-store.tsx` | Admin data + actions over Supabase server actions (ADR-0007) | yes |

@@ -25,6 +25,14 @@ export const PRIVACY_SECTIONS: LegalSectionCopy[] = [
     ],
   },
   {
+    title: "Slapukai ir analitika",
+    paragraphs: [
+      "Būtinus slapukus (prisijungimas, svetainės veikimas) naudojame be sutikimo, nes be jų svetainė neveiktų.",
+      "Tik gavę tavo sutikimą įjungiame Google Analytics (lankomumo statistika) ir Meta Pixel (skelbimų Facebook ir Instagram veiksmingumas). Šie įrankiai nustato slapukus ir perduoda duomenis Google ir Meta, kurios gali juos tvarkyti už Europos Sąjungos ribų. Be sutikimo jie nekraunami.",
+      "Pasirinkimą gali bet kada pakeisti ar atšaukti puslapio apačioje esančia nuoroda „Slapukų nustatymai“. Sutikimas galioja iki metų, tada paklausime iš naujo. Atšaukus sutikimą ištriname šių įrankių slapukus.",
+    ],
+  },
+  {
     title: "Kam naudojame duomenis",
     paragraphs: [
       "Rezervacijoms ir užklausoms patvirtinti, apmokėjimams priimti, kuponams išsiųsti ir su tavimi susisiekti dėl užsakymo.",

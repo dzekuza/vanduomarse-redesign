@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { ConsentManager } from "@/components/consent/consent-manager";
 import { ReactGrab } from "@/components/dev/react-grab";
 import { SITE_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="theme-marse min-h-full flex flex-col bg-dust text-ink">
         {process.env.NODE_ENV === "development" ? <ReactGrab /> : null}
         {children}
+        <ConsentManager />
       </body>
     </html>
   );
