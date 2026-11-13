@@ -20,13 +20,13 @@ export class MissingVerificationSecretError extends Error {
 }
 
 /** One key per purpose, derived from the one secret. */
-function key(purpose: "code" | "token" | "ip"): Buffer {
+function key(purpose: "code" | "token" | "ip" | "login-email"): Buffer {
   const secret = process.env.PHONE_VERIFICATION_SECRET;
   if (!secret || secret.length < 32) throw new MissingVerificationSecretError();
   return createHmac("sha256", secret).update(`vanduomarse:${purpose}`).digest();
 }
 
-const hmac = (purpose: "code" | "token" | "ip", value: string) => createHmac("sha256", key(purpose)).update(value).digest("base64url");
+const hmac = (purpose: "code" | "token" | "ip" | "login-email", value: string) => createHmac("sha256", key(purpose)).update(value).digest("base64url");
 
 export const newCode = () => String(randomInt(0, 10 ** CODE_LENGTH)).padStart(CODE_LENGTH, "0");
 
@@ -35,6 +35,9 @@ export const hashCode = (phone: string, code: string) => hmac("code", `${phone}:
 
 /** IPs are only kept hashed, for the per-IP send limit. */
 export const hashIp = (ip: string) => hmac("ip", ip);
+
+/** Staff e-mails are only kept hashed, for the sign-in attempt limit. */
+export const hashLoginEmail = (email: string) => hmac("login-email", email.trim().toLowerCase());
 
 interface TokenPayload {
   /** E.164 phone. */

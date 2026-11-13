@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 
 const schema = z
   .object({
-    password: z.string().min(8, "Bent 8 simboliai.").max(72, "Daugiausia 72 simboliai."),
+    password: z.string().min(12, "Bent 12 simbolių.").max(72, "Daugiausia 72 simboliai."),
     confirm: z.string(),
   })
   .refine((v) => v.password === v.confirm, { message: "Slaptažodžiai nesutampa.", path: ["confirm"] });

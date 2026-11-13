@@ -6,7 +6,7 @@ import { supabaseEnv } from "./env";
 /**
  * Service-role client, used only by the owner-only staff actions to create,
  * reset and delete logins (the auth admin API has no row level security to
- * lean on), and by the phone gate to call request_phone_code, verify_phone_code
+ * lean on), by the /admin sign-in limiter (admin_login_check, admin_login_record), and by the phone gate to call request_phone_code, verify_phone_code
  * and cancel_phone_code, which anon may not run, and by the Stripe payment code
  * (start_payment, complete_payment and the other payment functions, also closed to
  * anon), by the coupon order action (create_coupon_order, closed to anon so the per-IP key cannot be forged), and by booking notifications (account_notify_email, payment_notify_email: a
