@@ -25,6 +25,19 @@ export function reservationHref(type: ReservationType): string {
   return `/rezervacija?${QUERY[type]}`;
 }
 
+/** Service page of each type (the header dropdown links here). Sessions and private hire share the sauna page. */
+const SERVICE_PATH: Record<ReservationType, string> = {
+  session: "/pirtis",
+  private: "/pirtis",
+  nakvyne: "/nakvyne",
+  keturraciai: "/keturraciu-nuoma",
+  wake: "/vandenlentes",
+};
+
+export function serviceHref(type: ReservationType): string {
+  return SERVICE_PATH[type];
+}
+
 /** `?tipas=` of the sauna tab: which of its two ways to book opens first. */
 export function parseSaunaMode(value: string | string[] | undefined): "session" | "private" | undefined {
   const tipas = Array.isArray(value) ? value[0] : value;

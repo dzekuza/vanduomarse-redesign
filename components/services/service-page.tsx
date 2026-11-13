@@ -32,7 +32,7 @@ const SECTIONS = [
 
 function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-32 space-y-5 border-t border-line pt-7">
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-44 md:scroll-mt-52 space-y-5 border-t border-line pt-7">
       <h2 id={`${id}-title`} className="text-tile font-bold">{SECTIONS.find((section) => section.id === id)?.label}</h2>
       {children}
     </section>
@@ -87,14 +87,14 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
             <ServiceGallery photos={gallery} variant="hero" label={`${copy.label}: nuotraukos`} />
             <h1 className="text-total font-bold tracking-tighter uppercase sm:text-title">{copy.title}</h1>
             <p className="text-sm leading-loose text-copy">{copy.summary}</p>
-            <nav aria-label="Puslapio skiltys" className="flex flex-wrap gap-2">
-              {SECTIONS.map(({ id, label }) => (
-                <Link key={id} href={`#${id}`} className="inline-flex min-h-11 items-center border border-line px-3 text-xs hover:border-ink hover:bg-foam">{label}</Link>
-              ))}
-            </nav>
           </header>
+          <nav aria-label="Puslapio skiltys" className="sticky top-21.5 z-10 -mx-gutter flex min-w-0 flex-wrap gap-2 bg-dust px-gutter py-2 md:top-26.5 lg:col-span-8 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:px-0">
+            {SECTIONS.map(({ id, label }) => (
+              <Link key={id} href={`#${id}`} className="inline-flex min-h-11 flex-1 items-center justify-center border border-line px-3 text-xs hover:border-ink hover:bg-foam">{label}</Link>
+            ))}
+          </nav>
           <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn(
-            "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
+            "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-3 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
             customBookingLayout ? "lg:flex lg:flex-col" : "p-4 sm:p-6 lg:overflow-y-auto",
           )}>
             {customBookingLayout ? booking(bookingHeader) : <>{bookingHeader}{booking}</>}
@@ -107,7 +107,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
               </div>
             )}
           </aside>
-          <div className="min-w-0 space-y-10 lg:col-span-8 lg:col-start-1 lg:row-start-2">
+          <div className="min-w-0 space-y-10 lg:col-span-8 lg:col-start-1 lg:row-start-3">
             <Section id="aprasymas">
               <p className="text-sm leading-loose text-copy">{copy.description}</p>
               {isCelebration ? <div className="flex flex-wrap gap-2">

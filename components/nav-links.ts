@@ -1,4 +1,4 @@
-import { RESERVATION_TYPES, RESERVATION_TYPE_LABEL, reservationHref } from "@/lib/reservation-links";
+import { RESERVATION_TYPES, RESERVATION_TYPE_LABEL, serviceHref } from "@/lib/reservation-links";
 
 export interface NavLink {
   href: string;
@@ -12,7 +12,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   {
     href: "/rezervacija",
     label: "Rezervacija",
-    children: RESERVATION_TYPES.map((type) => ({ href: reservationHref(type), label: RESERVATION_TYPE_LABEL[type] })),
+    children: RESERVATION_TYPES.map((type) => ({ href: serviceHref(type), label: RESERVATION_TYPE_LABEL[type] })),
   },
   { href: "/renginiai", label: "Renginiai" },
   { href: "/kuponai", label: "Dovanų kuponai" },
