@@ -43,7 +43,7 @@ export default async function AccountPage() {
             <AccountTabs requests={requests} inquiries={inquiries} riders={riders} coupons={coupons} />
           </div>
           <div className="order-1 min-w-0 lg:order-2 lg:col-span-1">
-            <ProfileCard customer={customer} />
+            <ProfileCard customer={customer} photoUrl={riders.find((r) => r.registration?.photoUrl)?.registration?.photoUrl} />
           </div>
         </div>
       </div>

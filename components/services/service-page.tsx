@@ -117,7 +117,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
               </div> : null}
             </Section>
             <Section id="informacija">
-              <dl className="grid gap-2 lg:grid-cols-2">
+              <dl className="grid gap-2 lg:grid-cols-3">
                 {facts.map(({ id, label, value }) => (
                   <div key={id} className="space-y-2 border border-line bg-card p-4">
                     <dt className="text-xs font-bold">{label}</dt>

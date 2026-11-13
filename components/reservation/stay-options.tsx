@@ -29,7 +29,7 @@ export function StayOptions({ plan, stayTypes, datesSelected, included, onChange
         <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
           <ListBulletsIcon size={18} aria-hidden /> Paslauga
         </legend>
-        <div className="grid gap-3 lg:@md:grid-cols-2">
+        <div className="grid gap-3 lg:@md:grid-cols-3">
           {stayTypes.map((type) => {
             const selected = included && type.id === plan.typeId;
             const choice: StayPick = { typeId: type.id, nights, units };
@@ -77,18 +77,16 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
       selected={selected}
       details={free !== null ? <StayTypeDialog type={type} /> : undefined}
     >
-      {free !== null ? <div className="mt-auto space-y-4">
+      {free !== null ? <div className="mt-auto flex flex-wrap items-end justify-between gap-4">
         {max > 0 && (
-          <div>
-            <CompactStepper
-              label={type.kind === "namelis" ? "Namelių kiekis" : "Kemperių kiekis"}
-              value={count}
-              onChange={(next) => (selected ? onChange : setDraft)(Math.min(next, max))}
-              min={1}
-              max={max}
-              editable
-            />
-          </div>
+          <CompactStepper
+            label={type.kind === "namelis" ? "Namelių kiekis" : "Kemperių kiekis"}
+            value={count}
+            onChange={(next) => (selected ? onChange : setDraft)(Math.min(next, max))}
+            min={1}
+            max={max}
+            editable
+          />
         )}
         <button
           type="button"

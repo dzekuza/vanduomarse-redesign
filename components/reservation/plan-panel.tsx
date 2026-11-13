@@ -48,7 +48,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
           </p>
         ) : null}
         {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
-        {quadSidebar ? null : <ServiceBookingHelp stacked={inline && activity === "nakvyne"} contact={{ phone: RESERVATION_PHONE, email: saunaSidebar ? EVENTS_EMAIL : MAIN_CONTACT.email }} />}
+        {quadSidebar ? null : <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: saunaSidebar ? EVENTS_EMAIL : MAIN_CONTACT.email }} />}
       </div>
     </aside>
   );

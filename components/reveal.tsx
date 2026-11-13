@@ -15,7 +15,11 @@ export function Reveal({ className, children }: { className?: string; children: 
     const el = ref.current;
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const { top, bottom } = el.getBoundingClientRect();
-    if (top < window.innerHeight * 0.9 && bottom > 0) return;
+    if (top < window.innerHeight * 0.9 && bottom > 0) {
+      // On screen already (also when the effect re-runs after a hash jump, Strict Mode or Fast Refresh): never stay hidden.
+      delete el.dataset.reveal;
+      return;
+    }
 
     el.dataset.reveal = "hidden";
     const observer = new IntersectionObserver(

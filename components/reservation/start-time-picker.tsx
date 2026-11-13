@@ -20,7 +20,7 @@ export function StartTimePicker({ hours, selected, busy, describeHour, onSelect 
         <ClockIcon size={18} aria-hidden /> Pradžia
       </legend>
       {hours.length > 0 ? (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-6 gap-2">
           {hours.map((hour) => {
             const time = formatHour(hour);
             const description = describeHour?.(hour);

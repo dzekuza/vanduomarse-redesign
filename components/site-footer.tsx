@@ -48,12 +48,12 @@ export function FooterBar({ topHref }: { topHref: string }) {
   );
 }
 
-const CONTACT_LINK = "inline-flex min-h-11 text-xs underline underline-offset-4 lg:min-h-8 transition-colors duration-150 ease-out-strong hover:text-rust";
+const CONTACT_LINK = "inline-flex min-h-11 text-xs underline underline-offset-4 wrap-anywhere lg:min-h-8 transition-colors duration-150 ease-out-strong hover:text-rust";
 
 /** One contact with its name, email and phone stacked under a hairline. */
 function ContactItem({ contact: c }: { contact: Contact }) {
   return (
-    <li className="border-t border-line pt-4">
+    <li className="min-w-0 border-t border-line pt-4">
       <p className="text-sm font-bold">{c.name}</p>
       <div className="flex flex-col items-start">
         <a href={`mailto:${c.email}`} className={`${CONTACT_LINK} items-center`}>
@@ -74,7 +74,7 @@ export function SiteFooter() {
       <FooterWord />
       <Reveal>
         <SectionKicker left="KONTAKTAI" right="LAUKSIME JŪSŲ" />
-        <ul className="mt-6 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-6 grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-3">
           {FOOTER_CONTACTS.map((c) => (
             <ContactItem key={c.name} contact={c} />
           ))}

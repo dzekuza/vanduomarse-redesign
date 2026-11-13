@@ -1,3 +1,105 @@
+## 2026-11-13 — FAQ help line inline
+
+- **Changed:** `landing-faq.tsx` question and mail link in one flex row.
+- **Status:** uncommitted, not browser-checked.
+- **Next:** none.
+
+## 2026-11-13 — Restaurant Guru link removed
+
+- **Changed:** `service-reviews.tsx` food review uses `GOOGLE_REVIEWS` (no link).
+- **Status:** uncommitted.
+- **Next:** none.
+
+## 2026-11-13 — Service info boxes in three columns
+
+- **Changed:** `service-page.tsx` facts grid `lg:grid-cols-3`.
+- **Status:** uncommitted, not browser-checked.
+- **Next:** check the box widths at 1024 px (the column is 8 of 12).
+
+## 2026-11-13 — Help box inline
+
+- **Changed:** `service-booking-help.tsx` inline row, `stacked` removed from `plan-panel.tsx`.
+- **Status:** uncommitted, not browser-checked.
+- **Next:** check the nakvyne panel at 375 px, where the two contacts may wrap.
+
+## 2026-11-13 — Calendar range background
+
+- **Changed:** `DayCell` selected and in-between backgrounds (`bg-dust`, `bg-dust-soft`).
+- **Status:** uncommitted, not browser-checked.
+- **Next:** pick a range in /nakvyne and check contrast of the green availability text on the new fills.
+
+## 2026-11-13 — Reveal stuck hidden
+
+- **Changed:** `components/reveal.tsx` clears `data-reveal` when the element is already on screen at effect run.
+- **Status:** uncommitted; cause inferred from the code, not reproduced in the browser.
+- **Next:** open `/#kryptys` and reload/jump back from /pirtis; confirm the tiles show and animate in.
+
+## 2026-11-13 — Account profile picture
+
+- **Changed:** `ProfileAvatar` in `ProfileCard`; photo comes from the registration (`loadMyRiders`), initials otherwise.
+- **Status:** uncommitted, not browser-checked signed in.
+- **Next:** decide whether customers should upload or change the picture on /paskyra (needs an upload action and storage policy).
+
+## 2026-11-13 — Footer links tighter
+
+- **Changed:** `footer-links.tsx` LINK `lg:min-h-6`.
+- **Status:** uncommitted, not browser-checked.
+- **Next:** check desktop footer; mobile rows unchanged (44 px).
+
+## 2026-11-13 — Footer contacts two columns on mobile
+
+- **Changed:** `SiteFooter` contacts `grid-cols-2 lg:grid-cols-3`, links wrap anywhere.
+- **Status:** uncommitted, not browser-checked.
+- **Next:** check 375 px (restoranas@vanduomarse.lt in a ~160 px column).
+
+## 2026-11-13 — Phone country select padding
+
+- **Changed:** `components/ui/phone-input.tsx` select `w-30 pr-3 pl-2` (was `w-28 px-2`).
+- **Status:** uncommitted, not browser-checked (native select arrow placement differs by browser).
+- **Next:** check in Chrome and Safari; switch to `appearance-none` with a caret icon if still tight.
+
+## 2026-11-13 — Coupon picker scrolls to form
+
+- **Changed:** `CouponShop.select` scrolls to the order form on mobile/tablet after a coupon is picked.
+- **Status:** uncommitted, not browser-checked.
+- **Next:** check at 375 px that the form lands under the header and the scroll feels right.
+
+## 2026-11-13 — Coupon picker in three columns
+
+- **Changed:** `ProductPicker` grid `sm:grid-cols-3` (`components/coupons/product-picker.tsx`), uncommitted.
+- **Status:** not browser-checked.
+- **Next:** check card width at 640 and 1024 px (the picker sits in a two-thirds column from `lg`).
+
+## 2026-11-13 — Coupon form prefill
+
+- **Changed:** `/kuponai` passes the signed-in customer to `OrderForm` (`buyer`), prefilling name, e-mail, phone.
+- **Status:** uncommitted, not browser-checked while signed in.
+- **Next:** sign in and open /kuponai; confirm the fields are filled and a typed value survives a product switch.
+
+## 2026-11-13 — Start times in six columns
+
+- **Changed:** `StartTimePicker` grid `grid-cols-6` (`components/reservation/start-time-picker.tsx`), uncommitted.
+- **Status:** not browser-checked.
+- **Next:** check the "HH:MM" labels fit at 375 px; use `grid-cols-4 sm:grid-cols-6` if not.
+
+## 2026-11-13 — WAKE options in three columns
+
+- **Changed:** `WakeBookingChoices` options grid `lg:@md:grid-cols-3` (`components/services/wake-service-booking.tsx`), uncommitted.
+- **Status:** tsc not re-run after this one-class change; not browser-checked.
+- **Next:** check at 375 / 768 / 1024 px with the stay options.
+
+## 2026-11-13 — Stay options in three columns
+
+- **Changed:** `StayOptions` grid is `lg:@md:grid-cols-3` (`components/reservation/stay-options.tsx`), uncommitted.
+- **Status:** not browser-checked; cards are narrower, stepper and button wrap if needed.
+- **Next:** check at 375 / 768 / 1024 px; fall back to `xl` for three columns if cramped.
+
+## 2026-11-13 — Footer spacing and stay card layout
+
+- **Changed:** footer link spacing and underlined contacts (merged, PR #100); `StayUnitCard` stepper and button on one row, space between, bottom-aligned (`components/reservation/stay-options.tsx`, uncommitted).
+- **Status:** tsc clean; neither change browser-checked. Working tree still holds other uncommitted work (consent, layout, privacy text).
+- **Next:** check the footer at 375 / 1440 px and the stay cards at 375 / 768 / 1024 px, then commit the stay card change.
+
 ## 2026-11-13 — Header reservation dropdown
 
 - **Changed:** "Rezervacija" dropdown in the header and mobile menu; /rezervacija deep links per type and address sync.

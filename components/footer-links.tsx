@@ -3,7 +3,7 @@ import { CookieSettingsLink } from "@/components/consent/cookie-settings-link";
 import type { ServiceId } from "@/components/landing/content";
 import { SERVICE_PAGES } from "@/components/services/service-content";
 
-const LINK = "inline-flex min-h-11 items-center text-xs lg:min-h-8 transition-colors duration-150 ease-out-strong hover:text-rust";
+const LINK = "inline-flex min-h-11 items-center text-xs lg:min-h-6 transition-colors duration-150 ease-out-strong hover:text-rust";
 
 const FOOTER_LABELS: Partial<Record<string, string>> = {
   pirtis: "Pirtis",

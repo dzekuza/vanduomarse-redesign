@@ -68,9 +68,9 @@ export function DayCell({ date, active, isToday, disabled, rangePart, icons, det
   const compactMonth = compact && fluid;
   const hasActions = !disabled && Boolean(details?.actions);
   const appearance = selected
-    ? wide ? "border-ink bg-ink text-dust" : "border-ink bg-foam/50 text-ink"
+    ? wide ? "border-ink bg-ink text-dust" : "border-ink bg-dust text-ink"
     : rangePart === "between"
-      ? "border-ink/30 bg-foam text-ink hover:border-ink"
+      ? "border-ink/30 bg-dust-soft text-ink hover:border-ink"
       : disabled
         ? "border-line bg-foam/50 text-ink/25"
         : anyFree

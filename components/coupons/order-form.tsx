@@ -42,8 +42,11 @@ export function Field({ id, label, error, children }: { id: string; label: strin
   );
 }
 
+/** What the signed-in customer already gave us, to prefill the buyer fields. */
+export type CouponBuyer = { name: string; email: string; phone: string };
+
 /** Buyer, recipient and message for the selected coupon. Validates with the same schema as the server action, then sends the buyer to Stripe Checkout. */
-export function OrderForm({ product }: { product: CouponProduct }) {
+export function OrderForm({ product, buyer }: { product: CouponProduct; buyer?: CouponBuyer }) {
   const [redirecting, setRedirecting] = useState(false);
   const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
   const discountAmount = discount ? discountFor(discount, "kuponai", product.value) : 0;
@@ -52,9 +55,9 @@ export function OrderForm({ product }: { product: CouponProduct }) {
     resolver: zodResolver(couponOrderSchema),
     values: {
       productId: product.id,
-      buyerName: "",
-      buyerEmail: "",
-      buyerPhone: "",
+      buyerName: buyer?.name ?? "",
+      buyerEmail: buyer?.email ?? "",
+      buyerPhone: buyer?.phone ?? "",
       recipientName: "",
       recipientEmail: "",
       message: "",

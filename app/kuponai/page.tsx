@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { CouponShop } from "@/components/coupons/coupon-shop";
+import { getCustomer } from "@/lib/customer";
 import { COUPON_VALID_MONTHS } from "@/lib/coupons";
 import { getCouponProducts } from "@/lib/data/public";
 import { pageMetadata } from "@/lib/seo";
@@ -13,7 +14,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function CouponsPage({ searchParams }: PageProps<"/kuponai">) {
-  const [params, products] = await Promise.all([searchParams, getCouponProducts()]);
+  const [params, products, customer] = await Promise.all([searchParams, getCouponProducts(), getCustomer()]);
   const initialProductId = typeof params.produktas === "string" ? params.produktas : undefined;
   return (
     <BookingPage>
@@ -22,6 +23,7 @@ export default async function CouponsPage({ searchParams }: PageProps<"/kuponai"
           key={initialProductId}
           products={products}
           initialProductId={initialProductId}
+          buyer={customer ? { name: customer.name, email: customer.email ?? "", phone: customer.phone ?? "" } : undefined}
           header={
             <BookingHeader
               crumb="Dovanų kuponai"

@@ -78,7 +78,7 @@ export function WakeBookingChoices({ type, setType, offers, offerType, options, 
           <legend className="mb-3 flex items-center gap-2 text-sm font-bold">
             <OfferIcon size={18} aria-hidden /> {season ? "Abonementai" : "Plaukimo pasirinkimai"}
           </legend>
-          <div className="grid gap-3 lg:@md:grid-cols-2">
+          <div className="grid gap-3 lg:@md:grid-cols-3">
             {options.map((option) => (
               <BookingDetailCard
                 key={option.id}

@@ -39,7 +39,7 @@ export function PhoneInput({ id, value, onChange, onBlur, invalid, disabled, pla
           const next = PHONE_COUNTRIES.find((c) => c.code === e.target.value) ?? DEFAULT_PHONE_COUNTRY;
           onChange(joinPhone(next, national));
         }}
-        className={cn(FIELD, "w-28 shrink-0 px-2")}
+        className={cn(FIELD, "w-30 shrink-0 pr-3 pl-2")}
       >
         {PHONE_COUNTRIES.map((c) => (
           <option key={c.code} value={c.code}>
