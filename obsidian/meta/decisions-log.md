@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0094 — The admin sign-in limit is atomic and fails closed (amends ADR-0093)
+
+- **Context:** ADR-0093 checked the limit and recorded the try afterwards, so a burst of parallel guesses could all pass the check; and when the limiter was unavailable the sign-in stayed open and unlimited.
+- **Decision:** `admin_login_check` takes advisory locks (per IP, per e-mail) and writes a reservation row when it allows the try; a successful sign-in clears that IP + e-mail pair's failures (`admin_login_record(..., true)`), a failure needs no second write. `guardLogin` refuses for a minute when the limiter cannot answer. Limits are unchanged (10 per IP, 5 per e-mail).
+- **Consequences:** a missing `PHONE_VERIFICATION_SECRET` or `SUPABASE_SERVICE_ROLE_KEY` now blocks the admin sign-in until fixed (the e-mail address of an owner can still be reset in the Supabase dashboard). A spread-out attack on one e-mail can still lock its sign-in for 15 minutes.
+
+---
+
 ## ADR-0093 — Own per-IP and per-e-mail limit on the /admin sign-in, fail-open
 
 **Context.** The staff sign-in (password or e-mailed code) had only Supabase Auth's built-in per-IP limits (about 30 attempts per 5 minutes) and no per-account lockout, so slow guessing or a spread-out attack on one staff e-mail was not stopped.
