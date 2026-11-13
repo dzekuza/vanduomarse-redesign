@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useTransition, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { useFormContext } from "react-hook-form";
 import { checkDiscountCode } from "@/app/actions/discount-codes";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,8 @@ export function DiscountCodeField({ discount, amount, disabled, onChange, onPend
   /** Only the latest check may apply its answer. */
   const latest = useRef(0);
   const error = formState.errors.discountCode?.message;
+  /** The input stays hidden behind a button until the customer says they have a code. */
+  const [open, setOpen] = useState(false);
 
   useEffect(() => onPending(pending), [pending, onPending]);
 
@@ -83,6 +85,14 @@ export function DiscountCodeField({ discount, amount, disabled, onChange, onPend
     );
   }
 
+  if (!open && !error) {
+    return (
+      <Button type="button" variant="outline" size="lg" className="border-ink bg-transparent" disabled={disabled} onClick={() => setOpen(true)}>
+        Turiu nuolaidos kodą
+      </Button>
+    );
+  }
+
   return (
     <div className="space-y-1.5">
       <Label htmlFor={`${id}-discount`}>Nuolaidos kodas</Label>
@@ -95,6 +105,7 @@ export function DiscountCodeField({ discount, amount, disabled, onChange, onPend
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-discount-error` : undefined}
           className="min-h-11 uppercase"
+          autoFocus
           disabled={disabled}
           readOnly={pending}
           onKeyDown={onKeyDown}
