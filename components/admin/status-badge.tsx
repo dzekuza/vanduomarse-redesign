@@ -92,6 +92,15 @@ export function PaymentBadge({ payment }: { payment?: PaymentInfo }) {
   );
 }
 
+/** How a request is paid: online by card (Stripe) or in person (cash / on site) when no online payment exists. */
+export function PaymentMethodBadge({ payment }: { payment?: PaymentInfo }) {
+  return (
+    <Badge variant="outline" className="border-border bg-muted/50">
+      {payment ? "Kortele" : "Grynaisiais"}
+    </Badge>
+  );
+}
+
 /** The folded money state of a sale (`SaleState`): waiting, in force, or cancelled. */
 export function SaleStatusBadge({ state, label }: { state: "galioja" | "laukia" | "atsaukta"; label: string }) {
   return <StatusPill tone={state === "laukia" ? "pending" : state === "atsaukta" ? "closed" : "confirmed"} label={label} />;
