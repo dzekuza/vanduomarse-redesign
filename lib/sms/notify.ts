@@ -53,6 +53,10 @@ export const notifyStaff = (topics: MessageTopic[], reference: string | undefine
 /** The topics a payment is sent under: all payments, plus each service the references belong to. */
 const paidTopics = (references: string[]) => paymentTopics(references.map(serviceOfReference));
 
+/** Heads-up for staff: the customer cancelled their own request; `refund` says what happened to the money. */
+export const notifyStaffCancelled = (topics: MessageTopic[], reference: string, summary: string, refund: string) =>
+  sendStaffSms(topics, `KLIENTAS ATSAUKE ${reference}: ${summary}. ${refund} Zr. /admin`);
+
 const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amount.toFixed(2));
 
 /** Lithuanian letters to ASCII, so the text stays a 160-character GSM message ("Pirties ritualas" stays, "Nakvynė" becomes "Nakvyne"). */

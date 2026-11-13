@@ -1,4 +1,5 @@
 import type { CouponService } from "@/lib/coupons";
+import type { CancelState } from "@/lib/request-cancel";
 export type RequestKind = "pirtis" | "nakvyne" | "keturraciai" | "renginys";
 
 /** What the account page shows about one of the customer's requests (a sauna, stay, quad or event reservation). */
@@ -17,6 +18,10 @@ export interface MyRequest {
   payment: "laukia" | "apmoketa" | "pasibaige" | "nepavyko" | "grazinta" | null;
   /** The Stripe payment this request belongs to; lets an unpaid one be paid again or cancelled. */
   paymentId: string | null;
+  /** Whether the customer can cancel it themselves (`yes`), only by calling (`late`: paid and under 24 h to go), or not. */
+  cancel: CancelState;
+  /** What a cancel refunds, in euros (0 when nothing was paid online). */
+  refund: number;
 }
 
 export const REQUEST_STATUS_LABEL: Record<MyRequest["status"], string> = {

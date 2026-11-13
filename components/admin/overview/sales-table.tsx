@@ -46,8 +46,8 @@ export function SalesTable({ all, filters }: SalesTableProps) {
             </Button>
           </CardAction>
         </CardHeader>
-        <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-y py-3">
+        <CardContent>
+            <div className="flex flex-wrap items-baseline justify-between gap-2 pb-2">
             <p className="text-sm text-muted-foreground">Rodoma pardavimų: {rows.length}</p>
             <p className="text-sm">
               Suma{withCoupons ? "" : " (be kuponų)"}: <span className="font-display text-figure font-bold tabular-nums">{formatEur(revenue)}</span>
@@ -55,7 +55,7 @@ export function SalesTable({ all, filters }: SalesTableProps) {
           </div>
 
           <Table>
-            <TableHeader>
+            <TableHeader className="[&_th]:px-3">
               <TableRow>
                 <TableHead className="whitespace-nowrap">Parduota</TableHead>
                 <TableHead>Prekė</TableHead>
@@ -66,14 +66,14 @@ export function SalesTable({ all, filters }: SalesTableProps) {
                 <TableHead className="hidden sm:table-cell">Būsena</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="[&_td]:px-3 [&_td]:py-3">
               {rows.slice(0, shown).map((s) => (
                 <TableRow key={s.id} onClick={() => openSale(s.target)} className="cursor-pointer">
                   <TableCell className="whitespace-nowrap">{formatDay(s.soldOn)}</TableCell>
                   <TableCell className="max-w-48 sm:max-w-64 xl:max-w-none">
                     <button
                       type="button"
-                      className="block max-w-full min-h-11 truncate text-left outline-none focus-visible:ring-3 focus-visible:ring-ring"
+                      className="block max-w-full truncate text-left outline-none focus-visible:ring-3 focus-visible:ring-ring"
                       onClick={(e) => {
                         e.stopPropagation();
                         openSale(s.target);
@@ -106,7 +106,7 @@ export function SalesTable({ all, filters }: SalesTableProps) {
           </Table>
 
           {rows.length > shown ? (
-            <Button variant="outline" className="min-h-11 w-full sm:w-auto" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+            <Button variant="outline" className="mt-4 min-h-11 w-full sm:w-auto" onClick={() => setShown((n) => n + PAGE_SIZE)}>
               Rodyti daugiau ({rows.length - shown})
             </Button>
           ) : null}

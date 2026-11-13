@@ -180,6 +180,19 @@ export interface NotificationRecipient {
   active: boolean;
 }
 
+/** One line of the admin notification bell (`staff_notifications`, ADR-0088). */
+export interface StaffNotification {
+  id: string;
+  kind: "uzklausa" | "mokejimas" | "mokejimas_patikrinti" | "dvigubas" | "atsaukta";
+  title: string;
+  body: string;
+  reference: string | null;
+  /** An admin path. */
+  href: string;
+  /** ISO timestamp */
+  createdAt: string;
+}
+
 /** An hourly quad rental request or booking. */
 export interface QuadRental {
   id: string;
@@ -383,6 +396,10 @@ export interface AdminData {
   staff: StaffMember[];
   /** Empty unless `me` is an owner (or before the notification_recipients migration). */
   notificationRecipients: NotificationRecipient[];
+  /** The newest notifications this staff member may see, newest first (empty before the staff_notifications migration). */
+  notifications: StaffNotification[];
+  /** ISO time this staff member last opened the bell; null if never. Newer notifications are "new". */
+  notificationsReadAt: string | null;
   /** Site-wide switches; owners only (null for everyone else, or before the site_settings migration). */
   siteSettings: SiteSettings | null;
   /** Saved overrides of the public service pages by slug; owners only (empty for everyone else, or before the page_content migration). */

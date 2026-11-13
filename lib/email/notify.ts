@@ -175,6 +175,10 @@ export const emailStaffDuplicate = (references: string[], amount: number) =>
     { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
     "Grąžinkite papildomą mokėjimą per Stripe.",
   ], false); // a refund task for the service's staff, not a booking
+/** The customer cancelled their own request (`refund` says what happened to the money). Booking mail rules apply: the service's people, else its inbox. */
+export const emailStaffCancelled = (service: NotifyService, reference: string, summary: string, refund: string) =>
+  toStaff(bookingTopics(service), [service], `Klientas atšaukė ${reference}`, [{ strong: summary }, refund]);
+
 
 /* ---------------- gift coupon orders (/kuponai) ---------------- */
 

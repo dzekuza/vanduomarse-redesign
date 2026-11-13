@@ -9,7 +9,7 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -423,4 +423,11 @@ export function toStaffMember(r: Tables<"staff">): StaffMember {
 
 export function toNotificationRecipient(r: Tables<"notification_recipients">): NotificationRecipient {
   return { id: r.id, name: r.name, phone: r.phone, email: r.email, topics: r.topics.filter(isNotificationTopic), active: r.active };
+}
+
+const NOTIFICATION_KINDS: StaffNotification["kind"][] = ["uzklausa", "mokejimas", "mokejimas_patikrinti", "dvigubas", "atsaukta"];
+
+export function toStaffNotification(r: Tables<"staff_notifications">): StaffNotification {
+  const kind = NOTIFICATION_KINDS.find((k) => k === r.kind) ?? "uzklausa";
+  return { id: r.id, kind, title: r.title, body: r.body, reference: r.reference, href: r.href, createdAt: r.created_at };
 }

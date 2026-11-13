@@ -29,9 +29,9 @@ export function BookingFilters({ value, onChange }: BookingFiltersProps) {
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <Tabs value={value.kind} onValueChange={(v) => set("kind", v as KindFilter)}>
         <TabsList>
-          <TabsTrigger value="visos" className="px-4">Visos</TabsTrigger>
-          <TabsTrigger value="pirtis" className="px-4">Pirtis</TabsTrigger>
-          <TabsTrigger value="nakvyne" className="px-4">Nakvynė</TabsTrigger>
+          <TabsTrigger value="visos" className="min-h-11 px-4">Visos</TabsTrigger>
+          <TabsTrigger value="pirtis" className="min-h-11 px-4">Pirtis</TabsTrigger>
+          <TabsTrigger value="nakvyne" className="min-h-11 px-4">Nakvynė</TabsTrigger>
         </TabsList>
       </Tabs>
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">

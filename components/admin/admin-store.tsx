@@ -61,8 +61,10 @@ type Action =
   | { type: "discountCode/delete"; id: string }
   | { type: "siteSettings/comingSoon"; enabled: boolean }
   | { type: "pageContent/set"; slug: string; content: PageContentOverride }
+  | { type: "notifications/read"; readAt: string }
   | { type: "notificationRecipient/active"; id: string; active: boolean }
   | { type: "notificationRecipient/delete"; id: string }
+  | { type: "request/delete"; kind: "booking" | "rental" | "ticket"; id: string }
   | { type: "rental/status"; id: string; status: BookingStatus }
   | { type: "rental/add"; rental: QuadRental }
   | { type: "ticket/status"; id: string; status: BookingStatus }
@@ -205,10 +207,18 @@ function reducer(state: AdminData, action: Action): AdminData {
       const rest = Object.fromEntries(Object.entries(state.pageContent).filter(([slug]) => slug !== action.slug));
       return { ...state, pageContent: Object.keys(action.content).length ? { ...rest, [action.slug]: action.content } : rest };
     }
+    case "notifications/read":
+      return { ...state, notificationsReadAt: action.readAt };
     case "notificationRecipient/active":
       return { ...state, notificationRecipients: state.notificationRecipients.map((n) => (n.id === action.id ? { ...n, active: action.active } : n)) };
     case "notificationRecipient/delete":
       return { ...state, notificationRecipients: state.notificationRecipients.filter((n) => n.id !== action.id) };
+    case "request/delete":
+      return action.kind === "booking"
+        ? { ...state, bookings: state.bookings.filter((b) => b.id !== action.id) }
+        : action.kind === "rental"
+          ? { ...state, quadRentals: state.quadRentals.filter((r) => r.id !== action.id) }
+          : { ...state, tourTickets: state.tourTickets.filter((t) => t.id !== action.id), eventTickets: state.eventTickets.filter((t) => t.id !== action.id) };
     case "rental/status":
       return { ...state, quadRentals: state.quadRentals.map((r) => (r.id === action.id ? { ...r, status: action.status } : r)) };
     case "rental/add":
@@ -458,6 +468,12 @@ function useAdminReducer(initial: AdminData) {
         return result;
       },
       uploadPagePhoto: (slug: string, form: FormData) => report(pageContentActions.uploadPagePhoto(slug, form)),
+      /** Opening the bell: the marker moves at once, the write follows (a failure just leaves them "new" after the next refresh). */
+      markNotificationsRead: async () => {
+        const readAt = new Date().toISOString();
+        dispatch({ type: "notifications/read", readAt });
+        return notificationActions.markNotificationsRead();
+      },
       /** Not optimistic: the id comes from the database and a repeated number is refused. */
       saveNotificationRecipient: (input: NotificationRecipientInput) => report(notificationActions.saveNotificationRecipient(input)),
       setNotificationRecipientActive: async (id: string, active: boolean) => {
@@ -512,6 +528,12 @@ function useAdminReducer(initial: AdminData) {
           if (result.data.refundError) toast.error(`Atšaukta, bet pinigų grąžinti nepavyko. ${result.data.refundError}`);
           else if (result.data.refunded > 0) toast.success(`Atšaukta. Klientui grąžinama ${formatEuro(result.data.refunded)} (Stripe).`);
         }
+        return result;
+      },
+      /** Removes a cancelled request (refunded, or never paid online). Not optimistic: the server checks the refund first. */
+      deleteRequest: async (kind: "booking" | "rental" | "ticket", id: string) => {
+        const result = await report(actions.deleteRequest(kind, id));
+        if ("data" in result) dispatch({ type: "request/delete", kind, id });
         return result;
       },
       saveStayType: (stayType: StayType) => {

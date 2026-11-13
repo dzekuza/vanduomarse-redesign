@@ -48,3 +48,12 @@ export async function deleteNotificationRecipient(id: string): Promise<ActionRes
   const { error } = await ctx.supabase.from("notification_recipients").delete().eq("id", id);
   return error ? dbError(error) : done(null);
 }
+
+/** The bell was opened: everything up to now counts as seen, for this staff member only (any staff, RLS keeps it to their own marker). */
+export async function markNotificationsRead(): Promise<ActionResult<{ readAt: string }>> {
+  const ctx = await staffClient("any");
+  if (!ctx.ok) return ctx.error;
+  const readAt = new Date().toISOString();
+  const { error } = await ctx.supabase.from("staff_notification_reads").upsert({ user_id: ctx.userId, read_at: readAt });
+  return error ? dbError(error) : { data: { readAt } };
+}

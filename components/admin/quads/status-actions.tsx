@@ -9,10 +9,12 @@ interface StatusActionsProps {
   onSet: (status: BookingStatus) => Promise<unknown>;
   /** Cancelling goes through this instead of `onSet("atsaukta")`, e.g. to offer a refund first. */
   onCancel?: () => Promise<unknown>;
+  /** A cancelled request can be removed from the list (asks first). */
+  onDelete?: () => void;
 }
 
-/** The next steps for a request: confirm or reject, cancel a confirmed one, or bring a cancelled one back. */
-export function StatusActions({ status, onSet, onCancel }: StatusActionsProps) {
+/** The next steps for a request: confirm or reject, or cancel a confirmed one. A cancelled request is final (it may already be refunded): it can only be removed. */
+export function StatusActions({ status, onSet, onCancel, onDelete }: StatusActionsProps) {
   const [pending, startTransition] = useTransition();
   const set = (next: BookingStatus) =>
     startTransition(async () => void (await (next === "atsaukta" && onCancel ? onCancel() : onSet(next))));
@@ -36,10 +38,10 @@ export function StatusActions({ status, onSet, onCancel }: StatusActionsProps) {
       </Button>
     );
   }
-  if (status === "atsaukta") {
+  if (status === "atsaukta" && onDelete) {
     return (
-      <Button variant="outline" onClick={() => set("laukia")} disabled={pending} className="min-h-11 w-full">
-        Grąžinti į laukiančius
+      <Button variant="outline" onClick={onDelete} disabled={pending} className="min-h-11 w-full text-destructive">
+        Pašalinti
       </Button>
     );
   }

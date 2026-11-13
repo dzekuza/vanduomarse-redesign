@@ -1,5 +1,6 @@
 import "server-only";
 import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyCoupon, type MyInquiry, type MyRequest, type MyRider } from "@/lib/account";
+import { cancelPolicy } from "@/lib/request-cancel";
 import { formatHour } from "@/lib/sauna";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +8,12 @@ import { createClient } from "@/lib/supabase/server";
 const PAYMENTS = Object.keys(REQUEST_PAYMENT_LABEL);
 const paymentOf = (row: { status: string } | null): MyRequest["payment"] =>
   row && PAYMENTS.includes(row.status) ? (row.status as NonNullable<MyRequest["payment"]>) : null;
+
+/** The cancel fields of a request (`cancelPolicy`: "Atšaukti" button, late cancels call us). */
+const policy = (input: Parameters<typeof cancelPolicy>[0]) => {
+  const { state, refund } = cancelPolicy(input);
+  return { cancel: state, refund };
+};
 
 /**
  * The signed-in customer's own requests, read with their own session: row level security
@@ -39,6 +46,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       status: b.status,
       payment: paymentOf(b.payments),
       paymentId: b.payments?.id ?? null,
+      ...policy({ status: b.status, payment: paymentOf(b.payments), date: b.date, startHour: b.kind === "pirtis" ? (b.start_hour ?? 0) : 0, total: b.total }),
     })),
     ...rentals.data!.map((r): MyRequest => ({
       id: r.id,
@@ -51,6 +59,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       status: r.status,
       payment: paymentOf(r.payments),
       paymentId: r.payments?.id ?? null,
+      ...policy({ status: r.status, payment: paymentOf(r.payments), date: r.date, startHour: r.start_hour, total: r.total }),
     })),
     ...tickets.data!.map((t): MyRequest => ({
       id: t.id,
@@ -63,6 +72,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       status: t.status,
       payment: paymentOf(t.payments),
       paymentId: t.payments?.id ?? null,
+      ...policy({ status: t.status, payment: paymentOf(t.payments), date: t.events?.date ?? "", startHour: Number(t.events?.start_time.slice(0, 2) ?? 0), total: t.total }),
     })),
   ];
   return all.toSorted((a, b) => b.date.localeCompare(a.date) || b.reference.localeCompare(a.reference));

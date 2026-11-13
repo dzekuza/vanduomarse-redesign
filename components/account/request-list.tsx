@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { REQUEST_PAYMENT_TONE, REQUEST_STATUS_TONE, StatusTag } from "./status-tag";
+import { CancelRequestButton } from "./cancel-request-button";
 import { PendingPaymentActions } from "@/components/reservation/payment-actions";
 import { REQUEST_PAYMENT_LABEL, REQUEST_STATUS_LABEL, type MyRequest } from "@/lib/account";
 import { longDateLabel } from "@/lib/sauna";
@@ -25,7 +26,7 @@ export function RequestList({ requests, filtered = false }: { requests: MyReques
         <ul className="divide-y divide-line border border-line">
           {requests.map((r) => (
             <li key={`${r.reference}-${r.id}`} className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 p-5">
-              <div className="min-w-0 space-y-1">
+              <div className="min-w-0 space-y-3">
                 <p className="font-bold">{r.title}</p>
                 <p className="text-sm text-copy">
                   {[dayLabel(r.date), r.detail].filter(Boolean).join(", ")}
@@ -36,9 +37,12 @@ export function RequestList({ requests, filtered = false }: { requests: MyReques
                 </p>
                 {r.payment === "laukia" && r.paymentId ? <PendingPaymentActions paymentId={r.paymentId} /> : null}
               </div>
-              <div className="text-right">
-                <p className="font-display text-figure font-bold text-rust-ink">{r.reference}</p>
-                <p className="text-sm">{r.total} €</p>
+              <div className="flex flex-col items-end gap-3 text-right">
+                <div>
+                  <p className="font-display text-figure font-bold text-rust-ink">{r.reference}</p>
+                  <p className="text-sm">{r.total} €</p>
+                </div>
+                <CancelRequestButton request={r} />
               </div>
             </li>
           ))}

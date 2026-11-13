@@ -2,7 +2,7 @@ import "server-only";
 import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData, SiteSettings } from "./types";
 
@@ -57,6 +57,25 @@ async function readNotificationRecipients(supabase: ServerSupabase, me: StaffAcc
     return [];
   }
   return data.map(toNotificationRecipient);
+}
+
+/** How many notifications the bell loads. */
+const NOTIFICATION_LIMIT = 30;
+
+/**
+ * The bell's feed and this staff member's read marker. Optional: before the staff_notifications migration the bell is just empty.
+ * RLS returns only the rows this role may see.
+ */
+async function readNotifications(supabase: ServerSupabase, me: StaffAccess) {
+  const [feed, marker] = await Promise.all([
+    supabase.from("staff_notifications").select("*").order("created_at", { ascending: false }).limit(NOTIFICATION_LIMIT),
+    supabase.from("staff_notification_reads").select("read_at").eq("user_id", me.userId).maybeSingle(),
+  ]);
+  if (feed.error) {
+    console.error("Admin data: notifications", feed.error.message);
+    return { notifications: [], notificationsReadAt: null };
+  }
+  return { notifications: feed.data.map(toStaffNotification), notificationsReadAt: marker.data?.read_at ?? null };
 }
 
 /** Site switches, owners only. Optional: before the site_settings migration the screen reads "unavailable". */
@@ -221,6 +240,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     // RLS already hides other people's rows from non-owners; this keeps the payload explicit.
     staff: me.isOwner ? staff.data!.map(toStaffMember) : [],
     notificationRecipients: await readNotificationRecipients(supabase, me),
+    ...(await readNotifications(supabase, me)),
     siteSettings: await readSiteSettings(supabase, me),
     pageContent: await readPageContent(supabase, me),
     ridePlans: ridePlans.data!.map(toRidePlan),

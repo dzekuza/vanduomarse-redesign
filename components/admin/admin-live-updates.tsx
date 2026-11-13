@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-/** Tables whose changes should refresh the admin (published to Realtime by `20261113220000_realtime_admin_tables.sql`). */
-const TABLES = ["bookings", "quad_rentals", "event_tickets", "payments", "coupons", "events", "inquiries", "sauna_blocks", "riders", "purchases", "rider_cards", "rider_sessions", "rider_comments"] as const;
+/** Tables whose changes should refresh the admin (published to Realtime by `20261113220000_realtime_admin_tables.sql`; `staff_notifications` by `20261115130000_staff_notifications_feed.sql`). */
+const TABLES = ["bookings", "quad_rentals", "event_tickets", "payments", "coupons", "events", "inquiries", "sauna_blocks", "riders", "purchases", "rider_cards", "rider_sessions", "rider_comments", "staff_notifications"] as const;
 
 /** A burst of changes (a payment touches several rows) refreshes once, but never later than this after the first change. */
 const QUIET_MS = 600;

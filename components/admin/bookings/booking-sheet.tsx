@@ -19,7 +19,7 @@ interface BookingSheetProps {
 
 /** Side panel with the full booking, contact shortcuts and status actions. */
 export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
-  const { change, dialog } = useBookingStatus();
+  const { change, remove, dialog } = useBookingStatus(() => onOpenChange(false));
   const { saunas, stayTypes } = useAdmin();
   const saunaName = saunas.find((s) => s.id === booking?.saunaId)?.name;
   return (
@@ -72,6 +72,11 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
                   {ACTION_LABEL[s]}
                 </Button>
               ))}
+              {booking.status === "atsaukta" ? (
+                <Button variant="outline" className="text-destructive" onClick={() => remove(booking)}>
+                  Pašalinti
+                </Button>
+              ) : null}
             </SheetFooter>
           </>
         ) : null}

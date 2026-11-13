@@ -134,6 +134,24 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0089 — Cancelled requests can be removed, but not while their money is unrefunded
+
+- **Context:** a cancelled (often refunded) request stayed in the admin lists forever, and the restore button was removed so it could not be revived (ADR-0087 context).
+- **Decision:** `deleteRequest(kind, id)` (`app/admin/actions.ts`) hard-deletes a booking, quad rental or event ticket with the same page permission as cancelling. Server rules: status must be `atsaukta`; if it was paid online (`payments.status = 'apmoketa'`) a `request_refunds` row with status `done` must exist for that request (a full refund made in Stripe sets the payment to `grazinta` and also passes). The delete itself repeats `status = 'atsaukta'`. `payments` and `request_refunds` rows are untouched (no foreign key to the request), so the money trail survives; `booking_extras` and quad items cascade.
+- **Consequences:** staff cannot hide an unrefunded paid cancellation. A partial refund made by hand in Stripe is not recognised: refund through the cancel dialog, or fully in Stripe, first. No "undo".
+
+## ADR-0088 — The admin notification bell reads a server-written feed table, live via Realtime
+
+- **Context:** staff were told about events only by SMS, e-mail and push; the open admin had no list of them.
+- **Decision:** `staff_notifications` (kind, `permissions text[]`, title, body, reference, href) is written by the server (`recordStaffNotification`, service role, no insert policy) next to the other channels in `lib/notify.ts` and the coupon / plan payment handlers, so the bell shows exactly what staff are notified of (a payment that covers three requests is one row). RLS: a staff member reads a row when their role has any listed page permission (owners all). `staff_notification_reads` keeps one "last opened" timestamp per staff member (own row only). The table is in the `supabase_realtime` publication; `AdminLiveUpdates` already refreshes the store on table changes, so the bell reads `notifications` / `notificationsReadAt` from `useAdmin()` (loaded by the repository, newest 30) instead of a second subscription. Rows older than 60 days are deleted on each insert. A row appearing after page load also pops a toast.
+- **Consequences:** staff-entered bookings (admin) do not notify. A staff member with no marker sees the last 24 h as new. Events with no row yet (other tables) are not in the feed.
+
+## ADR-0087 — Customers cancel their own requests; paid ones refund automatically up to 24 h before
+
+- **Context:** /paskyra only let a customer cancel a payment that was still unpaid; a confirmed or paid booking had no cancel button, and only staff could cancel and refund (ADR-0081).
+- **Decision:** `cancelMyRequest` (`app/actions/cancel-request.ts`) reads the request with the customer's own session (RLS), applies `cancelPolicy` (`lib/request-cancel.ts`, the same function the button is drawn from): open (`laukia`/`patvirtinta`), not awaiting Stripe, not started; paid online and under `CANCEL_REFUND_HOURS` (24) to the start = "late" (call us); otherwise cancel. The update runs with the service role but only for that `user_id` and open statuses. A paid cancel then calls `refundRequest` (ADR-0081, `refunded_by` = the customer's user id); a failed refund keeps the cancellation and tells staff to refund in Stripe. The start is the sauna/quad hour or event start time; a stay counts from 00:00 of its first day (no check-in hour is stored), so it is refundable until the day before.
+- **Consequences:** the 24 h figure is one constant. Partial refunds and per-service windows are not supported. Staff notified through `notifyCancelledByCustomer` (topic routing of ADR-0086).
+
 ## ADR-0086 — Staff notifications route by topic arrays, e-mail joins the recipient list
 
 Recipients in `notification_recipients` have an optional phone and an optional e-mail (at least one). A message carries a list of topics (`bookingTopics(service)` = rezervacijos + the service, or uzklausos; `paymentTopics(services)` = mokejimai + each service); a recipient gets it when subscribed to any of them or to `visi`. SMS and e-mail both read the list through `staff_notify_phones_for` / `staff_notify_emails_for` (null while nobody has that channel, then the old routing applies: STAFF_NOTIFY_PHONE, `STAFF_INBOX` + STAFF_NOTIFY_EMAIL + marketing copy). Once anyone has an e-mail, only the list is used, so marketingas@ must be added as a recipient to keep its copies. Push keeps the three broad topics (`PushTopic`; the mobile registrations' constraint is unchanged).
