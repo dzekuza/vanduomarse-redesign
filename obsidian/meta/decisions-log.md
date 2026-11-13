@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0093 — Own per-IP and per-e-mail limit on the /admin sign-in, fail-open
+
+**Context.** The staff sign-in (password or e-mailed code) had only Supabase Auth's built-in per-IP limits (about 30 attempts per 5 minutes) and no per-account lockout, so slow guessing or a spread-out attack on one staff e-mail was not stopped.
+
+**Decision.** The three sign-in server actions ask `guardLogin` (`lib/admin/login-limit.ts`) before calling Supabase Auth and record the result afterwards. The count lives in `private.admin_login_attempts`, behind two service-role-only RPCs; IP and e-mail are stored only as HMACs (`PHONE_VERIFICATION_SECRET`). Limits: failed password / code checks 10 per IP and 5 per e-mail per 15 minutes; code e-mails 10 per IP and 5 per e-mail per hour. The same message is shown whatever the reason, and unknown e-mails are counted too, so the form still reveals nothing. If the limiter or the secret is unavailable it fails open (logged), because Supabase's own limits remain and a configuration slip must not lock the owners out.
+
+**Consequences.** Someone who knows a staff e-mail can lock that address out of password sign-in for up to 15 minutes by failing five times (the code route and an owner on another IP are unaffected only if under their own limits). No CAPTCHA yet. Staff passwords need 12+ characters when changed; existing shorter passwords keep working until changed. The migration must be applied before the code is deployed, or the limiter silently stays off.
+
 ## ADR-0092 — Pay-on-site bookings are confirmed by an SMS-verified phone, not by staff
 
 - **Context:** cash bookings were filed `laukia` and staff had to confirm each by hand, though the customer is already a signed-in account.

@@ -2403,6 +2403,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_login_check: {
+        Args: { p_email_hash: string; p_ip_hash: string; p_kind: string }
+        Returns: {
+          allowed: boolean
+          retry_after: number
+        }[]
+      }
+      admin_login_record: {
+        Args: { p_email_hash: string; p_ip_hash: string; p_kind: string; p_ok: boolean }
+        Returns: undefined
+      }
       cancel_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: undefined

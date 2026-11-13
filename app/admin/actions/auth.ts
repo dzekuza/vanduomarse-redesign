@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { guardLogin, tooManyAttempts } from "@/lib/admin/login-limit";
 import { loginCodeSchema } from "@/lib/customer-schema";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,8 +14,11 @@ const signInSchema = z.object({ email: z.email(), password: z.string().min(6) })
 export async function signIn(input: z.infer<typeof signInSchema>): Promise<ActionResult> {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) return fail("Neteisingas el. paštas arba slaptažodis.", "invalid");
+  const guard = await guardLogin(parsed.data.email, "password");
+  if (guard.retryAfter !== null) return fail(tooManyAttempts(guard.retryAfter), "rate_limit");
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  await guard.record(!error);
   if (error) return fail("Neteisingas el. paštas arba slaptažodis.", "invalid_credentials");
   redirect("/admin");
 }
@@ -28,8 +32,11 @@ const staffEmail = z.email().max(120).transform((v) => v.toLowerCase());
 export async function sendStaffCode(email: string): Promise<ActionResult> {
   const parsed = staffEmail.safeParse(email);
   if (!parsed.success) return fail("Įveskite el. paštą.", "invalid");
+  const guard = await guardLogin(parsed.data, "code_send");
+  if (guard.retryAfter !== null) return fail(tooManyAttempts(guard.retryAfter), "rate_limit");
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({ email: parsed.data, options: { shouldCreateUser: false } });
+  await guard.record(true);
   if (error && /rate|too many|seconds/i.test(error.message)) return fail("Kodas jau išsiųstas. Palaukite minutę ir bandykite dar kartą.", "rate_limit");
   return { data: null };
 }
@@ -38,14 +45,21 @@ export async function sendStaffCode(email: string): Promise<ActionResult> {
 export async function confirmStaffCode(email: string, code: string): Promise<ActionResult> {
   const parsed = z.object({ email: staffEmail, code: loginCodeSchema }).safeParse({ email, code });
   if (!parsed.success) return fail("Įveskite kodą iš laiško.", "invalid");
+  const guard = await guardLogin(parsed.data.email, "code_verify");
+  if (guard.retryAfter !== null) return fail(tooManyAttempts(guard.retryAfter), "rate_limit");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.verifyOtp({ email: parsed.data.email, token: parsed.data.code, type: "email" });
-  if (error || !data.user) return fail("Neteisingas arba pasibaigęs kodas.", "invalid_code");
+  if (error || !data.user) {
+    await guard.record(false);
+    return fail("Neteisingas arba pasibaigęs kodas.", "invalid_code");
+  }
   const { data: staff } = await supabase.from("staff").select("active").eq("user_id", data.user.id).maybeSingle();
   if (!staff?.active) {
+    await guard.record(false);
     await supabase.auth.signOut();
     return fail("Šis el. paštas neturi prieigos prie valdymo.", "forbidden");
   }
+  await guard.record(true);
   redirect("/admin");
 }
 
@@ -59,8 +73,8 @@ export async function signOut(): Promise<void> {
 export async function changeOwnPassword(password: string): Promise<ActionResult> {
   const ctx = await staffClient("any");
   if (!ctx.ok) return ctx.error;
-  const parsed = z.string().min(8).max(72).safeParse(password);
-  if (!parsed.success) return fail("Slaptažodį turi sudaryti 8-72 simboliai.", "invalid");
+  const parsed = z.string().min(12).max(72).safeParse(password);
+  if (!parsed.success) return fail("Slaptažodį turi sudaryti 12-72 simboliai.", "invalid");
   const { error } = await ctx.supabase.auth.updateUser({ password: parsed.data });
   return error ? fail("Nepavyko pakeisti slaptažodžio. Bandykite dar kartą.", "auth") : { data: null };
 }
