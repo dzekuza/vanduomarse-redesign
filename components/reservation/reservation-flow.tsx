@@ -46,6 +46,7 @@ import { ActivityAbout } from "./activity-about";
 import { activityPhotos } from "./activity-photos";
 import { MobilePlanDock } from "./mobile-plan-dock";
 import { PlanPanel } from "./plan-panel";
+import { reservationHref } from "@/lib/reservation-links";
 import { ReservationTypeChips, type ReservationTab, type ReservationType } from "./reservation-type-chips";
 import { planQuantities } from "./plan-quantities";
 import { ReservationDone } from "./reservation-done";
@@ -69,6 +70,7 @@ export function ReservationFlow({
   header,
   data,
   initialTab,
+  initialSaunaMode,
   wakeProducts,
   initialDay,
   activity,
@@ -79,6 +81,8 @@ export function ReservationFlow({
   header: ReactNode;
   data: ReservationData;
   initialTab?: ReservationTab;
+  /** Which way to book the sauna opens first (`?tipas=`); sessions by default when there are any. */
+  initialSaunaMode?: SaunaMode;
   wakeProducts?: WakeOffer[];
   initialDay?: string;
   /** On a service page the booking is limited to that activity. */
@@ -106,7 +110,7 @@ export function ReservationFlow({
   const wakeBooking = useWakeBooking(wakeProducts);
   const tab = activeTab === "wake" ? tabs[0] : activeTab;
   /** The sauna's two ways to book are separate chips on /rezervacija; session when there are any, otherwise private hire. */
-  const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
+  const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => initialSaunaMode === "private" ? "private" : sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
   const chipTypes: ReservationType[] = availableTabs.flatMap<ReservationType>((id) => id === "pirtis" ? [...(saunaHasSessions(data.sauna) ? ["session" as const] : []), "private"] : [id]);
   const activeChip: ReservationType = activeTab === "pirtis" ? saunaMode : activeTab;
   const [date, setDate] = useState(() => days.find((candidate) => dateKey(candidate) === initialDay) ?? days[0]);
@@ -407,6 +411,8 @@ export function ReservationFlow({
                 } else {
                   setTab(type);
                 }
+                // Keep the address in step with the chip, so the header dropdown and a reload land on the same type.
+                window.history.replaceState(null, "", reservationHref(type));
                 setStep(0);
               }}
             />}

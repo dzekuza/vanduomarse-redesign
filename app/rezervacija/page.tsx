@@ -8,6 +8,7 @@ import { ACTIVITY_ORDER, RESERVATION_DAYS } from "@/lib/reservation";
 import { getCabinPageData, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
 import { getCustomer } from "@/lib/customer";
 import { paymentsEnabled } from "@/lib/stripe";
+import { parseSaunaMode } from "@/lib/reservation-links";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -16,7 +17,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/rezervacija",
 });
 
-type SearchParams = Promise<{ veikla?: string; seansas?: string | string[] }>;
+type SearchParams = Promise<{ veikla?: string; tipas?: string | string[]; seansas?: string | string[] }>;
 
 const header = <BookingHeader crumb="Rezervacija" title={["Rezervacija"]} />;
 
@@ -49,7 +50,7 @@ function ReservationFallback() {
 }
 
 async function ReservationContent({ searchParams }: { searchParams: SearchParams }) {
-  const { veikla, seansas } = await searchParams;
+  const { veikla, tipas, seansas } = await searchParams;
   const sessionId = Array.isArray(seansas) ? seansas[0] : seansas;
   const initialTab = sessionId ? "pirtis" : veikla === "wake" ? "wake" : ACTIVITY_ORDER.find((id) => id === veikla);
   const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
@@ -63,9 +64,12 @@ async function ReservationContent({ searchParams }: { searchParams: SearchParams
 
   return (
     <ReservationFlow
+      // A link from the header dropdown to another type arrives as a new URL: start the flow on it.
+      key={`${initialTab ?? ""}:${tipas ?? ""}:${sessionId ?? ""}`}
       header={header}
       data={{ sauna, cabin, quads }}
       initialTab={initialTab}
+      initialSaunaMode={parseSaunaMode(tipas)}
       wakeProducts={wakeOffers}
       initialDay={sauna.events.find((event) => event.key === sessionId)?.date}
       payments={paymentsEnabled()}

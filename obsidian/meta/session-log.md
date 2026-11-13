@@ -1,3 +1,9 @@
+## 2026-11-13 — Header reservation dropdown
+
+- **Changed:** "Rezervacija" dropdown in the header and mobile menu; /rezervacija deep links per type and address sync.
+- **Status:** tsc/eslint pass, browser-checked, on branch `feat/header-reservation-dropdown`, uncommitted. I restarted the dev server on :3000 after a cleanup command had stopped it.
+- **Next:** review the look, then commit and PR.
+
 ## 2026-11-13 — Cookie consent for analytics
 
 - **Changed:** consent banner, settings dialog and gated GA4 / Meta Pixel scripts (ADR-0085); privacy policy section; `.env.example` vars.

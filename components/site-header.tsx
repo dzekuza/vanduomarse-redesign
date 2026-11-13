@@ -3,10 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { NavDropdown } from "@/components/nav-dropdown";
+import type { NavLink } from "@/components/nav-links";
 import { cn } from "@/lib/utils";
 
 interface SiteHeaderProps {
-  nav: readonly { href: string; label: string }[];
+  nav: readonly NavLink[];
   /** Call to action beside the menu button; a renderer can react to the open menu. */
   cta: ReactNode | ((menuOpen: boolean) => ReactNode);
   /** Content of the full-screen menu; `close` shuts it. */
@@ -56,15 +58,19 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
         <Image src="/brand/logo-light.svg" alt="Vanduo Marse" width={121} height={46} loading="eager" fetchPriority="high" className="h-auto w-full" />
       </Link>
       <nav aria-label="Pagrindinis meniu" className="hidden items-center gap-5 text-xs lg:flex xl:gap-8">
-        {nav.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="relative inline-flex min-h-11 items-center after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100"
-          >
-            {l.label}
-          </Link>
-        ))}
+        {nav.map((l) =>
+          l.children ? (
+            <NavDropdown key={l.href} link={{ ...l, children: l.children }} />
+          ) : (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="relative inline-flex min-h-11 items-center after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100"
+            >
+              {l.label}
+            </Link>
+          ),
+        )}
       </nav>
       <div className="flex items-center gap-2 md:gap-3">
         {typeof cta === "function" ? cta(menuOpen) : cta}

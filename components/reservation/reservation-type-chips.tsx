@@ -4,20 +4,15 @@ import { WavesIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { FilterChip } from "@/components/events/filter-chip";
 import type { ActivityId } from "@/lib/reservation";
+import { RESERVATION_TYPE_LABEL, type ReservationType } from "@/lib/reservation-links";
 
 /** What /rezervacija books: an activity, or the WAKE coupon order. */
 export type ReservationTab = ActivityId | "wake";
 
 /** One chip each: the sauna splits into shared sessions and private hire. */
-export type ReservationType = "session" | "private" | "nakvyne" | "keturraciai" | "wake";
+export type { ReservationType };
 
-const LABEL: Record<ReservationType, string> = {
-  session: "Pirties seansai",
-  private: "Privati pirtis",
-  nakvyne: "Nakvynė",
-  keturraciai: "Keturračiai",
-  wake: "Wake",
-};
+const LABEL = RESERVATION_TYPE_LABEL;
 
 interface ReservationTypeChipsProps {
   types: ReservationType[];
