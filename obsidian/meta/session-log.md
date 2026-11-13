@@ -1,3 +1,9 @@
+## 2026-11-13 — Header dropdown URLs and sticky tabs
+
+- **Changed:** header dropdown links to service pages (`serviceHref`), one "Pirtis" entry (duplicate-key fix, uncommitted); service-page section tabs sticky under the header, beige, full-width tabs, no bottom border (pushed in 16ba0ca).
+- **Status:** dropdown key fix uncommitted; nothing browser-checked.
+- **Next:** commit the `nav-links.ts` fix, check dropdown, mobile menu and sticky tabs at 375 / 768 / 1440 px.
+
 ## 2026-11-13 — Notification e-mails and service topics
 
 - **Changed:** `notification_recipients` gets `email` (phone now optional, one of them required) and topics `pirtis`/`keturraciai`/`nakvyne`; new `lib/staff-recipients.ts` (`staffPhonesFor`/`staffEmailsFor`), SMS and staff e-mail route by topic arrays (`bookingTopics`, `paymentTopics`); push untouched (`PushTopic`). Form: optional phone + e-mail, grouped topic switches (`topic-fields.tsx`).

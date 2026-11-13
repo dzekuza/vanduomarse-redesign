@@ -12,7 +12,14 @@ export const NAV_LINKS: readonly NavLink[] = [
   {
     href: "/rezervacija",
     label: "Rezervacija",
-    children: RESERVATION_TYPES.map((type) => ({ href: serviceHref(type), label: RESERVATION_TYPE_LABEL[type] })),
+    // Sessions and private hire share /pirtis, so they are one entry.
+    children: RESERVATION_TYPES.filter((type) => type !== "private").map((type) => ({
+      href: serviceHref(type),
+      label: type === "session" ? "Pirtis" : RESERVATION_TYPE_LABEL[type],
+    })).concat([
+      { href: "/sventes", label: "Šventės" },
+      { href: "/restoranas", label: "Skoniai" },
+    ]),
   },
   { href: "/renginiai", label: "Renginiai" },
   { href: "/kuponai", label: "Dovanų kuponai" },

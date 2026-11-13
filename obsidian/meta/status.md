@@ -5,6 +5,8 @@ updated: 2026-11-13
 
 # Current status — vanduomarse-redesign
 
+**Header dropdown + sticky tabs (2026-11-13): dropdown links to /pirtis, /nakvyne, /keturraciu-nuoma, /vandenlentes; service-page tabs sticky (pushed 16ba0ca); duplicate-key fix in `nav-links.ts` uncommitted. Next: commit it, browser-check both at 375 / 768 / 1440 px.**
+
 **Staff notification e-mails + service topics (2026-11-13, ADR-0086): `/admin/pranesimai` recipients can have a phone, an e-mail or both, and topics now include Pirtis, Keturračiai, Nakvynė; migration `20261115120000_notification_recipient_emails.sql` APPLIED and verified (rolled-back test of routing/constraints); dialog browser-checked (layout, validation), uncommitted on `main`, tsc/eslint clean. Next: add real recipients at /admin/pranesimai and watch a real booking e-mail; add `marketingas@` as a recipient if it should keep getting copies.**
 
 **Footer + stay cards (2026-11-13): footer spacing/underlines merged in PR #100; `StayUnitCard` stepper and button inline with space between (uncommitted, not browser-checked); stay options grid is now three columns. Next: check both at 375 / 768 / 1440 px, commit the stay card change.**
