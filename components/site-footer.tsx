@@ -48,7 +48,7 @@ export function FooterBar({ topHref }: { topHref: string }) {
   );
 }
 
-const CONTACT_LINK = "inline-flex min-h-11 text-xs transition-colors duration-150 ease-out-strong hover:text-rust";
+const CONTACT_LINK = "inline-flex min-h-11 text-xs underline underline-offset-4 lg:min-h-8 transition-colors duration-150 ease-out-strong hover:text-rust";
 
 /** One contact with its name, email and phone stacked under a hairline. */
 function ContactItem({ contact: c }: { contact: Contact }) {
@@ -56,10 +56,10 @@ function ContactItem({ contact: c }: { contact: Contact }) {
     <li className="border-t border-line pt-4">
       <p className="text-sm font-bold">{c.name}</p>
       <div className="flex flex-col items-start">
-        <a href={`mailto:${c.email}`} className={`${CONTACT_LINK} items-end pb-1`}>
+        <a href={`mailto:${c.email}`} className={`${CONTACT_LINK} items-center`}>
           {c.email}
         </a>
-        <a href={telHref(c.phone)} className={`${CONTACT_LINK} items-start pt-1`}>
+        <a href={telHref(c.phone)} className={`${CONTACT_LINK} items-center`}>
           {c.phone}
         </a>
       </div>
