@@ -10,8 +10,12 @@ import { BookingActions } from "./booking-actions";
 import { BookingCalendarTab } from "./booking-calendar-tab";
 import { BookingFilters, type BookingFilterState } from "./booking-filters";
 import { BookingSheet } from "./booking-sheet";
+import { SessionTicketRow } from "./session-ticket-row";
+import { EventSheet } from "../calendar/event-sheet";
+import { EventDialog } from "../events/event-dialog";
 import { NewBookingDialog } from "./new-booking-dialog";
 import { BOOKING_SOURCE } from "@/lib/admin/labels";
+import type { ManagedEvent } from "@/lib/admin/types";
 import { bookingsToCsv, exportFileName } from "@/lib/admin/export";
 import { bookingTypeLabel, bookingWhen, formatDay, formatEur } from "@/lib/admin/format";
 import { downloadText } from "@/lib/download";
@@ -28,7 +32,9 @@ const TAB_IDS = ["sarasas", "kalendorius"] as const;
 
 /** Bookings list with filters; a row opens the details sheet. */
 export function BookingsView() {
-  const { bookings, stayTypes } = useAdmin();
+  const { bookings, stayTypes, eventTickets, events } = useAdmin();
+  const [openEventId, setOpenEventId] = useState<string | null>(null);
+  const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
   const [filters, setFilters] = useState(INITIAL);
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -51,11 +57,18 @@ export function BookingsView() {
     .filter((b) => filters.kind === "visos" || (filters.kind === "pirtis" ? b.kind === "pirtis" : b.kind !== "pirtis"))
     .filter((b) => filters.status === "visos" || b.status === filters.status)
     .filter((b) => filters.when === "visos" || (filters.when === "busimos" ? b.date >= today : b.date < today))
-    .filter((b) => !q || [b.customer.name, b.customer.email, b.reference].some((f) => f.toLowerCase().includes(q)))
-    .sort((a, b) => {
-      const order = (a.date + String(a.startHour ?? 0).padStart(2, "0")).localeCompare(b.date + String(b.startHour ?? 0).padStart(2, "0"));
-      return filters.when === "praejusios" ? -order : order;
-    });
+    .filter((b) => !q || [b.customer.name, b.customer.email, b.reference].some((f) => f.toLowerCase().includes(q)));
+  // Tickets for public sauna sessions are Pirtis too; they live in their own table, so they join the list here.
+  const sessionIds = new Set(events.filter((e) => e.category === "pirtis").map((e) => e.id));
+  const tickets = filters.kind === "nakvyne" ? [] : eventTickets
+    .filter((t) => sessionIds.has(t.eventId))
+    .filter((t) => filters.status === "visos" || t.status === filters.status)
+    .filter((t) => filters.when === "visos" || (filters.when === "busimos" ? t.eventDate >= today : t.eventDate < today))
+    .filter((t) => !q || [t.customer.name, t.customer.email, t.reference].some((f) => f.toLowerCase().includes(q)));
+  const list = [
+    ...rows.map((booking) => ({ booking, ticket: null, sort: booking.date + String(booking.startHour ?? 0).padStart(2, "0") })),
+    ...tickets.map((ticket) => ({ booking: null, ticket, sort: ticket.eventDate + ticket.eventTime.slice(0, 2) })),
+  ].sort((a, b) => (filters.when === "praejusios" ? b.sort.localeCompare(a.sort) : a.sort.localeCompare(b.sort)));
 
   return (
     <AdminPage
@@ -101,7 +114,7 @@ export function BookingsView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((b) => (
+                {list.map(({ booking: b, ticket }) => ticket ? <SessionTicketRow key={`t-${ticket.id}`} ticket={ticket} onOpen={() => setOpenEventId(ticket.eventId)} /> : b ? (
                   <TableRow key={b.id} onClick={() => setOpenId(b.id)} className="cursor-pointer">
                     <TableCell>
                       <p className="font-normal">{formatDay(b.date)}</p>
@@ -131,8 +144,8 @@ export function BookingsView() {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell"><BookingActions booking={b} /></TableCell>
                   </TableRow>
-                ))}
-                {rows.length === 0 ? (
+                ) : null)}
+                {list.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Rezervacijų pagal filtrus nėra.</TableCell>
                   </TableRow>
@@ -140,8 +153,10 @@ export function BookingsView() {
               </TableBody>
             </Table>
           </Card>
-          <p className="text-sm text-muted-foreground">Rodoma: {rows.length}</p>
+          <p className="text-sm text-muted-foreground">Rodoma: {list.length}</p>
           <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
+          <EventSheet event={events.find((e) => e.id === openEventId) ?? null} onOpenChange={(o) => !o && setOpenEventId(null)} onEdit={(event) => { setOpenEventId(null); setEditingEvent(event); }} />
+          {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
           {newOpen ? <NewBookingDialog onOpenChange={setNewOpen} onCreated={setOpenId} /> : null}
         </TabsContent>
         <TabsContent value="kalendorius" className="mt-6">
