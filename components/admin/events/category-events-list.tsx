@@ -48,7 +48,7 @@ export function CategoryEventsList({ category, emptyText, extra, onEdit }: Categ
               {e.durationMinutes ? ` · ${e.durationMinutes} min.` : ""}
             </p>
             <p className="truncate text-xs text-muted-foreground">
-              {[extra?.(e), e.price === null ? "Nemok." : formatEur(e.price), e.capacity ? `${e.sold} / ${e.capacity} vietų` : "Vietos neribotos"].filter(Boolean).join(" · ")}
+              {[extra?.(e), e.price === null ? "Nemok." : formatEur(e.price), e.capacity ? `${e.sold + e.held} / ${e.capacity} vietų` : "Vietos neribotos"].filter(Boolean).join(" · ")}
             </p>
             {!e.published ? (
               <Badge variant="outline" className={e.calendarPrivate ? "mt-1" : "mt-1 sm:hidden"}>

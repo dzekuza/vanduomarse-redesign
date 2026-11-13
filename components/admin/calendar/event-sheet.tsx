@@ -1,6 +1,7 @@
 "use client";
 
 import { useAdmin } from "../admin-store";
+import { HeldSpots } from "../events/held-spots";
 import { CustomerLink } from "../customer-link";
 import { StatusActions } from "../quads/status-actions";
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
@@ -44,6 +45,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
               <Button variant="outline" size="sm" className="min-h-11" onClick={() => onEdit(event)}>
                 Redaguoti renginį
               </Button>
+              <HeldSpots event={event} />
               <section className="space-y-3">
                 <h3 className="text-sm font-medium">Rezervacijos ({tickets.length + rentals.length})</h3>
                 {tickets.length + rentals.length === 0 ? <p className="text-sm text-muted-foreground">Rezervacijų dar nėra.</p> : null}

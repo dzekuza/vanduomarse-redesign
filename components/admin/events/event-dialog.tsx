@@ -81,6 +81,7 @@ export function EventDialog({ open, onOpenChange, event, presetCategory, presetD
       price: program ? program.price : v.price === "" ? null : Number(v.price),
       capacity: v.capacity === "" ? null : Number(v.capacity),
       sold: event?.sold ?? 0,
+      held: event?.held ?? 0,
       published: v.visibility === "public",
       calendarPrivate: v.visibility === "private" || event?.calendarPrivate ? v.visibility === "private" : undefined,
       programId: v.category === "pirtis" && program ? program.id : undefined,

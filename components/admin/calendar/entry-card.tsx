@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /** Status dot for a booking, seat dot for an event: green while it has room or is confirmed, red when it needs staff or is full. */
 function stateDot(entry: CalendarEntry): string {
-  if (entry.event) return entry.event.capacity && entry.event.sold >= entry.event.capacity ? "bg-status-pending" : "bg-status-confirmed";
+  if (entry.event) return entry.event.capacity && entry.event.sold + entry.event.held >= entry.event.capacity ? "bg-status-pending" : "bg-status-confirmed";
   return entry.status === "laukia" ? "bg-status-pending" : "bg-status-confirmed";
 }
 

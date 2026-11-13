@@ -58,7 +58,7 @@ async function readAvailabilityRows<T>(
   }
 }
 
-const spotsLeft = (e: Tables<"events">) => (e.capacity === null ? undefined : Math.max(0, e.capacity - e.sold));
+const spotsLeft = (e: Tables<"events">) => (e.capacity === null ? undefined : Math.max(0, e.capacity - e.sold - e.held));
 
 export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow): Promise<SaunaPageData> {
   await connection();

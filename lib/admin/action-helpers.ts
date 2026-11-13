@@ -40,6 +40,7 @@ export function dbError(e: DbError) {
       coupon_not_pending: "Užsakymas jau apmokėtas arba atšauktas.",
       last_owner: "Negalima pašalinti, pažeminti ar išjungti paskutinio savininko.",
       owner_role: "Savininko rolės keisti ar trinti negalima.",
+      held_too_many: "Tiek vietų užimti negalima: daugiau nei liko laisvų.",
     };
     return fail(byHint[e.hint ?? ""] ?? "Netinkamos reikšmės.", "invalid");
   }
