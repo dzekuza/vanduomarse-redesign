@@ -12,11 +12,11 @@ const LINK = "inline-flex min-h-11 items-center";
 export function FooterWord() {
   return (
     <Reveal className="mb-12 md:mb-17.5">
-      <p aria-hidden className="relative text-footer-sm font-bold md:text-footer">
+      <p aria-hidden className="group relative text-footer-sm font-bold md:text-footer">
         SUSITINKAM
         <br />
         MARSE
-        <StarMark className="ml-2.5 inline-block size-8 align-middle text-rust md:size-16 xl:size-24" />
+        <StarMark className="ml-2.5 inline-block size-8 align-middle text-rust motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out-strong motion-safe:group-hover:rotate-180 md:size-16 xl:size-24" />
       </p>
     </Reveal>
   );

@@ -19,7 +19,7 @@ export function ReservationDone({ compact, lines, outcome, payOnSite, busy, onRe
   const pending = lines.some((l) => !sent[l.id]);
   const pad = compact ? "px-4" : "px-6";
   return (
-    <div className="border border-line bg-foam/15">
+    <div className="border border-line bg-foam/15 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-97 motion-safe:duration-300 motion-safe:ease-out-strong">
       <div className={`border-b border-dashed border-ink ${pad} py-4`}>
         <p className="font-display text-figure font-bold uppercase">{pending ? "Dar ne viskas išsiųsta" : "Gavom. Susisieksim."}</p>
       </div>
