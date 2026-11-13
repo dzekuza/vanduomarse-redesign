@@ -81,23 +81,23 @@ export function CouponStatusBadge({ status }: { status: CouponStatus }) {
   return <StatusPill tone={COUPON_TONE[status]} label={COUPON_STATUS_LABEL[status]} pulse={status === "laukia_apmokejimo"} />;
 }
 
-/** The Stripe payment of a web reservation; nothing for requests that were never paid online. */
-export function PaymentBadge({ payment }: { payment?: PaymentInfo }) {
-  if (!payment) return null;
-  return (
-    <>
-      <StatusPill tone={PAYMENT_TONE[payment.status]} label={PAYMENT_STATUS[payment.status]} />
-      {payment.needsReview ? <StatusPill tone="pending" label="Peržiūrėti mokėjimą" pulse /> : null}
-    </>
-  );
-}
-
 /** How a request is paid: online by card (Stripe) or in person (cash / on site) when no online payment exists. */
-export function PaymentMethodBadge({ payment }: { payment?: PaymentInfo }) {
+function PaymentMethodBadge({ payment }: { payment?: PaymentInfo }) {
   return (
     <Badge variant="outline" className="border-border bg-muted/50">
       {payment ? "Kortele" : "Grynaisiais"}
     </Badge>
+  );
+}
+
+/** The payment of a request: its Stripe status (when paid online) and always the method, card or cash. */
+export function PaymentBadge({ payment }: { payment?: PaymentInfo }) {
+  return (
+    <>
+      {payment ? <StatusPill tone={PAYMENT_TONE[payment.status]} label={PAYMENT_STATUS[payment.status]} /> : null}
+      <PaymentMethodBadge payment={payment} />
+      {payment?.needsReview ? <StatusPill tone="pending" label="Peržiūrėti mokėjimą" pulse /> : null}
+    </>
   );
 }
 

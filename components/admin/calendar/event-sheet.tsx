@@ -4,7 +4,7 @@ import { useAdmin } from "../admin-store";
 import { HeldSpots } from "../events/held-spots";
 import { CustomerLink } from "../customer-link";
 import { StatusActions } from "../quads/status-actions";
-import { BookingStatusBadge, PaymentBadge, PaymentMethodBadge } from "../status-badge";
+import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { seatsLabel, ticketsFor } from "@/lib/admin/calendar-entries";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import type { ManagedEvent } from "@/lib/admin/types";
@@ -55,7 +55,6 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                       <div className="flex flex-wrap items-center gap-1">
                         <BookingStatusBadge status={r.status} />
                         <PaymentBadge payment={r.payment} />
-                        <PaymentMethodBadge payment={r.payment} />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
@@ -87,7 +86,6 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                       <div className="flex flex-wrap items-center gap-1">
                         <BookingStatusBadge status={t.status} />
                         <PaymentBadge payment={t.payment} />
-                        <PaymentMethodBadge payment={t.payment} />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
