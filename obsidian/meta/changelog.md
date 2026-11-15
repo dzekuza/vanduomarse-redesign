@@ -1,3 +1,13 @@
+- 2026-11-15 Service pages: sticky section links fit on one horizontally scrollable row, with the current section highlighted and scrolled toward the leading edge.
+- 2026-11-15 Home: “Skaičiuoti šventės kainą” opens the top of the Šventės Marse page at `/sventes`.
+- 2026-11-15 Home hero: the contact address links to the same Google Maps destination as the directions button.
+- 2026-11-15 Home hero: the pinned booking sticker scales to 80% of its initial size, with the same two-line label and arrow and equal bottom and right insets.
+- 2026-11-15 Home hero: enlarged the pinned reservation circle and label for readability.
+- 2026-11-15 Home hero: the booking sticker shows page scroll progress in its outline and is larger on phones. The activities link uses the same tracking and closer arrow at all widths.
+- 2026-11-15 Home hero: removed the duplicate scroll link, paired the remaining activity link with a visible underline and down arrow, enlarged the desktop booking sticker, and animated its move and resize when pinned.
+- 2026-11-15 Mobile home hero: the title sits above the photo, the description spans the image, and a single activity link sits below it. The reservation sticker overlaps the lower-right photo edge above the contacts, then shrinks and stays visible when scrolling.
+- 2026-11-15 Home hero: moved the circular reservation CTA away from the rider, switched its lettering and arrow to brand ink, and pinned a smaller version to the bottom right after scrolling. Swapped the two links to the activities section.
+- 2026-11-15 Removed the duplicate "Mano paskyra" button from the public menu. "Mano rezervacijos" still links to `/paskyra`.
 - 2026-11-14 `DatePicker` shows the chosen date with an abbreviated month, "2026 m. lapkr. 14 d." (standard Lithuanian abbreviations, `MONTH_SHORT` in `components/ui/date-picker.tsx`), instead of the full month. Applies to every date picker. tsc/eslint clean, not browser-checked.
 - 2026-11-14 `Stepper` gets a `stacked` option (label above the −/value/+ controls inside the same box); the staff tour form's gear and quad-count steppers use it, so the label no longer sits on the same line as the controls. tsc/eslint clean, not browser-checked.
 - 2026-11-14 Staff quad tour form: the gear quantities and the quad count use the shared −/value/+ `Stepper` (`components/booking/stepper.tsx`, 44 px buttons, typed input allowed) instead of number inputs; the quad count's range is the route minimum up to the free quads at the chosen start. tsc/eslint clean, not browser-checked.

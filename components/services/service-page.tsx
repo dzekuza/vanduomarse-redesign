@@ -89,7 +89,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
             <h1 className="text-total font-bold tracking-tighter uppercase sm:text-title">{copy.title}</h1>
             <p className="text-sm leading-loose text-copy">{copy.summary}</p>
           </header>
-          <SectionTabs tabs={SECTIONS} className="sticky top-21.5 z-10 -mx-gutter flex min-w-0 flex-wrap gap-2 bg-dust px-gutter py-2 md:top-26.5 lg:col-span-8 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:px-0" />
+          <SectionTabs tabs={SECTIONS} className="sticky top-21.5 z-10 -mx-gutter min-w-0 bg-dust px-gutter py-1 md:top-26.5 lg:col-span-8 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:px-0" />
           <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn(
             "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-3 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
             customBookingLayout ? "lg:flex lg:flex-col" : "p-4 sm:p-6 lg:overflow-y-auto",
