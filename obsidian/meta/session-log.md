@@ -1,3 +1,9 @@
+## 2026-11-16 — Pirtys admin layout
+
+- **Changed:** `SaunaView` grid: side column from `xl` (2/3 + 1/3), side cards two per row from `md` below that.
+- **Status:** eslint clean; browser-checked at 1440, 1200, 768, 375 px. PR open from `fix/sauna-admin-layout`.
+- **Next:** merge the PR.
+
 ## 2026-11-16 — Google Analytics events
 
 - **Changed:** `lib/analytics.ts` (+5 tests), `TrackPurchase`; events wired into 11 submit points, the Stripe redirects and the paid return pages; ADR-0103.
