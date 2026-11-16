@@ -62,8 +62,15 @@ guests = `namelis-2` (`units = 8`), 6 for 4 guests = `namelis-4` (`units = 6`).
 No new stay types: 8 feeds point at `namelis-2`, 6 feeds at `namelis-4`. Because
 the units within a type are interchangeable, a block takes "one of the type's
 units"; /rezervacija shows a type as sold out only when blocks plus bookings
-reach `units`. Seed `external_calendars` with 14 empty rows (label "2 asm. 1"
-... "4 asm. 6", no URL, inactive) so the owner only pastes URLs.
+reach `units`. **Sirvoy room map (from Settings → Accommodations, 2026-11-16):**
+Double (2 guests, Booking.com room 960519601) = rooms 1, 2, 3, 4, 11, 12, 13, 14 → `namelis-2`.
+Quadruple (4 guests, Booking.com room 960519602) = rooms 5, 6, 7, 8, 9, 10 → `namelis-4`.
+A third, **internal** room type "Perkelimui" (room `perkelimui`, not sold on Booking.com)
+is a parking spot for moving bookings: it gets no feed and is ignored. Seed label
+= the Sirvoy room number, so the owner pastes URL 1 against room 1, and so on.
+
+Seed `external_calendars` with 14 empty inactive rows (label = Sirvoy room
+number, stay type from the map above) so the owner only pastes URLs.
 
 ## Sync job
 
