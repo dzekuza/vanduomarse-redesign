@@ -83,4 +83,18 @@ describe("analytics", () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(gtag).not.toHaveBeenCalled();
   });
+  it("sends view_item and puts the discount code on checkout and purchase", async () => {
+    const win = browser({ analytics: true });
+    const gtag = vi.fn();
+    win.gtag = gtag;
+    const { trackViewItem, trackCheckout, trackPurchase } = await load(GA);
+    const bf = { itemName: "WAKE sezono abonementas", value: 270, coupon: "WAKEBLACKFRIDAY2026" };
+    trackViewItem("plan", bf);
+    trackCheckout("plan", bf);
+    trackPurchase("plan", "AB-7", bf);
+    const item = { item_name: "WAKE sezono abonementas", item_category: "plan", quantity: 1, price: 270, coupon: "WAKEBLACKFRIDAY2026" };
+    expect(gtag).toHaveBeenNthCalledWith(1, "event", "view_item", { value: 270, currency: "EUR", items: [item] });
+    expect(gtag).toHaveBeenNthCalledWith(2, "event", "begin_checkout", { value: 270, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026", items: [item] });
+    expect(gtag).toHaveBeenNthCalledWith(3, "event", "purchase", { transaction_id: "AB-7", value: 270, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026", items: [item] });
+  });
 });

@@ -15,7 +15,8 @@ async function loadOrder(sessionId: string | undefined): Promise<PlanPaymentView
     const { data } = await createAdminClient().rpc("plan_order_state", { p_session_id: sessionId });
     const row = data?.[0];
     if (!row) return null;
-    return { status: row.status, reference: row.reference, planName: row.plan_name, amount: row.price, hasEmail: row.rider_email !== "" };
+    // The discount code only labels the purchase for GA / Meta (e.g. Black Friday); null when the order had none.
+    return { status: row.status, reference: row.reference, planName: row.plan_name, amount: row.price, hasEmail: row.rider_email !== "", discountCode: row.discount_code || undefined };
   } catch (e) {
     console.error("Plan payment page: could not read the order", e);
     return null;

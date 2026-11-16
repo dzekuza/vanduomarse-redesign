@@ -35,6 +35,8 @@ interface ItemInput {
   itemName?: string;
   /** Euros including VAT. */
   value?: number;
+  /** Discount code applied (e.g. a campaign code such as WAKEBLACKFRIDAY2026), so ad and campaign reports can split sales by it. */
+  coupon?: string;
 }
 
 const CURRENCY = "EUR";
@@ -88,10 +90,20 @@ const pixelParams = (kind: ActivityKind, input: ItemInput): PixelParams => ({
   content_category: kind,
   content_name: input.itemName ?? kind,
   ...(input.value === undefined ? {} : { value: Math.round(input.value * 100) / 100, currency: CURRENCY }),
+  ...(input.coupon ? { coupon: input.coupon } : {}),
 });
 
-function items(kind: ActivityKind, { itemName, value }: ItemInput) {
-  return [{ item_name: itemName ?? kind, item_category: kind, quantity: 1, ...(value === undefined ? {} : { price: Math.round(value * 100) / 100 }) }];
+function items(kind: ActivityKind, { itemName, value, coupon }: ItemInput) {
+  return [{ item_name: itemName ?? kind, item_category: kind, quantity: 1, ...(value === undefined ? {} : { price: Math.round(value * 100) / 100 }), ...(coupon ? { coupon } : {}) }];
+}
+
+/** GA4 puts the order's discount code on the event as well as on the item. */
+const couponParam = ({ coupon }: ItemInput) => (coupon ? { coupon } : {});
+
+/** A visitor opened something they can buy (e.g. a campaign landing page from an ad): `view_item` and Meta `ViewContent`. */
+export function trackViewItem(kind: ActivityKind, input: ItemInput = {}): void {
+  trackEvent("view_item", { ...money(input), items: items(kind, input) });
+  trackPixel("ViewContent", pixelParams(kind, input));
 }
 
 /** A request or enquiry was sent without paying online (staff confirm it): GA's recommended `generate_lead`. */
@@ -102,13 +114,13 @@ export function trackLead(kind: ActivityKind, input: ItemInput = {}): void {
 
 /** The visitor is being sent to Stripe Checkout: `begin_checkout`. */
 export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
-  trackEvent("begin_checkout", { ...money(input), items: items(kind, input) });
+  trackEvent("begin_checkout", { ...money(input), ...couponParam(input), items: items(kind, input) });
   trackPixel("InitiateCheckout", pixelParams(kind, input));
 }
 
 /** A payment came back paid: `purchase`, counted once per transaction id. */
 export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}): void {
-  trackEvent("purchase", { transaction_id: transactionId, ...money(input), items: items(kind, input) });
+  trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
   // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
   trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, `purchase-${transactionId}`);
 }

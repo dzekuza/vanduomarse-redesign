@@ -10,13 +10,23 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0106 — Public registration never writes onto an existing customer; a contact match becomes a duplicate row for staff
+## ADR-0107 — Public registration never writes onto an existing customer; a contact match becomes a duplicate row for staff
 
-- **Status:** Accepted. Migrations `20261116181848_registration_no_anon_merge.sql`, `20261116182546_registration_duplicate_phone2.sql` and `20261116182834_registration_needs_review.sql` APPLIED to the live project 2026-11-16. Supersedes the registration part of ADR-0083.
+- **Status:** Accepted. Migrations `20261116181848_registration_no_anon_merge.sql`, `20261116182546_registration_duplicate_phone2.sql` and `20261116182834_registration_needs_review.sql` APPLIED to the live project 2026-11-16. Supersedes the registration part of ADR-0083. (Written as "ADR-0106" in those migrations' comments; renumbered because another ADR-0106 landed first.)
 - **Date:** 2026-11-16
 - **Context:** a security review flagged `register_rider_public` (granted to `anon`). When `private.find_rider` matched an existing customer by phone or e-mail, an unauthenticated caller who only knew that contact could fill the customer's blank `email`/`phone`/`phone2` with their own (after which `my_riders()` showed the customer's plan, cards and purchases to the caller's account), mark the customer `self_registered`, add a waiver, upload a photo, and get the rider id back, which the action used for `finalize_rider_registration_public` and `create_plan_order` (whose answer carries the customer's name and e-mail to Stripe Checkout). Two options: (a) create a separate row and leave the merge to staff; (b) link only when the caller is signed in with a confirmed e-mail or phone that matches.
 - **Decision:** (a). `/registracija` runs entirely as `anon` with no session, and a confirmed account already has its own safe path to an existing customer (`my_riders()` + `buyPlanAsMember`), so (b) would add an auth dependency to the anon RPC to duplicate what the account path does. Concretely: the RPC always inserts a new row; when any submitted contact (`phone`, `phone2` or e-mail) matched, the row gets `riders.needs_review = true` and `duplicate_of` = the matched customer. The quarantine is the flag, which only staff clear; `duplicate_of` is informational and `on delete set null`, so deleting the original neither promotes the duplicate nor can be blocked by an anonymous caller (an `on delete restrict` attempt allowed exactly that and was replaced). Rows that need review are ignored by `private.find_rider` (new orders keep linking to the original, and a duplicate with a photo cannot win the link) and by `my_riders()` (an unverified row cannot reach anyone's account, nor become the "registered" row `buyPlanAsMember` charges). A fully registered match still answers `already_registered`, but with a null id: no upload and, with a plan, the action asks the customer to sign in and buy from the account. The browser never receives a rider id. The validation and throttles of ADR-0064 are restored (ADR-0083's rewrite had dropped them).
 - **Consequences:** a genuine customer whom staff had already entered becomes two rows until staff merge them, and their account shows the original (unregistered) row meanwhile; there is no merge tool or duplicate badge in /admin yet (follow-up). With a plan selected, "already registered" is distinguishable from a new registration, so someone can learn that a contact belongs to a registered customer (no data about them). Anything written by the old path before this fix (filled contacts, `self_registered`, waivers) is not rolled back automatically.
+
+---
+
+## ADR-0106 — Campaign conversions: a consent-aware landing view and the discount code as the campaign label
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the WAKE Black Friday page (`/registracija/wake/black-friday`) is promoted with ads, and the owner wants ad conversions in Meta and GA. Sign-up, checkout and purchase were already tracked (ADR-0103, ADR-0105), but nothing marked the landing, and a Black Friday sale looked like any other plan sale.
+- **Decision:** plan registration pages send GA `view_item` / Meta `ViewContent` through `TrackViewItem`, which waits for the cookie answer and fires once when analytics or marketing is allowed (firing on load would drop it, since ad visitors meet the banner first). The applied discount code travels as `coupon` on view, checkout and purchase (GA ecommerce `coupon`, Meta custom parameter `coupon`); the paid page gets it from the scoped `plan_order_state(session_id)` function, which now also returns `discount_code` (migration `20261116180400`, applied), so the page never reads `rider_plan_orders` directly. No separate campaign event: the code is the label, so any future campaign code works the same way.
+- **Consequences:** reports split campaign sales by `coupon = WAKEBLACKFRIDAY2026`. Meta and GA still have to be set up in their own tools (GA key event `purchase`, Meta custom conversion on `Purchase` with that coupon); attribution to ads depends on Meta's fbclid / GA's gclid and UTM handling, which needs the visitor's consent on the landing page.
 
 ---
 
@@ -27,6 +37,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Context:** the owner wants the Meta Pixel on every page with events. The Pixel loader already existed (consent "marketing" category, `MetaPixel` in `components/consent/trackers.tsx`, PageView on load and on every route change, ADR-0085) but no events were sent and `NEXT_PUBLIC_META_PIXEL_ID` was not set.
 - **Decision:** the four GA helpers in `lib/analytics.ts` also send Meta's standard events: `trackLead` → `Lead`, `trackCheckout` → `InitiateCheckout`, `trackPurchase` → `Purchase` (`eventID` `purchase-<transactionId>` so a reloaded return page counts once; value 0 when the amount is unknown, since Meta requires one), `trackSignUp` → `CompleteRegistration`. Parameters are `content_category`, `content_name`, `value`, `currency`: the same no-personal-data rule as GA. Gated separately on marketing consent and the Pixel id. The pasted `<noscript>` image is left out: without JavaScript the consent banner cannot be answered, so it would track without consent.
 - **Consequences:** no call site changed; every place that reports to GA reports to Meta too. No server-side Conversions API, so ad blockers and refused consent mean fewer Meta events than real ones. Admin and `/embed` pages stay untracked.
+
+---
+
+## ADR-0104 — An event's sale keeps `price` as the charged price and adds a display-only `regular_price`
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner wants to put a sauna session (or any event) on sale. Ticket totals are computed from `events.price` in several database functions (`create_event_ticket`, the reservation and discount-code checkout, staff tickets in `createEventTicket`).
+- **Decision:** `price` stays what a ticket costs; during a sale it holds the sale price. New nullable `events.regular_price` is the pre-sale price, only for showing it struck through (check: above `price`, needs a `price`). The admin form keeps "Kaina, €" as the regular price and adds an optional "Akcijos kaina, €"; on save the sale goes to `price` and the regular price to `regular_price`. Sessions priced by a program have no sale field (the program sets the price).
+- **Consequences:** no pricing function changed, so every channel (site, staff tickets, discount codes) charges the sale price at once. Ending a sale means clearing "Akcijos kaina". No start/end dates for a sale. Quad tour pages do not show the struck-through price yet.
 
 ---
 

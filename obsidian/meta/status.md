@@ -3,7 +3,15 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
-**Meta Pixel (2026-11-16, ADR-0105): loader on all public pages behind marketing consent (existing) + standard events (Lead, InitiateCheckout, Purchase, CompleteRegistration) now sent with the GA ones. Blocked on: `NEXT_PUBLIC_META_PIXEL_ID` in `.env.local` and Vercel. Next: check Test events in Meta Events Manager.**
+**Campaign conversions (2026-11-16, ADR-0106): Black Friday / plan pages send view_item + ViewContent after consent; checkout and purchase carry the discount code as `coupon`. PR open from `feat/campaign-conversions`. Next: GA key event `purchase`, Meta custom conversion on Purchase with coupon WAKEBLACKFRIDAY2026.**
+
+**Meta Pixel (2026-11-16, ADR-0105): BLOCKED BY META. The code is live (Pixel id 1436419551457404 and GA id in the deployed JS; `.env.local` has the Pixel id too) and fbevents.js loads after consent, but Meta locks the Pixel (`prohibited_pixels_1436419551457404`) and logs "[Meta pixel] 1436419551457404 is unavailable. Go to Events Manager to learn more", so no event is sent (0 events, no `_fbp`), on vanduomarse.lt and on localhost. Not a domain ban (`prohibitedSources` is empty) and not bot blocking. Next: owner opens that Pixel in Meta Events Manager / Business settings and clears the restriction (or uses another Pixel id). GA works on production (`page_view` reached Google).**
+
+**WAKE Black Friday (2026-11-16): code on main (3043725) and its migration now APPLIED (the code `WAKEBLACKFRIDAY2026` was missing, so the page refused buyers). The code has no end date: deactivate it in /admin/nuolaidos when the campaign ends. Next: one test purchase at /registracija/wake/black-friday.**
+
+**Pirtys admin layout (2026-11-16): side cards sit beside the sessions only from `xl`; fixes the squeezed Pirtininkai / Priedai column. Browser-checked at 4 widths; PR open from `fix/sauna-admin-layout`.**
+
+**Event sale price (2026-11-16, ADR-0104): "Akcijos kaina" on events and on sauna sessions without a program price (program sessions take the program's price, no sale field); `events.regular_price` APPLIED; PR #116. Public strike-through not browser-checked yet. Next: put one session without a program on sale and look at /rezervacija and /renginiai.**
 
 **Google Analytics events (2026-11-16, ADR-0103): BUILT, not yet deployed or seen in GA. `lib/analytics.ts` sends `generate_lead` / `begin_checkout` / `purchase` / `sign_up` only after analytics consent; wired into every request form, the three Stripe redirects and the three paid return pages. tsc, eslint, 87 tests clean. Not browser-checked (GA id is only in Vercel, so the banner does not show locally). Uncommitted on `main` together with the Sirvoy live-state notes. Next: commit and merge, redeploy production, accept cookies, make a test request, look in GA Realtime, then mark the events as key events in GA.**
 
