@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
+**WAKE Black Friday (2026-11-16): code on main (3043725) and its migration now APPLIED (the code `WAKEBLACKFRIDAY2026` was missing, so the page refused buyers). The code has no end date: deactivate it in /admin/nuolaidos when the campaign ends. Next: one test purchase at /registracija/wake/black-friday.**
+
 **Pirtys admin layout (2026-11-16): side cards sit beside the sessions only from `xl`; fixes the squeezed Pirtininkai / Priedai column. Browser-checked at 4 widths; PR open from `fix/sauna-admin-layout`.**
 
 **Meta Pixel (2026-11-16, ADR-0105): loader on all public pages behind marketing consent (existing) + standard events (Lead, InitiateCheckout, Purchase, CompleteRegistration) now sent with the GA ones. Blocked on: `NEXT_PUBLIC_META_PIXEL_ID` in `.env.local` and Vercel. Next: check Test events in Meta Events Manager.**
