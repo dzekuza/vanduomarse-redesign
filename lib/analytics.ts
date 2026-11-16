@@ -131,10 +131,13 @@ function items(kind: ActivityKind, { itemName, value, coupon }: ItemInput) {
 /** GA4 puts the order's discount code on the event as well as on the item. */
 const couponParam = ({ coupon }: ItemInput) => (coupon ? { coupon } : {});
 
-/** A visitor opened something they can buy (e.g. a campaign landing page from an ad): `view_item` and Meta `ViewContent`. */
-export function trackViewItem(kind: ActivityKind, input: ItemInput = {}): void {
-  trackEvent("view_item", { ...money(input), items: items(kind, input) });
-  trackPixel("ViewContent", pixelParams(kind, input));
+/**
+ * A visitor opened something they can buy (e.g. a campaign landing page from an ad): `view_item` and Meta `ViewContent`.
+ * `to` picks the trackers, so a page can send each one when its own consent arrives.
+ */
+export function trackViewItem(kind: ActivityKind, input: ItemInput = {}, to: { ga?: boolean; meta?: boolean } = { ga: true, meta: true }): void {
+  if (to.ga) trackEvent("view_item", { ...money(input), items: items(kind, input) });
+  if (to.meta) trackPixel("ViewContent", pixelParams(kind, input));
 }
 
 /** A request or enquiry was sent without paying online (staff confirm it): GA's recommended `generate_lead`. */

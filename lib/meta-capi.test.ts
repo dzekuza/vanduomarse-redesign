@@ -25,6 +25,7 @@ describe("Meta Conversions API", () => {
     expect(normalizePhone("+370 612 34567")).toBe("37061234567");
     expect(normalizePhone("8 612 34567")).toBe("37061234567");
     expect(normalizePhone("0037061234567")).toBe("37061234567");
+    expect(normalizePhone("61234567")).toBe("37061234567");
     expect(normalizePhone("123")).toBeNull();
     expect(normalizeName(" Žygimantas-Jonas ")).toBe("žygimantasjonas");
   });
@@ -73,9 +74,28 @@ describe("Meta Conversions API", () => {
   });
 
   it("never throws when Meta refuses or the network fails", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    const event = { name: "ViewContent" as const, eventId: "abc12345", sourceUrl: "https://www.vanduomarse.lt/", time: 1, user: {} };
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(new Response('{"error":{"message":"Invalid OAuth access token"}}', { status: 400 }))));
+    const refused = await load();
+    await expect(refused.sendCapiEvent(event)).resolves.toBeUndefined();
+    expect(logged).toHaveBeenCalledWith(expect.stringContaining("rejected (400)"));
+
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new Error("offline"))));
+    const offline = await load();
+    await expect(offline.sendCapiEvent(event)).resolves.toBeUndefined();
+  });
+
+  it("adds the test code only to events from localhost, never to the live site", async () => {
+    const fetchMock = vi.fn(() => Promise.resolve(new Response("{}", { status: 200 })));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubEnv("META_CAPI_TEST_EVENT_CODE", "TEST123");
     const { sendCapiEvent } = await load();
-    await expect(sendCapiEvent({ name: "ViewContent", eventId: "abc12345", sourceUrl: "https://www.vanduomarse.lt/", time: 1, user: {} })).resolves.toBeUndefined();
+    vi.stubEnv("META_CAPI_TEST_EVENT_CODE", "TEST123");
+    await sendCapiEvent({ name: "Lead", eventId: "abc12345", sourceUrl: "https://www.vanduomarse.lt/", time: 1, user: {} });
+    await sendCapiEvent({ name: "Lead", eventId: "abc12346", sourceUrl: "http://localhost:3000/", time: 1, user: {} });
+    const bodies = fetchMock.mock.calls.map((c) => JSON.parse(String((c as unknown as [string, RequestInit])[1].body)));
+    expect(bodies[0].test_event_code).toBeUndefined();
+    expect(bodies[1].test_event_code).toBe("TEST123");
   });
 });

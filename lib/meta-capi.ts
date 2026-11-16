@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { PIXEL_ID } from "@/lib/consent";
+import { toE164 } from "@/lib/sms/twilio";
 
 /**
  * Meta Conversions API: the server-side copy of the Pixel's standard events (ADR-0107).
@@ -54,11 +55,9 @@ export function normalizeEmail(email: string): string | null {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : null;
 }
 
+/** The site's one phone rule (`toE164`, which mirrors `private.norm_phone`), without the "+" that Meta does not want. */
 export function normalizePhone(phone: string): string | null {
-  let digits = phone.replace(/\D/g, "");
-  if (digits.startsWith("00")) digits = digits.slice(2);
-  else if (digits.length === 9 && digits.startsWith("8")) digits = `370${digits.slice(1)}`;
-  return digits.length >= 8 && digits.length <= 15 ? digits : null;
+  return toE164(phone)?.slice(1) ?? null;
 }
 
 export function normalizeName(name: string): string | null {
@@ -113,7 +112,8 @@ export function capiConfigured(): boolean {
 export async function sendCapiEvent(event: CapiEvent): Promise<void> {
   const token = process.env.META_CAPI_ACCESS_TOKEN;
   if (!PIXEL_ID || !token) return;
-  const testCode = process.env.META_CAPI_TEST_EVENT_CODE?.trim();
+  // The test code is for local development only: on the live site it would send every event to Test events instead of real data.
+  const testCode = new URL(event.sourceUrl).hostname === "localhost" ? process.env.META_CAPI_TEST_EVENT_CODE?.trim() : undefined;
   const body = { data: [buildCapiPayload(event)], ...(testCode ? { test_event_code: testCode } : {}) };
   try {
     const res = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${PIXEL_ID}/events?access_token=${encodeURIComponent(token)}`, {
