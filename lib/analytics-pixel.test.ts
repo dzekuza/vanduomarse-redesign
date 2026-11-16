@@ -77,4 +77,18 @@ describe("Meta Pixel events", () => {
     await vi.advanceTimersByTimeAsync(5000);
     expect(fbq).toHaveBeenCalledTimes(1);
   });
+  it("labels a campaign landing, checkout and purchase with the discount code", async () => {
+    const win = browser({ marketing: true });
+    const fbq = vi.fn();
+    win.fbq = fbq;
+    const { trackViewItem, trackCheckout, trackPurchase } = await load(PIXEL);
+    const bf = { itemName: "WAKE sezono abonementas", value: 270, coupon: "WAKEBLACKFRIDAY2026" };
+    trackViewItem("plan", bf);
+    trackCheckout("plan", bf);
+    trackPurchase("plan", "AB-7", bf);
+    const params = { content_category: "plan", content_name: "WAKE sezono abonementas", value: 270, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026" };
+    expect(fbq).toHaveBeenNthCalledWith(1, "track", "ViewContent", params, undefined);
+    expect(fbq).toHaveBeenNthCalledWith(2, "track", "InitiateCheckout", params, undefined);
+    expect(fbq).toHaveBeenNthCalledWith(3, "track", "Purchase", params, { eventID: "purchase-AB-7" });
+  });
 });

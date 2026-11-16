@@ -18,11 +18,15 @@ const eventInput = z.object({
   place: z.string().trim().min(2).max(80),
   blurb: z.string().trim().max(240),
   price: z.number().min(0).nullable(),
+  regularPrice: z.number().positive().optional(),
   capacity: z.number().int().min(0).nullable(),
   published: z.boolean(),
   calendarPrivate: z.boolean().optional(),
   programId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
-}).refine((event) => !(event.published && event.calendarPrivate));
+})
+  .refine((event) => !(event.published && event.calendarPrivate))
+  // A sale needs a (lower) price to charge; the database checks the same (events_regular_price_above_price).
+  .refine((event) => event.regularPrice === undefined || (event.price !== null && event.regularPrice > event.price));
 
 /** Events are managed with `renginiai`; staff with only `keturraciai` manage the guided per-person tours (RLS limits them to category keturratis). */
 const EVENT_STAFF = ["renginiai", "keturraciai"] as const;
@@ -43,6 +47,7 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     place: e.place,
     blurb: e.blurb,
     price: e.price,
+    regular_price: e.regularPrice ?? null,
     capacity: e.capacity,
     published: e.published,
     ...(e.calendarPrivate === undefined ? {} : { calendar_private: e.calendarPrivate }),

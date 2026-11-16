@@ -80,7 +80,7 @@ export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
       clearRegistrationDraft();
       trackSignUp("rider_registration");
       if (result.data.checkoutUrl) {
-        if (checkout) trackCheckout("plan", { itemName: checkout.plan.name, value: checkout.total });
+        if (checkout) trackCheckout("plan", { itemName: checkout.plan.name, value: checkout.total, coupon: checkout.discountCode });
         setRedirecting(true);
         goToCheckout(result.data.checkoutUrl);
         goingToCheckout = true;

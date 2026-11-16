@@ -10,6 +10,7 @@ import { CategoryTag } from "./category-tag";
 import { EventRegister } from "./event-register";
 import { longDateLabel, weekdayLabel } from "@/lib/sauna";
 import type { ParkEvent } from "@/lib/park-events";
+import { PriceWas } from "@/components/price-was";
 
 /** One event in the Renginiai feed: date block, details, price and call to action. */
 export function EventRow({ event }: { event: ParkEvent }) {
@@ -41,7 +42,10 @@ export function EventRow({ event }: { event: ParkEvent }) {
         <p className="mt-1 max-w-xl text-xs leading-relaxed text-copy">{event.blurb}</p>
       </div>
       <div className="col-span-2 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 md:col-span-1 md:flex-col md:items-end md:border-0 md:pt-0">
-        <p className="font-display text-figure font-bold md:text-figure">{event.price === null ? "Nemokamai" : `${event.price} €`}</p>
+        <p className="font-display text-figure font-bold md:text-figure">
+          {event.regularPrice !== undefined && event.price !== null ? <PriceWas>{event.regularPrice} €</PriceWas> : null}
+          {event.price === null ? "Nemokamai" : `${event.price} €`}
+        </p>
         {full ? (
           <span className="text-xs text-muted-foreground">Išparduota</span>
         ) : event.cta.href === undefined ? (

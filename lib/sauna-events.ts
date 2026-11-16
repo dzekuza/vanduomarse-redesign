@@ -23,6 +23,8 @@ export interface SaunaEventData {
   /** null when the session has no set length. */
   minutes: number | null;
   pricePerPerson: number;
+  /** Pre-sale price per person while a sale runs (struck through); undefined = no sale. */
+  regularPrice?: number;
   capacity?: number;
   spotsLeft: number;
   blurb: string;

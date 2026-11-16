@@ -1,8 +1,26 @@
 ## 2026-11-16 — Migration versions match the live log
 
 - **Changed:** 66 `git mv` renames in `supabase/migrations/` to live versions (checked project ref `mwngljhcvqkvncwbmgeo` first; read-only SQL, nothing applied); old version numbers updated in `lib/push/staff-push.ts`, `app/actions/registration.ts` and the vault. Migration file contents untouched, so a few SQL comments still name old file names.
-- **Status:** 97 of 103 files match a live row. `wake_black_friday_discount` left for PR #117. Five files have no live row (objects exist live), three live rows have no file — see `backend/database.md`.
+- **Status:** after merging main, 100 of 105 files match a live row (PRs #116/#117 renamed `event_regular_price` and `wake_black_friday_discount`). Five files have no live row (objects exist live), three live rows have no file — see `backend/database.md`.
 - **Next:** decide per gap: `supabase migration repair --status applied <version>` for the five files, and add files (from `schema_migrations.statements`) or `repair --status reverted` for the three live-only rows.
+
+## 2026-11-16 — Campaign conversions for Black Friday
+
+- **Changed:** `trackViewItem`, `coupon` on GA/Meta checkout and purchase, `TrackViewItem` in `PlanRegistration`, discount code on `/registracija/apmoketa` via `plan_order_state` (migration `20261116180400_plan_order_state_discount_code`, applied and verified: the function now also returns `discount_code` (null when the order had none), no table changed, grants still service role only); ADR-0106.
+- **Status:** tsc/eslint/93 tests clean; GA `view_item` seen locally after consent. PR open from `feat/campaign-conversions`.
+- **Next:** owner marks `purchase` as a key event in GA and adds a Meta custom conversion (Purchase, coupon = WAKEBLACKFRIDAY2026); check Meta Test events on the live page.
+
+## 2026-11-16 — Pirtys admin layout
+
+- **Changed:** `SaunaView` grid: side column from `xl` (2/3 + 1/3), side cards two per row from `md` below that.
+- **Status:** eslint clean; browser-checked at 1440, 1200, 768, 375 px. PR open from `fix/sauna-admin-layout`.
+- **Next:** merge the PR.
+
+## 2026-11-16 — Sale price for events and sessions
+
+- **Changed:** migration `20261116164951_event_regular_price` (applied), `ManagedEvent.regularPrice`, "Akcijos kaina" in `EventDialog`, `PriceWas` on the public price lines, ADR-0104.
+- **Status:** tsc/eslint/89 tests clean; admin field and validation browser-checked; public strike-through only unit-tested. Not committed.
+- **Next:** put one session on sale, check /rezervacija and /renginiai show the struck-through price and a ticket charges the sale price.
 
 ## 2026-11-16 — Meta Pixel events
 

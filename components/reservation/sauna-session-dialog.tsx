@@ -12,6 +12,7 @@ import { toSaunaEvent, type SaunaEventData } from "@/lib/sauna-events";
 import { sessionPartyPrice, type SaunaProgram } from "@/lib/sauna-programs";
 import { DialogPhotoClose } from "./dialog-photo-close";
 import { PLAN_PRIMARY_CLASS } from "./plan-actions";
+import { PriceWas } from "@/components/price-was";
 
 const sessionDate = new Intl.DateTimeFormat("lt-LT", { dateStyle: "long" });
 
@@ -30,7 +31,8 @@ function SessionPrice({ event, program, quantity, children, row }: SessionDetail
   const note = program?.pricing === "group" ? row.rate : program?.pricing === "family"
     ? `${adults} × ${unit} / suaug.${childCount ? ` + ${childCount} × ${formatEuro(program.childPrice ?? program.price)} / vaikui` : ""}`
     : `${quantity.value} × ${unit} / asm.`;
-  return <BookingPrice amount={formatEuro(price)} note={note} />;
+  // A session on sale (no program) shows its pre-sale price struck through before the per-person line.
+  return <BookingPrice amount={formatEuro(price)} note={!program && row.regularRate ? <><PriceWas>{row.regularRate}</PriceWas>{note}</> : note} />;
 }
 
 export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelectedFocus, actionLabel }: {
@@ -97,7 +99,10 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
             <div className="space-y-3 border-t border-line pt-4">
               {details.row.blocked ? (
                 <>
-                  <p className="text-item font-bold">{details.row.rate}</p>
+                  <p className="text-item font-bold">
+                    {details.row.regularRate ? <PriceWas>{details.row.regularRate}</PriceWas> : null}
+                    {details.row.rate}
+                  </p>
                   <p className="text-xs text-rust-ink">{details.event.spotsLeft > 0 ? "Seanso laikas kertasi su tavo planu." : "Laisvų vietų nebeliko."}</p>
                 </>
               ) : (

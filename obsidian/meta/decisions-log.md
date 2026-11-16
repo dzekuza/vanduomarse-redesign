@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0106 — Campaign conversions: a consent-aware landing view and the discount code as the campaign label
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the WAKE Black Friday page (`/registracija/wake/black-friday`) is promoted with ads, and the owner wants ad conversions in Meta and GA. Sign-up, checkout and purchase were already tracked (ADR-0103, ADR-0105), but nothing marked the landing, and a Black Friday sale looked like any other plan sale.
+- **Decision:** plan registration pages send GA `view_item` / Meta `ViewContent` through `TrackViewItem`, which waits for the cookie answer and fires once when analytics or marketing is allowed (firing on load would drop it, since ad visitors meet the banner first). The applied discount code travels as `coupon` on view, checkout and purchase (GA ecommerce `coupon`, Meta custom parameter `coupon`); the paid page gets it from the scoped `plan_order_state(session_id)` function, which now also returns `discount_code` (migration `20261116180400`, applied), so the page never reads `rider_plan_orders` directly. No separate campaign event: the code is the label, so any future campaign code works the same way.
+- **Consequences:** reports split campaign sales by `coupon = WAKEBLACKFRIDAY2026`. Meta and GA still have to be set up in their own tools (GA key event `purchase`, Meta custom conversion on `Purchase` with that coupon); attribution to ads depends on Meta's fbclid / GA's gclid and UTM handling, which needs the visitor's consent on the landing page.
+
+---
+
 ## ADR-0105 — Meta Pixel events ride on the GA helpers
 
 - **Status:** Accepted
@@ -17,6 +27,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Context:** the owner wants the Meta Pixel on every page with events. The Pixel loader already existed (consent "marketing" category, `MetaPixel` in `components/consent/trackers.tsx`, PageView on load and on every route change, ADR-0085) but no events were sent and `NEXT_PUBLIC_META_PIXEL_ID` was not set.
 - **Decision:** the four GA helpers in `lib/analytics.ts` also send Meta's standard events: `trackLead` → `Lead`, `trackCheckout` → `InitiateCheckout`, `trackPurchase` → `Purchase` (`eventID` `purchase-<transactionId>` so a reloaded return page counts once; value 0 when the amount is unknown, since Meta requires one), `trackSignUp` → `CompleteRegistration`. Parameters are `content_category`, `content_name`, `value`, `currency`: the same no-personal-data rule as GA. Gated separately on marketing consent and the Pixel id. The pasted `<noscript>` image is left out: without JavaScript the consent banner cannot be answered, so it would track without consent.
 - **Consequences:** no call site changed; every place that reports to GA reports to Meta too. No server-side Conversions API, so ad blockers and refused consent mean fewer Meta events than real ones. Admin and `/embed` pages stay untracked.
+
+---
+
+## ADR-0104 — An event's sale keeps `price` as the charged price and adds a display-only `regular_price`
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner wants to put a sauna session (or any event) on sale. Ticket totals are computed from `events.price` in several database functions (`create_event_ticket`, the reservation and discount-code checkout, staff tickets in `createEventTicket`).
+- **Decision:** `price` stays what a ticket costs; during a sale it holds the sale price. New nullable `events.regular_price` is the pre-sale price, only for showing it struck through (check: above `price`, needs a `price`). The admin form keeps "Kaina, €" as the regular price and adds an optional "Akcijos kaina, €"; on save the sale goes to `price` and the regular price to `regular_price`. Sessions priced by a program have no sale field (the program sets the price).
+- **Consequences:** no pricing function changed, so every channel (site, staff tickets, discount codes) charges the sale price at once. Ending a sale means clearing "Akcijos kaina". No start/end dates for a sale. Quad tour pages do not show the struck-through price yet.
 
 ---
 
