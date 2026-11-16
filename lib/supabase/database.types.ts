@@ -2479,6 +2479,7 @@ export type Database = {
       plan_order_state: {
         Args: { p_session_id: string }
         Returns: {
+          discount_code: string
           plan_name: string
           price: number
           reference: string

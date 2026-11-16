@@ -12,13 +12,11 @@ export const metadata: Metadata = {
 async function loadOrder(sessionId: string | undefined): Promise<PlanPaymentView | null> {
   if (!sessionId || !/^cs_[A-Za-z0-9_]{10,200}$/.test(sessionId)) return null;
   try {
-    const admin = createAdminClient();
-    const { data } = await admin.rpc("plan_order_state", { p_session_id: sessionId });
+    const { data } = await createAdminClient().rpc("plan_order_state", { p_session_id: sessionId });
     const row = data?.[0];
     if (!row) return null;
-    // The discount code only labels the purchase for GA / Meta (e.g. Black Friday); a failed read just leaves it off.
-    const { data: order } = await admin.from("rider_plan_orders").select("discount_code").eq("reference", row.reference).maybeSingle();
-    return { status: row.status, reference: row.reference, planName: row.plan_name, amount: row.price, hasEmail: row.rider_email !== "", discountCode: order?.discount_code ?? undefined };
+    // The discount code only labels the purchase for GA / Meta (e.g. Black Friday); null when the order had none.
+    return { status: row.status, reference: row.reference, planName: row.plan_name, amount: row.price, hasEmail: row.rider_email !== "", discountCode: row.discount_code || undefined };
   } catch (e) {
     console.error("Plan payment page: could not read the order", e);
     return null;
