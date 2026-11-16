@@ -220,7 +220,7 @@
   --text-statement: clamp(3.125rem, 5.9vw, 5.875rem);
   --text-statement--line-height: 1.01;
   --text-statement--letter-spacing: -0.065em;
-  --text-title: clamp(2.5rem, 4.4vw, 4.375rem);
+  --text-title: clamp(2.5rem, 4.4vw, 4rem);
   --text-title--line-height: 1.06;
   --text-title--letter-spacing: -0.065em;
   /* Named "tile", not "card": `text-card` is already the card colour. */

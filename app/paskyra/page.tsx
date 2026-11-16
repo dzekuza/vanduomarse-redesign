@@ -23,7 +23,7 @@ export default async function AccountPage() {
       <BookingPage>
         <div className="theme-reservation grid gap-10 px-gutter pt-10 pb-16 md:pt-14 md:pb-24 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-10">
-            <BookingHeader crumb="Mano rezervacijos" title={["Prisijunkite arba", "sukurkite paskyrą"]} split />
+            <BookingHeader crumb="Mano rezervacijos" title={["Prisijunkite arba", "sukurkite paskyrą"]} />
             <AccountLogin />
           </div>
           <div className="relative min-h-72 overflow-hidden lg:min-h-96">
