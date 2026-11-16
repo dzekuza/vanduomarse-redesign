@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0105 — Meta Pixel events ride on the GA helpers
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner wants the Meta Pixel on every page with events. The Pixel loader already existed (consent "marketing" category, `MetaPixel` in `components/consent/trackers.tsx`, PageView on load and on every route change, ADR-0085) but no events were sent and `NEXT_PUBLIC_META_PIXEL_ID` was not set.
+- **Decision:** the four GA helpers in `lib/analytics.ts` also send Meta's standard events: `trackLead` → `Lead`, `trackCheckout` → `InitiateCheckout`, `trackPurchase` → `Purchase` (`eventID` `purchase-<transactionId>` so a reloaded return page counts once; value 0 when the amount is unknown, since Meta requires one), `trackSignUp` → `CompleteRegistration`. Parameters are `content_category`, `content_name`, `value`, `currency`: the same no-personal-data rule as GA. Gated separately on marketing consent and the Pixel id. The pasted `<noscript>` image is left out: without JavaScript the consent banner cannot be answered, so it would track without consent.
+- **Consequences:** no call site changed; every place that reports to GA reports to Meta too. No server-side Conversions API, so ad blockers and refused consent mean fewer Meta events than real ones. Admin and `/embed` pages stay untracked.
+
+---
+
 ## ADR-0104 — An event's sale keeps `price` as the charged price and adds a display-only `regular_price`
 
 - **Status:** Accepted
