@@ -32,7 +32,7 @@ export function MemberPlanCheckout({ plan, name, discountCode, total, busy, othe
       setBusy(false);
       return;
     }
-    trackCheckout("plan", { itemName: plan.name, value: total });
+    trackCheckout("plan", { itemName: plan.name, value: total, coupon: discountCode });
     goToCheckout(result.data.checkoutUrl);
   }
 

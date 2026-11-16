@@ -1,3 +1,9 @@
+## 2026-11-16 — Campaign conversions for Black Friday
+
+- **Changed:** `trackViewItem`, `coupon` on GA/Meta checkout and purchase, `TrackViewItem` in `PlanRegistration`, discount code read on `/registracija/apmoketa`; ADR-0106.
+- **Status:** tsc/eslint/93 tests clean; GA `view_item` seen locally after consent. PR open from `feat/campaign-conversions`.
+- **Next:** owner marks `purchase` as a key event in GA and adds a Meta custom conversion (Purchase, coupon = WAKEBLACKFRIDAY2026); check Meta Test events on the live page.
+
 ## 2026-11-16 — Meta Pixel events
 
 - **Changed:** `lib/analytics.ts` sends Meta standard events next to GA (`trackPixel`, `marketingAllowed`), ADR-0105, new `lib/analytics-pixel.test.ts`.
