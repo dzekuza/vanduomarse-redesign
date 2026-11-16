@@ -81,4 +81,13 @@ describe("sessionRows sale price", () => {
     expect(line.regularPrice).toBeUndefined();
     expect(saleSaving([line])).toBe(0);
   });
+
+  it("keeps the regular price for a session put on sale down to free", () => {
+    const pick: SaunaPick = { programId: null, eventId: "e1", children: 0, saunaId: "", startHour: null, hours: 2, extras: {}, masterId: null };
+    const when = { day: "2026-12-01", people: 2 };
+    const [line] = describePlans({ pirtis: planSauna(pick, page([session({ pricePerPerson: 0, regularPrice: 20 })]), when) }, when);
+    expect(line.price).toBe(0);
+    expect(line.regularPrice).toBe(40);
+    expect(saleSaving([line])).toBe(40);
+  });
 });

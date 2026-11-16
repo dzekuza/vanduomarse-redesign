@@ -504,7 +504,7 @@ export function describePlans(plans: Plans, when: When): PlanLine[] {
     const title = (pirtis.mode === "session" ? pirtis.session?.title : pirtis.program.name) ?? pirtis.program?.name ?? "Pirties seansas";
     const date = pirtis.mode === "session" && pirtis.session ? longDateLabel(nextDays(pirtis.session.date, 1)[0]) : dayLabel;
     // A session on sale (no program: the program sets the price) shows what it would cost at the regular price.
-    const regular = pirtis.mode === "session" && !pirtis.program && pirtis.session?.regularPrice && pirtis.price > 0
+    const regular = pirtis.mode === "session" && !pirtis.program && pirtis.session?.regularPrice && pirtis.ok
       ? Math.round(pirtis.session.regularPrice * pirtis.adults * 100) / 100
       : undefined;
     lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : [hoursLabel(pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : [])].join(", "), schedule: `${date}, ${time}`, price: pirtis.price, ...(regular ? { regularPrice: regular } : {}) });
