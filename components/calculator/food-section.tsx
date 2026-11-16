@@ -1,11 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
-import { ChoiceTile } from "@/components/booking/choice-tile";
+import { useId } from "react";
 import { Stepper } from "@/components/booking/stepper";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
-import { BUFFET_OPTIONS, CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney, type CateringId } from "@/lib/event-pricing";
-import { CalculatorOptionCard } from "./calculator-option-card";
+import { BUFFET_OPTIONS, CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney } from "@/lib/event-pricing";
+import { cn } from "@/lib/utils";
 import { OptionToggle } from "./option-toggle";
 import type { EventCalculatorState } from "./use-event-calculator";
 
@@ -13,59 +12,50 @@ interface FoodSectionProps {
   calc: EventCalculatorState;
 }
 
-const OTHER_OPTIONS = CATERING.filter(({ id }) => !id.startsWith("bufetas-"));
+const MEAL_OPTIONS = [...CATERING].sort((a, b) => a.perAdult - b.perAdult);
 
 export function CateringSection({ calc: { input, set } }: FoodSectionProps) {
   const sliderId = useId();
-  const [previewIndex, setPreviewIndex] = useState(0);
-  const selectedIndex = BUFFET_OPTIONS.findIndex(({ id }) => id === input.catering);
-  const selected = selectedIndex >= 0;
-  const index = selected ? selectedIndex : previewIndex;
-  const buffet = BUFFET_OPTIONS[index];
-  const packageLabel = `${index + 1} paketas`;
-  const select = (id: CateringId) => set("catering", input.catering === id ? null : id);
+  const index = Math.max(0, MEAL_OPTIONS.findIndex(({ id }) => id === input.catering));
+  const meal = MEAL_OPTIONS[index];
+  const buffet = BUFFET_OPTIONS.find(({ id }) => id === meal.id);
+  const description = buffet ? `${buffet.hotDishes} karštieji patiekalai` : meal.hint.split(" · ")[0];
 
   return (
     <div className="space-y-4">
-      <CalculatorOptionCard
-        title={buffet.label}
-        price={`${buffet.perAdult} € / asm.`}
-        selected={selected}
-        onToggle={() => {
-          setPreviewIndex(index);
-          select(buffet.id);
-        }}
-      >
-        <div className="w-full">
-          <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam suaugusiajam</label>
-          <input
-            id={sliderId}
-            type="range"
-            min={0}
-            max={BUFFET_OPTIONS.length - 1}
-            step={1}
-            value={index}
-            aria-valuetext={`${packageLabel}, ${buffet.perAdult} eurų vienam asmeniui, ${buffet.hotDishes} karštieji patiekalai`}
-            onChange={(event) => {
-              const nextIndex = event.currentTarget.valueAsNumber;
-              setPreviewIndex(nextIndex);
-              if (selected) set("catering", BUFFET_OPTIONS[nextIndex].id);
-            }}
-            className={`block h-11 w-full cursor-pointer ${selected ? "accent-dust" : "accent-ink"}`}
-          />
-          <div aria-hidden className="flex justify-between text-xs">
-            {BUFFET_OPTIONS.map(({ id, perAdult }, position) => (
-              <span key={id} className={index === position ? "font-bold" : selected ? "text-dust/80" : "text-copy"}>{perAdult} €</span>
-            ))}
-          </div>
+      <div className="space-y-2 border border-line p-4">
+        <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam svečiui</label>
+        <input
+          id={sliderId}
+          type="range"
+          min={0}
+          max={MEAL_OPTIONS.length - 1}
+          value={index}
+          aria-valuetext={`${meal.label}, ${meal.perAdult} eurų asmeniui. ${description}`}
+          onChange={(event) => set("catering", MEAL_OPTIONS[event.currentTarget.valueAsNumber].id)}
+          className="block h-11 w-full accent-ink"
+        />
+        <div className="grid grid-cols-3 gap-1 sm:grid-cols-6">
+          {MEAL_OPTIONS.map(({ id, label, perAdult }, position) => (
+            <button
+              key={id}
+              type="button"
+              aria-label={`${perAdult} €, ${label}`}
+              aria-pressed={position === index}
+              onClick={() => set("catering", id)}
+              className={cn(
+                "min-h-11 border px-1 text-xs font-bold",
+                position === index ? "border-ink bg-ink text-dust" : "border-line hover:border-ink",
+              )}
+            >
+              {perAdult} €
+            </button>
+          ))}
         </div>
-        <p className="text-sm"><span className="font-bold">{packageLabel}</span> · {buffet.hotDishes} karštieji patiekalai</p>
-      </CalculatorOptionCard>
-      <p className="text-xs text-copy">Vaikams iki 3 m. švediškas stalas nemokamas. Vaikams 3–10 m. taikoma 50 % nuolaida.</p>
-      <div className="flex flex-wrap gap-2 [&>*]:flex-1 [&>*]:basis-32">
-        {OTHER_OPTIONS.map(({ id, label, hint }) => (
-          <ChoiceTile key={id} primary={label} secondary={hint} active={input.catering === id} onClick={() => select(id)} />
-        ))}
+        <div aria-live="polite" className="space-y-1 pt-2">
+          <p className="text-sm font-bold">{meal.label}</p>
+          <p className="text-xs text-copy">{description}</p>
+        </div>
       </div>
       <OptionToggle label="Kavos pertrauka" hint={`${formatMoney(COFFEE_BREAK)} / asm.`} checked={input.coffeeBreak} onChange={(next) => set("coffeeBreak", next)} />
     </div>

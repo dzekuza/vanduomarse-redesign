@@ -1,3 +1,4 @@
+- 2026-11-15 Event calculator: select a date to show the daytime and evening options. The selected period determines the venue rate together with the date and is saved with the inquiry. One slider sets the guest count and another selects the per-person catering option with an immediate estimate.
 - 2026-11-15 Service pages: sticky section links fit on one horizontally scrollable row, with the current section highlighted and scrolled toward the leading edge.
 - 2026-11-15 Home: “Skaičiuoti šventės kainą” opens the top of the Šventės Marse page at `/sventes`.
 - 2026-11-15 Home hero: the contact address links to the same Google Maps destination as the directions button.

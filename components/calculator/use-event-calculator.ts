@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type PresetId, type SaunaPick } from "@/lib/event-pricing";
+import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type PresetId, type SaunaPick } from "@/lib/event-pricing";
 import { todayKey } from "@/lib/sauna";
 
 /**
@@ -34,15 +34,24 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
   function applyPreset(id: PresetId) {
     const p = PRESETS.find((x) => x.id === id)!;
     // The type only suggests a group size (and drives the typical price per guest); nothing else is chosen for the visitor.
-    setInput((s) => ({ ...s, preset: id, adults: p.apply.adults ?? DEFAULT_INPUT.adults, kids: p.apply.kids ?? DEFAULT_INPUT.kids }));
+    const suggestedGuests = (p.apply.adults ?? DEFAULT_INPUT.adults) + (p.apply.kids ?? DEFAULT_INPUT.kids);
+    setInput((s) => ({ ...s, preset: id, adults: suggestedGuests }));
   }
 
-  /** The event date also sets the kind of day (workday or evening / weekend); the day tiles can still change it. */
   function chooseDate(date: string) {
-    setInput((s) => ({ ...s, date: date || null, day: date ? dayTypeOf(date) : s.day }));
+    setInput((s) => ({
+      ...s,
+      date: date || null,
+      eventTime: date ? s.eventTime : null,
+      day: date && s.eventTime ? dayTypeOf(date, s.eventTime) : null,
+    }));
   }
 
-  return { input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, space, preset, applyPreset, chooseDate, today };
+  function chooseTime(eventTime: EventTime) {
+    setInput((s) => s.date ? { ...s, eventTime, day: dayTypeOf(s.date, eventTime) } : s);
+  }
+
+  return { input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, space, preset, applyPreset, chooseDate, chooseTime, today };
 }
 
 export type EventCalculatorState = ReturnType<typeof useEventCalculator>;
