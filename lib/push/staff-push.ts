@@ -14,7 +14,7 @@ async function tokensFor(topic: PushTopic): Promise<string[]> {
   try {
     const { data, error } = await createAdminClient().rpc("staff_push_tokens_for", { p_topic: topic });
     if (error) {
-      // Before migration 20261113180000 is applied, skip silently so SMS/email still succeed.
+      // Before migration 20261112181041 is applied, skip silently so SMS/email still succeed.
       return [];
     }
     return data ?? [];
