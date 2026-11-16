@@ -1,10 +1,12 @@
-import { GA_ID, parseConsent, readRawConsent } from "@/lib/consent";
+import { GA_ID, PIXEL_ID, parseConsent, readRawConsent } from "@/lib/consent";
 
 /**
- * Google Analytics 4 events for what visitors do on the site (requests sent, checkout started, payment received).
+ * Google Analytics 4 and Meta Pixel events for what visitors do on the site (requests sent, checkout started,
+ * payment received, registration finished). Each helper sends the GA event and Meta's matching standard event.
  *
- * Nothing is sent unless a GA ID is configured and this visitor allowed analytics in the cookie banner (the same
- * check the tracker loader makes), so callers never have to ask. Parameters never carry names, phones, e-mails or
+ * Nothing is sent to GA unless a GA ID is configured and this visitor allowed analytics, and nothing to Meta unless a
+ * Pixel ID is configured and they allowed marketing in the cookie banner (the same checks the tracker loaders make),
+ * so callers never have to ask. Parameters never carry names, phones, e-mails or
  * references: only what was chosen (service, a price) and the transaction id GA needs to count a payment once.
  */
 
@@ -46,6 +48,28 @@ export function analyticsAllowed(): boolean {
   return parseConsent(readRawConsent())?.analytics === true;
 }
 
+/** True when the Meta Pixel is configured and this visitor allowed marketing cookies. */
+export function marketingAllowed(): boolean {
+  if (typeof window === "undefined" || !PIXEL_ID) return false;
+  return parseConsent(readRawConsent())?.marketing === true;
+}
+
+type PixelParams = Record<string, string | number | string[] | undefined>;
+
+/**
+ * Sends one Meta Pixel standard event, if allowed; waits briefly for fbevents.js like `trackEvent`. `eventId` lets
+ * Meta drop a duplicate of the same purchase (e.g. the return page reloaded).
+ */
+export function trackPixel(name: string, params?: PixelParams, eventId?: string): void {
+  if (!marketingAllowed()) return;
+  let tries = 0;
+  const send = () => {
+    if (window.fbq) window.fbq("track", name, params, eventId ? { eventID: eventId } : undefined);
+    else if (tries++ < WAIT_TRIES) window.setTimeout(send, WAIT_STEP_MS);
+  };
+  send();
+}
+
 /** Sends one GA4 event, if allowed; waits briefly for gtag.js when it is still loading. */
 export function trackEvent(name: string, params?: Record<string, string | number | boolean | object[] | undefined>): void {
   if (!analyticsAllowed()) return;
@@ -59,6 +83,13 @@ export function trackEvent(name: string, params?: Record<string, string | number
 
 const money = ({ value }: ItemInput) => (value === undefined ? {} : { value: Math.round(value * 100) / 100, currency: CURRENCY });
 
+/** Meta's standard parameters: what was chosen and, when known, the value in euros. */
+const pixelParams = (kind: ActivityKind, input: ItemInput): PixelParams => ({
+  content_category: kind,
+  content_name: input.itemName ?? kind,
+  ...(input.value === undefined ? {} : { value: Math.round(input.value * 100) / 100, currency: CURRENCY }),
+});
+
 function items(kind: ActivityKind, { itemName, value }: ItemInput) {
   return [{ item_name: itemName ?? kind, item_category: kind, quantity: 1, ...(value === undefined ? {} : { price: Math.round(value * 100) / 100 }) }];
 }
@@ -66,19 +97,24 @@ function items(kind: ActivityKind, { itemName, value }: ItemInput) {
 /** A request or enquiry was sent without paying online (staff confirm it): GA's recommended `generate_lead`. */
 export function trackLead(kind: ActivityKind, input: ItemInput = {}): void {
   trackEvent("generate_lead", { lead_type: kind, ...(input.itemName ? { item_name: input.itemName } : {}), ...money(input) });
+  trackPixel("Lead", pixelParams(kind, input));
 }
 
 /** The visitor is being sent to Stripe Checkout: `begin_checkout`. */
 export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
   trackEvent("begin_checkout", { ...money(input), items: items(kind, input) });
+  trackPixel("InitiateCheckout", pixelParams(kind, input));
 }
 
 /** A payment came back paid: `purchase`, counted once per transaction id. */
 export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}): void {
   trackEvent("purchase", { transaction_id: transactionId, ...money(input), items: items(kind, input) });
+  // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
+  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, `purchase-${transactionId}`);
 }
 
 /** A new customer finished registering: `sign_up`. */
 export function trackSignUp(method: string): void {
   trackEvent("sign_up", { method });
+  trackPixel("CompleteRegistration", { content_name: method });
 }
