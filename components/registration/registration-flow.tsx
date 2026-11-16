@@ -5,37 +5,40 @@ import { CheckIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { registerRider } from "@/app/actions/registration";
 import { goToCheckout } from "@/components/coupons/order-form";
-import { CouponDiscountField } from "@/components/coupons/coupon-discount-field";
 import { formatEuro } from "@/lib/coupons";
-import { discountFor, type CheckedDiscount } from "@/lib/discount-codes";
 import { clearRegistrationDraft } from "@/lib/registration-draft";
 import type { RegistrationInput } from "@/lib/registration-schema";
 import { CameraCapture } from "./camera-capture";
 import { ContactStep } from "./contact-step";
+import type { RegistrationPlan } from "./plan-registration";
 import { RulesStep } from "./rules-step";
 
-/** A bracelet plan bought together with the registration (WAKE season pass). */
-export interface RegistrationPlan {
-  id: string;
-  name: string;
-  price: number;
+interface RegistrationFlowProps {
+  initial?: Partial<RegistrationInput>;
+  checkout?: {
+    plan: RegistrationPlan;
+    discountCode?: string;
+    total: number;
+    setBusy: (busy: boolean) => void;
+  };
 }
 
-type Step = "kontaktai" | "nuotrauka" | "taisykles" | "baigta";
+const STEPS = [
+  { id: "kontaktai", label: "Kontaktai" },
+  { id: "nuotrauka", label: "Nuotrauka" },
+  { id: "taisykles", label: "Taisyklės" },
+] as const;
 
-const STEPS: Step[] = ["kontaktai", "nuotrauka", "taisykles"];
+type Step = (typeof STEPS)[number]["id"] | "baigta";
 
 /** The 3-step public registration: contacts, a profile photo, then the rules + signature. */
-export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /** Details the signed-in customer already gave, to prefill step 1. */ initial?: Partial<RegistrationInput> }) {
+export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
   const [step, setStep] = useState<Step>("kontaktai");
   const [contact, setContact] = useState<RegistrationInput | null>(null);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
-  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
-  const discountAmount = plan && discount ? discountFor(discount, "planai", plan.price) : 0;
-  const total = plan ? Math.max(plan.price - discountAmount, 0) : 0;
 
   if (step === "baigta") {
     return (
@@ -52,6 +55,8 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
   async function handleSubmit(signature: Blob) {
     if (!contact || !photo) return;
     setSubmitting(true);
+    checkout?.setBusy(true);
+    let goingToCheckout = false;
     setError(null);
     try {
       const form = new FormData();
@@ -64,8 +69,8 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
       if (contact.website) form.set("website", contact.website);
       form.set("photo", photo, "photo.jpg");
       form.set("signature", signature, "signature.png");
-      if (plan) form.set("planId", plan.id);
-      if (plan && discount) form.set("discountCode", discount.code);
+      if (checkout) form.set("planId", checkout.plan.id);
+      if (checkout?.discountCode) form.set("discountCode", checkout.discountCode);
 
       const result = await registerRider(form);
       if ("error" in result) {
@@ -75,35 +80,31 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
       clearRegistrationDraft();
       trackSignUp("rider_registration");
       if (result.data.checkoutUrl) {
-        if (plan) trackCheckout("plan", { itemName: plan.name, value: total });
+        if (checkout) trackCheckout("plan", { itemName: checkout.plan.name, value: checkout.total });
         setRedirecting(true);
         goToCheckout(result.data.checkoutUrl);
+        goingToCheckout = true;
         return;
       }
       setStep("baigta");
     } finally {
       setSubmitting(false);
+      if (!goingToCheckout) checkout?.setBusy(false);
     }
   }
 
-  const stepIndex = STEPS.indexOf(step);
+  const stepIndex = STEPS.findIndex(({ id }) => id === step);
 
   return (
     <div className="space-y-6">
-      {plan ? (
-        <div className="rounded-lg border border-border p-4 text-sm">
-          <p className="font-bold">{plan.name}: {formatEuro(total)}{discount ? <span className="ml-2 font-normal text-muted-foreground">(be nuolaidos {formatEuro(plan.price)})</span> : null}</p>
-          <p className="text-muted-foreground">Užpildyk kontaktus, nusifotografuok ir pasirašyk taisykles, tada apmokėk. Apyrankę priskirs darbuotojas parke.</p>
-          <div className="mt-3">
-            <CouponDiscountField service="planai" discount={discount} amount={discountAmount} disabled={submitting || redirecting} onChange={setDiscount} />
-          </div>
-        </div>
-      ) : null}
-      <div className="flex gap-1.5" aria-hidden>
-        {STEPS.map((s, i) => (
-          <span key={s} className={`h-1.5 flex-1 rounded-full ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
+      <ol aria-label="Registracijos žingsniai" className="grid grid-cols-3 gap-1.5">
+        {STEPS.map(({ id, label }, i) => (
+          <li key={id} aria-current={id === step ? "step" : undefined} className="space-y-2">
+            <span className={`block text-xs ${id === step ? "font-bold text-ink" : "text-copy"}`}>{label}</span>
+            <span aria-hidden className={`block h-1.5 rounded-full ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
+          </li>
         ))}
-      </div>
+      </ol>
 
       {step === "kontaktai" ? (
         <ContactStep
@@ -121,7 +122,7 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
         <RulesStep
           fullName={`${contact.name} ${contact.surname}`}
           submitting={submitting || redirecting}
-          submitLabel={plan ? `Sutinku ir mokėti ${formatEuro(total)}` : undefined}
+          submitLabel={checkout ? `Sutinku ir mokėti ${formatEuro(checkout.total)}` : undefined}
           error={error}
           onBack={() => setStep("nuotrauka")}
           onSubmit={handleSubmit}

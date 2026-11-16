@@ -2,14 +2,17 @@
 
 import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
+import { checkDiscountCode } from "@/app/actions/discount-codes";
 import { loadMyRiders } from "@/lib/account-data";
 import { getCustomer } from "@/lib/customer";
+import { normalizeDiscountCode } from "@/lib/discount-codes";
 import { registrationSchema } from "@/lib/registration-schema";
 import { TERMS_VERSION } from "@/lib/park-rules";
 import { openPlanCheckout } from "@/lib/plan-checkout";
 import { paymentsEnabled } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicClient } from "@/lib/supabase/public";
+import { isWakeBlackFridayDiscount, WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_SEASON_PASS_ID } from "@/lib/wake-black-friday";
 
 /**
  * Public self-registration for /registracija: creates a `riders` row and its
@@ -26,6 +29,16 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
 
 const PLAN_FAILED = "Registracija įrašyta, bet nepavyko pradėti mokėjimo. Skambinkite mums ir užbaigsime užsakymą.";
+const CAMPAIGN_UNAVAILABLE = "Šiuo metu „Black Friday“ pasiūlymas negalioja.";
+
+async function validateCampaignDiscount(planId: string, discountCode?: string) {
+  const campaign = WAKE_BLACK_FRIDAY_DISCOUNT;
+  if (!discountCode || normalizeDiscountCode(discountCode) !== campaign.code) return null;
+  if (planId.toLowerCase() !== WAKE_SEASON_PASS_ID) return fail(CAMPAIGN_UNAVAILABLE, "discount");
+  const result = await checkDiscountCode(campaign.code);
+  return "data" in result && isWakeBlackFridayDiscount(result.data)
+    ? null : fail(CAMPAIGN_UNAVAILABLE, "discount");
+}
 
 /**
  * With `planId` (a bracelet plan sold online, e.g. a WAKE season pass) the registration continues into Stripe
@@ -50,9 +63,13 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
   // Buying a plan: refuse a bad plan or a missing payment setup BEFORE anything is saved.
   const planField = form.get("planId");
   const planId = typeof planField === "string" && planField !== "" ? planField : null;
+  const discountField = form.get("discountCode");
+  const discountCode = typeof discountField === "string" ? discountField.trim().slice(0, 40) : undefined;
   if (planId) {
     if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
     if (!paymentsEnabled()) return fail("Mokėjimas šiuo metu neveikia. Skambinkite mums ir užregistruosime jus.", "setup");
+    const campaignError = await validateCampaignDiscount(planId, discountCode);
+    if (campaignError) return campaignError;
   }
 
   const photo = form.get("photo");
@@ -103,8 +120,7 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ ride
 
   if (!planId) return { data: { riderId } };
 
-  const discountField = form.get("discountCode");
-  const started = await startPlanCheckout(riderId, planId, typeof discountField === "string" ? discountField.trim().slice(0, 40) : undefined);
+  const started = await startPlanCheckout(riderId, planId, discountCode);
   return "error" in started ? started : { data: { riderId, checkoutUrl: started.data.checkoutUrl } };
 }
 
@@ -143,5 +159,8 @@ export async function buyPlanAsMember(planId: string, discountCode?: string): Pr
   if (!customer) return fail("Prisijunkite, kad tęstumėte.", "unauthorized");
   const member = (await loadMyRiders()).find((r) => r.registration && r.registered);
   if (!member) return fail("Registracija nerasta. Užpildykite registracijos formą.", "not_registered");
-  return startPlanCheckout(member.id, planId, discountCode?.trim().slice(0, 40));
+  const code = typeof discountCode === "string" ? discountCode.trim().slice(0, 40) : undefined;
+  const campaignError = await validateCampaignDiscount(planId, code);
+  if (campaignError) return campaignError;
+  return startPlanCheckout(member.id, planId, code);
 }

@@ -9,7 +9,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
 import { SERVICE_GALLERY } from "@/components/landing/content";
-import { ServiceGallery } from "@/components/landing/service-gallery";
+import { BookingPanel } from "@/components/booking/booking-panel";
 import { useWakeBooking, WakeBookingChoices, WakeBookingSummary } from "@/components/services/wake-service-booking";
 import { useReleaseOnBrowserBack } from "@/hooks/use-release-on-back";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
@@ -533,13 +533,9 @@ export function ReservationFlow({
             </div>
           </div>
           {wake ? (
-            <aside aria-label="WAKE užsakymas" className="min-w-0 border border-line bg-foam lg:sticky lg:top-32 lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto">
-              <ServiceGallery photos={SERVICE_GALLERY.wake} variant="panel" label="WAKE nuotraukos" />
-              <div className="space-y-6 p-5 sm:p-8">
-                <h2 className="text-tile font-bold">Užsakyti</h2>
-                <WakeBookingSummary product={wakeBooking.product} contact={ACADEMY_CONTACT} />
-              </div>
-            </aside>
+            <BookingPanel title="Užsakyti" label="WAKE užsakymas" photos={SERVICE_GALLERY.wake} photoLabel="WAKE nuotraukos" showOnMobile>
+              <WakeBookingSummary product={wakeBooking.product} contact={ACADEMY_CONTACT} />
+            </BookingPanel>
           ) : (
             <PlanPanel ref={inline ? inlinePlan : undefined} activity={tab} photos={photos} inline={inline} continueAction={continueAction} secondaryAction={secondaryAction} {...planDetails} />
           )}
