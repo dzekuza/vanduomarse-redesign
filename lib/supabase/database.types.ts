@@ -632,6 +632,99 @@ export type Database = {
           },
         ]
       }
+      external_blocks: {
+        Row: {
+          calendar_id: string
+          id: string
+          nights: number
+          starts_on: string
+          uid: string
+        }
+        Insert: {
+          calendar_id: string
+          id?: string
+          nights: number
+          starts_on: string
+          uid: string
+        }
+        Update: {
+          calendar_id?: string
+          id?: string
+          nights?: number
+          starts_on?: string
+          uid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_blocks_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "external_calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_calendar_feeds: {
+        Row: {
+          calendar_id: string
+          feed_url: string
+        }
+        Insert: {
+          calendar_id: string
+          feed_url: string
+        }
+        Update: {
+          calendar_id?: string
+          feed_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_calendar_feeds_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "external_calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_calendars: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          label: string
+          last_error: string | null
+          last_synced_at: string | null
+          stay_type_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          stay_type_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          stay_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_calendars_stay_type_id_fkey"
+            columns: ["stay_type_id"]
+            isOneToOne: false
+            referencedRelation: "stay_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inquiries: {
         Row: {
           accepted_at: string | null
@@ -2316,6 +2409,22 @@ export type Database = {
           space: string
           status: Database["public"]["Enums"]["inquiry_status"]
         }[]
+      }
+      set_external_feed: {
+        Args: { p_calendar: string; p_url: string }
+        Returns: undefined
+      }
+      external_sync_feeds: {
+        Args: never
+        Returns: { calendar_id: string; feed_url: string }[]
+      }
+      sync_external_blocks: {
+        Args: { p_blocks: Json; p_calendar: string }
+        Returns: number
+      }
+      external_sync_failed: {
+        Args: { p_calendar: string; p_error: string }
+        Returns: undefined
       }
       set_purchase_payment: {
         Args: { p_method: string; p_purchase_id: string }

@@ -9,7 +9,7 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { Block, Booking, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -409,6 +409,7 @@ export function toTourTicket(r: TicketRow): TourTicket {
     customer: { name: r.customer_name, email: r.customer_email ?? "", phone: r.customer_phone ?? "" },
     total: r.total,
     status: r.status,
+    source: r.source,
     createdAt: r.created_at,
     riderId: r.rider_id ?? undefined,
   };
@@ -431,4 +432,13 @@ const NOTIFICATION_KINDS: StaffNotification["kind"][] = ["uzklausa", "mokejimas"
 export function toStaffNotification(r: Tables<"staff_notifications">): StaffNotification {
   const kind = NOTIFICATION_KINDS.find((k) => k === r.kind) ?? "uzklausa";
   return { id: r.id, kind, title: r.title, body: r.body, reference: r.reference, href: r.href, createdAt: r.created_at };
+}
+
+export function toExternalCalendar(r: Tables<"external_calendars">): ExternalCalendar {
+  return { id: r.id, stayTypeId: r.stay_type_id, label: r.label, active: r.active, lastSyncedAt: r.last_synced_at ?? undefined, lastError: r.last_error ?? undefined };
+}
+
+/** A block row joined to its calendar's room number and stay type. */
+export function toExternalBlock(r: Tables<"external_blocks">, calendar: ExternalCalendar): ExternalBlock {
+  return { id: r.id, calendarId: r.calendar_id, stayTypeId: calendar.stayTypeId, label: calendar.label, startsOn: r.starts_on, nights: r.nights };
 }

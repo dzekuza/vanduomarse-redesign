@@ -1,12 +1,54 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-14
+updated: 2026-11-16
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0103 — A sale's origin (online vs admin) comes from the existing `source` column
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner wants to see on Apžvalga which sales customers made themselves and which staff entered in /admin.
+- **Decision:** no new column. `Sale.source` reads `booking_source` from bookings, quad rentals and event tickets (`svetaine` = the site, `telefonu` / `vietoje` = staff). Coupons have no source and are only ordered on /kuponai, so they count as `svetaine`; bracelet plans are only sold at the till, so they count as `vietoje`. `saleOrigin()` folds it to "Internetu" / "Admin"; `SaleFilters.origin` filters the table and the stats.
+- **Consequences:** a booking without a source (older rows, if any) shows as Internetu. If staff ever issue coupons by hand, coupons need a source column first.
+
+---
+
+## ADR-0103 — Google Analytics events go through one consent-gated helper and use GA4's recommended names
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+
+**Context.** ADR-0085 loads GA4 only after the visitor accepts analytics, and GA's enhanced measurement already reports page views (including App Router route changes). What was missing was what visitors do: requests sent, checkout started, payment received.
+
+**Decision.** `lib/analytics.ts` is the only place events are sent. `trackEvent` returns unless a GA id is set and the stored consent allows analytics (the same test the loader uses), and waits up to 5 s for gtag.js, so call sites never check consent. Events use GA4's recommended names so reports and key events work without setup: `generate_lead` (a request or enquiry filed without paying online, `lead_type` says which), `begin_checkout`, `purchase` (once per transaction id, sent from the paid return pages by `TrackPurchase`) and `sign_up`. Parameters are the chosen item and a euro value only: no names, phones, e-mails or references. The admin, the embed widgets and server-side events are not tracked.
+
+**Consequences.** Mark `generate_lead`, `purchase` and `sign_up` as key events in GA (Admin → Events) to see conversions per page. Online-paid bookings are counted at `purchase`, pay-on-site and staff-confirmed requests at `generate_lead`. A coupon's `purchase` value is its face value, not the discounted amount paid. Embedded widgets on other sites do not report, because the cookie banner lives in the root layout. Tests in `lib/analytics.test.ts`.
+
+---
+
+## ADR-0102 — Sirvoy (Booking.com's channel manager) is read in over iCal, one way, and counts as stay stock
+
+- **Status:** Accepted, built 2026-11-16 (feed addresses still to be entered by the owner)
+- **Date:** 2026-11-16
+- **Context:** the 14 Booking.com apartments need to appear on the admin calendar, and a night sold on Booking.com must not be sellable on /rezervacija. The Booking.com Connectivity API is limited to certified partners; a channel manager costs money and was not wanted.
+- **Decision:** poll each Sirvoy room's iCal export (the property's Booking.com connection is XML via Sirvoy, so Booking.com has no iCal of its own; Sirvoy has no open API) every 15 min from a Vercel Cron route into `external_blocks` (one row per reservation, 1 unit each), fed by `external_calendars` (14 feed URLs, owner-only, never sent to the browser). `stay_occupancy()` and the stay capacity trigger count blocks like bookings. No reverse feed: our bookings are not published to Booking.com. Details in [[booking-com-sync]].
+- **Consequences:** no guest name, price or contact on blocks (iCal has none). Booking.com's 15-60 min refresh leaves a short double-booking window. Adds `CRON_SECRET` and the project's first `vercel.json`. The 14 apartments are the existing `namelis-2` (8 units) and `namelis-4` (6 units): no new stay types, 8 + 6 feeds.
+
+---
+
+## ADR-0102 addendum — how it is built
+
+- **Data:** `external_calendars` (14 rooms, label = Sirvoy room number), `external_calendar_feeds` (secret URLs, RLS with no policy), `external_blocks`. One block = one room for those nights, counted per distinct room so overlapping events never double count.
+- **Stock:** `private.external_units_on` feeds `stay_occupancy()` and `enforce_stay_capacity()`; verified in rolled-back SQL (overlap counts once, check-out day free, an empty feed clears, a full type raises `stay_full`).
+- **Safety:** only `secured.sirvoy.com/ical/<id>` is accepted (form, action, column check, fetch), no redirects, 15 s, 2 MB; a non-iCal reply never clears blocks; a failed read keeps the old ones and shows the error on the room. Feed URLs never reach the browser; the owner saves them through `set_external_feed`, and the service role only calls three sync functions.
+- **Not done:** blocks carry no guest details (iCal has none); the mobile app's data model does not include them; the Sirvoy booking webhook (JSON with guest names) remains a later upgrade.
 
 ---
 

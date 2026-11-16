@@ -1,3 +1,39 @@
+## 2026-11-16 — Google Analytics events
+
+- **Changed:** `lib/analytics.ts` (+5 tests), `TrackPurchase`; events wired into 11 submit points, the Stripe redirects and the paid return pages; ADR-0103.
+- **Status:** tsc, eslint, 87 tests clean. Not seen in GA yet (no GA id locally).
+- **Next:** commit and merge (uncommitted on `main`), redeploy, accept cookies on the live site, send a test request, check GA Realtime; mark `generate_lead`, `purchase`, `sign_up` as key events.
+
+## 2026-11-16 — Inquiries as a list
+
+- **Changed:** /admin/uzklausos board replaced by `InquiriesTable` + filters/search in `InquiriesView`; `InquiriesBoard`, `InquiryCard` deleted.
+- **Status:** tsc/eslint/tests clean; browser-checked desktop and 375 px. In PR #113, with review fixes (panel date, held label, search label, notes).
+- **Next:** merge PR #113.
+
+## 2026-11-16 — Online vs admin sales
+
+- **Changed:** `Sale.source`, `saleOrigin`, `SaleOriginBadge`, origin filter in `SalesFilters`, `TourTicket.source`; ADR-0103.
+- **Status:** tsc/eslint/tests clean; checked in the browser at desktop and 375 px.
+- **Next:** the bookings list (Rezervacijos) could reuse `SaleOriginBadge` if wanted.
+
+## 2026-11-16 — Duplicate a sauna session
+
+- **Changed:** "Dubliuoti" in the Seansai row menu; `EventDialog` `template` prop, `CategoryEventsList` `onDuplicate`.
+- **Status:** tsc/eslint clean; browser-checked that Dubliuoti opens "Naujas seansas" pre-filled. Saving a copy not tried (live data).
+- **Next:** at /admin/pirtis duplicate a session, change the date, save, and check the copy shows 0 sold.
+
+## 2026-11-16 — Sirvoy sync live
+
+- **Changed:** no code. PR #114 merged; `CRON_SECRET` set; all 14 Sirvoy export URLs saved in /admin/namukai.
+- **Status:** production route 401 without the secret, 200 with it; DB shows 14 active rooms, no errors, 2-12 blocks each; `stay_occupancy()` counts them (25-26 Jun 2027 fully taken).
+- **Next:** look at the calendar and /rezervacija for a known booking; blocks are labelled "Booking.com" although the feed also holds front-desk bookings and closures; confirm the 15-minute schedule runs.
+
+## 2026-11-16 — Sirvoy room calendars built
+
+- **Changed:** migration `20261116120000_external_calendars` (applied): `external_calendars` / `external_calendar_feeds` / `external_blocks`, `stay_occupancy()` and `enforce_stay_capacity()` count Sirvoy rooms, owner and service-role functions. `lib/ical.ts` (+13 tests), `lib/external-sync.ts`, `/api/cron/sirvoy-sync`, `vercel.json`, owner card in /admin/namukai, read-only Kalendorius entries, admin stock helpers take the blocks. `.env.example` gained `CRON_SECRET`. Vault: database, api-architecture, environment-variables, components, utils, changelog, ADR-0102, `backend/booking-com-sync.md`.
+- **Status:** tsc, eslint, 82 tests clean; SQL-verified in rolled-back transactions; Namukai and Kalendorius render with the owner session. Not tested with a live feed. Mobile app model not updated.
+- **Next:** `CRON_SECRET` in Vercel (Pro for */15), paste the 14 export URLs, compare one booking on the calendar and on /rezervacija; consider the Sirvoy booking webhook for guest names.
+
 ## 2026-11-14 — Short month in the date picker
 
 - **Changed:** `DatePicker` field text uses `MONTH_SHORT` ("lapkr.").

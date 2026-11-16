@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -132,6 +133,7 @@ export function SaunaBooking({ today, nowHour, days: dayCount, sauna, upsells, t
     });
     if ("error" in result) return form.setError("root", { message: result.error.message });
     const { reference, total: charged, discount: applied } = result.data;
+    trackLead("sauna", { itemName: sauna.name, value: charged });
     setConfirmed({ reference, total: charged, coupon: coupon && applied > 0 ? { code: coupon.code, discount: applied } : undefined });
   });
 

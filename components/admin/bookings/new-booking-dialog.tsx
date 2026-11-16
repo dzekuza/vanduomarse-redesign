@@ -38,7 +38,7 @@ interface NewBookingDialogProps {
  * a private sauna slot, a stay, or tickets for an event or session.
  */
 export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookingDialogProps) {
-  const { me, bookings, blocks, saunas, events, upsells: catalogue, stayTypes, quadTypes, quadTourRoutes, createBooking, createEventTicket } = useAdmin();
+  const { me, bookings, blocks, externalBlocks, saunas, events, upsells: catalogue, stayTypes, quadTypes, quadTourRoutes, createBooking, createEventTicket } = useAdmin();
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [quad, setQuad] = useState<{ kind: "rental" } | { kind: "tour"; routeId: string } | null>(null);
   const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId ? "form" : "choose");
@@ -78,10 +78,10 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   const upsells = chosen ? catalogue.filter((u) => chosen.upsellIds.includes(u.id)) : [];
   const slice = saunaSlice(bookings, blocks, saunaId);
   const options = useMemo(() => {
-    const all = bookingOptionsOn(date, { events, bookings, blocks, saunas, stayTypes });
+    const all = bookingOptionsOn(date, { events, bookings, blocks, saunas, stayTypes, externalBlocks });
     // Without Renginiai, only the guided quad tours (category keturratis) can be sold here, as the tickets policy allows.
     return hasPermission(me, "renginiai") ? all : { ...all, events: all.events.filter(({ event }) => event.category === "keturratis") };
-  }, [date, events, bookings, blocks, saunas, stayTypes, me]);
+  }, [date, events, bookings, blocks, saunas, stayTypes, externalBlocks, me]);
 
   const starts = sauna && chosen && date ? freeStartHours(slice.bookings, slice.blocks, saunaRates, date) : [];
   const run = sauna && chosen && startHour ? freeHoursFrom(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : 0;
@@ -136,7 +136,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
     if (!sauna) {
       if (!stayType) return setError("kind", { message: "Šio tipo nakvynės nėra – pridėkite ją skiltyje Namukai." });
-      const full = fullStayNights(bookings, v.date, Number(v.nights), stayType);
+      const full = fullStayNights(bookings, v.date, Number(v.nights), stayType, externalBlocks);
       if (full.length) return setError("nights", { message: `„${stayType.label}“ užimti: ${full.join(", ")}` });
     }
     const result = await createBooking({

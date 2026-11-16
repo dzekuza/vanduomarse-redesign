@@ -20,6 +20,8 @@ interface EventDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Existing event to edit; omit to create. */
   event?: ManagedEvent;
+  /** When creating, copy this event's details (duplicate); the copy is a new event with no tickets sold or held. */
+  template?: ManagedEvent;
   /** When creating, start in this category and hide the category picker (e.g. a sauna session from the sauna admin). */
   presetCategory?: EventCategory;
   /** When creating, start on this day (yyyy-mm-dd), e.g. from a calendar cell. */
@@ -52,13 +54,14 @@ const KIND_COPY: Partial<Record<EventCategory, { nom: string; acc: string; creat
 };
 
 /** Create or edit an event. Remounted per event (key) so defaults reset. */
-export function EventDialog({ open, onOpenChange, event, presetCategory, presetDate }: EventDialogProps) {
+export function EventDialog({ open, onOpenChange, event, template, presetCategory, presetDate }: EventDialogProps) {
+  const source = event ?? template;
   const { saveEvent, programs, saunas } = useAdmin();
   const sessionDialog = presetCategory === "pirtis";
   const saunaNames = saunas.map((s) => s.name);
   const { register, control, handleSubmit, setError, formState } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues: toValues(event, presetCategory, presetDate, sessionDialog ? ((saunas.find((s) => s.active) ?? saunas[0])?.name ?? "Pirtis Marse") : undefined),
+    defaultValues: toValues(source, presetCategory, presetDate, sessionDialog ? ((saunas.find((s) => s.active) ?? saunas[0])?.name ?? "Pirtis Marse") : undefined),
   });
   const lockCategory = !!presetCategory;
   const copy = presetCategory ? KIND_COPY[presetCategory] : undefined;
@@ -75,15 +78,15 @@ export function EventDialog({ open, onOpenChange, event, presetCategory, presetD
       category: v.category as EventCategory,
       date: v.date,
       time: v.time,
-      durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : event?.durationMinutes,
-      place: sessionDialog ? `${v.place}${attendantSuffix(event?.place)}` : v.place,
+      durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : source?.durationMinutes,
+      place: sessionDialog ? `${v.place}${attendantSuffix(source?.place)}` : v.place,
       blurb: v.blurb,
       price: program ? program.price : v.price === "" ? null : Number(v.price),
       capacity: v.capacity === "" ? null : Number(v.capacity),
       sold: event?.sold ?? 0,
       held: event?.held ?? 0,
       published: v.visibility === "public",
-      calendarPrivate: v.visibility === "private" || event?.calendarPrivate ? v.visibility === "private" : undefined,
+      calendarPrivate: v.visibility === "private" || source?.calendarPrivate ? v.visibility === "private" : undefined,
       programId: v.category === "pirtis" && program ? program.id : undefined,
     });
     if ("error" in result) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -82,6 +83,7 @@ export function QuadRental({ data }: { data: QuadPageData }) {
       verificationToken: c.verificationToken,
     });
     if ("error" in result) return form.setError("root", { message: result.error.message });
+    trackLead("quad_rental", { itemName: type.name });
     setSent({
       ...result.data,
       rows: [

@@ -20,4 +20,4 @@ What backend surface `vanduomarse-redesign` has, and what it deliberately does n
 
 ## Related
 
-[[api-architecture]] · [[database]] · [[environment-variables]]
+[[api-architecture]] · [[database]] · [[environment-variables]] · [[booking-com-sync]] (plan)

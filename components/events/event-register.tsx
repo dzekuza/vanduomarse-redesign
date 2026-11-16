@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -22,6 +23,7 @@ export function EventRegister({ eventId, title }: { eventId: string; title: stri
   const submit = form.handleSubmit(async (values) => {
     const result = await registerForEvent({ eventId, people, ...values });
     if ("error" in result) return form.setError("root", { message: result.error.message });
+    trackLead("event_registration", { itemName: title });
     setSent(true);
   });
 

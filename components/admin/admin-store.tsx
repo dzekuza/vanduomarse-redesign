@@ -580,6 +580,9 @@ function useAdminReducer(initial: AdminData) {
         dispatch({ type: "stayType/upsert", stayType });
         return report(actions.saveStayType(stayType));
       },
+      /** Owner: store or clear a room's Sirvoy feed address. Not optimistic: the address never comes back to the browser. */
+      saveExternalFeed: (calendarId: string, url: string) => report(actions.saveExternalFeed(calendarId, url)),
+      syncExternalNow: () => report(actions.syncExternalNow()),
       deleteStayType: (id: string) => {
         dispatch({ type: "stayType/delete", id });
         return report(actions.deleteStayType(id));

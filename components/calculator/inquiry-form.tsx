@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -63,6 +64,7 @@ export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }:
       calculatorInput: { ...input, lines: estimate.lines },
     });
     if ("error" in result) return form.setError("root", { message: result.error.message });
+    trackLead("event_inquiry", { value: (estimate.total.min + estimate.total.max) / 2 });
     setSent(true);
     setConfirmOpen(true);
   });

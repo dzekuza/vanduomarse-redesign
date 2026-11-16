@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MAIN_CONTACT, telHref } from "@/lib/contacts";
+import { TrackPurchase } from "@/components/analytics/track-purchase";
 import { PayAgain, PaymentPoller } from "./payment-actions";
 import { PaymentRequests, type PaymentRequestView } from "./payment-requests";
 
@@ -44,6 +45,7 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
 
   return (
     <PaymentCard title={copy.title} text={copy.text} refs={payment.refs} amount={payment.amount} details={<PaymentRequests requests={payment.requests} />}>
+      {payment.status === "apmoketa" ? <TrackPurchase kind="reservation" transactionId={payment.id} value={payment.amount} /> : null}
       {open && !cancelled ? <PaymentPoller /> : null}
       {open && cancelled ? <PayAgain paymentId={payment.id} /> : null}
       {payment.needsReview ? (
