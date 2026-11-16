@@ -116,9 +116,10 @@ export async function sendCapiEvent(event: CapiEvent): Promise<void> {
   const testCode = new URL(event.sourceUrl).hostname === "localhost" ? process.env.META_CAPI_TEST_EVENT_CODE?.trim() : undefined;
   const body = { data: [buildCapiPayload(event)], ...(testCode ? { test_event_code: testCode } : {}) };
   try {
-    const res = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${PIXEL_ID}/events?access_token=${encodeURIComponent(token)}`, {
+    // The token goes in the Authorization header, never in the URL (URLs end up in logs).
+    const res = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/${PIXEL_ID}/events`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
       cache: "no-store",

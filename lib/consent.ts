@@ -8,6 +8,11 @@
  */
 
 export const CONSENT_STORAGE_KEY = "vm_consent";
+/**
+ * The marketing choice mirrored into a first-party cookie ("1" / "0"), so the server can check it before it sends
+ * anything to Meta (the Conversions API, ADR-0107). It records the choice itself, like the localStorage entry.
+ */
+export const MARKETING_CONSENT_COOKIE = "vm_mkt";
 export const CONSENT_VERSION = 1;
 const CONSENT_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 const OPEN_SETTINGS_EVENT = "vm:consent-settings";
@@ -59,6 +64,18 @@ export function parseConsent(raw: string | null): ConsentChoice | null {
   }
 }
 
+/** Mirrors the marketing choice into `vm_mkt` for the server; a missing choice clears it. */
+export function syncMarketingConsentCookie(choice: ConsentChoice | null): void {
+  try {
+    const secure = window.location.protocol === "https:" ? "; secure" : "";
+    document.cookie = choice
+      ? `${MARKETING_CONSENT_COOKIE}=${choice.marketing ? "1" : "0"}; path=/; max-age=${Math.floor(CONSENT_MAX_AGE_MS / 1000)}; samesite=lax${secure}`
+      : `${MARKETING_CONSENT_COOKIE}=; path=/; max-age=0`;
+  } catch {
+    // Cookies blocked: the server then sends nothing to Meta, which is the safe default.
+  }
+}
+
 export function writeConsent(choice: ConsentChoice): void {
   const stored: StoredConsent = { ...choice, v: CONSENT_VERSION, at: Date.now() };
   try {
@@ -66,6 +83,7 @@ export function writeConsent(choice: ConsentChoice): void {
   } catch {
     // Storage blocked: the choice only lasts for this page view; the banner returns next time.
   }
+  syncMarketingConsentCookie(choice);
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 

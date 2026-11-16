@@ -3,6 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { getCustomer } from "@/lib/customer";
+import { MARKETING_CONSENT_COOKIE } from "@/lib/consent";
 import { capiConfigured, CAPI_EVENTS, sendCapiEvent, type CapiCustomData, type CapiUser } from "@/lib/meta-capi";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -37,6 +38,8 @@ interface VerifiedPurchase {
   /** The id the browser Pixel used too: payment id, coupon reference or plan order reference. */
   transactionId: string;
   value: number;
+  /** Discount code on the order itself, never the browser's. */
+  coupon?: string;
   user: Pick<CapiUser, "email" | "phone" | "firstName" | "lastName" | "externalId">;
 }
 
@@ -47,26 +50,48 @@ const STRIPE_SESSION = /^cs_[A-Za-z0-9_]{10,200}$/;
 
 const recentlyPaid = (paidAt: string | null) => Boolean(paidAt) && Date.now() - new Date(paidAt as string).getTime() < PURCHASE_WINDOW_MS;
 
-/** The paid row the payer's proof points to, or null when it is unknown, unpaid or paid too long ago. */
+/**
+ * The paid row the payer's proof points to, or null when it is unknown, not (or no longer) paid, or paid too long ago.
+ * "Paid" is the row's paid status, not just `paid_at`: a refunded or cancelled order is not reported.
+ */
 async function verifyPurchase(kind: "reservation" | "coupon" | "plan", proof: string): Promise<VerifiedPurchase | null> {
   const admin = createAdminClient();
   if (kind === "reservation") {
     if (!z.uuid().safeParse(proof).success) return null;
-    const { data } = await admin.from("payments").select("id, amount, paid_at, customer_email, customer_phone").eq("id", proof).maybeSingle();
-    if (!data || !recentlyPaid(data.paid_at)) return null;
+    const { data } = await admin.from("payments").select("id, status, amount, paid_at, customer_email, customer_phone").eq("id", proof).maybeSingle();
+    if (!data || data.status !== "apmoketa" || !recentlyPaid(data.paid_at)) return null;
     return { transactionId: data.id, value: Number(data.amount), user: { email: data.customer_email, phone: data.customer_phone } };
   }
   if (!STRIPE_SESSION.test(proof)) return null;
   if (kind === "coupon") {
-    const { data } = await admin.from("coupons").select("reference, paid_amount, paid_at, buyer_email, buyer_phone, buyer_name, rider_id").eq("stripe_session_id", proof).maybeSingle();
-    if (!data || !recentlyPaid(data.paid_at)) return null;
+    const { data } = await admin
+      .from("coupons")
+      .select("reference, status, face_value, refunded_amount, discount_code, paid_at, buyer_email, buyer_phone, buyer_name, rider_id")
+      .eq("stripe_session_id", proof)
+      .maybeSingle();
+    if (!data || (data.status !== "aktyvus" && data.status !== "panaudotas") || Number(data.refunded_amount ?? 0) > 0 || !recentlyPaid(data.paid_at)) return null;
     const [firstName, ...rest] = (data.buyer_name ?? "").trim().split(/\s+/);
-    return { transactionId: data.reference, value: Number(data.paid_amount ?? 0), user: { email: data.buyer_email, phone: data.buyer_phone, firstName, lastName: rest.join(" "), externalId: data.rider_id } };
+    // Face value, like GA and the Pixel (ADR-0103), so the browser and server copies of the event carry the same value.
+    return {
+      transactionId: data.reference,
+      value: Number(data.face_value),
+      coupon: data.discount_code ?? undefined,
+      user: { email: data.buyer_email, phone: data.buyer_phone, firstName, lastName: rest.join(" "), externalId: data.rider_id },
+    };
   }
-  const { data } = await admin.from("rider_plan_orders").select("reference, price, paid_at, rider_id, riders(email, phone, name, surname)").eq("stripe_session_id", proof).maybeSingle();
-  if (!data || !recentlyPaid(data.paid_at)) return null;
+  const { data } = await admin
+    .from("rider_plan_orders")
+    .select("reference, status, price, discount_code, paid_at, rider_id, riders(email, phone, name, surname)")
+    .eq("stripe_session_id", proof)
+    .maybeSingle();
+  if (!data || data.status !== "apmoketa" || !recentlyPaid(data.paid_at)) return null;
   const rider = Array.isArray(data.riders) ? data.riders[0] : data.riders;
-  return { transactionId: data.reference, value: Number(data.price), user: { email: rider?.email, phone: rider?.phone, firstName: rider?.name, lastName: rider?.surname, externalId: data.rider_id } };
+  return {
+    transactionId: data.reference,
+    value: Number(data.price),
+    coupon: data.discount_code ?? undefined,
+    user: { email: rider?.email, phone: rider?.phone, firstName: rider?.name, lastName: rider?.surname, externalId: data.rider_id },
+  };
 }
 
 /** Sends one Conversions API event. Returns nothing and never throws: tracking must not break the page. */
@@ -81,37 +106,47 @@ export async function reportMetaEvent(raw: MetaEventInput): Promise<void> {
   if (host === "localhost" && !process.env.META_CAPI_TEST_EVENT_CODE?.trim()) return;
 
   try {
-    const [h, jar, customer] = await Promise.all([headers(), cookies(), getCustomer()]);
-    let user: CapiUser = {
+    const [h, jar] = await Promise.all([headers(), cookies()]);
+    // Consent is checked here too, not only in the browser: the banner mirrors the marketing choice into a cookie.
+    if (jar.get(MARKETING_CONSENT_COOKIE)?.value !== "1") return;
+    const technical: CapiUser = {
       ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip"),
       userAgent: h.get("user-agent"),
       fbp: jar.get("_fbp")?.value,
       fbc: jar.get("_fbc")?.value,
-      email: customer?.email,
-      phone: customer?.phone,
-      firstName: customer?.name.split(/\s+/)[0],
-      lastName: customer?.name.split(/\s+/).slice(1).join(" "),
-      externalId: customer?.id,
     };
+    let user: CapiUser;
     let value = v.value;
     let eventId = v.eventId;
+    let coupon = v.coupon;
 
     if (v.name === "Purchase") {
       if (!v.purchase) return;
       const paid = await verifyPurchase(v.purchase.kind, v.purchase.proof);
       if (!paid) return;
       value = paid.value;
+      coupon = paid.coupon;
       // Built here, never taken from the browser, so a replay cannot slip past Meta's de-duplication.
       eventId = `purchase-${paid.transactionId}`;
-      // The order's own contact beats the session's: it is who actually paid.
-      user = { ...user, ...Object.fromEntries(Object.entries(paid.user).filter(([, x]) => x)) };
+      // Only the payer's identity from the order, never mixed with whoever is signed in on this browser.
+      user = { ...technical, ...paid.user };
+    } else {
+      const customer = await getCustomer();
+      user = {
+        ...technical,
+        email: customer?.email,
+        phone: customer?.phone,
+        firstName: customer?.name.split(/\s+/)[0],
+        lastName: customer?.name.split(/\s+/).slice(1).join(" "),
+        externalId: customer?.id,
+      };
     }
 
     const custom: CapiCustomData = {
       ...(value === undefined ? {} : { value: Math.round(value * 100) / 100, currency: "EUR" }),
       ...(v.contentName ? { content_name: v.contentName } : {}),
       ...(v.contentCategory ? { content_category: v.contentCategory } : {}),
-      ...(v.coupon ? { coupon: v.coupon } : {}),
+      ...(coupon ? { coupon } : {}),
     };
     await sendCapiEvent({ name: v.name, eventId, sourceUrl: v.sourceUrl, time: Math.floor(Date.now() / 1000), user, custom });
   } catch (e) {

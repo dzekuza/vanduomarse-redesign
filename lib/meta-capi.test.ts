@@ -57,14 +57,16 @@ describe("Meta Conversions API", () => {
     });
   });
 
-  it("posts to the Pixel's events endpoint with the token, and stays silent without one", async () => {
+  it("posts to the Pixel's events endpoint with the token in the header, and stays silent without one", async () => {
     const fetchMock = vi.fn(() => Promise.resolve(new Response("{}", { status: 200 })));
     vi.stubGlobal("fetch", fetchMock);
     const { sendCapiEvent, META_GRAPH_VERSION } = await load();
     await sendCapiEvent({ name: "Lead", eventId: "abc12345", sourceUrl: "https://www.vanduomarse.lt/", time: 1, user: {} });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe(`https://graph.facebook.com/${META_GRAPH_VERSION}/1234567890/events?access_token=test-token`);
+    expect(url).toBe(`https://graph.facebook.com/${META_GRAPH_VERSION}/1234567890/events`);
+    expect(url).not.toContain("test-token");
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer test-token");
     expect(JSON.parse(String(init.body)).data[0]).toMatchObject({ event_name: "Lead", event_id: "abc12345" });
 
     fetchMock.mockClear();

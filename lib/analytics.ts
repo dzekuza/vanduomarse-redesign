@@ -89,8 +89,10 @@ export function trackPixel(name: PixelEventName, params?: PixelParams, options: 
   };
   send();
 
-  const sourceUrl = window.location?.href;
-  if (!sourceUrl) return;
+  // Origin and path only: the query of a payment return page carries the payer's proof (?pid / ?sid), which Meta must not get.
+  const loc = window.location;
+  if (!loc?.origin) return;
+  const sourceUrl = `${loc.origin}${loc.pathname}`;
   void reportMetaEvent({
     name,
     eventId,
@@ -156,8 +158,15 @@ export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
  * A payment came back paid: `purchase`, counted once per transaction id. `proof` is what only the payer's return page
  * has (the reservation payment id, or the coupon / plan Stripe session id); without it the Conversions API copy is skipped.
  */
-export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}, proof?: string): void {
-  trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
+export function trackPurchase(
+  kind: ActivityKind,
+  transactionId: string,
+  input: ItemInput = {},
+  proof?: string,
+  to: { ga?: boolean; meta?: boolean } = { ga: true, meta: true },
+): void {
+  if (to.ga) trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
+  if (!to.meta) return;
   // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
   trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, { eventId: `purchase-${transactionId}`, purchase: purchaseRef(kind, proof) });
 }

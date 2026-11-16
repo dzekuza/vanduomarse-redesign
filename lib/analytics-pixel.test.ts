@@ -14,7 +14,7 @@ function browser(consent: { marketing: boolean } | null) {
   const win = {
     localStorage: { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => void (store[k] = v) },
     setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
-    location: { href: "https://www.vanduomarse.lt/registracija/wake/black-friday" },
+    location: { origin: "https://www.vanduomarse.lt", pathname: "/registracija/wake/black-friday", search: "?sid=cs_secret" },
     fbq: undefined as undefined | ((...args: unknown[]) => void),
     gtag: undefined as undefined | ((...args: unknown[]) => void),
   };
