@@ -1,6 +1,6 @@
 ## 2026-11-16 — Campaign conversions for Black Friday
 
-- **Changed:** `trackViewItem`, `coupon` on GA/Meta checkout and purchase, `TrackViewItem` in `PlanRegistration`, discount code on `/registracija/apmoketa` via `plan_order_state` (migration `20261116180400_plan_order_state_discount_code`, applied and verified: new column, grants still service role only); ADR-0106.
+- **Changed:** `trackViewItem`, `coupon` on GA/Meta checkout and purchase, `TrackViewItem` in `PlanRegistration`, discount code on `/registracija/apmoketa` via `plan_order_state` (migration `20261116180400_plan_order_state_discount_code`, applied and verified: the function now also returns `discount_code` (null when the order had none), no table changed, grants still service role only); ADR-0106.
 - **Status:** tsc/eslint/93 tests clean; GA `view_item` seen locally after consent. PR open from `feat/campaign-conversions`.
 - **Next:** owner marks `purchase` as a key event in GA and adds a Meta custom conversion (Purchase, coupon = WAKEBLACKFRIDAY2026); check Meta Test events on the live page.
 

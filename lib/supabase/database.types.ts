@@ -2479,7 +2479,8 @@ export type Database = {
       plan_order_state: {
         Args: { p_session_id: string }
         Returns: {
-          discount_code: string
+          // Hand-corrected: null when the order had no discount (the generator types every function result as non-null).
+          discount_code: string | null
           plan_name: string
           price: number
           reference: string
