@@ -106,11 +106,11 @@ describe("Meta Pixel events", () => {
     win.fbq = fbq;
     const { trackLead, trackPurchase } = await load(PIXEL);
     trackLead("sauna", { itemName: "Pirtis Marse", value: 160 });
-    trackPurchase("plan", "AB-7", { itemName: "WAKE sezono abonementas", value: 675, coupon: "WAKEBLACKFRIDAY2026" });
+    trackPurchase("plan", "AB-7", { itemName: "WAKE sezono abonementas", value: 675, coupon: "WAKEBLACKFRIDAY2026" }, "cs_test_a1b2c3d4e5f6");
     const leadId = (fbq.mock.calls[0][3] as { eventID: string }).eventID;
     expect(report).toHaveBeenNthCalledWith(1, expect.objectContaining({ name: "Lead", eventId: leadId, value: 160, contentName: "Pirtis Marse", contentCategory: "sauna" }));
     expect(report).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      name: "Purchase", eventId: "purchase-AB-7", coupon: "WAKEBLACKFRIDAY2026", purchase: { kind: "plan", transactionId: "AB-7" },
+      name: "Purchase", eventId: "purchase-AB-7", coupon: "WAKEBLACKFRIDAY2026", purchase: { kind: "plan", proof: "cs_test_a1b2c3d4e5f6" },
       sourceUrl: "https://www.vanduomarse.lt/registracija/wake/black-friday",
     }));
   });
@@ -127,5 +127,11 @@ describe("Meta Pixel events", () => {
     const { trackLead } = await load(PIXEL);
     trackLead("sauna");
     expect(report).not.toHaveBeenCalled();
+  });
+  it("sends no purchase reference to the server without the payer's proof", async () => {
+    browser({ marketing: true });
+    const { trackPurchase } = await load(PIXEL);
+    trackPurchase("coupon", "KP-1015", { value: 25 });
+    expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Purchase", purchase: undefined }));
   });
 });

@@ -11,10 +11,12 @@ interface TrackPurchaseProps {
   value: number;
   /** Discount code used, so campaign sales (e.g. Black Friday) can be told apart in GA and Meta. */
   coupon?: string;
+  /** What only this payer's return page has (reservation payment id or Stripe session id), so the server can check the sale before reporting it to Meta. */
+  proof?: string;
 }
 
 /** Renders nothing: reports a paid return page to Google Analytics and the Meta Pixel once per browser session and transaction. */
-export function TrackPurchase({ kind, transactionId, itemName, value, coupon }: TrackPurchaseProps) {
+export function TrackPurchase({ kind, transactionId, itemName, value, coupon, proof }: TrackPurchaseProps) {
   useEffect(() => {
     const key = `vm_purchase_${transactionId}`;
     try {
@@ -23,8 +25,8 @@ export function TrackPurchase({ kind, transactionId, itemName, value, coupon }: 
     } catch {
       // Storage blocked: report it anyway; GA also de-duplicates purchases by transaction id.
     }
-    trackPurchase(kind, transactionId, { itemName, value, coupon });
-  }, [kind, transactionId, itemName, value, coupon]);
+    trackPurchase(kind, transactionId, { itemName, value, coupon }, proof);
+  }, [kind, transactionId, itemName, value, coupon, proof]);
 
   return null;
 }

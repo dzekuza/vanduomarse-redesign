@@ -64,8 +64,8 @@ type PixelEventName = "ViewContent" | "Lead" | "InitiateCheckout" | "CompleteReg
 interface PixelOptions {
   /** Fixed id (a purchase's, so a reloaded return page counts once); otherwise a fresh one per event. */
   eventId?: string;
-  /** Purchase only: the order the server checks before it reports the sale. */
-  purchase?: { kind: "reservation" | "coupon" | "plan"; transactionId: string };
+  /** Purchase only: the payer's proof (reservation payment id or Stripe session id) the server checks before it reports the sale. */
+  purchase?: { kind: "reservation" | "coupon" | "plan"; proof: string };
 }
 
 const newEventId = () =>
@@ -149,16 +149,19 @@ export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
   trackPixel("InitiateCheckout", pixelParams(kind, input));
 }
 
-/** A payment came back paid: `purchase`, counted once per transaction id. */
-export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}): void {
+/**
+ * A payment came back paid: `purchase`, counted once per transaction id. `proof` is what only the payer's return page
+ * has (the reservation payment id, or the coupon / plan Stripe session id); without it the Conversions API copy is skipped.
+ */
+export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}, proof?: string): void {
   trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
   // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
-  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, { eventId: `purchase-${transactionId}`, purchase: purchaseRef(kind, transactionId) });
+  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, { eventId: `purchase-${transactionId}`, purchase: purchaseRef(kind, proof) });
 }
 
 /** The order a paid return page reports; only these three kinds are paid online. */
-function purchaseRef(kind: ActivityKind, transactionId: string): PixelOptions["purchase"] {
-  return kind === "reservation" || kind === "coupon" || kind === "plan" ? { kind, transactionId } : undefined;
+function purchaseRef(kind: ActivityKind, proof: string | undefined): PixelOptions["purchase"] {
+  return proof && (kind === "reservation" || kind === "coupon" || kind === "plan") ? { kind, proof } : undefined;
 }
 
 /** A new customer finished registering: `sign_up`. */

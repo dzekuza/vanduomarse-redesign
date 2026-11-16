@@ -11,8 +11,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * event id, only when the visitor allowed marketing cookies. The server adds what the browser does not send: IP, user
  * agent, the `_fbp` / `_fbc` cookies and, for a signed-in customer, their confirmed contact.
  *
- * Anyone can call a server action, so nothing here is trusted for money: a `Purchase` is sent only for a payment,
- * coupon or plan order that the database shows as paid, with the value and contact read from that row.
+ * Anyone can call a server action, so nothing about a `Purchase` is taken from the browser except a proof that only the
+ * payer's own return page has: the reservation payment's random id (`?pid=`) or the coupon / plan Stripe Checkout session
+ * id (`?sid=cs_…`). Guessable references are never accepted. The server then reads the row, sends nothing unless it was
+ * paid within Meta's 48-hour de-duplication window, builds the event id itself (`purchase-<id>`, the same one the
+ * browser Pixel uses) and takes the value and contact from that row. A replay inside the window is merged by Meta;
+ * an older one is refused.
  */
 
 const input = z.object({
@@ -23,37 +27,46 @@ const input = z.object({
   contentName: z.string().max(120).optional(),
   contentCategory: z.string().max(40).optional(),
   coupon: z.string().max(40).optional(),
-  /** Purchase only: which kind of order and its id (payment id, coupon or plan order reference). */
-  purchase: z.object({ kind: z.enum(["reservation", "coupon", "plan"]), transactionId: z.string().min(3).max(80) }).optional(),
+  /** Purchase only: which kind of order and the payer's proof (reservation payment id, or the Stripe session id). */
+  purchase: z.object({ kind: z.enum(["reservation", "coupon", "plan"]), proof: z.string().min(10).max(220) }).optional(),
 });
 
 export type MetaEventInput = z.infer<typeof input>;
 
 interface VerifiedPurchase {
+  /** The id the browser Pixel used too: payment id, coupon reference or plan order reference. */
+  transactionId: string;
   value: number;
   user: Pick<CapiUser, "email" | "phone" | "firstName" | "lastName" | "externalId">;
 }
 
 const SITE_HOSTS = new Set(["vanduomarse.lt", "www.vanduomarse.lt", "localhost"]);
+/** Meta de-duplicates by event id for 48 hours; an older purchase is not reported again. */
+const PURCHASE_WINDOW_MS = 48 * 60 * 60 * 1000;
+const STRIPE_SESSION = /^cs_[A-Za-z0-9_]{10,200}$/;
 
-/** The paid row behind a purchase, or null when it does not exist or is not paid. */
-async function verifyPurchase(kind: "reservation" | "coupon" | "plan", id: string): Promise<VerifiedPurchase | null> {
+const recentlyPaid = (paidAt: string | null) => Boolean(paidAt) && Date.now() - new Date(paidAt as string).getTime() < PURCHASE_WINDOW_MS;
+
+/** The paid row the payer's proof points to, or null when it is unknown, unpaid or paid too long ago. */
+async function verifyPurchase(kind: "reservation" | "coupon" | "plan", proof: string): Promise<VerifiedPurchase | null> {
   const admin = createAdminClient();
   if (kind === "reservation") {
-    if (!z.uuid().safeParse(id).success) return null;
-    const { data } = await admin.from("payments").select("amount, paid_at, customer_email, customer_phone").eq("id", id).maybeSingle();
-    return data?.paid_at ? { value: Number(data.amount), user: { email: data.customer_email, phone: data.customer_phone } } : null;
+    if (!z.uuid().safeParse(proof).success) return null;
+    const { data } = await admin.from("payments").select("id, amount, paid_at, customer_email, customer_phone").eq("id", proof).maybeSingle();
+    if (!data || !recentlyPaid(data.paid_at)) return null;
+    return { transactionId: data.id, value: Number(data.amount), user: { email: data.customer_email, phone: data.customer_phone } };
   }
+  if (!STRIPE_SESSION.test(proof)) return null;
   if (kind === "coupon") {
-    const { data } = await admin.from("coupons").select("paid_amount, paid_at, buyer_email, buyer_phone, buyer_name, rider_id").eq("reference", id).maybeSingle();
-    if (!data?.paid_at) return null;
+    const { data } = await admin.from("coupons").select("reference, paid_amount, paid_at, buyer_email, buyer_phone, buyer_name, rider_id").eq("stripe_session_id", proof).maybeSingle();
+    if (!data || !recentlyPaid(data.paid_at)) return null;
     const [firstName, ...rest] = (data.buyer_name ?? "").trim().split(/\s+/);
-    return { value: Number(data.paid_amount ?? 0), user: { email: data.buyer_email, phone: data.buyer_phone, firstName, lastName: rest.join(" "), externalId: data.rider_id } };
+    return { transactionId: data.reference, value: Number(data.paid_amount ?? 0), user: { email: data.buyer_email, phone: data.buyer_phone, firstName, lastName: rest.join(" "), externalId: data.rider_id } };
   }
-  const { data } = await admin.from("rider_plan_orders").select("price, paid_at, rider_id, riders(email, phone, name, surname)").eq("reference", id).maybeSingle();
-  if (!data?.paid_at) return null;
+  const { data } = await admin.from("rider_plan_orders").select("reference, price, paid_at, rider_id, riders(email, phone, name, surname)").eq("stripe_session_id", proof).maybeSingle();
+  if (!data || !recentlyPaid(data.paid_at)) return null;
   const rider = Array.isArray(data.riders) ? data.riders[0] : data.riders;
-  return { value: Number(data.price), user: { email: rider?.email, phone: rider?.phone, firstName: rider?.name, lastName: rider?.surname, externalId: data.rider_id } };
+  return { transactionId: data.reference, value: Number(data.price), user: { email: rider?.email, phone: rider?.phone, firstName: rider?.name, lastName: rider?.surname, externalId: data.rider_id } };
 }
 
 /** Sends one Conversions API event. Returns nothing and never throws: tracking must not break the page. */
@@ -81,12 +94,15 @@ export async function reportMetaEvent(raw: MetaEventInput): Promise<void> {
       externalId: customer?.id,
     };
     let value = v.value;
+    let eventId = v.eventId;
 
     if (v.name === "Purchase") {
       if (!v.purchase) return;
-      const paid = await verifyPurchase(v.purchase.kind, v.purchase.transactionId);
+      const paid = await verifyPurchase(v.purchase.kind, v.purchase.proof);
       if (!paid) return;
       value = paid.value;
+      // Built here, never taken from the browser, so a replay cannot slip past Meta's de-duplication.
+      eventId = `purchase-${paid.transactionId}`;
       // The order's own contact beats the session's: it is who actually paid.
       user = { ...user, ...Object.fromEntries(Object.entries(paid.user).filter(([, x]) => x)) };
     }
@@ -97,7 +113,7 @@ export async function reportMetaEvent(raw: MetaEventInput): Promise<void> {
       ...(v.contentCategory ? { content_category: v.contentCategory } : {}),
       ...(v.coupon ? { coupon: v.coupon } : {}),
     };
-    await sendCapiEvent({ name: v.name, eventId: v.eventId, sourceUrl: v.sourceUrl, time: Math.floor(Date.now() / 1000), user, custom });
+    await sendCapiEvent({ name: v.name, eventId, sourceUrl: v.sourceUrl, time: Math.floor(Date.now() / 1000), user, custom });
   } catch (e) {
     console.error("Meta CAPI report failed:", e instanceof Error ? e.message : e);
   }
