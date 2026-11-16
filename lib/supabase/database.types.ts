@@ -1729,6 +1729,7 @@ export type Database = {
           avatar_path: string | null
           birthdate: string | null
           created_at: string
+          duplicate_of: string | null
           email: string | null
           grabby_id: string | null
           id: string
@@ -1744,6 +1745,7 @@ export type Database = {
           avatar_path?: string | null
           birthdate?: string | null
           created_at?: string
+          duplicate_of?: string | null
           email?: string | null
           grabby_id?: string | null
           id?: string
@@ -1759,6 +1761,7 @@ export type Database = {
           avatar_path?: string | null
           birthdate?: string | null
           created_at?: string
+          duplicate_of?: string | null
           email?: string | null
           grabby_id?: string | null
           id?: string
@@ -1771,6 +1774,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "riders_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "riders_plan_id_fkey"
             columns: ["plan_id"]
