@@ -1,3 +1,9 @@
+## 2026-11-16 — Migration versions match the live log
+
+- **Changed:** 66 `git mv` renames in `supabase/migrations/` to live versions (checked project ref `mwngljhcvqkvncwbmgeo` first; read-only SQL, nothing applied); old version numbers updated in `lib/push/staff-push.ts`, `app/actions/registration.ts` and the vault. Migration file contents untouched, so a few SQL comments still name old file names.
+- **Status:** 97 of 103 files match a live row. `wake_black_friday_discount` left for PR #117. Five files have no live row (objects exist live), three live rows have no file — see `backend/database.md`.
+- **Next:** decide per gap: `supabase migration repair --status applied <version>` for the five files, and add files (from `schema_migrations.statements`) or `repair --status reverted` for the three live-only rows.
+
 ## 2026-11-16 — Meta Pixel events
 
 - **Changed:** `lib/analytics.ts` sends Meta standard events next to GA (`trackPixel`, `marketingAllowed`), ADR-0105, new `lib/analytics-pixel.test.ts`.
@@ -36,7 +42,7 @@
 
 ## 2026-11-16 — Sirvoy room calendars built
 
-- **Changed:** migration `20261116120000_external_calendars` (applied): `external_calendars` / `external_calendar_feeds` / `external_blocks`, `stay_occupancy()` and `enforce_stay_capacity()` count Sirvoy rooms, owner and service-role functions. `lib/ical.ts` (+13 tests), `lib/external-sync.ts`, `/api/cron/sirvoy-sync`, `vercel.json`, owner card in /admin/namukai, read-only Kalendorius entries, admin stock helpers take the blocks. `.env.example` gained `CRON_SECRET`. Vault: database, api-architecture, environment-variables, components, utils, changelog, ADR-0102, `backend/booking-com-sync.md`.
+- **Changed:** migration `20261116144757_external_calendars` (applied): `external_calendars` / `external_calendar_feeds` / `external_blocks`, `stay_occupancy()` and `enforce_stay_capacity()` count Sirvoy rooms, owner and service-role functions. `lib/ical.ts` (+13 tests), `lib/external-sync.ts`, `/api/cron/sirvoy-sync`, `vercel.json`, owner card in /admin/namukai, read-only Kalendorius entries, admin stock helpers take the blocks. `.env.example` gained `CRON_SECRET`. Vault: database, api-architecture, environment-variables, components, utils, changelog, ADR-0102, `backend/booking-com-sync.md`.
 - **Status:** tsc, eslint, 82 tests clean; SQL-verified in rolled-back transactions; Namukai and Kalendorius render with the owner session. Not tested with a live feed. Mobile app model not updated.
 - **Next:** `CRON_SECRET` in Vercel (Pro for */15), paste the 14 export URLs, compare one booking on the calendar and on /rezervacija; consider the Sirvoy booking webhook for guest names.
 
@@ -108,13 +114,13 @@
 
 ## 2026-11-14 — Payment step after the bracelet scan
 
-- **Changed:** migration `20261116110000_purchase_payment_method.sql` APPLIED (`purchases.payment_method`, `set_purchase_payment`); `setPurchasePayment` action + store; `SalesTab` gets a "payment" phase between scan and done (ADR-0098); types, mapper, `sales.ts` show the method.
+- **Changed:** migration `20261113230235_purchase_payment_method.sql` APPLIED (`purchases.payment_method`, `set_purchase_payment`); `setPurchasePayment` action + store; `SalesTab` gets a "payment" phase between scan and done (ADR-0098); types, mapper, `sales.ts` show the method.
 - **Status:** tsc/eslint clean; SQL verified (rolled back); dialog not clicked through.
 - **Next:** in Pardavimas sell a plan: pick rider → scan (or skip) → choose Kortele / Grynaisiais → "Priskirta"; check the method in Klientai → purchases.
 
 ## 2026-11-14 — Fix "Neturite teisės" when assigning a plan
 
-- **Changed:** migration `20261116100000_norm_phone_execute.sql` APPLIED (EXECUTE on `private.norm_phone` for `authenticated` / `service_role`); database.md rule.
+- **Changed:** migration `20261113230006_norm_phone_execute.sql` APPLIED (EXECUTE on `private.norm_phone` for `authenticated` / `service_role`); database.md rule.
 - **Status:** verified as the owner in a rolled-back transaction (update, purchase, rider insert); not retried in the browser.
 - **Next:** in Pardavimas assign a plan to an existing rider and to a new guest; also edit a rider profile in Klientai.
 
@@ -138,7 +144,7 @@
 
 ## 2026-11-14 — Trim bracelet plan categories
 
-- **Changed:** `lib/ride-plans.ts` (3 categories left), migration `20261116090000_ride_plan_categories_trim.sql` APPLIED.
+- **Changed:** `lib/ride-plans.ts` (3 categories left), migration `20261113225413_ride_plan_categories_trim.sql` APPLIED.
 - **Status:** tsc/eslint clean; not browser-checked.
 - **Next:** open /admin/apyrankes → Planai and Pardavimas, confirm only three tabs.
 
@@ -431,7 +437,7 @@
 ## 2026-11-13 — Link orders and registration to one customer per contact
 
 - **Found:** PR-1021 and every order since 7 Nov had no `rider_id`; registration always created a new rider. A first draft of the backfill would have created 2 customers (test e-mail, one coupon buyer): changed to link-only. A first draft ranked the OLDEST customer first, which would have attached PR-1021 to the imported record: now a registered customer first.
-- **Changed:** migration `20261113230000_link_customers_by_contact.sql` (indexes, `find_rider`, `find_or_create_rider`, 4 insert triggers, link-only backfill, `register_rider_public` returning `already_registered`, `create_plan_order` without `self_registered`); `registerRider`; the admin matcher order.
+- **Changed:** migration `20261112175237_link_customers_by_contact.sql` (indexes, `find_rider`, `find_or_create_rider`, 4 insert triggers, link-only backfill, `register_rider_public` returning `already_registered`, `create_plan_order` without `self_registered`); `registerRider`; the admin matcher order.
 - **Status:** tsc/eslint clean; the migration was run inside a rolled-back transaction (0 → 6 unlinked, 8958 riders unchanged, PR-1021 → the registered profile). APPLIED and verified on the live DB.
 - **Next:** order something with a known phone and check the new order has the existing customer's `rider_id`; register again with the same number and check no new rider row appears.
 
@@ -467,7 +473,7 @@
 
 - **Why:** new bookings and payment status changes needed a manual reload.
 - **Found:** `supabase_realtime` had no tables; staff already have SELECT policies on the activity tables; no browser Supabase client existed.
-- **Changed:** migration `20261113220000_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
+- **Changed:** migration `20261112171854_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
 - **Status:** tsc/eslint clean; not tested with a live event.
 - **Next:** open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
 ## 2026-11-13 — OTP blocks per channel
@@ -479,14 +485,14 @@
 ## 2026-11-13 — Refund hardening (review + Stripe docs)
 
 - **Source:** automated security review plus Stripe docs read directly (the installed Stripe CLI is 1.40.9; `stripe docs` needs 1.50.9+ and `brew upgrade stripe` is blocked by `brew trust` for the stripe tap).
-- **Changed:** `lib/refund.ts` rewritten (definite vs unknown errors, reconcile by `metadata.reference`, 24 h window, failed/canceled refunds), `cancelRequest` passes kind+id, types, migration `20261113210000_request_refunds_by_kind.sql` (applied and verified).
+- **Changed:** `lib/refund.ts` rewritten (definite vs unknown errors, reconcile by `metadata.reference`, 24 h window, failed/canceled refunds), `cancelRequest` passes kind+id, types, migration `20261112165835_request_refunds_by_kind.sql` (applied and verified).
 - **Status:** tsc/eslint clean; nothing tested with a real Stripe payment.
 - **Next:** a test-mode refund; try cancelling twice ("jau grąžinti").
 
 ## 2026-11-13 — Refund when admin cancels a paid request
 
 - **Why:** cancelling in the admin never refunded the customer.
-- **Changed:** migration `20261113200000_request_refunds.sql` (applied and verified), `lib/refund.ts`, `cancelRequest` action + store method, `CancelRefundDialog`, `useCancelRequest`, `StatusActions.onCancel`, booking/rental/ticket call sites, `PaymentNote` wording, types.
+- **Changed:** migration `20261112164137_request_refunds.sql` (applied and verified), `lib/refund.ts`, `cancelRequest` action + store method, `CancelRefundDialog`, `useCancelRequest`, `StatusActions.onCancel`, booking/rental/ticket call sites, `PaymentNote` wording, types.
 - **Status:** tsc/eslint clean; nothing tested with a real payment.
 - **Next:** cancel a Stripe-test-paid booking with a refund and check Stripe, `request_refunds`, `payments.refunded` (webhook) and a second attempt ("jau grąžinti").
 
@@ -499,14 +505,14 @@
 ## 2026-11-13 — Plaukimas items from the database
 
 - **Found:** Plaukimas read coupon products (none exist for rides) and the 13 swim plans in `ride_plans` were all `sold_online = false`.
-- **Changed:** `WakeOffer.planCategory`, `isWakeSeasonPass` by category, plan wording; migration `20261113190000_sell_swim_plans_online.sql` (applied and verified).
+- **Changed:** `WakeOffer.planCategory`, `isWakeSeasonPass` by category, plan wording; migration `20261112154106_sell_swim_plans_online.sql` (applied and verified).
 - **Status:** tsc/eslint clean; not browser-checked. Added the admin "Internetu" toggle (`RidePlan.soldOnline`, `PlanDialog`, `PlansTab`).
 - **Next:** check /rezervacija → Wake and /admin/apyrankes → Planai in the browser; test one purchase.
 
 ## 2026-11-13 — my_riders() security fix (review finding)
 
 - **Found:** automated security review: a `phone2` match (staff-entered, maybe a parent's number) returned the rider's birth date, e-mail, phones and photo.
-- **Changed:** migration `20261113180000_my_riders_primary_match.sql` (applied, verified, smoke-tested as an unknown user: 0 rows); `loadMyRiders` ignores non-primary rows for registration and the "registered" check.
+- **Changed:** migration `20261112153707_my_riders_primary_match.sql` (applied, verified, smoke-tested as an unknown user: 0 rows); `loadMyRiders` ignores non-primary rows for registration and the "registered" check.
 - **Status:** tsc/eslint clean; not tested with a real second account. An owner link (`riders.user_id`) is the cleaner long-term fix.
 
 ## 2026-11-13 — "Užbaigti registraciją" kept showing
@@ -517,20 +523,20 @@
 
 ## 2026-11-13 — Customer can view their registration
 
-- **Changed:** `RegistrationDetails` component; `MyRider.registration`; `loadMyRiders` signs the photo URL (service role, only for riders `my_riders()` matched to the account); migration `20261113170000_my_riders_registration_details.sql` (drop + recreate `my_riders()`), APPLIED and verified.
+- **Changed:** `RegistrationDetails` component; `MyRider.registration`; `loadMyRiders` signs the photo URL (service role, only for riders `my_riders()` matched to the account); migration `20261112152204_my_riders_registration_details.sql` (drop + recreate `my_riders()`), APPLIED and verified.
 - **Status:** tsc/eslint clean; not browser-checked.
 - **Next:** open /paskyra → Vandenlentės with a registered account.
 
 ## 2026-11-13 — /paskyra Vandenlentės actions
 
-- **Changed:** `RiderPlans` buttons (browse plans, finish registration); `MyRider.registered`; migration `20261113161000_my_riders_registered.sql` (drop + recreate `my_riders()` with `registered`).
+- **Changed:** `RiderPlans` buttons (browse plans, finish registration); `MyRider.registered`; migration `20261112151909_my_riders_registered.sql` (drop + recreate `my_riders()` with `registered`).
 - **Status:** tsc/eslint clean; migration APPLIED and verified (returns `registered`; anon cannot execute, authenticated can). Not browser-checked.
 - **Next:** check with an account whose rider has no photo/waiver.
 
 ## 2026-11-13 — WAKE season pass = bracelet plan purchase
 
 - **Why:** the pass should be an actual apyrankė purchase (registration, payment, plan on the rider), not a coupon code.
-- **Changed:** migration `20261113151000_rider_plan_orders.sql` (applied to the live DB after the user asked again, verified); hand-edited `database.types.ts`; `WakeOffer` + `getWakeOffers()`; `registerRider` takes `planId` and returns a Checkout URL; `lib/plan-checkout.ts`, `lib/plan-payment.ts`, `stripe-events.ts` branch; `/registracija?abonementas=`, `/registracija/apmoketa`; the Wake button links to the registration for plans.
+- **Changed:** migration `20261112151712_rider_plan_orders.sql` (applied to the live DB after the user asked again, verified); hand-edited `database.types.ts`; `WakeOffer` + `getWakeOffers()`; `registerRider` takes `planId` and returns a Checkout URL; `lib/plan-checkout.ts`, `lib/plan-payment.ts`, `stripe-events.ts` branch; `/registracija?abonementas=`, `/registracija/apmoketa`; the Wake button links to the registration for plans.
 - **Status:** tsc/eslint clean; nothing tested end to end.
 - **Next:** register + pay with a Stripe test card and check `riders.plan_id`, `purchases`, `rider_plan_orders` and both emails; add a `sold_online` toggle in /admin/apyrankes → Planai.
 
@@ -543,14 +549,14 @@
 
 ## 2026-11-13 — Auto-confirm migration applied; sauna sessions classified by category
 
-- **Done:** PR #51 merged and deployed, migration `20261113150000` applied and verified (`complete_payment` returns `confirmed`, `paid_request_details` service-role only). Checking PR-1021 showed sauna sessions are `events.category = 'pirtis'` with no `program_id`, so they would read "Renginys:" in the SMS.
-- **Changed:** migration `20261113160000` (classify by category). PR follows.
+- **Done:** PR #51 merged and deployed, migration `20261112145736` applied and verified (`complete_payment` returns `confirmed`, `paid_request_details` service-role only). Checking PR-1021 showed sauna sessions are `events.category = 'pirtis'` with no `program_id`, so they would read "Renginys:" in the SMS.
+- **Changed:** migration `20261112145818` (classify by category). PR follows.
 - **Next:** test one real paid sauna booking and read the SMS.
 
 ## 2026-11-13 — Auto-confirm paid reservations and a detailed confirmation SMS
 
 - **Why:** owner: after payment the customer got "Uzklausas patvirtinsime netrukus" and staff had to confirm; they should get the booking details and need no staff step.
-- **Changed:** ADR-0079: migration `20261113150000` (`complete_payment` confirms, `paid_request_details`), `lib/paid-request.ts`, `lib/payment-notice.ts`, SMS/email/webhook wiring, return page copy. Branch `feat/auto-confirm-paid-sms` (worktree), uncommitted.
+- **Changed:** ADR-0079: migration `20261112145736` (`complete_payment` confirms, `paid_request_details`), `lib/paid-request.ts`, `lib/payment-notice.ts`, SMS/email/webhook wiring, return page copy. Branch `feat/auto-confirm-paid-sms` (worktree), uncommitted.
 - **Status:** tsc/eslint clean; SMS text previewed (207 chars, 2 segments); migration NOT applied; no real payment run.
 - **Next:** commit + PR; merge, then apply the migration (the new code tolerates the old DB: it falls back to the short message); test one real paid sauna booking and read the SMS.
 
@@ -625,28 +631,28 @@
 ## 2026-11-13 — Coupon order RPC made service-role only
 
 - **Why:** security review: the anon-callable RPC let a caller supply or omit its own `p_ip_hash`, bypassing the per-IP cap.
-- **Changed:** migration `20261113140000` (revoke anon/authenticated, grant service_role, refuse a missing hash); `createCouponOrder` uses the admin client and fails closed without the IP hash.
+- **Changed:** migration `20261112142941` (revoke anon/authenticated, grant service_role, refuse a missing hash); `createCouponOrder` uses the admin client and fails closed without the IP hash.
 - **Order:** merged and deployed first (PR #47), then the migration was APPLIED and verified (anon/authenticated cannot execute `create_coupon_order`, service_role can).
 - **Next:** Stripe test-mode coupon purchase; confirm env in Vercel.
 
 ## 2026-11-13 — Coupon abuse guards, no staff step
 
 - **Why:** security review of PR #45 (email abuse without verification, order-cap exhaustion) and the owner: coupons must not need staff approval.
-- **Changed:** see ADR-0076: Stripe-only ordering, no pre-payment emails, per-IP cap, `abandon_coupon_order`, `OrderConfirmation` removed, shared `lib/client-ip.ts`; migration `20261113130000` applied and verified.
+- **Changed:** see ADR-0076: Stripe-only ordering, no pre-payment emails, per-IP cap, `abandon_coupon_order`, `OrderConfirmation` removed, shared `lib/client-ip.ts`; migration `20261112142505` applied and verified.
 - **Status:** tsc/eslint clean; no browser check, no Stripe test payment.
 - **Next:** Stripe test-mode coupon purchase (card 4242); confirm Stripe/Resend env in Vercel.
 
 ## 2026-11-13 — Coupon Stripe migration applied, wider date tiles
 
 - **Why:** user asked to apply the coupon Stripe migration (and to let the assistant apply migrations without asking), and to widen the sauna date-strip tile.
-- **Changed:** migration `20261113120000` applied to the live DB and verified (5 functions, service-role only); memory note `apply-migrations-without-asking`; `DayCell` wide tiles `w-14` to `w-18`; `BookingHeader` intro `max-w-xl` removal logged.
+- **Changed:** migration `20261112141742` applied to the live DB and verified (5 functions, service-role only); memory note `apply-migrations-without-asking`; `DayCell` wide tiles `w-14` to `w-18`; `BookingHeader` intro `max-w-xl` removal logged.
 - **Status:** tsc clean; nothing committed; no browser check, no Stripe test payment.
 - **Next:** commit + PR; confirm Stripe/Resend env in Vercel; Stripe test-mode coupon purchase; check 375 px date strip.
 
 ## 2026-11-13 — Automatic Stripe payment for gift coupons
 
 - **Why:** test order KP-1005 only produced a "we'll tell you how to pay" email; staff had to confirm payment by hand.
-- **Changed:** see ADR-0075 and the changelog. New: `lib/coupon-checkout.ts`, `lib/coupon-payment.ts`, `/kuponai/apmoketa`, migration `20261113120000`; webhook branches for coupons.
+- **Changed:** see ADR-0075 and the changelog. New: `lib/coupon-checkout.ts`, `lib/coupon-payment.ts`, `/kuponai/apmoketa`, migration `20261112141742`; webhook branches for coupons.
 - **Status:** tsc/eslint clean. Migration APPLIED to the live DB and verified (functions callable by service_role only, not anon). No Stripe payment run, no browser check.
 - **Next:** confirm Stripe + Resend env in Vercel, make a test purchase with Stripe test mode/card 4242, check both inboxes and the admin.
 
@@ -676,13 +682,13 @@
 - **Why:** owner: both payer and receiver must get the coupon; staff should be alerted to orders.
 - **Found:** only the buyer was emailed, only on staff activation; recipient had no email field; no order-time email to anyone; `COUPON_FROM_EMAIL` missing from `.env.local`.
 - **Changed:** see ADR-0074 and the changelog.
-- **Status:** tsc/eslint clean. Migration `20261113110000` APPLIED to the live DB and verified (column present, single 7-arg `create_coupon_order`); no real email sent.
+- **Status:** tsc/eslint clean. Migration `20261112141141` APPLIED to the live DB and verified (column present, single 7-arg `create_coupon_order`); no real email sent.
 - **Next:** confirm `RESEND_API_KEY` + `COUPON_FROM_EMAIL` (+ `STAFF_NOTIFY_EMAIL`) in Vercel production; test order, mark paid, check both inboxes.
 
 ## 2026-11-13 — Gift coupons without phone verification
 
 - **Why:** owner: dovanų kuponai must be buyable without SMS verification.
-- **Changed:** `/kuponai` form no longer opens the verification dialog (deleted); phone optional; `createCouponOrder` no longer checks a token; migration `20261113100000` drops `coupons_phone_verified`. ADR-0073.
+- **Changed:** `/kuponai` form no longer opens the verification dialog (deleted); phone optional; `createCouponOrder` no longer checks a token; migration `20261112140716` drops `coupons_phone_verified`. ADR-0073.
 - **Status:** tsc/eslint clean. Migration APPLIED to the live DB (project `mwngljhcvqkvncwbmgeo`) and verified: `coupons` has only `coupons_reference` and `coupons_updated_at` triggers. Browser check not done.
 - **Next:** submit a test order on /kuponai.
 
@@ -692,7 +698,7 @@
 - **Found:** `create_quad_tour_rental` already books any date against the fleet; the departures hardening had only revoked its grant. Live routes already had `min_units` 5.
 - **Changed:** see ADR-0071 and the changelog: fleet-based starts, no `eventId`, direct RPC, admin departure UI removed.
 - **Status:** `tsc`/eslint clean; browser-checked the start times, 5-quad minimum and 395 € total; admin screens and a real submit NOT checked. Branch `feat/quad-anytime-booking` (stacked on `feat/sauna-duration-table`, PR #32).
-- **Next:** submit a test tour (the grant in `20261112171000_quad_tours_any_time.sql` is applied); decide whether to drop the unused departure columns/functions later.
+- **Next:** submit a test tour (the grant in `20261111222115_quad_tours_any_time.sql` is applied); decide whether to drop the unused departure columns/functions later.
 
 ## 2026-11-12 — Quad route tiles on the booking panel
 
@@ -706,7 +712,7 @@
 
 - **Why:** owner's sheet adds "Visa diena" and new 3 h / weekend prices; the Kainos table seen on `front-updates-original` was missing on `main`.
 - **Found:** the table and the 4-tile picker lived only on the older branches (`feat/booking-interface`, `front-updates-original`) on a hard-coded `hireTariff`; `main` already had per-length pricing in the DB (ADR-0066) and a 12 h "Visa diena" key, but the live rows lacked it. The Laikas select never showed the chosen private-hire time (value `null:<hour>` vs `<hour>`).
-- **Changed:** migration `20261112150000_sauna_full_day_prices.sql` (applied + verified), `SaunaPriceTables`, `service-pricing.tsx`, four-column duration tiles, hint and select fixes. Details in the changelog.
+- **Changed:** migration `20261111220026_sauna_full_day_prices.sql` (applied + verified), `SaunaPriceTables`, `service-pricing.tsx`, four-column duration tiles, hint and select fixes. Details in the changelog.
 - **Status:** `tsc`/eslint clean; browser-checked at 375 and 1024 px; no booking submitted. Branch `feat/sauna-duration-table`, not committed yet.
 - **Next:** owner to confirm the sauna names in the DB ("Malkine pirtis", "Suomiska sauna" have no diacritics); the older private programs (350 € / 200 €) are hidden from Kainos but still bookable under "Pirties seansai" rows, so retire or reprice them in /admin/pirtis.
 
@@ -775,14 +781,14 @@
 ## 2026-11-12 — Pirtininkai block and picker
 
 - **Why:** user asked for a pirtininkai block before Priedai in /admin/pirtis (add pirtininkai, set prices) shown on programs; answers: price added on top, and the generic hourly extra replaced by named pirtininkai.
-- **Changed:** migration `20261112120000_sauna_masters.sql`, `lib/sauna-masters.ts`, admin card/dialog/row, store + server actions, `MasterPicker`, reservation plans and requests, ADR-0067, docs.
+- **Changed:** migration `20261111184608_sauna_masters.sql`, `lib/sauna-masters.ts`, admin card/dialog/row, store + server actions, `MasterPicker`, reservation plans and requests, ADR-0067, docs.
 - **Status:** `tsc`/eslint clean. Migration applied via MCP (verified). Not browser-checked.
 - **Next:** check the picker at 375 px and place one test booking with a pirtininkas (hourly 3 h and a private program).
 
 ## 2026-11-12 — Sauna pricing per session length
 
 - **Why:** user sent the owner's sheet (2/3/4 h with fixed prices, weekday vs Fri–Sun, pirtininkas +250 € min 3 h, 10 guests included then +15 €/person, 1 h gap between sessions) and asked to update the pirtis settings and storefront. Answers: weekday 4 h = 240 €, both saunas, 1 h gap, pirtininkas any day.
-- **Changed:** migration `20261112090000_sauna_duration_pricing.sql`, `lib/sauna.ts`, mappers, `database.types.ts`, admin rates form/preview/upsell dialog, storefront booking and `/rezervacija` plan, calculator pricing, ADR-0066, utils/common/database/changelog notes.
+- **Changed:** migration `20261111182918_sauna_duration_pricing.sql`, `lib/sauna.ts`, mappers, `database.types.ts`, admin rates form/preview/upsell dialog, storefront booking and `/rezervacija` plan, calculator pricing, ADR-0066, utils/common/database/changelog notes.
 - **Status:** `tsc` and eslint clean. Migration applied to the live database via MCP (user asked) and verified. Not browser-checked, no test booking placed.
 - **Next:** check /pirtis, /rezervacija and /admin/pirtis at 375 / 768 / 1024 px and place one test booking (weekday 3 h, weekend, with pirtininkas, 12 guests).
 
@@ -857,7 +863,7 @@
 ## 2026-11-11 — my_riders exact phone match (applied)
 
 - **Why:** Security review: matching on the last 8 digits could match foreign numbers.
-- **Changed:** new migration `20261111220000_my_rider_exact_phone.sql`; ADR-0062 and changelog notes. Applied to the live project (project URL checked) and verified; committed on a branch.
+- **Changed:** new migration `20261111171939_my_rider_exact_phone.sql`; ADR-0062 and changelog notes. Applied to the live project (project URL checked) and verified; committed on a branch.
 - **Status:** the live DB now matches normalised phones exactly.
 - **Next:** done; merged in PR #19.
 
@@ -941,7 +947,7 @@
 ## 2026-11-11 — Vandenlentės tab on /paskyra
 
 - **Why:** Owner wanted customers to see their apyrankė plan on the account page.
-- **Changed:** `rider-plans.tsx`, `account-tabs.tsx`, `app/paskyra/page.tsx`, `lib/account.ts`, `lib/account-data.ts`, hand-edited `database.types.ts`, migration `20261111210000_my_rider.sql` (NOT applied, blocked), ADR-0062, changelog.
+- **Changed:** `rider-plans.tsx`, `account-tabs.tsx`, `app/paskyra/page.tsx`, `lib/account.ts`, `lib/account-data.ts`, hand-edited `database.types.ts`, migration `20261111170411_my_riders.sql` (NOT applied, blocked), ADR-0062, changelog.
 - **Status:** `tsc`/`eslint` clean; not browser-checked; tab is empty until the migration is applied.
 - **Next:** Owner allows / applies the migration, then sign in with a rider's email or phone and check the tab.
 
@@ -969,7 +975,7 @@
 ## 2026-11-11 — Pasiūlymai details popup
 
 - **Why:** Owner wanted to open all details of a quote from /paskyra.
-- **Changed:** `inquiry-list.tsx` (client, popup), `lib/account.ts` / `account-data.ts` (`message`, `lines`, `contact`), `database.types.ts`, migration `20261111200000_my_inquiries_details.sql` (applied; first attempt blocked, applied after the owner allowed it), ADR-0061, changelog.
+- **Changed:** `inquiry-list.tsx` (client, popup), `lib/account.ts` / `account-data.ts` (`message`, `lines`, `contact`), `database.types.ts`, migration `20261111165915_my_inquiries_details.sql` (applied; first attempt blocked, applied after the owner allowed it), ADR-0061, changelog.
 - **Status:** `tsc`/`eslint` clean; migration verified; not browser-checked as a customer.
 - **Next:** Sign in as a customer, open Pasiūlymai and click a quote.
 
@@ -1004,7 +1010,7 @@
 ## 2026-11-11 — /paskyra tabs and Pasiūlymai
 
 - **Why:** Owner asked for tabs on the profile (Visi, pirtis, namukai, quads, pasiūlymai / skaičiuoklė).
-- **Changed:** `account-tabs.tsx`, `inquiry-list.tsx`, `request-list.tsx`, `app/paskyra/page.tsx`, `lib/account.ts`, `lib/account-data.ts`, hand-edited `database.types.ts`, migration `20261111190000_my_inquiries.sql` (unapplied), ADR-0061, changelog.
+- **Changed:** `account-tabs.tsx`, `inquiry-list.tsx`, `request-list.tsx`, `app/paskyra/page.tsx`, `lib/account.ts`, `lib/account-data.ts`, hand-edited `database.types.ts`, migration `20261111165418_my_inquiries.sql` (unapplied), ADR-0061, changelog.
 - **Status:** `tsc`/`eslint` clean; not browser-checked; the migration was blocked by the permission classifier and still needs the owner's approval.
 - **Next:** Approve / apply the migration, then sign in as a customer and check each tab.
 
@@ -1081,7 +1087,7 @@
 ## 2026-11-11 — Accepting calculator inquiries books cabins
 
 - **Why:** Owner wants accepted skaičiuoklė inquiries to take the quoted cabins so /rezervacija can't sell them.
-- **Changed:** migration `20261111180000_inquiry_stay_holds.sql` (unapplied), hand-edited `database.types.ts`, `acceptInquiry` / `releaseInquiry` actions and store methods, `Inquiry.stays` mapping, inquiry sheet and card UI, ADR-0060, changelog.
+- **Changed:** migration `20261111164744_inquiry_stay_holds.sql` (unapplied), hand-edited `database.types.ts`, `acceptInquiry` / `releaseInquiry` actions and store methods, `Inquiry.stays` mapping, inquiry sheet and card UI, ADR-0060, changelog.
 - **Status:** `tsc`/`eslint` clean; not browser-checked; migration not applied.
 - **Next:** Apply migration, regenerate types, test accept / release.
 
@@ -1680,8 +1686,8 @@
 ## 2026-11-08 — Instruktorius: bracelet check-in/out scanning page (ADR-0045)
 
 - **Why:** The owner wants an instructor-focused admin screen: scan a rider's bracelet and see their name, photo, surname, phone and how long they've currently been out on the water. Asked them directly what "session duration" should mean (a real check-in/out timer, remaining time on a timed plan, or no timer) — they chose the check-in/out timer, since nothing in the schema tracked that at all.
-- **Changed:** New permission `instruktorius` (`lib/admin/permissions.ts`, own nav row in `admin-nav.ts`, deliberately not folded into `apyrankes`). New table `rider_sessions` (`rider_id`, `card_number` snapshot, `started_at`, nullable `ended_at`, partial unique index enforcing one open session per rider) — migration `supabase/migrations/20261107180000_instructor_sessions.sql`. New server action `scanRiderSession` (`app/admin/actions.ts`): resolves the card via `rider_cards`, opens a session if the rider has none running, closes the open one if they do — one scan, two meanings depending on state, same convention the bracelet reader already uses elsewhere. New type `RiderSession` + mapper `toRiderSession`; `loadAdminData` loads it only for staff with the permission (`readRiderSessions`, bounded to the last 24h, same optional-data pattern as discount codes). New `InstruktoriusView`/`ActiveSessionRow` (`components/admin/instruktorius/`), reusing `ScanTarget`/`RiderAvatar`/`PlanBadge` from `apyrankes/`; new shared `useElapsed(startedAt, endedAt)` hook (`hooks/use-elapsed.ts`) ticks the live list every second. New route `/admin/instruktorius`.
-- **Applied:** First attempt (without explicit go-ahead in that message) was refused by Claude Code's auto-mode production-deploy classifier; the owner then explicitly approved it. Applied `20261107180000_instructor_sessions.sql` to the live "Vanduo" project via the Supabase MCP (`apply_migration`), regenerated `lib/supabase/database.types.ts` for real (`generate_typescript_types`) and reapplied the documented `create_inquiry.p_date` nullable hand-edit per ADR-0042's convention. Security advisor: no new findings.
+- **Changed:** New permission `instruktorius` (`lib/admin/permissions.ts`, own nav row in `admin-nav.ts`, deliberately not folded into `apyrankes`). New table `rider_sessions` (`rider_id`, `card_number` snapshot, `started_at`, nullable `ended_at`, partial unique index enforcing one open session per rider) — migration `supabase/migrations/20261107221748_instructor_sessions.sql`. New server action `scanRiderSession` (`app/admin/actions.ts`): resolves the card via `rider_cards`, opens a session if the rider has none running, closes the open one if they do — one scan, two meanings depending on state, same convention the bracelet reader already uses elsewhere. New type `RiderSession` + mapper `toRiderSession`; `loadAdminData` loads it only for staff with the permission (`readRiderSessions`, bounded to the last 24h, same optional-data pattern as discount codes). New `InstruktoriusView`/`ActiveSessionRow` (`components/admin/instruktorius/`), reusing `ScanTarget`/`RiderAvatar`/`PlanBadge` from `apyrankes/`; new shared `useElapsed(startedAt, endedAt)` hook (`hooks/use-elapsed.ts`) ticks the live list every second. New route `/admin/instruktorius`.
+- **Applied:** First attempt (without explicit go-ahead in that message) was refused by Claude Code's auto-mode production-deploy classifier; the owner then explicitly approved it. Applied `20261107221748_instructor_sessions.sql` to the live "Vanduo" project via the Supabase MCP (`apply_migration`), regenerated `lib/supabase/database.types.ts` for real (`generate_typescript_types`) and reapplied the documented `create_inquiry.p_date` nullable hand-edit per ADR-0042's convention. Security advisor: no new findings.
 - **Status:** `tsc --noEmit`, full-repo `eslint` and `next build` all clean against the real generated types.
 - **Next:** Assign the `instruktorius` permission to a role (Darbuotojai), then a browser pass: scan in, scan out, confirm the live list and duration tick correctly, at 375/768/1024 px.
 - **Docs:** `decisions-log.md` (ADR-0045), `changelog.md`, `status.md`, `components/common.md`, `hooks.md`, `database.md`, this entry.
@@ -1698,7 +1704,7 @@
 
 - **Why:** From a screenshot of `/admin/uzklausos`, the owner asked to remove the "Laimėta"/"Prarasta" filter chips.
 - **Checked first:** `inquiry_status` is a real Postgres enum, not a UI-only label set, and `InquirySheet`'s status-change dropdown reads from the exact same `INQUIRY_STATUS` record as the filter chips — so a code-only chip removal would've left both statuses still settable from the dropdown, just unreachable afterward from the filter bar. Queried live data (`select status, count(*) from public.inquiries group by status`): every row was `nauja`, zero used either value. Asked the owner to confirm before touching live schema; approved.
-- **Changed:** Migration `20261109150000_drop_inquiry_won_lost.sql` (guarded `do $$ if not exists $$`, idempotent) applied to the live "Vanduo" project — standard Postgres enum-narrowing swap (rename old type, create new 3-value one, cast the column, drop the old type). Narrowed `InquiryStatus` (`lib/admin/types.ts`), `INQUIRY_STATUS` (`lib/admin/labels.ts`), `INQUIRY_TONE` (`status-badge.tsx`), and `setInquiryStatus`'s literal union + `z.enum` (`app/admin/actions.ts`) to match. Regenerated `database.types.ts` (reapplied the `create_inquiry.p_date` nullable hand-edit, per the established convention). Security advisor: no new findings.
+- **Changed:** Migration `20261109142104_drop_inquiry_won_lost.sql` (guarded `do $$ if not exists $$`, idempotent) applied to the live "Vanduo" project — standard Postgres enum-narrowing swap (rename old type, create new 3-value one, cast the column, drop the old type). Narrowed `InquiryStatus` (`lib/admin/types.ts`), `INQUIRY_STATUS` (`lib/admin/labels.ts`), `INQUIRY_TONE` (`status-badge.tsx`), and `setInquiryStatus`'s literal union + `z.enum` (`app/admin/actions.ts`) to match. Regenerated `database.types.ts` (reapplied the `create_inquiry.p_date` nullable hand-edit, per the established convention). Security advisor: no new findings.
 - **Also:** `supabase/seed.sql` had two demo inquiries seeded as `laimeta`/`prarasta` — would've broken `supabase db reset` locally once the enum no longer has those values. Changed to `pasiulymas`/`susisiekta`, the closest remaining statuses to the rows' own notes.
 - **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. Not yet browser-checked.
 - **Next:** Confirm in a browser that `/admin/uzklausos` now shows only Visos/Nauja/Susisiekta/Pasiūlymas and the status dropdown in `InquirySheet` matches.
@@ -1756,9 +1762,9 @@
 
 ## 2026-11-07 — /registracija: the real upload bug was a missing table grant, not just the column collision
 
-- **Found:** After the previous fix, the owner reported the same symptom — asked whether it might be a localhost issue, or a "record already exists" conflict. Checked the live project directly: the three newest self-registered riders (created *after* `20261107171000` was applied) still had `avatar_path` **and** `signature_path` both null, and `storage.objects` had zero rows for any of them — not a duplicate/conflict, a clean rejection on every attempt.
+- **Found:** After the previous fix, the owner reported the same symptom — asked whether it might be a localhost issue, or a "record already exists" conflict. Checked the live project directly: the three newest self-registered riders (created *after* `20261107211034` was applied) still had `avatar_path` **and** `signature_path` both null, and `storage.objects` had zero rows for any of them — not a duplicate/conflict, a clean rejection on every attempt.
 - **Root cause:** Ran the photo-policy's own check as the `anon` role (`set local role anon; select exists (select 1 from public.riders r where r.id = ... )`) and got `ERROR 42501: permission denied for table riders` — a table-privilege error, not an RLS one. `anon` has never had a `SELECT` grant on `riders` or `rider_waivers` at all (by design — "Anon has no grants on any of the three tables" per the original Apyrankės ADR). So *any* subquery against those tables evaluated as `anon` — including inside a Storage policy's `EXISTS` clause — fails outright, regardless of how it's written. This had been silently breaking **both** the photo and the signature upload since the feature shipped; the previous fix's column-collision bug was real but secondary, and happened to be in the one policy (photo) that got attention first.
-- **Fixed:** Migration `20261107172000_fix_rider_upload_privileges.sql`, applied directly to the live "Vanduo" project via the Supabase MCP (owner's go-ahead, asked again since this is a distinct write): two new `public` `security definer` functions, `rider_awaiting_photo(uuid)` and `rider_waiver_awaiting_signature(uuid)` — same pattern as the existing `private.has_permission` (owned by the table owner, so they run with its privileges and bypass both the grant and RLS checks). Put in `public`, not `private`, since `anon` has no `USAGE` on the `private` schema either. Both Storage policies now call the matching function instead of querying the table directly. Verified by calling both functions `set local role anon` against a real pending rider and getting `true` for each (previously the direct-query version errored before even reaching a true/false answer).
+- **Fixed:** Migration `20261107212126_fix_rider_upload_privileges.sql`, applied directly to the live "Vanduo" project via the Supabase MCP (owner's go-ahead, asked again since this is a distinct write): two new `public` `security definer` functions, `rider_awaiting_photo(uuid)` and `rider_waiver_awaiting_signature(uuid)` — same pattern as the existing `private.has_permission` (owned by the table owner, so they run with its privileges and bypass both the grant and RLS checks). Put in `public`, not `private`, since `anon` has no `USAGE` on the `private` schema either. Both Storage policies now call the matching function instead of querying the table directly. Verified by calling both functions `set local role anon` against a real pending rider and getting `true` for each (previously the direct-query version errored before even reaching a true/false answer).
 - **Trade-off accepted:** These two new functions are themselves `anon`-callable RPCs (same WARN category as every other public RPC in this app, confirmed via `get_advisors`) and answer a narrow boolean — "is this specific rider id still waiting for a file" — to anyone who can guess or already knows a UUID. No PII in the response. Same trust level as the rest of ADR-0043.
 - **Status:** Regenerated `database.types.ts` (reapplied the `create_inquiry.p_date` hand-edit again). `tsc --noEmit` clean. **Not yet re-exercised end to end through the actual UI** — only verified at the SQL level that the policies now resolve correctly for `anon`.
 - **Next:** One more full `/registracija` pass through the real form to confirm a photo and signature actually land in Storage and `avatar_path`/`signature_path` get set.
@@ -1774,8 +1780,8 @@
 ## 2026-11-07 — Fixed /registracija silently failing to upload the photo
 
 - **Found:** The owner registered through `/registracija` and got "Registracija įrašyta, bet nepavyko įkelti failų. Kreipkitės į darbuotoją." after signing — the rider and waiver rows were created fine, but both the photo and (per the error) the uploads looked like they failed.
-- **Root cause:** `supabase.storage.from("rider-photos").upload(...)` was being rejected by RLS. The `public rider photo upload` policy's `EXISTS` subquery (`20261107170000_public_rider_registration.sql`) checked `(storage.foldername(name))[1]` without qualifying `name` — and because the subquery's `from public.riders r` brings `riders.name` (the person's first name) into scope, Postgres silently resolved the bare `name` to `r.name` instead of the outer `storage.objects.name` (the uploaded path). `storage.foldername('Rys')` never equals a rider's uuid, so the check always failed and every anon photo upload was rejected — invisibly, since the RPC calls before and after it (`register_rider_public`, `finalize_rider_registration_public`) both succeeded regardless. The sibling `public rider waiver upload` policy was unaffected: `rider_waivers` has no `name` column, so there was nothing for the bare identifier to collide with.
-- **Fixed:** Migration `20261107171000_fix_rider_photo_upload_policy.sql`, applied directly to the live "Vanduo" project via the Supabase MCP (owner's go-ahead) — same policy, `storage.foldername(objects.name)` instead of `storage.foldername(name)`. Confirmed via `pg_policies` that the stored `with_check` now references `objects.name`. Security advisor re-checked: no new findings.
+- **Root cause:** `supabase.storage.from("rider-photos").upload(...)` was being rejected by RLS. The `public rider photo upload` policy's `EXISTS` subquery (`20261107205756_public_rider_registration.sql`) checked `(storage.foldername(name))[1]` without qualifying `name` — and because the subquery's `from public.riders r` brings `riders.name` (the person's first name) into scope, Postgres silently resolved the bare `name` to `r.name` instead of the outer `storage.objects.name` (the uploaded path). `storage.foldername('Rys')` never equals a rider's uuid, so the check always failed and every anon photo upload was rejected — invisibly, since the RPC calls before and after it (`register_rider_public`, `finalize_rider_registration_public`) both succeeded regardless. The sibling `public rider waiver upload` policy was unaffected: `rider_waivers` has no `name` column, so there was nothing for the bare identifier to collide with.
+- **Fixed:** Migration `20261107211034_fix_rider_photo_upload_policy.sql`, applied directly to the live "Vanduo" project via the Supabase MCP (owner's go-ahead) — same policy, `storage.foldername(objects.name)` instead of `storage.foldername(name)`. Confirmed via `pg_policies` that the stored `with_check` now references `objects.name`. Security advisor re-checked: no new findings.
 - **Known fallout:** Three riders created while this was broken (`Rys Gv`, `Rysard Gv` ×2, all `self_registered = true`) have `avatar_path = null` — their photo upload silently failed before this fix; the signature uploads would have succeeded since that policy was already correct. They need either a re-registration or a staff-side photo upload from their profile.
 - **Status:** Migration applied and verified by reading the policy back. **Not yet re-exercised end to end** — the next registration attempt should confirm the photo actually lands in `rider-photos` and `avatar_path` gets set.
 - **Next:** One more `/registracija` pass to confirm the fix, then the rest of the original browser-check list (both rule texts, signature pad, badge, Pardavimas loop).
@@ -1784,7 +1790,7 @@
 ## 2026-11-07 — Public self-registration at /registracija (ADR-0043)
 
 - **Built:** A new public route so a visitor can register themselves before coming to the till. `app/registracija/page.tsx` (public, `BookingPage`/`BookingHeader`/`theme-reservation` shell, same pattern as `/rezervacija`/`/kuponai`) renders `RegistrationFlow` (`components/registration/`), a 3-step wizard: **1. Kontaktai** (`ContactStep`, RHF + `registrationSchema` — name, surname, email, birthdate, phone, optional phone2, plus a `website` honeypot same shape as `components/quads/contact-fields.tsx`); **2. Nuotrauka** (`CameraCapture` — live `getUserMedia` selfie preview, "Padaryti nuotrauką" captures to a canvas, "Fotografuoti iš naujo" retakes, plus an `<input type=file accept=image/*>` fallback for no-camera devices so the required step is never a dead end); **3. Taisyklės ir parašas** (`RulesStep` — both rule documents, `lib/park-rules.ts`, the owner's pasted text verbatim, in a scrollable panel; a consent line naming the person; `SignaturePad`, a plain pointer-events canvas with no library, "Išvalyti parašą"). Submits one `FormData` (fields + two files) to `registerRider` (`app/actions/registration.ts`).
-- **Database (ADR-0043, migration `20261107170000_public_rider_registration.sql`, applied live via the Supabase MCP after the owner's go-ahead):** `riders.self_registered boolean default false`; new `rider_waivers` table (`terms_version`, `signature_path`, `signed_at`), read-only to `apyrankes`/`klientai`; new private `rider-waivers` Storage bucket (PNG only); two `security definer` RPCs granted to `anon` only — `register_rider_public` (inserts the rider + waiver row, returns the id) and `finalize_rider_registration_public` (links the two uploaded paths). Two narrowly-scoped anon Storage **insert**-only policies on `rider-photos`/`rider-waivers`: each only matches a path whose rider/waiver row exists, is self-registered, and has no path set yet — so a path becomes unwritable the moment it's filled, no anon select/update/delete anywhere. `registerRider` runs the three steps in sequence: RPC → two Storage uploads (anon client, not SQL — actual bytes can only go through the Storage API) → RPC. This keeps the existing "anon never touches a table or bucket directly, only RPCs" contract (ADR-0010) even though, unlike every prior public form, this one needs to write files.
+- **Database (ADR-0043, migration `20261107205756_public_rider_registration.sql`, applied live via the Supabase MCP after the owner's go-ahead):** `riders.self_registered boolean default false`; new `rider_waivers` table (`terms_version`, `signature_path`, `signed_at`), read-only to `apyrankes`/`klientai`; new private `rider-waivers` Storage bucket (PNG only); two `security definer` RPCs granted to `anon` only — `register_rider_public` (inserts the rider + waiver row, returns the id) and `finalize_rider_registration_public` (links the two uploaded paths). Two narrowly-scoped anon Storage **insert**-only policies on `rider-photos`/`rider-waivers`: each only matches a path whose rider/waiver row exists, is self-registered, and has no path set yet — so a path becomes unwritable the moment it's filled, no anon select/update/delete anywhere. `registerRider` runs the three steps in sequence: RPC → two Storage uploads (anon client, not SQL — actual bytes can only go through the Storage API) → RPC. This keeps the existing "anon never touches a table or bucket directly, only RPCs" contract (ADR-0010) even though, unlike every prior public form, this one needs to write files.
 - **Admin surface:** `/admin/apyrankes` → Naudotojai and `/admin/klientai` show an "Internetu" `Badge` next to a self-registered rider's name. The shared `RiderProfileTab` (`components/admin/rider-profile-tabs.tsx`) gained a `WaiverStatus` line — "Taisyklės pasirašytos {date}" with a "Peržiūrėti parašą" link resolving a signed URL — so staff can confirm a waiver exists before handing over a bracelet. `getRiderFileUrl`'s bucket union gained `"rider-waivers"`; `AdminData`/`useAdmin()` gained `riderWaivers`, loaded and mapped the same way `purchases`/`rider_documents` already are.
 - **Types regenerated:** `database.types.ts` was regenerated from the live project; the project's documented `create_inquiry.p_date` hand-edit (nullable, the generator reports it as non-null — see ADR-0042) was reapplied, same as every prior regeneration. Security advisor showed only the expected new anon-RPC WARN entries (same category as every existing public booking/coupon RPC) plus the pre-existing unrelated findings.
 - **Status:** `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean. **Not browser-checked** — this session has no camera/`getUserMedia` access to exercise the capture step, and the Chrome browser tool here cannot reach `localhost` (same limitation noted elsewhere in this file).
@@ -1855,7 +1861,7 @@
 
 ## 2026-11-07 — Klientai planned (full Grabby-parity roadmap), migration written but blocked on apply
 
-- **Changed:** Checked `app.begrabby.com/dashboard` (the owner's other wake-park admin system) via the aside-browser skill and compared it against `/admin`, confirming the gaps ADR-0040's sitemap already named: a standalone Klientai, Operatorius, Priežiūra, Analitika, and Kasa (POS). Agreed a 6-phase roadmap starting with Klientai (plan saved at `~/.claude/plans/purring-greeting-nygaard.md`). Mid-plan, found an uncommitted, undocumented migration already applied live (`20261107150000_rider_grabby_import`, now documented as ADR-0041) that made `riders.plan_id` nullable and bulk-imported ~8,940 Grabby contacts — 140 of 141 `riders` rows are now plain customer contacts with no plan. That reversed the original plan (a new `customers` table) to reusing `riders` as the identity anchor instead (ADR-0042). Wrote `supabase/migrations/20261107160000_klientai.sql`: additive `klientai`-permission RLS on `riders`/`rider_comments`/`rider_documents`/`purchases` + its two storage buckets, a nullable `rider_id` on `bookings`/`quad_rentals`/`event_tickets`/`coupons` with read-only `klientai` policies, and a backfill linking the ~12 existing rows in those four tables to a rider (matching by `private.norm_phone` or email, creating one where neither matches).
+- **Changed:** Checked `app.begrabby.com/dashboard` (the owner's other wake-park admin system) via the aside-browser skill and compared it against `/admin`, confirming the gaps ADR-0040's sitemap already named: a standalone Klientai, Operatorius, Priežiūra, Analitika, and Kasa (POS). Agreed a 6-phase roadmap starting with Klientai (plan saved at `~/.claude/plans/purring-greeting-nygaard.md`). Mid-plan, found an uncommitted, undocumented migration already applied live (`20261107190251_rider_grabby_import`, now documented as ADR-0041) that made `riders.plan_id` nullable and bulk-imported ~8,940 Grabby contacts — 140 of 141 `riders` rows are now plain customer contacts with no plan. That reversed the original plan (a new `customers` table) to reusing `riders` as the identity anchor instead (ADR-0042). Wrote `supabase/migrations/20261107193757_klientai.sql`: additive `klientai`-permission RLS on `riders`/`rider_comments`/`rider_documents`/`purchases` + its two storage buckets, a nullable `rider_id` on `bookings`/`quad_rentals`/`event_tickets`/`coupons` with read-only `klientai` policies, and a backfill linking the ~12 existing rows in those four tables to a rider (matching by `private.norm_phone` or email, creating one where neither matches).
 - **Status:** Migration file written, verified against live schema/row-counts via read-only `execute_sql` queries first; first `apply_migration` attempt was blocked by Claude Code's auto-mode production-deploy classifier, so I explained and asked — the owner said go ahead. One retry hit a `riders_surname_check` violation (single-word names splitting to an empty surname), fixed with a `'-'` fallback, rolled back cleanly, then applied successfully. Security advisor showed no new findings; `lib/supabase/database.types.ts` regenerated (the known `create_inquiry.p_date` nullable hand-edit reapplied) and `tsc --noEmit` is clean. All 12 pre-existing rows across the four tables backfilled; `riders` separately jumped to 8,945 while this ran, from the real Grabby CSV import (ADR-0041) finishing concurrently and independently — confirmed unrelated by checking `grabby_id` coverage before concluding it wasn't a bug in this migration. Then built the full app layer: `klientai` permission; `riderId` on `Booking`/`QuadRental`/`TourTicket`/`Coupon` (types + mappers); nine rider actions in `app/admin/actions.ts` relaxed to accept `apyrankes` or `klientai`; standalone nav item; extracted `RiderProfileTab`/`RiderDocumentsTab`/`RiderCommentsTab` out of `RiderPage` into a shared `components/admin/rider-profile-tabs.tsx`; new `/admin/klientai` (`KlientaiView`, paginated 25/page — `riders` is 8,945 rows now, so an unpaginated list would've been a real problem) and `/admin/klientai/[id]` (`CustomerPage`: Profilis, a new Veikla activity timeline, Dokumentai, Komentarai). `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean; verified both new routes compile and redirect correctly via curl against the owner's already-running dev server (no credentials available to check in a real browser this session).
 - **Next:** Staff sign-in and a full browser click-through of Klientai (search, open a profile, edit contact info, Veikla, documents, comments, delete) at 375/768/1024 px, then commit. After that: Analitika, Priežiūra, Operatorius, Kasa (POS), Nuoma equipment inventory, per the roadmap in the plan file.
 - **Docs:** `decisions-log.md` (ADR-0042), `database.md` (migration row, schema annotations, permission table), `changelog.md`, this entry, `status.md`.
@@ -1869,7 +1875,7 @@
 
 ## 2026-11-07 — Apyrankės (bracelet pass scanning), ported from pass-scanner and expanded
 
-- **Changed:** Ported the user's separate `pass-scanner` prototype (localStorage) into a real Supabase-backed feature: new `/admin/apyrankes` staff screen behind a new `apyrankes` page permission (ADR-0038). Scanning uses a ported, layout-robust USB keyboard-wedge reader (`lib/card-scanner.ts` + `hooks/use-card-scanner.ts`). New tables `ride_plans`, `riders`, `rider_cards` (migration `20261107120000_bracelet_passes`). Then expanded riders into full customer records (phone, second phone, birthdate, email, avatar) with a detail page covering sales history, active services, subscriptions, documents and comments: new `purchases` (snapshotted sales log), `rider_comments`, `rider_documents` tables and two private Storage buckets `rider-photos`/`rider-documents` served via 1-hour signed URLs (migration `20261107140000_rider_profiles`, ADR-0039). `ride_plans` gained a `category` column and was reseeded with the owner's real 13-item "Plaukimas" price list, replacing four placeholders. UI iterated per the owner's feedback: the rider side drawer became a full page `/admin/apyrankes/[id]` (`RiderPage`, matching `/admin/pirtis/[id]`); the plan dropdown in Pardavimas became a 4-column grid of plan cards under category tabs (`RidePlanPicker`); fixed an overlapping-tabs bug (shadcn `TabsList` has a fixed single-row height, so `flex-wrap` on 6-7 tabs overflowed onto content below — switched to horizontal scroll). Admin sidebar regrouped per the owner's dashboard-merge sitemap: Apžvalga ungrouped, new "Pardavimai" section holds Rezervacijos/Užimtumas/Keturračiai/Kuponai/Apyrankės/Užklausos (ADR-0040; `AdminNavGroup` gained `"apzvalga"`, `ADMIN_NAV_GROUPS` entries can have `label: null`). Also added `127.210.108.239` to `next.config.ts` `allowedDevOrigins` (cross-origin HMR fix).
+- **Changed:** Ported the user's separate `pass-scanner` prototype (localStorage) into a real Supabase-backed feature: new `/admin/apyrankes` staff screen behind a new `apyrankes` page permission (ADR-0038). Scanning uses a ported, layout-robust USB keyboard-wedge reader (`lib/card-scanner.ts` + `hooks/use-card-scanner.ts`). New tables `ride_plans`, `riders`, `rider_cards` (migration `20261107174515_bracelet_passes`). Then expanded riders into full customer records (phone, second phone, birthdate, email, avatar) with a detail page covering sales history, active services, subscriptions, documents and comments: new `purchases` (snapshotted sales log), `rider_comments`, `rider_documents` tables and two private Storage buckets `rider-photos`/`rider-documents` served via 1-hour signed URLs (migration `20261107180329_rider_profiles`, ADR-0039). `ride_plans` gained a `category` column and was reseeded with the owner's real 13-item "Plaukimas" price list, replacing four placeholders. UI iterated per the owner's feedback: the rider side drawer became a full page `/admin/apyrankes/[id]` (`RiderPage`, matching `/admin/pirtis/[id]`); the plan dropdown in Pardavimas became a 4-column grid of plan cards under category tabs (`RidePlanPicker`); fixed an overlapping-tabs bug (shadcn `TabsList` has a fixed single-row height, so `flex-wrap` on 6-7 tabs overflowed onto content below — switched to horizontal scroll). Admin sidebar regrouped per the owner's dashboard-merge sitemap: Apžvalga ungrouped, new "Pardavimai" section holds Rezervacijos/Užimtumas/Keturračiai/Kuponai/Apyrankės/Užklausos (ADR-0040; `AdminNavGroup` gained `"apzvalga"`, `ADMIN_NAV_GROUPS` entries can have `label: null`). Also added `127.210.108.239` to `next.config.ts` `allowedDevOrigins` (cross-origin HMR fix).
 - **Status:** Both migrations applied directly to the live "Vanduo" project via the Supabase MCP (`apply_migration`); security advisor showed no new findings each time; generated types matched the hand-written `lib/supabase/database.types.ts` edits exactly both times. `tsc --noEmit`, full-repo `eslint --max-warnings 0` and `next build` all clean after every change in this session. **Not checked in a real browser session** — no staff credentials available here; only verified via curl that `/admin/apyrankes` and `/admin/apyrankes/[id]` compile and 307-redirect to `/admin/prisijungti` when signed out. Everything is uncommitted.
 - **Next:** staff sign-in and a full click-through (scan a real bracelet, sell a plan to a guest and an existing rider, rebind, upload a rider photo and a document, add/delete a comment, delete a rider) at 375/768/1024 px, then commit. Fill in pricing for the other till categories (Įranga, Abonementai, Pramogos, Apgyvendinimas, Parduotuvė, Dubenėlyje) from Planai once the owner has it. Consider whether "active"/"abonementai" need real expiry/visit-count tracking later (ADR-0039 flags this as a known simplification).
 - **Docs:** `database.md` (schema rows, migrations list, permission table), `api-architecture.md` (new actions), `routing.md` (new route, sidebar grouping), `hooks.md` (`useCardScanner`), `utils.md` (`RIDE_PLAN_CATEGORIES`, new mappers, `CardScanner`, `formatPlanPrice`), `changelog.md` (one line per change), `decisions-log.md` (ADR-0038, ADR-0039, ADR-0040), this status and session-log entry.
