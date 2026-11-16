@@ -1,3 +1,9 @@
+## 2026-11-17 — Next.js security update
+
+- **Changed:** `next` and `eslint-config-next` 16.4.2 → 16.4.6 (security advisory); `experimental.agentUpgrade: "security"` in `next.config.ts`; tech-stack versions.
+- **Status:** build, tsc, eslint, 116 tests pass; `next start` smoke check (/, /rezervacija, /renginiai, /kuponai 200; /admin redirects to login). Branch `chore/next-16.4.6-security`.
+- **Next:** PR, merge, deploy.
+
 ## 2026-11-16 — Sale price in the booking summary
 
 - **Changed:** `PlanLine.regularPrice`, `saleSaving`; struck-through regular price in `PlanDetails`, `PlanSummary`, `PlanLines`, `SaunaServiceSessions`, `SaunaScheduleChooser`.
