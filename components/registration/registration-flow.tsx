@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckout, trackSignUp } from "@/lib/analytics";
 import { CheckIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { registerRider } from "@/app/actions/registration";
@@ -72,7 +73,9 @@ export function RegistrationFlow({ plan, initial }: { plan?: RegistrationPlan; /
         return;
       }
       clearRegistrationDraft();
+      trackSignUp("rider_registration");
       if (result.data.checkoutUrl) {
+        if (plan) trackCheckout("plan", { itemName: plan.name, value: total });
         setRedirecting(true);
         goToCheckout(result.data.checkoutUrl);
         return;

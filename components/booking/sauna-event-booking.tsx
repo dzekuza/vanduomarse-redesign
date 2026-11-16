@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -53,6 +54,7 @@ export function SaunaEventBooking({ events }: { events: SaunaEvent[] }) {
     if (!event) return;
     const result = await createEventTicket({ eventId: event.key, people, ...contact });
     if ("error" in result) return form.setError("root", { message: result.error.message });
+    trackLead("sauna_session", { itemName: event.title, value: result.data.total });
     setConfirmed(result.data);
   });
 

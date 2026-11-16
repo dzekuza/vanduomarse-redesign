@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckout } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -76,6 +77,7 @@ export function OrderForm({ product, buyer }: { product: CouponProduct; buyer?: 
       setError("root", { message: result.error.message });
       return;
     }
+    trackCheckout("coupon", { itemName: product.name, value: total });
     setRedirecting(true);
     goToCheckout(result.data.checkoutUrl);
   });

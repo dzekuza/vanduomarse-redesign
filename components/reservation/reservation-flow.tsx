@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckout, trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
 import { z } from "zod";
@@ -327,6 +328,7 @@ export function ReservationFlow({
       const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount, tourPick);
       // The code stopped holding (used up, expired) part-way: drop it so "Bandyti dar kartą" files the rest without it.
       if (DISCOUNT_HINTS.has(result.error?.code ?? "")) setDiscount(null);
+      if (!result.error) trackLead("reservation", { value: Math.max(total - discountAmount, 0) });
       setOutcome(result);
       return;
     }
@@ -347,6 +349,7 @@ export function ReservationFlow({
       }
       return;
     }
+    trackCheckout("reservation", { value: Math.max(total - discountAmount, 0) });
     setRedirecting(true);
     window.location.assign(result.data.url);
   });

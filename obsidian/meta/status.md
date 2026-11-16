@@ -3,13 +3,15 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
+**Google Analytics events (2026-11-16, ADR-0103): BUILT, not yet deployed or seen in GA. `lib/analytics.ts` sends `generate_lead` / `begin_checkout` / `purchase` / `sign_up` only after analytics consent; wired into every request form, the three Stripe redirects and the three paid return pages. tsc, eslint, 87 tests clean. Not browser-checked (GA id is only in Vercel, so the banner does not show locally). Uncommitted on `main` together with the Sirvoy live-state notes. Next: commit and merge, redeploy production, accept cookies, make a test request, look in GA Realtime, then mark the events as key events in GA.**
+
 **Inquiries list (2026-11-16): /admin/uzklausos is a Klientai-style list (status filters, search, table; row opens the panel) instead of the drag board. Browser-checked; in PR #113.**
 
 **Sale origin (2026-11-16, ADR-0103): Apžvalga Pardavimai marks each sale Internetu / Admin and filters by it. Browser-checked; merged in PR #112.**
 
 **Duplicate sauna session (2026-11-16): "Dubliuoti" in /admin/pirtis Seansai opens the new-session form pre-filled from the chosen one. Form pre-fill browser-checked; saving a copy not tried. Next: duplicate one, change the date, save.**
 
-**Booking.com / Sirvoy sync (2026-11-16, ADR-0102): BUILT, migration APPLIED and SQL-verified, 82 tests pass, tsc/eslint clean, Namukai card and Kalendorius load in the browser. No live feed yet, so the Booking.com entries and the sold-out nights on /rezervacija are untested end to end. `.env.example` documents `CRON_SECRET`. Next: add `CRON_SECRET` (Vercel, Pro plan for 15-minute cron), generate the 14 Sirvoy export URLs, paste them in /admin/namukai, check one known booking.**
+**Booking.com / Sirvoy sync (2026-11-16, ADR-0102): LIVE. PR #114 merged and deployed, `CRON_SECRET` set, the route answers 401 without the secret and 200 with it. All 14 room feeds are saved and read without errors (2-12 blocks each, 2026-12-05 to 2027-08-29); `stay_occupancy()` shows the nights sold out (25-26 Jun 2027 all 14 rooms). Not yet checked in the browser: the Booking.com entries on Kalendorius and a sold-out night on /rezervacija. Known limit: the feed cannot tell a Booking.com booking from a front-desk booking or a closure, yet the calendar labels every block "Booking.com". Next: eyeball one known booking, decide whether to relabel blocks as "Sirvoy", confirm the 15-minute schedule runs (Vercel Cron Jobs tab or cron-job.org).**
 
 **GlobalSearch effect error (2026-11-14): scroll effect changed to a block body; error not reproduced, fix unverified (may be stale HMR). Next: hard-reload /admin and press ⌘K; if the error persists, dig further.**
 

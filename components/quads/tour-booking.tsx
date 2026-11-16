@@ -1,5 +1,6 @@
 "use client";
 
+import { trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -34,6 +35,7 @@ export function TourBooking({ tours }: { tours: QuadTourData[] }) {
     if (!event) return;
     const result = await createTourTicket({ eventId: event.key, people: seats, ...c });
     if ("error" in result) return form.setError("root", { message: result.error.message });
+    trackLead("quad_tour", { itemName: event.title });
     setSent(result.data);
   });
 
