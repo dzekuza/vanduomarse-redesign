@@ -12,6 +12,7 @@ import { toSaunaEvent, type SaunaEventData } from "@/lib/sauna-events";
 import { sessionPartyPrice, type SaunaProgram } from "@/lib/sauna-programs";
 import { DialogPhotoClose } from "./dialog-photo-close";
 import { PLAN_PRIMARY_CLASS } from "./plan-actions";
+import { PriceWas } from "@/components/price-was";
 
 const sessionDate = new Intl.DateTimeFormat("lt-LT", { dateStyle: "long" });
 
@@ -97,7 +98,10 @@ export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelecte
             <div className="space-y-3 border-t border-line pt-4">
               {details.row.blocked ? (
                 <>
-                  <p className="text-item font-bold">{details.row.rate}</p>
+                  <p className="text-item font-bold">
+                    {details.row.regularRate ? <PriceWas>{details.row.regularRate}</PriceWas> : null}
+                    {details.row.rate}
+                  </p>
                   <p className="text-xs text-rust-ink">{details.event.spotsLeft > 0 ? "Seanso laikas kertasi su tavo planu." : "Laisvų vietų nebeliko."}</p>
                 </>
               ) : (

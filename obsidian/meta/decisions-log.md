@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0104 — An event's sale keeps `price` as the charged price and adds a display-only `regular_price`
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner wants to put a sauna session (or any event) on sale. Ticket totals are computed from `events.price` in several database functions (`create_event_ticket`, the reservation and discount-code checkout, staff tickets in `createEventTicket`).
+- **Decision:** `price` stays what a ticket costs; during a sale it holds the sale price. New nullable `events.regular_price` is the pre-sale price, only for showing it struck through (check: above `price`, needs a `price`). The admin form keeps "Kaina, €" as the regular price and adds an optional "Akcijos kaina, €"; on save the sale goes to `price` and the regular price to `regular_price`. Sessions priced by a program have no sale field (the program sets the price).
+- **Consequences:** no pricing function changed, so every channel (site, staff tickets, discount codes) charges the sale price at once. Ending a sale means clearing "Akcijos kaina". No start/end dates for a sale. Quad tour pages do not show the struck-through price yet.
+
+---
+
 ## ADR-0103 — A sale's origin (online vs admin) comes from the existing `source` column
 
 - **Status:** Accepted

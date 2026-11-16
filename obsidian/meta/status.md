@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
+**Event sale price (2026-11-16, ADR-0104): "Akcijos kaina" on events and sauna sessions; `events.regular_price` APPLIED. Public strike-through not browser-checked yet. Next: put one session on sale and look at /rezervacija and /renginiai.**
+
 **Google Analytics events (2026-11-16, ADR-0103): BUILT, not yet deployed or seen in GA. `lib/analytics.ts` sends `generate_lead` / `begin_checkout` / `purchase` / `sign_up` only after analytics consent; wired into every request form, the three Stripe redirects and the three paid return pages. tsc, eslint, 87 tests clean. Not browser-checked (GA id is only in Vercel, so the banner does not show locally). Uncommitted on `main` together with the Sirvoy live-state notes. Next: commit and merge, redeploy production, accept cookies, make a test request, look in GA Realtime, then mark the events as key events in GA.**
 
 **Inquiries list (2026-11-16): /admin/uzklausos is a Klientai-style list (status filters, search, table; row opens the panel) instead of the drag board. Browser-checked; in PR #113.**
