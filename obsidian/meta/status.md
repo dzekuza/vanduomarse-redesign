@@ -3,7 +3,7 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
-**Inquiries list (2026-11-16): /admin/uzklausos is a Klientai-style list (status filters, search, table; row opens the panel) instead of the drag board. Browser-checked; not committed yet.**
+**Inquiries list (2026-11-16): /admin/uzklausos is a Klientai-style list (status filters, search, table; row opens the panel) instead of the drag board. Browser-checked; in PR #113.**
 
 **Sale origin (2026-11-16, ADR-0103): Apžvalga Pardavimai marks each sale Internetu / Admin and filters by it. Browser-checked; merged in PR #112.**
 
@@ -162,8 +162,6 @@ updated: 2026-11-16
 **Admin sidebar (2026-11-11): group renamed Paslaugos; Klientai moved right after Apžvalga; uncommitted, not browser-checked.**
 
 **Program tile price (2026-11-11): smaller, medium weight; uncommitted, not browser-checked.**
-
-**Inquiries board (2026-11-11): /admin/uzklausos is three draggable status columns; uncommitted, not browser-checked.**
 
 **Rider picker (2026-11-11): e-mail shown under the name and searchable in the "Esamas naudotojas" dropdown; my_riders migration applied; uncommitted, not browser-checked.**
 

@@ -19,6 +19,12 @@ interface InquiriesTableProps {
 /** Event day and party size; registrations and contact messages may come without a date. */
 const eventWhen = (q: Inquiry) => [q.date ? formatDay(q.date) : "Data nenurodyta", q.guests ? `${q.guests} asm.` : ""].filter(Boolean).join(" · ");
 
+/** What an accepted inquiry holds: its cabins, and the saunas that had a start time (the rest were quote lines only). */
+const heldLabel = (q: Inquiry) => {
+  const held = [q.stays.length ? "nameliai" : "", q.saunas.some((s) => s.startHour !== null) ? "pirtys" : ""].filter(Boolean).join(" ir ");
+  return held ? `Užimta: ${held}` : "Užimta";
+};
+
 /** The inquiry list as a table, like Klientai: customer, event, quote, source, received and status on wide screens, a stacked cell on phones. A row opens the inquiry's panel. */
 export function InquiriesTable({ inquiries, onOpen, onRemove }: InquiriesTableProps) {
   return (
@@ -57,7 +63,7 @@ export function InquiriesTable({ inquiries, onOpen, onRemove }: InquiriesTablePr
                     <span className="block truncate text-xs text-muted-foreground md:hidden">
                       {q.eventType} · {eventWhen(q)}
                     </span>
-                    {q.acceptedAt ? <span className="block text-xs font-medium">Užimta: nameliai ir pirtys</span> : null}
+                    {q.acceptedAt ? <span className="block text-xs font-medium">{heldLabel(q)}</span> : null}
                     <span className="mt-1 block sm:hidden">
                       <InquiryStatusBadge status={q.status} />
                     </span>

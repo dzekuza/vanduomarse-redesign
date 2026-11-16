@@ -62,7 +62,7 @@ export function InquirySheet({ inquiry, onOpenChange, onRemove }: InquirySheetPr
 
               <dl className="grid grid-cols-2 gap-4 text-sm">
                 {[
-                  ["Data", formatDay(inquiry.date)],
+                  ["Data", inquiry.date ? formatDay(inquiry.date) : "Data nenurodyta"],
                   ["Svečiai", `${inquiry.guests} asm.`],
                   ["Erdvė", inquiry.space],
                   ["Sąmata", inquiry.estimate ? formatEurRange(inquiry.estimate) : "-"],

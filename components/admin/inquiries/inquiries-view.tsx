@@ -47,7 +47,7 @@ export function InquiriesView() {
             </Button>
           ))}
         </div>
-        <Input placeholder="Paieška" value={query} onChange={(e) => setQuery(e.target.value)} className="min-h-11 w-full sm:w-56" />
+        <Input aria-label="Paieška" placeholder="Paieška" value={query} onChange={(e) => setQuery(e.target.value)} className="min-h-11 w-full sm:w-56" />
       </div>
 
       {filtered.length === 0 ? (
