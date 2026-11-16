@@ -2,7 +2,7 @@ import "server-only";
 import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData, SiteSettings } from "./types";
 
@@ -152,6 +152,28 @@ async function readRiderSessions(supabase: ServerSupabase, me: StaffAccess) {
   return data.map(toRiderSession);
 }
 
+/**
+ * The Sirvoy room feeds and what those rooms have taken. Optional like payments: before the external calendars
+ * migration the tables are missing and the calendar simply shows no Sirvoy blocks. Blocks of rooms without a feed are skipped.
+ */
+async function readExternalCalendars(supabase: ServerSupabase) {
+  const [calendars, blocks] = await Promise.all([
+    supabase.from("external_calendars").select("*").order("label"),
+    supabase.from("external_blocks").select("*").order("starts_on"),
+  ]);
+  if (calendars.error || blocks.error) {
+    console.error("Admin data: external calendars", (calendars.error ?? blocks.error)?.message);
+    return { externalCalendars: [], externalBlocks: [] };
+  }
+  const externalCalendars = calendars.data.map(toExternalCalendar).toSorted((a, b) => a.label.localeCompare(b.label, "lt", { numeric: true }));
+  const byId = new Map(externalCalendars.map((c) => [c.id, c]));
+  const externalBlocks = blocks.data.flatMap((row) => {
+    const calendar = byId.get(row.calendar_id);
+    return calendar?.active ? [toExternalBlock(row, calendar)] : [];
+  });
+  return { externalCalendars, externalBlocks };
+}
+
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
   const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories, saunaMasters] = await Promise.all([
@@ -228,6 +250,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     couponProducts: couponProducts.data!.map(toCouponProduct),
     discountCodes,
     stayTypes: stayTypes.data!.map(toStayType),
+    ...(await readExternalCalendars(supabase)),
     quadTypes: quadTypes.data!.map(toQuadType),
     quadSettings: toQuadSettings(quadSettings.data!),
     quadTourRoutes: quadTourRoutes.data!.map(toQuadTourRoute),

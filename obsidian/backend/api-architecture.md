@@ -25,6 +25,7 @@ type ApiResponse<T> = { data: T } | { error: { message: string; code?: string } 
 
 | Route | Method | Input | Output | Auth |
 |-------|--------|-------|--------|------|
+| `/api/cron/sirvoy-sync` | GET | `Authorization: Bearer $CRON_SECRET` (Vercel Cron, `vercel.json`, every 15 min) | `{ synced, failed }`; 401 wrong secret, 503 `CRON_SECRET` unset, 500 when the feed list could not be read. Reads each active Sirvoy room's iCal export (`lib/external-sync.ts`: only `secured.sirvoy.com`, no redirects, 15 s timeout, 2 MB cap), parses it (`lib/ical.ts`) and replaces that room's blocks through `sync_external_blocks`. A room that fails keeps its old blocks and records `last_error`; a response that is not an iCal calendar never clears anything | Shared secret (timing-safe compare) |
 | `/api/stripe/webhook` | POST | Raw body + `stripe-signature` | `{ received: true }`; 400 bad/missing signature, 503 not configured, 500 when the database update failed (Stripe retries) | Stripe signature (`STRIPE_WEBHOOK_SECRET`) |
 
 ## Server actions

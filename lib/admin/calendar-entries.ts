@@ -37,9 +37,11 @@ export interface CalendarEntry {
   reference: string;
   /** Set for events: seats taken and the limit (null = unlimited). Their bookings are the event's tickets. */
   event?: { sold: number; held: number; capacity: number | null; published: boolean };
+  /** A room Sirvoy (Booking.com or the front desk) has taken: read-only, no customer or sheet. */
+  external?: true;
 }
 
-type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events">;
+type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events" | "externalBlocks">;
 
 const EVENT_KIND: Record<EventCategory, CalendarKind> = { pirtis: "pirtis", keturratis: "keturraciai", vakarai: "renginys", akademija: "renginys", sventes: "renginys" };
 
@@ -58,7 +60,7 @@ function lastNight(date: string, nights: number): string {
 }
 
 /** Every non-cancelled booking and rental, plus every event (its tickets are read with `ticketsFor`), as one flat, date-sorted list. */
-export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events }: Source): CalendarEntry[] {
+export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks }: Source): CalendarEntry[] {
   const entries: CalendarEntry[] = [];
 
   for (const b of bookings) {
@@ -110,6 +112,24 @@ export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, e
       status: "patvirtinta",
       reference: "",
       event: { sold: e.sold, held: e.held, capacity: e.capacity, published: e.published },
+    });
+  }
+
+  for (const b of externalBlocks) {
+    const type = stayTypes.find((t) => t.id === b.stayTypeId);
+    entries.push({
+      key: `external:${b.id}`,
+      id: b.id,
+      kind: "namelis",
+      date: b.startsOn,
+      endDate: lastNight(b.startsOn, b.nights),
+      time: "",
+      title: `Booking.com · ${type?.label ?? "Namelis"}`,
+      detail: `Sirvoy nr. ${b.label} · ${b.nights} n.`,
+      customer: { name: "", email: "", phone: "" },
+      status: "patvirtinta",
+      reference: "",
+      external: true,
     });
   }
 
