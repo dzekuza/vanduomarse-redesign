@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-11-01
+updated: 2026-11-16
 ---
 
 # Environment Variables
@@ -27,10 +27,13 @@ updated: 2026-11-01
 | `EMBED_ALLOWED_ORIGINS` | server | only for the WordPress widgets | Comma-separated origins allowed to frame `/embed/*` (CSP `frame-ancestors`, set in `proxy.ts` via `frameAncestors()` in `lib/embed.ts`). Non-origin entries are dropped; empty = same-origin only. Production: `https://vanduomarse.lt,https://www.vanduomarse.lt`; Vercel needs a redeploy after a change (ADR-0014) |
 | `SUPABASE_SERVICE_ROLE_KEY` | server | **yes** (staff management + phone gate) | Read by `lib/supabase/admin.ts`. Used by the owner-only actions in `app/admin/staff-actions.ts` (create, reset, delete logins) and by `app/actions/phone.ts` to call `request_phone_code` / `verify_phone_code`, the only functions it touches (ADR-0018). Without it the phone gate says SMS checks are down, so nobody can book online |
 | `PHONE_VERIFICATION_SECRET` | server | **yes** | 32+ random chars. `lib/phone-verification.ts` derives three keys from it: SMS code HMAC, client IP HMAC, verification token signature. Rotating it invalidates every verified phone (visitors re-verify) |
-
 | `STRIPE_SECRET_KEY` | server | for online payment | Restricted key (`rk_…`, Checkout Sessions write, Payment Intents read) or secret key. Read by `lib/stripe.ts`. Online payment on `/rezervacija` is on only when this **and** `STRIPE_WEBHOOK_SECRET` are set |
 | `CRON_SECRET` | server | for the Sirvoy sync | Bearer token Vercel Cron sends to `/api/cron/sirvoy-sync`; without it the route answers 503 and nothing syncs. 32+ random characters. Every-15-minutes cron needs a Vercel Pro plan (Hobby: once a day). Set in Vercel and, to try it locally, `.env.local` (ADR-0102) |
 | `STRIPE_WEBHOOK_SECRET` | server | for online payment | Signing secret (`whsec_…`) of the endpoint `https://<site>/api/stripe/webhook`; verified in `app/api/stripe/webhook/route.ts` |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | client + server | no | GA4 measurement id (`G-…`). Public (it is in the page). Google Analytics loads only after analytics consent (ADR-0085) |
+| `NEXT_PUBLIC_META_PIXEL_ID` | client + server | no | Meta Pixel id (digits). Public. The Pixel loads only after marketing consent (ADR-0085, ADR-0105); also the dataset the Conversions API posts to |
+| `META_CAPI_ACCESS_TOKEN` | server, **secret** | for the Meta Conversions API | Events Manager access token for Pixel `NEXT_PUBLIC_META_PIXEL_ID`; read only by `lib/meta-capi.ts`. Never `NEXT_PUBLIC_`. Without it nothing is sent server-side (ADR-0107) |
+| `META_CAPI_TEST_EVENT_CODE` | server | no, **leave unset in production** | Events Manager → Test events code, for local development: events from `localhost` go to Test events only, and `localhost` sends nothing without it. Ignored for events from the live site |
 | `SITE_URL` | server | no | Public origin for the Stripe return URLs (e.g. `https://vanduomarse.lt`); defaults to the request's own origin. Also the `/paskyra` and `/admin` links in emails, which are left out (customer) or relative (staff) without it |
 
 Values: Supabase dashboard → Project Settings → API. Stripe: Developers → API keys and Webhooks (use a sandbox for development).

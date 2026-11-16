@@ -23,7 +23,7 @@ import { isWakeBlackFridayDiscount, WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_SEASON_PASS
  *
  * Nothing here is verified, so it never writes onto an existing customer: a
  * phone or e-mail that is already known gets a new row marked for staff to
- * merge, and a fully registered customer's id never comes back (ADR-0107).
+ * merge, and a fully registered customer's id never comes back (ADR-0108).
  */
 
 const fail = (message: string, code?: string): { error: { message: string; code?: string } } => ({ error: { message, code } });
@@ -89,7 +89,7 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ chec
 
   const supabase = createPublicClient();
 
-  // Always a new rider row; a known phone or e-mail only marks it for staff to merge (ADR-0107).
+  // Always a new rider row; a known phone or e-mail only marks it for staff to merge (ADR-0108).
   const { data: registered, error: rpcError } = await supabase.rpc("register_rider_public", {
     p_name: v.name,
     p_surname: v.surname,

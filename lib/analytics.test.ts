@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// The Conversions API action is server code; these GA tests never reach it (no Pixel id).
+vi.mock("@/app/actions/meta-capi", () => ({ reportMetaEvent: () => Promise.resolve() }));
+
 const GA = "G-TEST123456";
 
 /** A browser with localStorage and timers, and the consent a visitor stored. */
