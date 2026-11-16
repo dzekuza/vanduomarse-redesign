@@ -1,3 +1,9 @@
+## 2026-11-16 — Sale price in the booking summary
+
+- **Changed:** `PlanLine.regularPrice`, `saleSaving`; struck-through regular price in `PlanDetails`, `PlanSummary`, `PlanLines`, `SaunaServiceSessions`, `SaunaScheduleChooser`.
+- **Status:** tsc/eslint clean, tests pass; checked in the browser on the live sale session ("Vyrai į krepšinį…", 12 € instead of 20 €). PR open from `fix/sale-price-summary`.
+- **Next:** merge the PR.
+
 ## 2026-11-16 — Migration versions match the live log
 
 - **Changed:** 66 `git mv` renames in `supabase/migrations/` to live versions (checked project ref `mwngljhcvqkvncwbmgeo` first; read-only SQL, nothing applied); old version numbers updated in `lib/push/staff-push.ts`, `app/actions/registration.ts` and the vault. Migration file contents untouched, so a few SQL comments still name old file names.
