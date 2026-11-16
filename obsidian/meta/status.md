@@ -3,7 +3,9 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
-**Sale origin (2026-11-16, ADR-0103): Apžvalga Pardavimai marks each sale Internetu / Admin and filters by it. Browser-checked.**
+**Inquiries list (2026-11-16): /admin/uzklausos is a Klientai-style list (status filters, search, table; row opens the panel) instead of the drag board. Browser-checked; not committed yet.**
+
+**Sale origin (2026-11-16, ADR-0103): Apžvalga Pardavimai marks each sale Internetu / Admin and filters by it. Browser-checked; merged in PR #112.**
 
 **Duplicate sauna session (2026-11-16): "Dubliuoti" in /admin/pirtis Seansai opens the new-session form pre-filled from the chosen one. Form pre-fill browser-checked; saving a copy not tried. Next: duplicate one, change the date, save.**
 

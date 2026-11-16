@@ -1,3 +1,9 @@
+## 2026-11-16 — Inquiries as a list
+
+- **Changed:** /admin/uzklausos board replaced by `InquiriesTable` + filters/search in `InquiriesView`; `InquiriesBoard`, `InquiryCard` deleted.
+- **Status:** eslint clean, my files typecheck (tsc's one error is in `booking-options.test.ts`, from the uncommitted Booking.com work); browser-checked desktop and 375 px. Not committed.
+- **Next:** commit on a branch apart from the Booking.com files.
+
 ## 2026-11-16 — Online vs admin sales
 
 - **Changed:** `Sale.source`, `saleOrigin`, `SaleOriginBadge`, origin filter in `SalesFilters`, `TourTicket.source`; ADR-0103.
