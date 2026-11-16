@@ -20,6 +20,19 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0103 — Google Analytics events go through one consent-gated helper and use GA4's recommended names
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+
+**Context.** ADR-0085 loads GA4 only after the visitor accepts analytics, and GA's enhanced measurement already reports page views (including App Router route changes). What was missing was what visitors do: requests sent, checkout started, payment received.
+
+**Decision.** `lib/analytics.ts` is the only place events are sent. `trackEvent` returns unless a GA id is set and the stored consent allows analytics (the same test the loader uses), and waits up to 5 s for gtag.js, so call sites never check consent. Events use GA4's recommended names so reports and key events work without setup: `generate_lead` (a request or enquiry filed without paying online, `lead_type` says which), `begin_checkout`, `purchase` (once per transaction id, sent from the paid return pages by `TrackPurchase`) and `sign_up`. Parameters are the chosen item and a euro value only: no names, phones, e-mails or references. The admin, the embed widgets and server-side events are not tracked.
+
+**Consequences.** Mark `generate_lead`, `purchase` and `sign_up` as key events in GA (Admin → Events) to see conversions per page. Online-paid bookings are counted at `purchase`, pay-on-site and staff-confirmed requests at `generate_lead`. A coupon's `purchase` value is its face value, not the discounted amount paid. Embedded widgets on other sites do not report, because the cookie banner lives in the root layout. Tests in `lib/analytics.test.ts`.
+
+---
+
 ## ADR-0102 — Sirvoy (Booking.com's channel manager) is read in over iCal, one way, and counts as stay stock
 
 - **Status:** Accepted, built 2026-11-16 (feed addresses still to be entered by the owner)

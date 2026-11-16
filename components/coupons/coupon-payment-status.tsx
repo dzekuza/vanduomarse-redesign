@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrackPurchase } from "@/components/analytics/track-purchase";
 import { PaymentCard } from "@/components/reservation/payment-status";
 import { PaymentPoller } from "@/components/reservation/payment-actions";
 import { CouponCodeActions } from "@/components/coupons/coupon-code-actions";
@@ -43,6 +44,7 @@ export function CouponPaymentStatus({ coupon }: { coupon: CouponPaymentView | nu
 
   return (
     <PaymentCard title={title} text={text} refs={[coupon.reference]} amount={coupon.amount}>
+      {paid ? <TrackPurchase kind="coupon" transactionId={coupon.reference} itemName={coupon.productName} value={coupon.amount} /> : null}
       {pending ? <PaymentPoller /> : null}
       {paid && coupon.code ? (
         <div className="space-y-4">

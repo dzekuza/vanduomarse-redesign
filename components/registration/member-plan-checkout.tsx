@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckout } from "@/lib/analytics";
 import Link from "next/link";
 import { useState } from "react";
 import { buyPlanAsMember } from "@/app/actions/registration";
@@ -27,6 +28,7 @@ export function MemberPlanCheckout({ plan, name }: { plan: RegistrationPlan; nam
       setBusy(false);
       return;
     }
+    trackCheckout("plan", { itemName: plan.name, value: total });
     goToCheckout(result.data.checkoutUrl);
   }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { trackCheckout } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -39,6 +40,7 @@ export function WakeCheckoutDialog({ product, open, onClose }: WakeCheckoutDialo
       setError("root", { message: result.error.message });
       return;
     }
+    trackCheckout("coupon", { itemName: product.name, value: product.value });
     setRedirecting(true);
     goToCheckout(result.data.checkoutUrl);
   });

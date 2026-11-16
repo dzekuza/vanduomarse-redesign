@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrackPurchase } from "@/components/analytics/track-purchase";
 import { PaymentPoller } from "@/components/reservation/payment-actions";
 import { PaymentCard } from "@/components/reservation/payment-status";
 import { MAIN_CONTACT } from "@/lib/contacts";
@@ -38,6 +39,7 @@ export function PlanPaymentStatus({ order, cancelled }: { order: PlanPaymentView
 
   return (
     <PaymentCard title={title} text={text} refs={[order.reference]} amount={order.amount}>
+      {paid ? <TrackPurchase kind="plan" transactionId={order.reference} itemName={order.planName} value={order.amount} /> : null}
       {pending && !cancelled ? <PaymentPoller /> : null}
       <Link href="/rezervacija?veikla=wake" className="inline-flex min-h-11 items-center text-sm font-normal text-ink/70 underline underline-offset-4 hover:text-rust">
         {paid ? "Grįžti į rezervaciją" : "Atgal į WAKE pasiūlymus"}
