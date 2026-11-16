@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactElement } from "react";
 import { cn } from "@/lib/utils";
 
 interface BookingHeaderProps {
@@ -8,12 +9,10 @@ interface BookingHeaderProps {
   kicker?: string;
   /** Small uppercase line on the right (hidden on phones). */
   tagline?: string;
-  /** One or two lines; the second is coral. */
-  title: [string] | [string, string];
+  /** A plain second line is coral; an element can set its own emphasis. */
+  title: [string] | [string, string | ReactElement];
   /** One paragraph, or several as an array. */
   intro?: string | string[];
-  /** The header sits in a half-width column (from `lg`): a smaller title keeps long words inside it. */
-  split?: boolean;
   /** Extra classes for the intro paragraphs, e.g. a max width narrower than a wide title above them. */
   introClassName?: string;
 }
@@ -28,8 +27,17 @@ export function BookingBreadcrumb({ crumb }: { crumb: string }) {
   );
 }
 
-/** Light page header of the booking-style pages (reservation, calculator): breadcrumb, kicker, big title, intro. */
-export function BookingHeader({ crumb, kicker, tagline, title, intro, split = false, introClassName }: BookingHeaderProps) {
+export function BookingTitle({ title: [first, second] }: Pick<BookingHeaderProps, "title">) {
+  return (
+    <h1 className="text-total font-bold tracking-tighter uppercase sm:text-title">
+      {first}
+      {second ? <><br />{typeof second === "string" ? <span className="text-rust">{second}</span> : second}</> : null}
+    </h1>
+  );
+}
+
+/** Light page header for public booking pages: breadcrumb, kicker, title and intro. */
+export function BookingHeader({ crumb, kicker, tagline, title, intro, introClassName }: BookingHeaderProps) {
   return (
     <header className="space-y-6">
       <BookingBreadcrumb crumb={crumb} />
@@ -42,15 +50,7 @@ export function BookingHeader({ crumb, kicker, tagline, title, intro, split = fa
           {tagline ? <p className="max-sm:hidden">{tagline}</p> : null}
         </div>
       ) : null}
-      <h1 className={`text-total font-bold uppercase max-sm:tracking-tighter sm:text-display${split ? " lg:text-display-split" : ""}`}>
-        {title[0]}
-        {title[1] ? (
-          <>
-            <br />
-            <span className="text-rust">{title[1]}</span>
-          </>
-        ) : null}
-      </h1>
+      <BookingTitle title={title} />
       {[intro ?? []].flat().map((paragraph) => (
         <p key={paragraph} className={cn("text-xs leading-loose text-copy md:text-sm", introClassName)}>
           {paragraph}
