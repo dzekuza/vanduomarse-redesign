@@ -559,6 +559,7 @@ export type Database = {
           price: number | null
           program_id: string | null
           published: boolean
+          regular_price: number | null
           sold: number
           start_time: string
           template_id: string | null
@@ -580,6 +581,7 @@ export type Database = {
           price?: number | null
           program_id?: string | null
           published?: boolean
+          regular_price?: number | null
           sold?: number
           start_time: string
           template_id?: string | null
@@ -601,6 +603,7 @@ export type Database = {
           price?: number | null
           program_id?: string | null
           published?: boolean
+          regular_price?: number | null
           sold?: number
           start_time?: string
           template_id?: string | null

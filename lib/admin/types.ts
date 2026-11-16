@@ -118,8 +118,10 @@ export interface ManagedEvent {
   durationMinutes?: number;
   place: string;
   blurb: string;
-  /** null = free entry */
+  /** null = free entry. What a ticket costs (the sale price while a sale runs). */
   price: number | null;
+  /** Pre-sale price, shown struck through next to `price`; unset = no sale. Always above `price`. */
+  regularPrice?: number;
   /** null = no ticket limit */
   capacity: number | null;
   sold: number;

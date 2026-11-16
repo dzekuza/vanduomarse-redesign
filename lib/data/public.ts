@@ -131,6 +131,7 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         time: toHHMM(e.start_time),
         minutes: e.duration_minutes,
         pricePerPerson: e.price ?? 0,
+        regularPrice: e.regular_price ?? undefined,
         capacity: e.capacity ?? 0,
         spotsLeft: spotsLeft(e) ?? 0,
         blurb: e.blurb,
@@ -242,6 +243,7 @@ async function loadParkEvents(windowDays = EVENTS_WINDOW_DAYS, date?: string): P
     place: e.place,
     blurb: e.blurb,
     price: e.price,
+    regularPrice: e.regular_price ?? undefined,
     spotsLeft: spotsLeft(e),
     capacity: e.capacity ?? undefined,
     cta:
