@@ -30,7 +30,8 @@ export const eventSchema = z.object({
     (/^\d+$/.test(durationMinutes) && eventDurationMinutes.safeParse(Number(durationMinutes)).success),
   { path: ["durationMinutes"], message: "Įveskite teigiamą sveiką minučių skaičių arba palikite tuščią." },
 ).refine(
-  ({ price, salePrice }) => salePrice === "" || (price !== "" && Number(salePrice) < Number(price)),
+  // A program sets the price and hides the sale field, so a leftover sale value is ignored then (the dialog does not save it).
+  ({ price, salePrice, programId }) => programId !== "" || salePrice === "" || (price !== "" && Number(salePrice) < Number(price)),
   { path: ["salePrice"], message: "Akcijos kaina turi būti mažesnė už kainą." },
 );
 

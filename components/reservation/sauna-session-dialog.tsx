@@ -31,7 +31,8 @@ function SessionPrice({ event, program, quantity, children, row }: SessionDetail
   const note = program?.pricing === "group" ? row.rate : program?.pricing === "family"
     ? `${adults} × ${unit} / suaug.${childCount ? ` + ${childCount} × ${formatEuro(program.childPrice ?? program.price)} / vaikui` : ""}`
     : `${quantity.value} × ${unit} / asm.`;
-  return <BookingPrice amount={formatEuro(price)} note={note} />;
+  // A session on sale (no program) shows its pre-sale price struck through before the per-person line.
+  return <BookingPrice amount={formatEuro(price)} note={!program && row.regularRate ? <><PriceWas>{row.regularRate}</PriceWas>{note}</> : note} />;
 }
 
 export function SaunaSessionDialog({ open, details, onClose, onSelect, onSelectedFocus, actionLabel }: {

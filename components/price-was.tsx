@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 
-/** The pre-sale price, struck through, before the current price; screen readers hear "Buvusi kaina". */
+/** The pre-sale price, struck through (`<s>`: no longer accurate, not an edit), before the current price; screen readers hear "Buvusi kaina". */
 export function PriceWas({ children }: { children: ReactNode }) {
   return (
-    <del className="mr-1.5 font-normal opacity-60">
+    <s className="mr-1.5 font-normal opacity-60">
       <span className="sr-only">Buvusi kaina: </span>
       {children}
-    </del>
+    </s>
   );
 }
