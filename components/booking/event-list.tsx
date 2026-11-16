@@ -2,6 +2,7 @@
 
 import { longDateLabel, weekdayLabel } from "@/lib/sauna";
 import type { SaunaEvent } from "@/lib/sauna-events";
+import { PriceWas } from "@/components/price-was";
 
 interface EventListProps {
   events: SaunaEvent[];
@@ -49,7 +50,10 @@ export function EventList({ events, selected, onSelect }: EventListProps) {
               </span>
             </span>
             <span className="text-right">
-              <span className="font-display block text-figure font-bold">{ev.pricePerPerson} €</span>
+              <span className="font-display block text-figure font-bold">
+                {ev.regularPrice !== undefined ? <PriceWas>{ev.regularPrice} €</PriceWas> : null}
+                {ev.pricePerPerson} €
+              </span>
               <span className={`block text-xs ${active ? "text-foam/60" : "text-ink/50"}`}>asm.</span>
             </span>
           </button>

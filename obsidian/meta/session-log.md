@@ -1,3 +1,9 @@
+## 2026-11-16 — Sale price for events and sessions
+
+- **Changed:** migration `20261116164951_event_regular_price` (applied), `ManagedEvent.regularPrice`, "Akcijos kaina" in `EventDialog`, `PriceWas` on the public price lines, ADR-0104.
+- **Status:** tsc/eslint/89 tests clean; admin field and validation browser-checked; public strike-through only unit-tested. Not committed.
+- **Next:** put one session on sale, check /rezervacija and /renginiai show the struck-through price and a ticket charges the sale price.
+
 ## 2026-11-16 — Meta Pixel events
 
 - **Changed:** `lib/analytics.ts` sends Meta standard events next to GA (`trackPixel`, `marketingAllowed`), ADR-0105, new `lib/analytics-pixel.test.ts`.

@@ -21,6 +21,8 @@ export interface ParkEvent {
   blurb: string;
   /** null = free entry */
   price: number | null;
+  /** Pre-sale price while a sale runs (struck through); undefined = no sale. */
+  regularPrice?: number;
   /** Spots left, when the event is capacity-limited. */
   spotsLeft?: number;
   capacity?: number;
