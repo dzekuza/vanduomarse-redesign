@@ -1732,10 +1732,12 @@ export type Database = {
           avatar_path: string | null
           birthdate: string | null
           created_at: string
+          duplicate_of: string | null
           email: string | null
           grabby_id: string | null
           id: string
           name: string
+          needs_review: boolean
           phone: string | null
           phone2: string | null
           plan_id: string | null
@@ -1747,10 +1749,12 @@ export type Database = {
           avatar_path?: string | null
           birthdate?: string | null
           created_at?: string
+          duplicate_of?: string | null
           email?: string | null
           grabby_id?: string | null
           id?: string
           name: string
+          needs_review?: boolean
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
@@ -1762,10 +1766,12 @@ export type Database = {
           avatar_path?: string | null
           birthdate?: string | null
           created_at?: string
+          duplicate_of?: string | null
           email?: string | null
           grabby_id?: string | null
           id?: string
           name?: string
+          needs_review?: boolean
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
@@ -1774,6 +1780,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "riders_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "riders_plan_id_fkey"
             columns: ["plan_id"]
@@ -3024,7 +3037,7 @@ export type Database = {
           p_surname: string
           p_terms_version: string
         }
-        Returns: { already_registered: boolean; rider_id: string }[]
+        Returns: { already_registered: boolean; rider_id: string | null }[]
       }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
