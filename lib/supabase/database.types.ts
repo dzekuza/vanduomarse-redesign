@@ -1734,6 +1734,7 @@ export type Database = {
           grabby_id: string | null
           id: string
           name: string
+          needs_review: boolean
           phone: string | null
           phone2: string | null
           plan_id: string | null
@@ -1750,6 +1751,7 @@ export type Database = {
           grabby_id?: string | null
           id?: string
           name: string
+          needs_review?: boolean
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
@@ -1766,6 +1768,7 @@ export type Database = {
           grabby_id?: string | null
           id?: string
           name?: string
+          needs_review?: boolean
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
