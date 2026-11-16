@@ -162,6 +162,13 @@ export interface PlanLine {
   detail: string;
   schedule: string;
   price: number;
+  /** What the line would cost without the event's sale (struck through next to `price`); set only for a session on sale. */
+  regularPrice?: number;
+}
+
+/** The sale saving across a plan's lines: what the struck-through total adds to the real one (0 when nothing is on sale). */
+export function saleSaving(lines: readonly PlanLine[]): number {
+  return Math.round(lines.reduce((sum, l) => sum + Math.max(0, (l.regularPrice ?? l.price) - l.price), 0) * 100) / 100;
 }
 
 /** Which activities have anything to book right now. */
@@ -496,7 +503,11 @@ export function describePlans(plans: Plans, when: When): PlanLine[] {
     const time = pirtis.startHour === null ? "Pasirink laiką" : `${clock(start)}–${clock(start + pirtis.hours * 60)}`;
     const title = (pirtis.mode === "session" ? pirtis.session?.title : pirtis.program.name) ?? pirtis.program?.name ?? "Pirties seansas";
     const date = pirtis.mode === "session" && pirtis.session ? longDateLabel(nextDays(pirtis.session.date, 1)[0]) : dayLabel;
-    lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : [hoursLabel(pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : [])].join(", "), schedule: `${date}, ${time}`, price: pirtis.price });
+    // A session on sale (no program: the program sets the price) shows what it would cost at the regular price.
+    const regular = pirtis.mode === "session" && !pirtis.program && pirtis.session?.regularPrice && pirtis.price > 0
+      ? Math.round(pirtis.session.regularPrice * pirtis.adults * 100) / 100
+      : undefined;
+    lines.push({ id: "pirtis", title, detail: pirtis.mode === "session" ? who : [hoursLabel(pirtis.hours), ...(pirtis.master ? [`pirtininkas ${pirtis.master.name}`] : [])].join(", "), schedule: `${date}, ${time}`, price: pirtis.price, ...(regular ? { regularPrice: regular } : {}) });
   }
   if (nakvyne) {
     const departure = longDateLabel(nextDays(when.day, nakvyne.nights + 1)[nakvyne.nights]);

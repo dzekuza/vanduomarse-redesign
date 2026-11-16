@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SaunaPageData } from "@/lib/data/public-types";
-import { sessionRows } from "@/lib/reservation";
+import { describePlans, planSauna, saleSaving, sessionRows, type SaunaPick } from "@/lib/reservation";
 import type { SaunaEventData } from "@/lib/sauna-events";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 
@@ -62,5 +62,23 @@ describe("sessionRows sale price", () => {
   it("ignores a stray pre-sale price on a program session (the program sets the price)", () => {
     const [row] = sessionRows(page([session({ programId: "ritualas", regularPrice: 25 })], [ritual]), "2026-12-01");
     expect(row.regularRate).toBeUndefined();
+  });
+
+  it("gives the plan line the regular price for the party, so the summary can strike it through", () => {
+    const pick: SaunaPick = { programId: null, eventId: "e1", children: 0, saunaId: "", startHour: null, hours: 2, extras: {}, masterId: null };
+    const when = { day: "2026-12-01", people: 2 };
+    const plan = planSauna(pick, page([session({ pricePerPerson: 12, regularPrice: 20 })]), when);
+    const [line] = describePlans({ pirtis: plan }, when);
+    expect(line.price).toBe(24);
+    expect(line.regularPrice).toBe(40);
+    expect(saleSaving([line])).toBe(16);
+  });
+
+  it("has no regular price or saving without a sale", () => {
+    const pick: SaunaPick = { programId: null, eventId: "e1", children: 0, saunaId: "", startHour: null, hours: 2, extras: {}, masterId: null };
+    const when = { day: "2026-12-01", people: 1 };
+    const [line] = describePlans({ pirtis: planSauna(pick, page([session({ pricePerPerson: 20 })]), when) }, when);
+    expect(line.regularPrice).toBeUndefined();
+    expect(saleSaving([line])).toBe(0);
   });
 });

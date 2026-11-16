@@ -1,3 +1,9 @@
+## 2026-11-16 — Sale price in the booking summary
+
+- **Changed:** `PlanLine.regularPrice`, `saleSaving`; struck-through regular price in `PlanDetails`, `PlanSummary`, `PlanLines`, `SaunaServiceSessions`, `SaunaScheduleChooser`.
+- **Status:** tsc/eslint clean, tests pass; checked in the browser on the live sale session ("Vyrai į krepšinį…", 12 € instead of 20 €). PR open from `fix/sale-price-summary`.
+- **Next:** merge the PR.
+
 ## 2026-11-16 — Meta Conversions API
 
 - **Changed:** `lib/meta-capi.ts`, `app/actions/meta-capi.ts` (`reportMetaEvent`), event ids + server call in `trackPixel`, tests, `.env.example`, ADR-0107. Branch `feat/meta-capi` (built on `feat/campaign-conversions`, PR #120).

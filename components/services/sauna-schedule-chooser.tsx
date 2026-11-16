@@ -5,6 +5,7 @@ import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { openSessionInfo } from "@/components/reservation/session-info-link";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { SessionRow } from "@/lib/reservation";
+import { PriceWas } from "@/components/price-was";
 
 const DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { dateStyle: "long" });
 
@@ -50,7 +51,10 @@ export function SaunaScheduleChooser({ date, sessions, open, onOpenChange, opene
               >
                 <span className="block text-micro text-copy">{row.time}</span>
                 <span className="block text-sm font-bold">{row.title}</span>
-                <span className="block text-xs text-copy">{row.rate} · {row.seats}</span>
+                <span className="block text-xs text-copy">
+                  {row.regularRate ? <PriceWas>{row.regularRate}</PriceWas> : null}
+                  {row.rate} · {row.seats}
+                </span>
               </button>
             </li>
           ))}
