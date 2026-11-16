@@ -1,7 +1,13 @@
 ---
 tags: [meta, status]
-updated: 2026-11-14
+updated: 2026-11-16
 ---
+
+**Sale origin (2026-11-16, ADR-0103): Apžvalga Pardavimai marks each sale Internetu / Admin and filters by it. Browser-checked.**
+
+**Duplicate sauna session (2026-11-16): "Dubliuoti" in /admin/pirtis Seansai opens the new-session form pre-filled from the chosen one. Form pre-fill browser-checked; saving a copy not tried. Next: duplicate one, change the date, save.**
+
+**Booking.com sync (2026-11-16, ADR-0102): planned only, see `backend/booking-com-sync.md`. One-way iCal, 14 apartments. 14 apartments = `namelis-2` x8 + `namelis-4` x6. Source is Sirvoy (XML-connected channel manager), per-room iCal export, Sirvoy Pro CONFIRMED 2026-11-16 (one webhook to a Google Apps Script already exists, leave it). Blocked on: the 14 per-room export URLs.**
 
 **GlobalSearch effect error (2026-11-14): scroll effect changed to a block body; error not reproduced, fix unverified (may be stale HMR). Next: hard-reload /admin and press ⌘K; if the error persists, dig further.**
 

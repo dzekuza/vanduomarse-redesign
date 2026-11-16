@@ -8,6 +8,7 @@ import { computeSalesStats } from "@/lib/admin/sales-stats";
 const initialFilters = (): SaleFilters => ({
   category: "visos",
   state: "galiojancios",
+  origin: "visi",
   from: "",
   to: "",
   query: "",

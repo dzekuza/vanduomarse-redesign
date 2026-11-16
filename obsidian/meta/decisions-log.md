@@ -10,6 +10,26 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0103 — A sale's origin (online vs admin) comes from the existing `source` column
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner wants to see on Apžvalga which sales customers made themselves and which staff entered in /admin.
+- **Decision:** no new column. `Sale.source` reads `booking_source` from bookings, quad rentals and event tickets (`svetaine` = the site, `telefonu` / `vietoje` = staff). Coupons have no source and are only ordered on /kuponai, so they count as `svetaine`; bracelet plans are only sold at the till, so they count as `vietoje`. `saleOrigin()` folds it to "Internetu" / "Admin"; `SaleFilters.origin` filters the table and the stats.
+- **Consequences:** a booking without a source (older rows, if any) shows as Internetu. If staff ever issue coupons by hand, coupons need a source column first.
+
+---
+
+## ADR-0102 — Sirvoy (Booking.com's channel manager) is read in over iCal, one way, and counts as stay stock
+
+- **Status:** Proposed (plan only, nothing built)
+- **Date:** 2026-11-16
+- **Context:** the 14 Booking.com apartments need to appear on the admin calendar, and a night sold on Booking.com must not be sellable on /rezervacija. The Booking.com Connectivity API is limited to certified partners; a channel manager costs money and was not wanted.
+- **Decision:** poll each Sirvoy room's iCal export (the property's Booking.com connection is XML via Sirvoy, so Booking.com has no iCal of its own; Sirvoy has no open API) every 15 min from a Vercel Cron route into `external_blocks` (one row per reservation, 1 unit each), fed by `external_calendars` (14 feed URLs, owner-only, never sent to the browser). `stay_occupancy()` and the stay capacity trigger count blocks like bookings. No reverse feed: our bookings are not published to Booking.com. Details in [[booking-com-sync]].
+- **Consequences:** no guest name, price or contact on blocks (iCal has none). Booking.com's 15-60 min refresh leaves a short double-booking window. Adds `CRON_SECRET` and the project's first `vercel.json`. The 14 apartments are the existing `namelis-2` (8 units) and `namelis-4` (6 units): no new stay types, 8 + 6 feeds.
+
+---
+
 ## ADR-0101 — Staff quad tours go through the website's database function; availability is computed from the store
 
 - **Context:** the staff booking flow only had a plain hourly rental, while /rezervacija sells Mini / Midi / Maxi tours at any hour with a minimum number of quads, gear, and start times that follow the free fleet.

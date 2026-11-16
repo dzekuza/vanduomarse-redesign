@@ -235,6 +235,8 @@ export interface TourTicket {
   customer: Customer;
   total: number;
   status: BookingStatus;
+  /** "svetaine" = bought on the site; "telefonu" / "vietoje" = added by staff. */
+  source: BookingSource;
   createdAt: string;
   payment?: PaymentInfo;
   /** Linked customer (Klientai), when matched or created. ADR-0042 */

@@ -1,3 +1,21 @@
+## 2026-11-16 — Online vs admin sales
+
+- **Changed:** `Sale.source`, `saleOrigin`, `SaleOriginBadge`, origin filter in `SalesFilters`, `TourTicket.source`; ADR-0103.
+- **Status:** tsc/eslint/tests clean; checked in the browser at desktop and 375 px.
+- **Next:** the bookings list (Rezervacijos) could reuse `SaleOriginBadge` if wanted.
+
+## 2026-11-16 — Duplicate a sauna session
+
+- **Changed:** "Dubliuoti" in the Seansai row menu; `EventDialog` `template` prop, `CategoryEventsList` `onDuplicate`.
+- **Status:** tsc/eslint clean; browser-checked that Dubliuoti opens "Naujas seansas" pre-filled. Saving a copy not tried (live data).
+- **Next:** at /admin/pirtis duplicate a session, change the date, save, and check the copy shows 0 sold.
+
+## 2026-11-16 — Booking.com iCal sync planned
+
+- **Changed:** plan only: `obsidian/backend/booking-com-sync.md`, ADR-0102. No code.
+- **Status:** one-way iCal (Booking.com to app), 14 apartments, blocked nights also removed from /rezervacija.
+- **Next:** Sirvoy Pro is confirmed; owner generates the 14 per-room iCal export URLs in Sirvoy (8 x `namelis-2`, 6 x `namelis-4`); source is Sirvoy, not Booking.com; then migration, `lib/ical.ts`, cron route, admin screen.
+
 ## 2026-11-14 — Short month in the date picker
 
 - **Changed:** `DatePicker` field text uses `MONTH_SHORT` ("lapkr.").

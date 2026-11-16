@@ -8,6 +8,7 @@ import { exportFileName } from "@/lib/admin/export";
 import { filterSales, SALE_CATEGORIES, SALE_STATE_LABEL, salesRevenue, salesToCsv, type Sale, type SaleFilters } from "@/lib/admin/sales";
 import { downloadText } from "@/lib/download";
 import { todayKey } from "@/lib/sauna";
+import { SaleOriginBadge } from "./sale-origin-badge";
 import { SaleStatusBadge } from "../status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +65,7 @@ export function SalesTable({ all, filters }: SalesTableProps) {
                 <TableHead className="hidden sm:table-cell">Klientas</TableHead>
                 <TableHead className="text-right">Suma</TableHead>
                 <TableHead className="hidden sm:table-cell">Būsena</TableHead>
+                <TableHead className="hidden xl:table-cell">Šaltinis</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="[&_td]:px-3 [&_td]:py-3">
@@ -85,6 +87,9 @@ export function SalesTable({ all, filters }: SalesTableProps) {
                     <p className="hidden truncate text-xs text-muted-foreground sm:block">
                       {[s.reference, CATEGORY_LABEL[s.category], s.when].filter(Boolean).join(" · ")}
                     </p>
+                    <div className="mt-1 xl:hidden">
+                      <SaleOriginBadge source={s.source} />
+                    </div>
                   </TableCell>
                   <TableCell className="hidden xl:table-cell">{CATEGORY_LABEL[s.category]}</TableCell>
                   <TableCell className="hidden xl:table-cell">{s.when || "—"}</TableCell>
@@ -93,11 +98,14 @@ export function SalesTable({ all, filters }: SalesTableProps) {
                   <TableCell className="hidden whitespace-nowrap sm:table-cell">
                     <SaleStatusBadge state={s.state} label={s.state === "galioja" ? s.statusLabel : SALE_STATE_LABEL[s.state]} />
                   </TableCell>
+                  <TableCell className="hidden whitespace-nowrap xl:table-cell">
+                    <SaleOriginBadge source={s.source} />
+                  </TableCell>
                 </TableRow>
               ))}
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                     Pardavimų pagal filtrus nėra.
                   </TableCell>
                 </TableRow>
