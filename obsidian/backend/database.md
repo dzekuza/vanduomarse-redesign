@@ -47,6 +47,16 @@ lib/supabase/database.types.ts                ← generated from the live projec
 
 File names match the versions recorded in the remote project (the MCP stamps
 its own version on apply), so `supabase db push` sees them as already applied.
+
+**Hand edits to `database.types.ts` — re-apply after every regeneration** (the
+generator types function arguments and result columns as non-null, even where
+the SQL takes or returns null):
+
+| Where | Edit | Why |
+|-------|------|-----|
+| `Functions.create_inquiry.Args.p_date` | `string \| null` | contact-form and event-registration inquiries come without a date; the function stores null |
+| `Functions.plan_order_state.Returns.discount_code` | `string \| null` | null when the plan order had no discount (ADR-0106; `/registracija/apmoketa` maps null to "no code") |
+
 `…_reference_data.sql` and `seed.sql` were generated from the
 `lib/` constants and `lib/admin/mock-data.ts` (one-off script, not kept in the
 repo). After connecting, the database is the source of truth for prices.
