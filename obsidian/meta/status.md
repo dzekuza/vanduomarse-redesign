@@ -5,6 +5,8 @@ updated: 2026-11-16
 
 **Pirtys admin layout (2026-11-16): side cards sit beside the sessions only from `xl`; fixes the squeezed Pirtininkai / Priedai column. Browser-checked at 4 widths; PR open from `fix/sauna-admin-layout`.**
 
+**Meta Pixel (2026-11-16, ADR-0105): loader on all public pages behind marketing consent (existing) + standard events (Lead, InitiateCheckout, Purchase, CompleteRegistration) now sent with the GA ones. Blocked on: `NEXT_PUBLIC_META_PIXEL_ID` in `.env.local` and Vercel. Next: check Test events in Meta Events Manager.**
+
 **Google Analytics events (2026-11-16, ADR-0103): BUILT, not yet deployed or seen in GA. `lib/analytics.ts` sends `generate_lead` / `begin_checkout` / `purchase` / `sign_up` only after analytics consent; wired into every request form, the three Stripe redirects and the three paid return pages. tsc, eslint, 87 tests clean. Not browser-checked (GA id is only in Vercel, so the banner does not show locally). Uncommitted on `main` together with the Sirvoy live-state notes. Next: commit and merge, redeploy production, accept cookies, make a test request, look in GA Realtime, then mark the events as key events in GA.**
 
 **Inquiries list (2026-11-16): /admin/uzklausos is a Klientai-style list (status filters, search, table; row opens the panel) instead of the drag board. Browser-checked; in PR #113.**
