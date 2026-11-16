@@ -3,6 +3,7 @@ tags: [meta, status]
 updated: 2026-11-17
 ---
 
+**Admin menu (2026-11-17): Vandenlentės is a plain link to /admin/apyrankes, "Apyrankių skenavimas" (was Instruktorius) its own row; till tabs always shown; the Skenavimas tab on /admin/apyrankes is removed. Branch `fix/admin-nav-wake`, not merged. Also: Next.js 16.4.6 security update ready on `chore/next-16.4.6-security` (worktree `_worktrees/vanduomarse-next-security`), PR not opened yet.**
 **Admin menu (2026-11-17): Vandenlentės is a plain link to /admin/apyrankes, Instruktorius its own row; the Skenavimas tab on /admin/apyrankes is removed. Branch `fix/admin-nav-wake`, not merged. Also: Next.js 16.4.6 security update ready on `chore/next-16.4.6-security` (worktree `_worktrees/vanduomarse-next-security`), PR not opened yet.**
 **Next.js security update (2026-11-17): 16.4.2 → 16.4.6 (and eslint-config-next) for a published advisory, plus `experimental.agentUpgrade: "security"`. Build, tsc, eslint, 116 tests pass; production build smoke-tested. On branch `chore/next-16.4.6-security`, not merged or deployed yet. Next: open the PR, merge, deploy.**
 

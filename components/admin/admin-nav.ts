@@ -66,7 +66,7 @@ export const isDomain = (entry: AdminNavEntry): entry is AdminNavDomain => "chil
  * Mostly plain links: Kalendorius (all bookings and events), then each
  * resource's own page. Cabins and camper pitches are managed by the owner at
  * Namukai (`/admin/namukai`, ADR-0058). Vandenlentės opens the wristband page
- * (`/admin/apyrankes`) and Instruktorius is its own row; no entry is a dropdown now,
+ * (`/admin/apyrankes`) and Apyrankių skenavimas (`/admin/instruktorius`) is its own row; no entry is a dropdown now,
  * but `AdminNavDomain` stays for when one is needed.
  */
 export const ADMIN_NAV: AdminNavEntry[] = [
@@ -78,7 +78,7 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin/namukai", label: "Namukai", icon: BedIcon, group: "pardavimai", permission: "owner" },
   { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
   { href: "/admin/apyrankes", label: "Vandenlentės", icon: PersonSimpleSnowboardIcon, group: "pardavimai", permission: "apyrankes" },
-  { href: "/admin/instruktorius", label: "Instruktorius", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
+  { href: "/admin/instruktorius", label: "Apyrankių skenavimas", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
   { href: PAGE_CONTENT_HREF, label: "Puslapiai", icon: NotePencilIcon, group: "turinys", permission: "owner" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },

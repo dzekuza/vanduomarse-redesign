@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TAB_IDS = ["pardavimas", "klientai", "planai"] as const;
 
-/** Apyrankės: plan sales (with bracelet scanning), customers and the plan catalogue; check-in scanning lives at Instruktorius. Riders live in Klientai (ADR-0042). */
+/** Apyrankės: plan sales (with bracelet scanning), customers and the plan catalogue; check-in scanning lives at Apyrankių skenavimas (`/admin/instruktorius`). Riders live in Klientai (ADR-0042). */
 export function ApyrankesView() {
   const requested = useSearchParams().get("tab");
   const initialTab = (TAB_IDS as readonly string[]).includes(requested ?? "") ? requested! : "pardavimas";

@@ -102,7 +102,7 @@ export function InstruktoriusView() {
   }
 
   return (
-    <AdminPage title="Instruktorius" description="Apyrankės skenavimas vandenyje: atvykimas, išvykimas ir dabartinės sesijos trukmė.">
+    <AdminPage title="Apyrankių skenavimas" description="Apyrankės skenavimas vandenyje: atvykimas, išvykimas ir dabartinės sesijos trukmė.">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-6">
         <Card>
           <CardContent className="pt-6">
