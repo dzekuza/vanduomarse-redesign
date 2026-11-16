@@ -22,7 +22,7 @@ export function ProgramsCard() {
   const { programs, events, saveProgram, deleteProgram } = useAdmin();
   const [tab, setTab] = useState("seansai");
   const [editing, setEditing] = useState<Editing>(null);
-  const [sessionEditing, setSessionEditing] = useState<{ event?: ManagedEvent } | null>(null);
+  const [sessionEditing, setSessionEditing] = useState<{ event?: ManagedEvent; template?: ManagedEvent } | null>(null);
   const [deleting, setDeleting] = useState<SaunaProgram | null>(null);
   const sessions = (id: string) => events.filter((e) => e.programId === id).length;
 
@@ -70,13 +70,13 @@ export function ProgramsCard() {
             </div>
           </TabsContent>
           <TabsContent value="seansai" className="mt-4">
-            <SaunaSessionsList onEdit={(event) => setSessionEditing({ event })} />
+            <SaunaSessionsList onEdit={(event) => setSessionEditing({ event })} onDuplicate={(template) => setSessionEditing({ template })} />
           </TabsContent>
         </Tabs>
       </div>
 
       {sessionEditing ? (
-        <EventDialog key={sessionEditing.event?.id ?? "new"} open event={sessionEditing.event} presetCategory="pirtis" onOpenChange={(o) => !o && setSessionEditing(null)} />
+        <EventDialog key={sessionEditing.event?.id ?? (sessionEditing.template ? `copy-${sessionEditing.template.id}` : "new")} open event={sessionEditing.event} template={sessionEditing.template} presetCategory="pirtis" onOpenChange={(o) => !o && setSessionEditing(null)} />
       ) : null}
       {editing ? <ProgramDialog key={editing.program?.id ?? "new"} program={editing.program} onOpenChange={(o) => !o && setEditing(null)} /> : null}
 

@@ -1,8 +1,8 @@
 import { makeCustomerLookup } from "@/lib/admin/customer-match";
 import { bookingTypeLabel, bookingWhen, formatDay, quadRentalLabel } from "./format";
 import { toCsv } from "./export";
-import { BOOKING_STATUS } from "./labels";
-import type { AdminData, BookingStatus } from "./types";
+import { BOOKING_SOURCE, BOOKING_STATUS } from "./labels";
+import type { AdminData, BookingSource, BookingStatus } from "./types";
 import { COUPON_STATUS_LABEL, type CouponStatus } from "@/lib/coupons";
 import { PURCHASE_PAYMENT_LABELS } from "@/lib/ride-plans";
 import { todayKey } from "@/lib/sauna";
@@ -28,6 +28,11 @@ export const SALE_STATE_LABEL: Record<SaleState, string> = {
   atsaukta: "Atšaukta",
 };
 
+/** Who entered a sale: the customer on the site, or staff in the admin (by phone or on site). */
+export type SaleOrigin = "internetu" | "admin";
+export const SALE_ORIGIN_LABEL: Record<SaleOrigin, string> = { internetu: "Internetu", admin: "Admin" };
+export const saleOrigin = (source: BookingSource): SaleOrigin => (source === "svetaine" ? "internetu" : "admin");
+
 /** What a click on a sale row opens: a details drawer on the overview (an event's tickets for ticket sales), or the page that manages it. */
 export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event"; id: string } | { kind: "link"; href: string };
 
@@ -44,6 +49,8 @@ export interface Sale {
   reference: string;
   total: number;
   state: SaleState;
+  /** Where it came from: the site ("svetaine") or staff ("telefonu" / "vietoje"). Coupons are site-only; till plans are on site. */
+  source: BookingSource;
   /** The source's own status wording, for the badge. */
   statusLabel: string;
   target: SaleTarget;
@@ -78,6 +85,7 @@ export function buildSales(data: SalesSource): Sale[] {
       reference: b.reference,
       total: b.total,
       state: bookingState(b.status),
+      source: b.source ?? "svetaine",
       statusLabel: BOOKING_STATUS[b.status],
       target: { kind: "booking", id: b.id },
       riderId: b.riderId ?? customerOf(b.customer) ?? null,
@@ -95,6 +103,7 @@ export function buildSales(data: SalesSource): Sale[] {
       reference: r.reference,
       total: r.total,
       state: bookingState(r.status),
+      source: r.source,
       statusLabel: BOOKING_STATUS[r.status],
       target: { kind: "rental", id: r.id },
       riderId: r.riderId ?? customerOf(r.customer) ?? null,
@@ -112,6 +121,7 @@ export function buildSales(data: SalesSource): Sale[] {
       reference: t.reference,
       total: t.total,
       state: bookingState(t.status),
+      source: t.source,
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
       riderId: t.riderId ?? customerOf(t.customer) ?? null,
@@ -131,6 +141,7 @@ export function buildSales(data: SalesSource): Sale[] {
       reference: t.reference,
       total: t.total,
       state: bookingState(t.status),
+      source: t.source,
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
       riderId: t.riderId ?? customerOf(t.customer) ?? null,
@@ -148,6 +159,7 @@ export function buildSales(data: SalesSource): Sale[] {
       reference: c.reference,
       total: c.faceValue,
       state: couponState(c.status),
+      source: "svetaine",
       statusLabel: COUPON_STATUS_LABEL[c.status],
       target: { kind: "coupon", id: c.id },
       riderId: c.riderId ?? customerOf({ email: c.buyer.email }) ?? null,
@@ -166,6 +178,7 @@ export function buildSales(data: SalesSource): Sale[] {
       reference: "",
       total: p.price ?? 0,
       state: "galioja",
+      source: "vietoje",
       statusLabel: SALE_STATE_LABEL.galioja,
       target: { kind: "link", href: `/admin/klientai/${p.riderId}` },
       riderId: p.riderId,
@@ -180,6 +193,7 @@ export type SaleStateFilter = "galiojancios" | "visos" | SaleState;
 export interface SaleFilters {
   category: SaleCategory | "visos";
   state: SaleStateFilter;
+  origin: SaleOrigin | "visi";
   /** yyyy-mm-dd, "" = open-ended. */
   from: string;
   to: string;
@@ -191,6 +205,7 @@ export function filterSales(sales: readonly Sale[], f: SaleFilters): Sale[] {
   return sales.filter(
     (s) =>
       (f.category === "visos" || s.category === f.category) &&
+      (f.origin === "visi" || saleOrigin(s.source) === f.origin) &&
       (f.state === "visos" || (f.state === "galiojancios" ? s.state !== "atsaukta" : s.state === f.state)) &&
       (!f.from || s.soldOn >= f.from) &&
       (!f.to || s.soldOn <= f.to) &&
@@ -209,7 +224,7 @@ export const salesRevenue = (sales: readonly Sale[], withCoupons = false) =>
 export function salesToCsv(sales: readonly Sale[]): string {
   const label = (id: SaleCategory) => SALE_CATEGORIES.find((c) => c.id === id)?.label ?? id;
   return toCsv([
-    ["Pardavimo data", "Kategorija", "Prekė", "Paslaugos laikas", "Klientas", "Nr.", "Suma €", "Būsena"],
-    ...sales.map((s) => [s.soldOn, label(s.category), s.item, s.when, s.customer, s.reference, s.total.toFixed(2).replace(".", ","), s.statusLabel]),
+    ["Pardavimo data", "Kategorija", "Prekė", "Paslaugos laikas", "Klientas", "Nr.", "Suma €", "Būsena", "Šaltinis"],
+    ...sales.map((s) => [s.soldOn, label(s.category), s.item, s.when, s.customer, s.reference, s.total.toFixed(2).replace(".", ","), s.statusLabel, BOOKING_SOURCE[s.source]]),
   ]);
 }

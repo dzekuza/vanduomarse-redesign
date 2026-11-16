@@ -20,10 +20,12 @@ interface CategoryEventsListProps {
   /** Extra detail after the price, e.g. the sauna program. */
   extra?: (event: ManagedEvent) => string | undefined;
   onEdit: (event: ManagedEvent) => void;
+  /** Shows "Dubliuoti": open the create dialog pre-filled from this event. */
+  onDuplicate?: (event: ManagedEvent) => void;
 }
 
 /** Upcoming events of one category (sauna sessions, quad tours) with publish switch, edit and delete. The parent owns the create/edit dialog. */
-export function CategoryEventsList({ category, emptyText, extra, onEdit }: CategoryEventsListProps) {
+export function CategoryEventsList({ category, emptyText, extra, onEdit, onDuplicate }: CategoryEventsListProps) {
   const { events, setEventPublished } = useAdmin();
   const [deleting, setDeleting] = useState<ManagedEvent | null>(null);
   const today = dateKey(new Date());
@@ -65,6 +67,7 @@ export function CategoryEventsList({ category, emptyText, extra, onEdit }: Categ
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => onEdit(e)}>Redaguoti</DropdownMenuItem>
+              {onDuplicate ? <DropdownMenuItem onSelect={() => onDuplicate(e)}>Dubliuoti</DropdownMenuItem> : null}
               <DropdownMenuItem className="text-destructive" onSelect={() => setDeleting(e)}>
                 Ištrinti
               </DropdownMenuItem>

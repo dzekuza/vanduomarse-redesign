@@ -409,6 +409,7 @@ export function toTourTicket(r: TicketRow): TourTicket {
     customer: { name: r.customer_name, email: r.customer_email ?? "", phone: r.customer_phone ?? "" },
     total: r.total,
     status: r.status,
+    source: r.source,
     createdAt: r.created_at,
     riderId: r.rider_id ?? undefined,
   };
