@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0106 — Campaign conversions: a consent-aware landing view and the discount code as the campaign label
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the WAKE Black Friday page (`/registracija/wake/black-friday`) is promoted with ads, and the owner wants ad conversions in Meta and GA. Sign-up, checkout and purchase were already tracked (ADR-0103, ADR-0105), but nothing marked the landing, and a Black Friday sale looked like any other plan sale.
+- **Decision:** plan registration pages send GA `view_item` / Meta `ViewContent` through `TrackViewItem`, which waits for the cookie answer and fires once when analytics or marketing is allowed (firing on load would drop it, since ad visitors meet the banner first). The applied discount code travels as `coupon` on view, checkout and purchase (GA ecommerce `coupon`, Meta custom parameter `coupon`); the paid page gets it from the scoped `plan_order_state(session_id)` function, which now also returns `discount_code` (migration `20261116180400`, applied), so the page never reads `rider_plan_orders` directly. No separate campaign event: the code is the label, so any future campaign code works the same way.
+- **Consequences:** reports split campaign sales by `coupon = WAKEBLACKFRIDAY2026`. Meta and GA still have to be set up in their own tools (GA key event `purchase`, Meta custom conversion on `Purchase` with that coupon); attribution to ads depends on Meta's fbclid / GA's gclid and UTM handling, which needs the visitor's consent on the landing page.
+
+---
+
 ## ADR-0105 — Meta Pixel events ride on the GA helpers
 
 - **Status:** Accepted

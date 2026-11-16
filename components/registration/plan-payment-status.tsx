@@ -10,6 +10,8 @@ export interface PlanPaymentView {
   planName: string;
   amount: number;
   hasEmail: boolean;
+  /** Discount code on the order, if any (for campaign reporting). */
+  discountCode?: string;
 }
 
 const LINK = "inline-flex min-h-11 items-center border-b border-current text-sm font-bold";
@@ -39,7 +41,7 @@ export function PlanPaymentStatus({ order, cancelled }: { order: PlanPaymentView
 
   return (
     <PaymentCard title={title} text={text} refs={[order.reference]} amount={order.amount}>
-      {paid ? <TrackPurchase kind="plan" transactionId={order.reference} itemName={order.planName} value={order.amount} /> : null}
+      {paid ? <TrackPurchase kind="plan" transactionId={order.reference} itemName={order.planName} value={order.amount} coupon={order.discountCode} /> : null}
       {pending && !cancelled ? <PaymentPoller /> : null}
       <Link href="/rezervacija?veikla=wake" className="inline-flex min-h-11 items-center text-sm font-normal text-ink/70 underline underline-offset-4 hover:text-rust">
         {paid ? "Grįžti į rezervaciją" : "Atgal į WAKE pasiūlymus"}

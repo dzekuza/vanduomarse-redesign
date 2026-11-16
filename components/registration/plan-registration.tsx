@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { TrackViewItem } from "@/components/analytics/track-view-item";
 import { BookingPanel } from "@/components/booking/booking-panel";
 import { BookingPrice } from "@/components/booking/booking-price";
 import { SERVICE_GALLERY } from "@/components/landing/content";
@@ -46,6 +47,8 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
 
   return (
     <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
+      {/* Landing view for ads: initial price and code only, so a later code change does not count a second view. */}
+      <TrackViewItem kind="plan" itemName={plan.name} value={Math.max(plan.price - (initialDiscount ? discountFor(initialDiscount, "planai", plan.price) : 0), 0)} coupon={initialDiscount?.code} />
       <div className="min-w-0 space-y-8 lg:col-span-2">
         {header}
         <div className="border border-line bg-foam p-4 sm:p-6">
