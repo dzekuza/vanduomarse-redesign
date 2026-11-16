@@ -1,3 +1,9 @@
+## 2026-11-17 — Admin menu: Vandenlentės and Instruktorius
+
+- **Changed:** `components/admin/admin-nav.ts` (dropdown → two links), `apyrankes-view.tsx` (no Skenavimas tab, default Pardavimas), removed `scan-tab.tsx`.
+- **Status:** tsc/eslint clean; browser-checked on localhost. Branch `fix/admin-nav-wake`.
+- **Also:** Instruktorius renamed to "Apyrankių skenavimas" (labels only); till tabs always shown with an empty note (`ride-plan-picker.tsx`).
+- **Next:** PR and merge.
 ## 2026-11-17 — Next.js security update
 
 - **Changed:** `next` and `eslint-config-next` 16.4.2 → 16.4.6 (security advisory); `experimental.agentUpgrade: "security"` in `next.config.ts`; tech-stack versions.
