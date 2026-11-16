@@ -46,7 +46,7 @@ export function PlanSummary({ lines, total, discount, compact = false }: { lines
       {totalInLine ? null : (
         <div className="text-right">
           <BookingPrice
-            amount={saving > 0 ? <><PriceWas>{formatEuro(total + saving - (discounted?.amount ?? 0))}</PriceWas>{formatEuro(total - (discounted?.amount ?? 0))}</> : formatEuro(total - (discounted?.amount ?? 0))}
+            amount={saving > 0 ? <><PriceWas>{formatEuro(total + saving)}</PriceWas>{formatEuro(total - (discounted?.amount ?? 0))}</> : formatEuro(total - (discounted?.amount ?? 0))}
           />
         </div>
       )}
