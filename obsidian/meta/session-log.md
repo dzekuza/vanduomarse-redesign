@@ -1,3 +1,9 @@
+## 2026-11-16 — Pirtys admin layout
+
+- **Changed:** `SaunaView` grid: side column from `xl` (2/3 + 1/3), side cards two per row from `md` below that.
+- **Status:** eslint clean; browser-checked at 1440, 1200, 768, 375 px. PR open from `fix/sauna-admin-layout`.
+- **Next:** merge the PR.
+
 ## 2026-11-16 — Sale price for events and sessions
 
 - **Changed:** migration `20261116164951_event_regular_price` (applied), `ManagedEvent.regularPrice`, "Akcijos kaina" in `EventDialog`, `PriceWas` on the public price lines, ADR-0104.
