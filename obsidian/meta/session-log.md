@@ -4,6 +4,12 @@
 - **Status:** after merging main, 100 of 105 files match a live row (PRs #116/#117 renamed `event_regular_price` and `wake_black_friday_discount`). Five files have no live row (objects exist live), three live rows have no file — see `backend/database.md`.
 - **Next:** decide per gap: `supabase migration repair --status applied <version>` for the five files, and add files (from `schema_migrations.statements`) or `repair --status reverted` for the three live-only rows.
 
+## 2026-11-16 — Meta Conversions API
+
+- **Changed:** `lib/meta-capi.ts`, `app/actions/meta-capi.ts` (`reportMetaEvent`), event ids + server call in `trackPixel`, tests, `.env.example`, ADR-0107. Branch `feat/meta-capi` (built on `feat/campaign-conversions`, PR #120).
+- **Status:** 101 tests, tsc, eslint clean; verified in Meta Test events (code set locally): ViewContent from Server, Processed, value 675 EUR, user data country / e-mail / external id / first name / user agent. No IP locally (no proxy header) and no fbp/fbc while the Pixel is locked. Not deployed.
+- **Next:** owner first rotates the Meta access token (the current one was pasted into a chat; generate a new one in Events Manager → the Pixel → Settings → Conversions API, put it in `.env.local`), then adds the NEW `META_CAPI_ACCESS_TOKEN` in Vercel (no test code there) and unlocks the Pixel in Events Manager; after deploy, open Test events, accept cookies on the live Black Friday page and look for ViewContent from "Server" and "Browser" with one deduplicated event; mention Meta data sharing in the privacy policy.
+
 ## 2026-11-16 — Campaign conversions for Black Friday
 
 - **Changed:** `trackViewItem`, `coupon` on GA/Meta checkout and purchase, `TrackViewItem` in `PlanRegistration`, discount code on `/registracija/apmoketa` via `plan_order_state` (migration `20261116180400_plan_order_state_discount_code`, applied and verified: the function now also returns `discount_code` (null when the order had none), no table changed, grants still service role only); ADR-0106.

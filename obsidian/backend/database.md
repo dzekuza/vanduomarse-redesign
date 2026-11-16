@@ -58,6 +58,17 @@ and `20261112170000_correct_seeded_sauna_copy` have no row, and the live rows
 and `20261113153820 admin_login_atomic` (the first, superseded admin-login attempt)
 have no file. `db push` will stop on these until they are repaired
 (`supabase migration repair`) or files are added for the live-only rows.
+
+
+**Hand edits to `database.types.ts` — re-apply after every regeneration** (the
+generator types function arguments and result columns as non-null, even where
+the SQL takes or returns null):
+
+| Where | Edit | Why |
+|-------|------|-----|
+| `Functions.create_inquiry.Args.p_date` | `string \| null` | contact-form and event-registration inquiries come without a date; the function stores null |
+| `Functions.plan_order_state.Returns.discount_code` | `string \| null` | null when the plan order had no discount (ADR-0106; `/registracija/apmoketa` maps null to "no code") |
+
 `…_reference_data.sql` and `seed.sql` were generated from the
 `lib/` constants and `lib/admin/mock-data.ts` (one-off script, not kept in the
 repo). After connecting, the database is the source of truth for prices.

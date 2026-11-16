@@ -1,3 +1,4 @@
+import { reportMetaEvent } from "@/app/actions/meta-capi";
 import { GA_ID, PIXEL_ID, parseConsent, readRawConsent } from "@/lib/consent";
 
 /**
@@ -58,18 +59,50 @@ export function marketingAllowed(): boolean {
 
 type PixelParams = Record<string, string | number | string[] | undefined>;
 
+type PixelEventName = "ViewContent" | "Lead" | "InitiateCheckout" | "CompleteRegistration" | "Purchase";
+
+interface PixelOptions {
+  /** Fixed id (a purchase's, so a reloaded return page counts once); otherwise a fresh one per event. */
+  eventId?: string;
+  /** Purchase only: the payer's proof (reservation payment id or Stripe session id) the server checks before it reports the sale. */
+  purchase?: { kind: "reservation" | "coupon" | "plan"; proof: string };
+}
+
+const newEventId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+
+const num = (v: unknown) => (typeof v === "number" ? v : undefined);
+const str = (v: unknown) => (typeof v === "string" ? v : undefined);
+
 /**
- * Sends one Meta Pixel standard event, if allowed; waits briefly for fbevents.js like `trackEvent`. `eventId` lets
- * Meta drop a duplicate of the same purchase (e.g. the return page reloaded).
+ * Sends one Meta standard event, if allowed: to the Pixel (waiting briefly for fbevents.js like `trackEvent`) and, with
+ * the same event id, to the Conversions API through `reportMetaEvent` (ADR-0107). Meta keeps one of the two; the server
+ * copy still arrives when an ad blocker stops the Pixel.
  */
-export function trackPixel(name: string, params?: PixelParams, eventId?: string): void {
+export function trackPixel(name: PixelEventName, params?: PixelParams, options: PixelOptions = {}): void {
   if (!marketingAllowed()) return;
+  const eventId = options.eventId ?? newEventId();
   let tries = 0;
   const send = () => {
-    if (window.fbq) window.fbq("track", name, params, eventId ? { eventID: eventId } : undefined);
+    if (window.fbq) window.fbq("track", name, params, { eventID: eventId });
     else if (tries++ < WAIT_TRIES) window.setTimeout(send, WAIT_STEP_MS);
   };
   send();
+
+  // Origin and path only: the query of a payment return page carries the payer's proof (?pid / ?sid), which Meta must not get.
+  const loc = window.location;
+  if (!loc?.origin) return;
+  const sourceUrl = `${loc.origin}${loc.pathname}`;
+  void reportMetaEvent({
+    name,
+    eventId,
+    sourceUrl,
+    value: num(params?.value),
+    contentName: str(params?.content_name),
+    contentCategory: str(params?.content_category),
+    coupon: str(params?.coupon),
+    purchase: options.purchase,
+  }).catch(() => {});
 }
 
 /** Sends one GA4 event, if allowed; waits briefly for gtag.js when it is still loading. */
@@ -100,10 +133,13 @@ function items(kind: ActivityKind, { itemName, value, coupon }: ItemInput) {
 /** GA4 puts the order's discount code on the event as well as on the item. */
 const couponParam = ({ coupon }: ItemInput) => (coupon ? { coupon } : {});
 
-/** A visitor opened something they can buy (e.g. a campaign landing page from an ad): `view_item` and Meta `ViewContent`. */
-export function trackViewItem(kind: ActivityKind, input: ItemInput = {}): void {
-  trackEvent("view_item", { ...money(input), items: items(kind, input) });
-  trackPixel("ViewContent", pixelParams(kind, input));
+/**
+ * A visitor opened something they can buy (e.g. a campaign landing page from an ad): `view_item` and Meta `ViewContent`.
+ * `to` picks the trackers, so a page can send each one when its own consent arrives.
+ */
+export function trackViewItem(kind: ActivityKind, input: ItemInput = {}, to: { ga?: boolean; meta?: boolean } = { ga: true, meta: true }): void {
+  if (to.ga) trackEvent("view_item", { ...money(input), items: items(kind, input) });
+  if (to.meta) trackPixel("ViewContent", pixelParams(kind, input));
 }
 
 /** A request or enquiry was sent without paying online (staff confirm it): GA's recommended `generate_lead`. */
@@ -118,11 +154,26 @@ export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
   trackPixel("InitiateCheckout", pixelParams(kind, input));
 }
 
-/** A payment came back paid: `purchase`, counted once per transaction id. */
-export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}): void {
-  trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
+/**
+ * A payment came back paid: `purchase`, counted once per transaction id. `proof` is what only the payer's return page
+ * has (the reservation payment id, or the coupon / plan Stripe session id); without it the Conversions API copy is skipped.
+ */
+export function trackPurchase(
+  kind: ActivityKind,
+  transactionId: string,
+  input: ItemInput = {},
+  proof?: string,
+  to: { ga?: boolean; meta?: boolean } = { ga: true, meta: true },
+): void {
+  if (to.ga) trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
+  if (!to.meta) return;
   // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
-  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, `purchase-${transactionId}`);
+  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, { eventId: `purchase-${transactionId}`, purchase: purchaseRef(kind, proof) });
+}
+
+/** The order a paid return page reports; only these three kinds are paid online. */
+function purchaseRef(kind: ActivityKind, proof: string | undefined): PixelOptions["purchase"] {
+  return proof && (kind === "reservation" || kind === "coupon" || kind === "plan") ? { kind, proof } : undefined;
 }
 
 /** A new customer finished registering: `sign_up`. */
