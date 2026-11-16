@@ -6,6 +6,7 @@ import { SessionInfoLink } from "@/components/reservation/session-info-link";
 import type { SessionRow } from "@/lib/reservation";
 import { cn } from "@/lib/utils";
 import { AvailabilityCount } from "./availability-count";
+import { PriceWas } from "@/components/price-was";
 
 interface SaunaServiceSessionsProps {
   rows: SessionRow[];
@@ -51,7 +52,10 @@ export function SaunaServiceSessions({ rows, selectedKey, upcoming, quantity, fa
                 <span className="min-w-0 font-bold wrap-anywhere">{row.title}</span>
                 <span className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1">
                   <span className="tabular-nums">{row.time}</span>
-                  <span className="font-bold">{row.rate}</span>
+                  <span className="font-bold">
+                    {row.regularRate ? <PriceWas>{row.regularRate}</PriceWas> : null}
+                    {row.rate}
+                  </span>
                 </span>
               </FilterChip>
               {active && quantity && row.eventId ? (

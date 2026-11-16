@@ -5,11 +5,12 @@ import { BookingPrice } from "@/components/booking/booking-price";
 import type { ServicePhoto } from "@/components/landing/content";
 import { ServiceBookingHelp } from "@/components/services/service-booking-help";
 import { EVENTS_EMAIL, MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
-import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
+import { ACTIVITY_TITLE, saleSaving, type ActivityId } from "@/lib/reservation";
 import { formatEuro } from "@/lib/coupons";
 import { PlanLines, type PlanLinesProps } from "./plan-lines";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
 import { activityPhotos } from "./activity-photos";
+import { PriceWas } from "@/components/price-was";
 
 export type { PlanContinueAction } from "./plan-actions";
 
@@ -71,6 +72,7 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
 /** The live plan shown in both the desktop panel and the mobile summary sheet. */
 export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemove, showLines = true }: PlanDetailsProps & { showLines?: boolean }) {
   const totalRef = useRef<HTMLParagraphElement>(null);
+  const saving = saleSaving(lines);
 
   return (
     <>
@@ -82,7 +84,7 @@ export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemov
       ) : null}
       <div className={showLines ? "border-t border-line pt-4" : undefined}>
         <BookingPrice
-          amount={formatEuro(total)}
+          amount={saving > 0 ? <><PriceWas>{formatEuro(total + saving)}</PriceWas>{formatEuro(total)}</> : formatEuro(total)}
           labelRef={totalRef}
           label={showLines ? undefined : "Galutinė kaina, su PVM"}
           note={showLines ? "Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime." : undefined}
