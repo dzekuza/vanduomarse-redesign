@@ -26,7 +26,7 @@ export function EntryCard({ entry, onOpen }: { entry: CalendarEntry; onOpen: (en
       <span className="line-clamp-2 text-xs leading-snug font-bold">{entry.title}</span>
       <span className="flex items-center gap-1.5 text-xs font-medium tabular-nums">
         <span aria-hidden className={cn("size-2 shrink-0 rounded-full", stateDot(entry))} />
-        {entry.event ? seatsLabel(entry.event) : <span className="truncate font-normal text-muted-foreground">{entry.customer.name}</span>}
+        {entry.event ? seatsLabel(entry.event) : <span className="truncate font-normal text-muted-foreground">{entry.external ? entry.detail : entry.customer.name}</span>}
       </span>
     </button>
   );

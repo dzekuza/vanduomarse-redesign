@@ -1,11 +1,13 @@
 ---
-tags: [backend, plan]
+tags: [backend, stable]
 updated: 2026-11-16
 ---
 
-# Booking.com / Sirvoy calendar sync (plan)
+# Booking.com / Sirvoy calendar sync
 
-**Status: planned, nothing built.** Decision record: ADR-0102 in [[decisions-log]].
+**Status: built 2026-11-16, waiting for the owner to enter the 14 feed addresses.** Decision record: ADR-0102 in [[decisions-log]]. Where things are: migration `20261116120000_external_calendars` (applied), `lib/ical.ts`, `lib/external-sync.ts`, `app/api/cron/sirvoy-sync/route.ts` + `vercel.json`, `app/admin/actions/external-calendars.ts`, `components/admin/namukai/sirvoy-*.tsx`, stock in `lib/admin/occupancy.ts`, calendar entries in `lib/admin/calendar-entries.ts`.
+
+**Turning it on:** (1) add `CRON_SECRET` in Vercel (and `.env.local` to test); the 15-minute schedule needs Vercel Pro; (2) in Sirvoy generate the 14 export URLs (Settings → Channels → iCal); (3) paste each into its room row at /admin/namukai and press Išsaugoti, which reads it at once; (4) check a known booking appears on Kalendorius and its nights are sold out on /rezervacija.
 
 ## Goal
 

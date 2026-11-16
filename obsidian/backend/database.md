@@ -64,6 +64,9 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
+| `external_calendars` | `ExternalCalendar` | One Sirvoy room feed (14 seeded): `label` = Sirvoy room number, `stay_type_id` (`namelis-2` x8: rooms 1-4, 11-14; `namelis-4` x6: rooms 5-10), `active` (set when a URL is stored), `last_synced_at`, `last_error`. ADR-0102. Applied 2026-11-16 | staff (`rezervacijos` / `uzimtumas` / `apzvalga`) read; written only through the functions below |
+| `external_calendar_feeds` | — | The secret Sirvoy iCal export URL per room (`secured.sirvoy.com/ical/…` only). RLS on, **no policies**: reachable only through `set_external_feed` (owner) and `external_sync_feeds` (service role). Never sent to the browser | nobody directly |
+| `external_blocks` | `ExternalBlock` | One reservation or closure from a room's feed: `starts_on`, `nights` (check-out day free), unique (`calendar_id`, `uid`). Replaced wholesale by the sync. The sync never fails on a clash (a Sirvoy overbooking is shown, not rejected) | staff read as above; written only by `sync_external_blocks` |
 | `bookings` | `Booking` | Customer columns inline; `stay_type_id` and `stay_units` for stays (existing bookings default to one unit). Stays may leave `guests` unknown. Sauna bookings require it. `reference` auto `PM-`/`MM-`; nullable `rider_id` → `riders` (ADR-0042) | staff only |
 | `booking_extras` | `Booking.extras` | Snapshot of name, unit, price, qty, line total | staff only |
 | `sauna_blocks` | `Block` | `sauna_id`; unique (`sauna_id`, `date`, `hour`) | staff only (public via RPC) |
@@ -93,7 +96,7 @@ repo). After connecting, the database is the source of truth for prices.
 
 - No two live sessions in the **same sauna** overlap (`exclude using gist` on `sauna_id`, date, hours; needs `btree_gist`). A sauna booking needs a `sauna_id`; stays have none.
 - A live sauna session can't cover a staff-closed hour of its sauna, and staff can't close a booked hour.
-- Stays never exceed `stay_types.units` on any night. The advisory-locked trigger sums reserved units rather than booking rows.
+- Stays never exceed `stay_types.units` on any night. The advisory-locked trigger sums reserved units rather than booking rows, **plus the Sirvoy rooms taken that night** (`private.external_units_on`: distinct active rooms of the type, so overlapping events in one room's feed count once). `stay_occupancy()` adds the same count, so /rezervacija greys the nights out (ADR-0102).
 - Quad rentals never exceed stock for any selected fleet type in any hour. The capacity trigger locks mixed types in a consistent order and checks them together.
 - Event tickets never exceed `events.capacity`; `events.sold` = sum of live tickets.
 - Cancelled rows (`atsaukta`) never block anything.
@@ -161,6 +164,8 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `register_for_event(event, people, name, email, phone, message)` | anon, authenticated | `security definer`. Published events without capacity; stored as an `inquiries` row (source `renginys`) |
 | `create_inquiry(...)` | anon, authenticated | `security definer`. Calculator quote with its input; source `skaiciuokle`. |
 | `private.has_permission(key)` / `has_any_permission(keys)` / `is_owner()` / `is_staff()` | authenticated (private schema, not RPCs) | The checks behind every staff policy; all require an **active** staff row |
+| `set_external_feed(calendar, url)` | owner (`authenticated`, raises `42501` otherwise) | Stores or, with an empty url, clears a room's Sirvoy feed (and its blocks); only `https://secured.sirvoy.com/ical/<id>` is accepted (`23514`, hint `feed_url`) because the server fetches it |
+| `external_sync_feeds()` / `sync_external_blocks(calendar, blocks jsonb)` / `external_sync_failed(calendar, error)` | `service_role` only | The cron sync: which feeds to read; replace one room's blocks in one transaction (`[{uid, starts_on, nights}]`); record why a read failed (the old blocks stay) |
 | `activate_coupon(id)` | `kuponai` (`security invoker`) | Issues the code and a 12-month expiry; only for `laukia_apmokejimo` |
 | `private.generate_coupon_code()` | internal | 12 symbols of `23456789ABCDEFGHJKLMNPQRSTUVWXYZ` from `gen_random_uuid()` bytes |
 | `check_discount_code(code)` | anon, authenticated | `security definer`. Kind, value and services of an active code that is in its dates and not used up; nothing otherwise. A preview only (ADR-0036) |

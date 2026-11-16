@@ -16,11 +16,11 @@
 - **Status:** tsc/eslint clean; browser-checked that Dubliuoti opens "Naujas seansas" pre-filled. Saving a copy not tried (live data).
 - **Next:** at /admin/pirtis duplicate a session, change the date, save, and check the copy shows 0 sold.
 
-## 2026-11-16 — Booking.com iCal sync planned
+## 2026-11-16 — Sirvoy room calendars built
 
-- **Changed:** plan only: `obsidian/backend/booking-com-sync.md`, ADR-0102. No code.
-- **Status:** one-way iCal (Booking.com to app), 14 apartments, blocked nights also removed from /rezervacija.
-- **Next:** Sirvoy Pro is confirmed; owner generates the 14 per-room iCal export URLs in Sirvoy (8 x `namelis-2`, 6 x `namelis-4`); source is Sirvoy, not Booking.com; then migration, `lib/ical.ts`, cron route, admin screen.
+- **Changed:** migration `20261116120000_external_calendars` (applied): `external_calendars` / `external_calendar_feeds` / `external_blocks`, `stay_occupancy()` and `enforce_stay_capacity()` count Sirvoy rooms, owner and service-role functions. `lib/ical.ts` (+13 tests), `lib/external-sync.ts`, `/api/cron/sirvoy-sync`, `vercel.json`, owner card in /admin/namukai, read-only Kalendorius entries, admin stock helpers take the blocks. `.env.example` gained `CRON_SECRET`. Vault: database, api-architecture, environment-variables, components, utils, changelog, ADR-0102, `backend/booking-com-sync.md`.
+- **Status:** tsc, eslint, 82 tests clean; SQL-verified in rolled-back transactions; Namukai and Kalendorius render with the owner session. Not tested with a live feed. Mobile app model not updated.
+- **Next:** `CRON_SECRET` in Vercel (Pro for */15), paste the 14 export URLs, compare one booking on the calendar and on /rezervacija; consider the Sirvoy booking webhook for guest names.
 
 ## 2026-11-14 — Short month in the date picker
 

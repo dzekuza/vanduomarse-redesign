@@ -3,7 +3,7 @@ import type { AdminData, ManagedEvent } from "@/lib/admin/types";
 import type { Sauna } from "@/lib/sauna";
 import type { StayType } from "@/lib/cabin";
 
-export type BookingOptionsSource = Pick<AdminData, "events" | "bookings" | "blocks" | "saunas" | "stayTypes">;
+export type BookingOptionsSource = Pick<AdminData, "events" | "bookings" | "blocks" | "saunas" | "stayTypes" | "externalBlocks">;
 
 export interface DayOptions {
   /** Events and public sessions that day staff can add tickets to, by start time; `left` null = no limit, 0 = full. */
@@ -28,7 +28,7 @@ export function bookingOptionsOn(date: string, data: BookingOptionsSource): DayO
   const stays = data.stayTypes
     .filter((t) => t.active)
     .toSorted((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, "lt"))
-    .map((type) => ({ type, free: type.units === null ? null : Math.max(0, type.units - stayUnitsOn(data.bookings, date, type.kind, type.id)) }));
+    .map((type) => ({ type, free: type.units === null ? null : Math.max(0, type.units - stayUnitsOn(data.bookings, date, type.kind, type.id, data.externalBlocks)) }));
 
   const saunas = data.saunas
     .filter((s) => s.active)

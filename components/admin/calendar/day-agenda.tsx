@@ -22,10 +22,10 @@ function Row({ entry, onOpen }: { entry: CalendarEntry; onOpen: (e: CalendarEntr
         <span className="block truncate text-sm font-medium">
           {entry.time ? `${entry.time} · ` : ""}
           {entry.title}
-          {entry.event || !entry.detail ? "" : ` · ${entry.detail}`}
+          {entry.event || entry.external || !entry.detail ? "" : ` · ${entry.detail}`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {entry.event ? `${label} · ${entry.detail}` : `${label} · ${entry.customer.name} · ${entry.reference}`}
+          {entry.event || entry.external ? `${label} · ${entry.detail}` : `${label} · ${entry.customer.name} · ${entry.reference}`}
         </span>
       </span>
       {entry.event ? <Badge variant="outline">{seatsLabel(entry.event)}</Badge> : <BookingStatusBadge status={entry.status} />}

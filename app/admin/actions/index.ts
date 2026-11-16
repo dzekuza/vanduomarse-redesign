@@ -9,6 +9,7 @@ export * from "./events";
 export * from "./sauna";
 export * from "./coupons";
 export * from "./stays";
+export * from "./external-calendars";
 export * from "./quads";
 export * from "./riders";
 export type { ActionResult } from "@/lib/admin/action-helpers";
