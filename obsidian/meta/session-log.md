@@ -1,3 +1,9 @@
+## 2026-11-16 — Inquiries as a list
+
+- **Changed:** /admin/uzklausos board replaced by `InquiriesTable` + filters/search in `InquiriesView`; `InquiriesBoard`, `InquiryCard` deleted.
+- **Status:** tsc/eslint/tests clean; browser-checked desktop and 375 px. In PR #113, with review fixes (panel date, held label, search label, notes).
+- **Next:** merge PR #113.
+
 ## 2026-11-16 — Online vs admin sales
 
 - **Changed:** `Sale.source`, `saleOrigin`, `SaleOriginBadge`, origin filter in `SalesFilters`, `TourTicket.source`; ADR-0103.
