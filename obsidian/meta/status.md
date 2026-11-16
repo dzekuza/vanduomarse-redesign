@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
+**Meta Conversions API (2026-11-16, ADR-0107): built on `feat/meta-capi` (on top of PR #120), not deployed. Server copy of every Pixel event after marketing consent; purchases verified in the database. Verified end to end from localhost with `META_CAPI_TEST_EVENT_CODE`: Events Manager → Test events showed ViewContent "Processed", received from Server, value 675 EUR, content_name, hashed e-mail / external id / first name, user agent, country. No Browser copy yet (Pixel still locked). Blocked on: `META_CAPI_ACCESS_TOKEN` in Vercel (no test code there), the Pixel lock in Events Manager, and rotating the token (it was pasted into a chat). Privacy policy should mention hashed data sent to Meta.**
+
 **Campaign conversions (2026-11-16, ADR-0106): Black Friday / plan pages send view_item + ViewContent after consent; checkout and purchase carry the discount code as `coupon`. PR open from `feat/campaign-conversions`. Next: GA key event `purchase`, Meta custom conversion on Purchase with coupon WAKEBLACKFRIDAY2026.**
 
 **Meta Pixel (2026-11-16, ADR-0105): BLOCKED BY META. The code is live (Pixel id 1436419551457404 and GA id in the deployed JS; `.env.local` has the Pixel id too) and fbevents.js loads after consent, but Meta locks the Pixel (`prohibited_pixels_1436419551457404`) and logs "[Meta pixel] 1436419551457404 is unavailable. Go to Events Manager to learn more", so no event is sent (0 events, no `_fbp`), on vanduomarse.lt and on localhost. Not a domain ban (`prohibitedSources` is empty) and not bot blocking. Next: owner opens that Pixel in Meta Events Manager / Business settings and clears the restriction (or uses another Pixel id). GA works on production (`page_view` reached Google).**

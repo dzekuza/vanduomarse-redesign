@@ -1,3 +1,4 @@
+import { reportMetaEvent } from "@/app/actions/meta-capi";
 import { GA_ID, PIXEL_ID, parseConsent, readRawConsent } from "@/lib/consent";
 
 /**
@@ -58,18 +59,48 @@ export function marketingAllowed(): boolean {
 
 type PixelParams = Record<string, string | number | string[] | undefined>;
 
+type PixelEventName = "ViewContent" | "Lead" | "InitiateCheckout" | "CompleteRegistration" | "Purchase";
+
+interface PixelOptions {
+  /** Fixed id (a purchase's, so a reloaded return page counts once); otherwise a fresh one per event. */
+  eventId?: string;
+  /** Purchase only: the order the server checks before it reports the sale. */
+  purchase?: { kind: "reservation" | "coupon" | "plan"; transactionId: string };
+}
+
+const newEventId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+
+const num = (v: unknown) => (typeof v === "number" ? v : undefined);
+const str = (v: unknown) => (typeof v === "string" ? v : undefined);
+
 /**
- * Sends one Meta Pixel standard event, if allowed; waits briefly for fbevents.js like `trackEvent`. `eventId` lets
- * Meta drop a duplicate of the same purchase (e.g. the return page reloaded).
+ * Sends one Meta standard event, if allowed: to the Pixel (waiting briefly for fbevents.js like `trackEvent`) and, with
+ * the same event id, to the Conversions API through `reportMetaEvent` (ADR-0107). Meta keeps one of the two; the server
+ * copy still arrives when an ad blocker stops the Pixel.
  */
-export function trackPixel(name: string, params?: PixelParams, eventId?: string): void {
+export function trackPixel(name: PixelEventName, params?: PixelParams, options: PixelOptions = {}): void {
   if (!marketingAllowed()) return;
+  const eventId = options.eventId ?? newEventId();
   let tries = 0;
   const send = () => {
-    if (window.fbq) window.fbq("track", name, params, eventId ? { eventID: eventId } : undefined);
+    if (window.fbq) window.fbq("track", name, params, { eventID: eventId });
     else if (tries++ < WAIT_TRIES) window.setTimeout(send, WAIT_STEP_MS);
   };
   send();
+
+  const sourceUrl = window.location?.href;
+  if (!sourceUrl) return;
+  void reportMetaEvent({
+    name,
+    eventId,
+    sourceUrl,
+    value: num(params?.value),
+    contentName: str(params?.content_name),
+    contentCategory: str(params?.content_category),
+    coupon: str(params?.coupon),
+    purchase: options.purchase,
+  }).catch(() => {});
 }
 
 /** Sends one GA4 event, if allowed; waits briefly for gtag.js when it is still loading. */
@@ -122,7 +153,12 @@ export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
 export function trackPurchase(kind: ActivityKind, transactionId: string, input: ItemInput = {}): void {
   trackEvent("purchase", { transaction_id: transactionId, ...money(input), ...couponParam(input), items: items(kind, input) });
   // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
-  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, `purchase-${transactionId}`);
+  trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, { eventId: `purchase-${transactionId}`, purchase: purchaseRef(kind, transactionId) });
+}
+
+/** The order a paid return page reports; only these three kinds are paid online. */
+function purchaseRef(kind: ActivityKind, transactionId: string): PixelOptions["purchase"] {
+  return kind === "reservation" || kind === "coupon" || kind === "plan" ? { kind, transactionId } : undefined;
 }
 
 /** A new customer finished registering: `sign_up`. */

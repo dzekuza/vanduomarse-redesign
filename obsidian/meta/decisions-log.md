@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0107 — Meta Conversions API mirrors the Pixel events from a consent-gated server action; purchases are verified
+
+- **Status:** Accepted
+- **Date:** 2026-11-16
+- **Context:** the owner set up the Conversions API in Events Manager (ViewContent, Lead, InitiateCheckout, CompleteRegistration, Purchase) to recover conversions the browser Pixel loses to ad blockers. Consent lives in the browser (localStorage), so the server cannot know it on its own, and a public endpoint must not let anyone invent sales.
+- **Decision:** `trackPixel` gives every Meta event an event id and, besides `fbq`, calls the server action `reportMetaEvent` with the same id, only after marketing consent and without waiting for fbevents.js. The server adds IP, user agent, `_fbp` / `_fbc`, country `lt` and a signed-in customer's confirmed e-mail, phone and name (hashed with SHA-256 per Meta's rules) and posts to Graph API `v26.0`. A `Purchase` is never taken from the browser: the server finds the payment (`payments.id`), coupon or plan order (reference), sends nothing unless `paid_at` is set, and uses that row's amount and contact. Only this site's hosts are accepted; `localhost` only with `META_CAPI_TEST_EVENT_CODE`, so development never pollutes ad data. The token is server-only (`META_CAPI_ACCESS_TOKEN`).
+- **Consequences:** Meta deduplicates browser and server copies by event id. Non-purchase events can still be faked by calling the action directly (they carry no money and are bounded), accepted as a small risk. Anonymous visitors are matched only by IP, user agent, fbp and fbc; Lead and CompleteRegistration contact is not sent unless the visitor is signed in. Meta now receives hashed personal data for consenting visitors, which the privacy policy should mention. Checked: a test event to the live endpoint returned `events_received: 1`.
+
+---
+
 ## ADR-0106 — Campaign conversions: a consent-aware landing view and the discount code as the campaign label
 
 - **Status:** Accepted

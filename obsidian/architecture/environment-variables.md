@@ -31,6 +31,8 @@ updated: 2026-11-01
 | `STRIPE_SECRET_KEY` | server | for online payment | Restricted key (`rk_…`, Checkout Sessions write, Payment Intents read) or secret key. Read by `lib/stripe.ts`. Online payment on `/rezervacija` is on only when this **and** `STRIPE_WEBHOOK_SECRET` are set |
 | `CRON_SECRET` | server | for the Sirvoy sync | Bearer token Vercel Cron sends to `/api/cron/sirvoy-sync`; without it the route answers 503 and nothing syncs. 32+ random characters. Every-15-minutes cron needs a Vercel Pro plan (Hobby: once a day). Set in Vercel and, to try it locally, `.env.local` (ADR-0102) |
 | `STRIPE_WEBHOOK_SECRET` | server | for online payment | Signing secret (`whsec_…`) of the endpoint `https://<site>/api/stripe/webhook`; verified in `app/api/stripe/webhook/route.ts` |
+| `META_CAPI_ACCESS_TOKEN` | server, **secret** | for the Meta Conversions API | Events Manager access token for Pixel `NEXT_PUBLIC_META_PIXEL_ID`; read only by `lib/meta-capi.ts`. Never `NEXT_PUBLIC_`. Without it nothing is sent server-side (ADR-0107) |
+| `META_CAPI_TEST_EVENT_CODE` | server | no | Events Manager → Test events code; events then go to Test events only. `localhost` sends nothing without it |
 | `SITE_URL` | server | no | Public origin for the Stripe return URLs (e.g. `https://vanduomarse.lt`); defaults to the request's own origin. Also the `/paskyra` and `/admin` links in emails, which are left out (customer) or relative (staff) without it |
 
 Values: Supabase dashboard → Project Settings → API. Stripe: Developers → API keys and Webhooks (use a sandbox for development).
