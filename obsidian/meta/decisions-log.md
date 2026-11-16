@@ -1,6 +1,6 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-14
+updated: 2026-11-16
 ---
 
 # Decisions Log (ADRs)
@@ -22,11 +22,20 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ## ADR-0102 — Sirvoy (Booking.com's channel manager) is read in over iCal, one way, and counts as stay stock
 
-- **Status:** Proposed (plan only, nothing built)
+- **Status:** Accepted, built 2026-11-16 (feed addresses still to be entered by the owner)
 - **Date:** 2026-11-16
 - **Context:** the 14 Booking.com apartments need to appear on the admin calendar, and a night sold on Booking.com must not be sellable on /rezervacija. The Booking.com Connectivity API is limited to certified partners; a channel manager costs money and was not wanted.
 - **Decision:** poll each Sirvoy room's iCal export (the property's Booking.com connection is XML via Sirvoy, so Booking.com has no iCal of its own; Sirvoy has no open API) every 15 min from a Vercel Cron route into `external_blocks` (one row per reservation, 1 unit each), fed by `external_calendars` (14 feed URLs, owner-only, never sent to the browser). `stay_occupancy()` and the stay capacity trigger count blocks like bookings. No reverse feed: our bookings are not published to Booking.com. Details in [[booking-com-sync]].
 - **Consequences:** no guest name, price or contact on blocks (iCal has none). Booking.com's 15-60 min refresh leaves a short double-booking window. Adds `CRON_SECRET` and the project's first `vercel.json`. The 14 apartments are the existing `namelis-2` (8 units) and `namelis-4` (6 units): no new stay types, 8 + 6 feeds.
+
+---
+
+## ADR-0102 addendum — how it is built
+
+- **Data:** `external_calendars` (14 rooms, label = Sirvoy room number), `external_calendar_feeds` (secret URLs, RLS with no policy), `external_blocks`. One block = one room for those nights, counted per distinct room so overlapping events never double count.
+- **Stock:** `private.external_units_on` feeds `stay_occupancy()` and `enforce_stay_capacity()`; verified in rolled-back SQL (overlap counts once, check-out day free, an empty feed clears, a full type raises `stay_full`).
+- **Safety:** only `secured.sirvoy.com/ical/<id>` is accepted (form, action, column check, fetch), no redirects, 15 s, 2 MB; a non-iCal reply never clears blocks; a failed read keeps the old ones and shows the error on the room. Feed URLs never reach the browser; the owner saves them through `set_external_feed`, and the service role only calls three sync functions.
+- **Not done:** blocks carry no guest details (iCal has none); the mobile app's data model does not include them; the Sirvoy booking webhook (JSON with guest names) remains a later upgrade.
 
 ---
 

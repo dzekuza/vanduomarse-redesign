@@ -3,6 +3,7 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { AdminPage } from "../admin-page";
+import { SirvoyCalendarsCard } from "./sirvoy-calendars-card";
 import { StayTypeDialog } from "./stay-type-dialog";
 import { StayTypesCard } from "./stay-types-card";
 import type { StayKind } from "@/lib/cabin";
@@ -34,6 +35,7 @@ export function NamukaiView() {
         description="Palikite kiekį tuščią, jei vietų skaičius neribojamas."
         onCreate={() => setCreating("kemperis")}
       />
+      <SirvoyCalendarsCard />
       {creating ? <StayTypeDialog key={creating} kind={creating} onOpenChange={(open) => !open && setCreating(null)} /> : null}
     </AdminPage>
   );

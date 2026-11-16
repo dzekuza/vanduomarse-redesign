@@ -8,7 +8,7 @@ const event = (over: Partial<ManagedEvent>) =>
 const stay = (over: Partial<StayType>): StayType => ({ id: "namelis-2", kind: "namelis", label: "Namelis 2", note: "", maxGuests: 2, pricePerNight: 80, units: 3, active: true, sortOrder: 1, ...over });
 const stayBooking = { id: "b", reference: "R", kind: "namelis", stayTypeId: "namelis-2", stayUnits: 2, nights: 2, date: "2026-11-19", status: "patvirtinta", customer: { name: "A", phone: "", email: "" }, guests: 2, extras: [], total: 0, createdAt: "" } as Booking;
 
-const base: BookingOptionsSource = { events: [], bookings: [], blocks: [], saunas: [], stayTypes: [] };
+const base: BookingOptionsSource = { events: [], bookings: [], blocks: [], saunas: [], stayTypes: [], externalBlocks: [] };
 
 describe("bookingOptionsOn", () => {
   it("lists the day's bookable events by time with places left (sold and held count as taken)", () => {
@@ -26,6 +26,12 @@ describe("bookingOptionsOn", () => {
   it("counts free cabin units for the night and treats a null stock as unlimited", () => {
     const { stays } = bookingOptionsOn("2026-11-20", { ...base, bookings: [stayBooking], stayTypes: [stay({}), stay({ id: "kemperis", kind: "kemperis", label: "Kemperis", units: null, sortOrder: 2 }), stay({ id: "off", active: false })] });
     expect(stays.map((s) => [s.type.id, s.free])).toEqual([["namelis-2", 1], ["kemperis", null]]);
+  });
+
+  it("takes the rooms Sirvoy holds off the units left", () => {
+    const externalBlocks = [{ id: "x", calendarId: "room-1", stayTypeId: "namelis-2", label: "1", startsOn: "2026-11-20", nights: 1 }];
+    const { stays } = bookingOptionsOn("2026-11-20", { ...base, bookings: [stayBooking], externalBlocks, stayTypes: [stay({})] });
+    expect(stays[0].free).toBe(0);
   });
 
   it("does not count a stay that has already ended", () => {

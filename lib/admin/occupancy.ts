@@ -1,5 +1,5 @@
 import { parseDay } from "@/lib/admin/format";
-import type { Block, Booking, ManagedEvent } from "./types";
+import type { Block, Booking, ExternalBlock, ManagedEvent } from "./types";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { StayType } from "@/lib/cabin";
 import { dateKey, type SaunaRates } from "@/lib/sauna";
@@ -31,14 +31,34 @@ export function saunaSessionAt(events: readonly ManagedEvent[], programs: readon
   });
 }
 
-/** Cabin or camper units occupied during the night of `day`, of one stay type when `typeId` is given. */
-export function stayUnitsOn(bookings: Booking[], day: string, kind: "namelis" | "kemperis", typeId?: string): number {
-  return bookings.reduce((total, b) => {
+/** Last night of a Sirvoy block, exclusive end: the check-out day. */
+function blockEnd(b: ExternalBlock): string {
+  const end = parseDay(b.startsOn);
+  end.setDate(end.getDate() + b.nights);
+  return dateKey(end);
+}
+
+/** Rooms the Sirvoy feeds hold on the night of `day` (one per room however many events overlap), of one stay type when `typeId` is given. */
+export function externalUnitsOn(blocks: readonly ExternalBlock[], day: string, typeId?: string): number {
+  const rooms = new Set<string>();
+  for (const b of blocks) {
+    if ((typeId === undefined || b.stayTypeId === typeId) && b.startsOn <= day && day < blockEnd(b)) rooms.add(b.calendarId);
+  }
+  return rooms.size;
+}
+
+/**
+ * Cabin or camper units occupied during the night of `day`, of one stay type when `typeId` is given.
+ * Pass the Sirvoy blocks to count the rooms Booking.com and the front desk have taken (cabins only).
+ */
+export function stayUnitsOn(bookings: Booking[], day: string, kind: "namelis" | "kemperis", typeId?: string, external: readonly ExternalBlock[] = []): number {
+  const own = bookings.reduce((total, b) => {
     if (!active(b) || b.kind !== kind || !b.nights || (typeId !== undefined && b.stayTypeId !== typeId)) return total;
     const end = parseDay(b.date);
     end.setDate(end.getDate() + b.nights);
     return b.date <= day && day < dateKey(end) ? total + (b.stayUnits ?? 1) : total;
   }, 0);
+  return kind === "namelis" ? own + externalUnitsOn(external, day, typeId) : own;
 }
 
 export function daysFrom(start: Date, count: number): string[] {
@@ -67,8 +87,8 @@ export function freeStartHours(bookings: Booking[], blocks: Block[], rates: Saun
 }
 
 /** Nights (from `day`, for `nights`) on which every unit of this stay type is already taken; none for unlimited stock. */
-export function fullStayNights(bookings: Booking[], day: string, nights: number, type: StayType): string[] {
+export function fullStayNights(bookings: Booking[], day: string, nights: number, type: StayType, external: readonly ExternalBlock[] = []): string[] {
   const { units } = type;
   if (units === null) return [];
-  return daysFrom(parseDay(day), nights).filter((d) => stayUnitsOn(bookings, d, type.kind, type.id) >= units);
+  return daysFrom(parseDay(day), nights).filter((d) => stayUnitsOn(bookings, d, type.kind, type.id, external) >= units);
 }

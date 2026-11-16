@@ -368,6 +368,28 @@ export interface Coupon {
 }
 
 /** Everything the dashboard renders, loaded once per request in the admin layout. */
+/** One Sirvoy room feed (label = Sirvoy room number) and the stay type it occupies. The feed URL itself never reaches the browser. */
+export interface ExternalCalendar {
+  id: string;
+  stayTypeId: string;
+  label: string;
+  /** True once a feed URL is stored. */
+  active: boolean;
+  lastSyncedAt?: string;
+  lastError?: string;
+}
+
+/** A stretch a Sirvoy room is taken (a Booking.com or other reservation, or a closure): first night plus nights, check-out day free. */
+export interface ExternalBlock {
+  id: string;
+  calendarId: string;
+  stayTypeId: string;
+  /** Sirvoy room number, from its calendar. */
+  label: string;
+  startsOn: string;
+  nights: number;
+}
+
 export interface AdminData {
   bookings: Booking[];
   blocks: Block[];
@@ -387,6 +409,10 @@ export interface AdminData {
   discountCodes: DiscountCode[];
   /** Cabin sizes and camper pitches, hidden ones included (owner-managed at /admin/namukai). */
   stayTypes: StayType[];
+  /** Sirvoy room feeds, for staff with Rezervacijos / Užimtumas / Apžvalga; empty before the external calendars migration. */
+  externalCalendars: ExternalCalendar[];
+  /** What the active Sirvoy rooms have taken; counted against the stay stock like bookings. */
+  externalBlocks: ExternalBlock[];
   quadTypes: QuadType[];
   quadSettings: QuadSettings;
   /** Mini / Midi / Maxi, all of them (inactive too) for staff with `keturraciai`. */

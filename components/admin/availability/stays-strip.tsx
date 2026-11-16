@@ -7,12 +7,12 @@ import { formatDay } from "@/lib/admin/format";
 
 /** Nightly cabin and camper occupancy for the visible days. */
 export function StaysStrip({ days }: { days: string[] }) {
-  const { bookings, stayTypes } = useAdmin();
+  const { bookings, stayTypes, externalBlocks } = useAdmin();
   const cabinStock = stayStock(stayTypes, "namelis");
   return (
     <div className={`grid gap-2 ${days.length === 1 ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-4 lg:grid-cols-7"}`}>
       {days.map((day) => {
-        const cabins = stayUnitsOn(bookings, day, "namelis");
+        const cabins = stayUnitsOn(bookings, day, "namelis", undefined, externalBlocks);
         const campers = stayUnitsOn(bookings, day, "kemperis");
         const pct = Math.min(100, (cabinStock ? Math.round((cabins / cabinStock) * 100) : 0));
         return (
