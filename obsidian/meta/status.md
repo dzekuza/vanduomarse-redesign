@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-16
 ---
 
+**WAKE Black Friday (2026-11-16): code on main (3043725) and its migration now APPLIED (the code `WAKEBLACKFRIDAY2026` was missing, so the page refused buyers). The code has no end date: deactivate it in /admin/nuolaidos when the campaign ends. Next: one test purchase at /registracija/wake/black-friday.**
+
 **Meta Pixel (2026-11-16, ADR-0105): loader on all public pages behind marketing consent (existing) + standard events (Lead, InitiateCheckout, Purchase, CompleteRegistration) now sent with the GA ones. Blocked on: `NEXT_PUBLIC_META_PIXEL_ID` in `.env.local` and Vercel. Next: check Test events in Meta Events Manager.**
 
 **Google Analytics events (2026-11-16, ADR-0103): BUILT, not yet deployed or seen in GA. `lib/analytics.ts` sends `generate_lead` / `begin_checkout` / `purchase` / `sign_up` only after analytics consent; wired into every request form, the three Stripe redirects and the three paid return pages. tsc, eslint, 87 tests clean. Not browser-checked (GA id is only in Vercel, so the banner does not show locally). Uncommitted on `main` together with the Sirvoy live-state notes. Next: commit and merge, redeploy production, accept cookies, make a test request, look in GA Realtime, then mark the events as key events in GA.**
