@@ -1,3 +1,9 @@
+## 2026-11-16 — Meta Pixel events
+
+- **Changed:** `lib/analytics.ts` sends Meta standard events next to GA (`trackPixel`, `marketingAllowed`), ADR-0105, new `lib/analytics-pixel.test.ts`.
+- **Status:** tsc/eslint/91 tests clean. Pixel not configured: `NEXT_PUBLIC_META_PIXEL_ID` missing from `.env.local` and Vercel. PR open from `feat/meta-pixel`.
+- **Next:** owner sets the Pixel ID; accept marketing cookies on the site and check Meta Events Manager → Test events for PageView and Lead.
+
 ## 2026-11-16 — Google Analytics events
 
 - **Changed:** `lib/analytics.ts` (+5 tests), `TrackPurchase`; events wired into 11 submit points, the Stripe redirects and the paid return pages; ADR-0103.
