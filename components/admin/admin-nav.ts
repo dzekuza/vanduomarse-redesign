@@ -15,7 +15,6 @@ import {
   MotorcycleIcon,
   PercentIcon,
   PersonSimpleSnowboardIcon,
-  ScanIcon,
   TagIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
@@ -66,8 +65,9 @@ export const isDomain = (entry: AdminNavEntry): entry is AdminNavDomain => "chil
 /**
  * Mostly plain links: Kalendorius (all bookings and events), then each
  * resource's own page. Cabins and camper pitches are managed by the owner at
- * Namukai (`/admin/namukai`, ADR-0058). The one dropdown is Vandenlentės, which holds
- * the wristband and instructor pages (`AdminNavDomain`).
+ * Namukai (`/admin/namukai`, ADR-0058). Vandenlentės opens the wristband page
+ * (`/admin/apyrankes`) and Instruktorius is its own row; no entry is a dropdown now,
+ * but `AdminNavDomain` stays for when one is needed.
  */
 export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin", label: "Apžvalga", icon: ChartPieSliceIcon, group: "apzvalga", permission: "apzvalga", badge: "pendingAll", primary: true },
@@ -77,16 +77,8 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "pardavimai", permission: "pirtis" },
   { href: "/admin/namukai", label: "Namukai", icon: BedIcon, group: "pardavimai", permission: "owner" },
   { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
-  {
-    id: "vandenlentes",
-    label: "Vandenlentės",
-    icon: PersonSimpleSnowboardIcon,
-    group: "pardavimai",
-    children: [
-      { href: "/admin/apyrankes", label: "Apyrankės", icon: ScanIcon, group: "pardavimai", permission: "apyrankes" },
-      { href: "/admin/instruktorius", label: "Instruktorius", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
-    ],
-  },
+  { href: "/admin/apyrankes", label: "Vandenlentės", icon: PersonSimpleSnowboardIcon, group: "pardavimai", permission: "apyrankes" },
+  { href: "/admin/instruktorius", label: "Instruktorius", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },
   { href: PAGE_CONTENT_HREF, label: "Puslapiai", icon: NotePencilIcon, group: "turinys", permission: "owner" },
   { href: "/admin/kainos", label: "Kainodara", icon: TagIcon, group: "nustatymai", permission: "kainos" },

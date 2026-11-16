@@ -3,6 +3,7 @@ tags: [meta, status]
 updated: 2026-11-17
 ---
 
+**Admin menu (2026-11-17): Vandenlentės is a plain link to /admin/apyrankes, Instruktorius its own row; the Skenavimas tab on /admin/apyrankes is removed. Branch `fix/admin-nav-wake`, not merged. Also: Next.js 16.4.6 security update ready on `chore/next-16.4.6-security` (worktree `_worktrees/vanduomarse-next-security`), PR not opened yet.**
 **Next.js security update (2026-11-17): 16.4.2 → 16.4.6 (and eslint-config-next) for a published advisory, plus `experimental.agentUpgrade: "security"`. Build, tsc, eslint, 116 tests pass; production build smoke-tested. On branch `chore/next-16.4.6-security`, not merged or deployed yet. Next: open the PR, merge, deploy.**
 
 **Meta Conversions API (2026-11-16, ADR-0107): built on `feat/meta-capi` (on top of PR #120), not deployed. Server copy of every Pixel event after marketing consent; purchases verified in the database. Verified end to end from localhost with `META_CAPI_TEST_EVENT_CODE`: Events Manager → Test events showed ViewContent "Processed", received from Server, value 675 EUR, content_name, hashed e-mail / external id / first name, user agent, country. No Browser copy yet (Pixel still locked). Blocked on: `META_CAPI_ACCESS_TOKEN` in Vercel (no test code there), the Pixel lock in Events Manager, and rotating the token (it was pasted into a chat). Privacy policy should mention hashed data sent to Meta.**
