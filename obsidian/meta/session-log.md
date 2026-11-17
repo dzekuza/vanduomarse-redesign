@@ -1,3 +1,9 @@
+## 2026-11-17 — New Meta Pixel and CAPI token checked
+
+- **Changed:** nothing in code; owner put a new Pixel id and CAPI token in `.env.local`.
+- **Status:** localhost and live (vanduomarse.lt): Pixel loads, `_fbp` set, PageView + ViewContent sent; live JS has the new Pixel id. Vercel env updated and redeployed.
+- **Next:** one test purchase to see InitiateCheckout + Purchase and the server copy in Events Manager.
+
 ## 2026-11-17 — WAKE passes without registration (ADR-0109)
 
 - **Changed:** migration `plan_passes` (table + 8 RPCs, applied live), `buyPlanPass` + `PassBuyForm` ("Perku sau" / "Perku draugui"), webhook `onPlanPassPaid`, pass e-mails, Meta purchase check for passes, admin Kodai tab + `RedeemPassDialog` + `redeemPlanPass`, old register-then-pay removed from `registerRider`.
