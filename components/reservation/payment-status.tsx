@@ -45,7 +45,7 @@ export function PaymentStatus({ payment, cancelled }: { payment: PaymentView | n
 
   return (
     <PaymentCard title={copy.title} text={copy.text} refs={payment.refs} amount={payment.amount} details={<PaymentRequests requests={payment.requests} />}>
-      {payment.status === "apmoketa" ? <TrackPurchase kind="reservation" transactionId={payment.id} value={payment.amount} proof={payment.id} /> : null}
+      {payment.status === "apmoketa" ? <TrackPurchase kind="reservation" transactionId={payment.id} value={payment.amount} /> : null}
       {open && !cancelled ? <PaymentPoller /> : null}
       {open && cancelled ? <PayAgain paymentId={payment.id} /> : null}
       {payment.needsReview ? (

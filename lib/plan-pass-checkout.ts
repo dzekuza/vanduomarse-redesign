@@ -1,4 +1,5 @@
 import "server-only";
+import { trackingMetadata } from "@/lib/meta-tracking-context";
 import { formatEuro } from "@/lib/coupons";
 import { getStripe, siteOrigin, toCents } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -33,7 +34,7 @@ export async function openPlanPassCheckout(o: PlanPassToPay): Promise<string | n
       line_items: [{ quantity: 1, price_data: { currency: "eur", unit_amount: toCents(o.amount), product_data: { name: `${o.planName}${o.gift ? " (dovana)" : ""} · ${o.reference}` } } }],
       customer_email: o.buyerEmail,
       client_reference_id: o.id,
-      metadata: { plan_pass_id: o.id, plan_pass_reference: o.reference },
+      metadata: { plan_pass_id: o.id, plan_pass_reference: o.reference, ...(await trackingMetadata()) },
       payment_intent_data: { metadata: { plan_pass_id: o.id }, description: `Vanduo Marse abonementas ${o.reference} (${formatEuro(o.amount)})` },
       success_url: `${origin}/registracija/apmoketa?sid={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/registracija/apmoketa?sid={CHECKOUT_SESSION_ID}&atsaukta=1`,

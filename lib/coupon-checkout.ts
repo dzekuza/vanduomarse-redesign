@@ -1,4 +1,5 @@
 import "server-only";
+import { trackingMetadata } from "@/lib/meta-tracking-context";
 import { formatEuro } from "@/lib/coupons";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStripe, siteOrigin, toCents } from "@/lib/stripe";
@@ -34,7 +35,7 @@ export async function openCouponCheckout(c: CouponToPay): Promise<string | null>
         { quantity: 1, price_data: { currency: "eur", unit_amount: toCents(c.amount), product_data: { name: `${c.productName} · ${c.reference}` } } },
       ],
       customer_email: c.buyerEmail,
-      metadata: { coupon_id: c.id, coupon_reference: c.reference },
+      metadata: { coupon_id: c.id, coupon_reference: c.reference, ...(await trackingMetadata()) },
       payment_intent_data: { metadata: { coupon_id: c.id }, description: `Vanduo Marse kuponas ${c.reference} (${formatEuro(c.amount)})` },
       success_url: `${origin}/kuponai/apmoketa?sid={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/kuponai?atsaukta=1`,

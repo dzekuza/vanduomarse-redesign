@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0111 — The Purchase for Meta's Conversions API is sent from the Stripe webhook
+
+- **Status:** Accepted (built on `feat/meta-purchase-webhook`). Supersedes the "browser proves the sale" part of ADR-0107.
+- **Date:** 2026-11-17
+- **Context:** the server copy of a `Purchase` was triggered from the buyer's browser: the paid return page called `reportMetaEvent` with a proof (payment id or Stripe session id), and the server verified the order. That copy is lost whenever the browser does not get back to the page or does not run our script: the buyer closes the tab after Stripe, iOS limits, an ad blocker. Those are exactly the sales the Conversions API is meant to save.
+- **Decision:** `lib/meta-purchase.ts` (`reportPurchaseFromWebhook`) is called from `lib/stripe-events.ts` after a paid coupon, plan order, plan pass or reservation has been recorded (reservations only when newly paid and not flagged `needs_review`). It finds the paid order from the Checkout Session (the reservation's payment id for payments), takes the buyer's identity from that order, and sends `Purchase` with event id `purchase-<transaction id>`, the same id the browser Pixel uses, so Meta keeps one of the two. The browser no longer reports a Purchase to the server: `trackPixel` skips the server action for it, the action rejects `Purchase`, and the proof parameters are gone. What the webhook cannot see (consent, `_fbp`, `_fbc`, IP, user agent) is recorded when the order is started: `trackingMetadata()` (`lib/meta-tracking-context.ts`) adds `mk` / `mk_fbp` / `mk_fbc` / `mk_ip` / `mk_ua` to the Checkout Session metadata of all four session creators, only if the `vm_mkt` marketing-consent cookie is `1` and only for Meta-formatted cookie values; the webhook reads them back and sends nothing without `mk=1`.
+- **Consequences:** a Purchase is reported even if the buyer never returns to the site and for any browser. A buyer who did not accept marketing cookies at checkout is never reported (as before). Sessions created before this deploy carry no metadata, so those few in-flight orders have the browser Pixel Purchase only. A Meta outage is logged and never fails the webhook (Stripe is not asked to retry for it), so a sale can be missed then; the browser Pixel copy still exists. The buyer's IP and user agent now live in the Stripe session metadata, in Stripe's records, until Stripe deletes them: only with marketing consent, and the privacy policy says so. The old proof checks (guessable references refused, 48-hour window, refunded or cancelled orders not reported) moved with the verification code and still apply, and the webhook adds `content_category`. Not covered: a Purchase for a payment first confirmed by a staff action rather than Stripe.
+
+---
+
 ## ADR-0110 — The cookie banner is modal, except on the privacy policy page
 
 - **Status:** Accepted (PR open). Builds on ADR-0085.
