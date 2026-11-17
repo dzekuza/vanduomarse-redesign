@@ -16,10 +16,12 @@ interface CouponDiscountFieldProps {
   onChange: (discount: CheckedDiscount | null) => void;
   /** What is being bought; the code must cover it. Default: gift coupons. */
   service?: DiscountService;
+  /** A short note shown under the open field, e.g. that a code replaces the campaign discount. */
+  hint?: string;
 }
 
 /** "Turite nuolaidos kodą?": expands to a code field; once applied shows what it takes off. The database prices the code again on submit. */
-export function CouponDiscountField({ discount, amount, disabled, onChange, service = "kuponai" }: CouponDiscountFieldProps) {
+export function CouponDiscountField({ discount, amount, disabled, onChange, service = "kuponai", hint }: CouponDiscountFieldProps) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -83,6 +85,7 @@ export function CouponDiscountField({ discount, amount, disabled, onChange, serv
         </Button>
       </div>
       {error ? <p role="alert" className="text-xs text-rust-ink">{error}</p> : null}
+      {hint ? <p className="text-xs text-copy">{hint}</p> : null}
     </div>
   );
 }

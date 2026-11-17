@@ -113,7 +113,7 @@ One recipe across the home page and every inner page.
   scroll (`scrollbar-ink`) is reserved for long date strips.
 - Prices and other short values use `whitespace-nowrap` so they never break
   mid-value; their row wraps instead.
-- Nav links live in `components/nav-links.ts` (`NAV_LINKS`).
+- Nav links live in `components/nav-links.ts` (`NAV_LINKS`), shared by the desktop header and the mobile menu panel. The Black Friday campaign link (`WAKE_BLACK_FRIDAY_PATH`) sits right after Rezervacija; remove it when the offer ends. Desktop labels are `whitespace-nowrap`: five items fit at 1024 px (checked), where wrapped labels looked cramped.
 - Admin: below `lg` navigation is a bottom tab bar (max 5 tabs; extra items
   go under "Daugiau"); from `lg` it is the sidebar. Fixed bottom UI needs
   `pb-[env(safe-area-inset-bottom)]` and matching content padding.
