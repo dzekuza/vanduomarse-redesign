@@ -134,4 +134,52 @@ describe("Meta Pixel events", () => {
     trackPurchase("coupon", "KP-1015", { value: 25 });
     expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Purchase", purchase: undefined }));
   });
+
+  describe("typed contact on checkout events", () => {
+    it("gives the Pixel the e-mail and name before the InitiateCheckout, and the Conversions API the full contact", async () => {
+      const win = browser({ marketing: true });
+      const fbq = vi.fn();
+      win.fbq = fbq;
+      const { trackCheckout } = await load(PIXEL);
+      trackCheckout("plan", { itemName: "WAKE sezono abonementas", value: 675, contact: { email: "  Jonas@Example.com ", name: "Jonas Jonaitis Vyresnysis", phone: "+37061234567" } });
+      expect(fbq).toHaveBeenNthCalledWith(1, "init", PIXEL, { em: "jonas@example.com", fn: "jonas", ln: "jonaitis vyresnysis" });
+      expect(fbq).toHaveBeenNthCalledWith(2, "track", "InitiateCheckout", expect.objectContaining({ value: 675 }), ANY_ID);
+      // The phone is left to the server, which completes Lithuanian numbers; the event's own parameters carry no contact.
+      expect(JSON.stringify(fbq.mock.calls[1])).not.toMatch(/jonas|example/i);
+      expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "InitiateCheckout", contact: { email: "  Jonas@Example.com ", name: "Jonas Jonaitis Vyresnysis", phone: "+37061234567" } }));
+    });
+
+    it("sends no extra init when nothing usable was typed, and drops an invalid e-mail", async () => {
+      const win = browser({ marketing: true });
+      const fbq = vi.fn();
+      win.fbq = fbq;
+      const { trackCheckout, pixelUserData } = await load(PIXEL);
+      trackCheckout("plan", { value: 675 });
+      trackCheckout("plan", { value: 675, contact: { email: "not-an-email" } });
+      expect(fbq.mock.calls.map((c) => c[0])).toEqual(["track", "track"]);
+      expect(pixelUserData({ email: "not-an-email", name: "Ona" })).toEqual({ fn: "ona" });
+      expect(pixelUserData(undefined)).toBeNull();
+    });
+
+    it("sends nothing about the contact without marketing consent", async () => {
+      const win = browser({ marketing: false });
+      const fbq = vi.fn();
+      win.fbq = fbq;
+      const { trackCheckout } = await load(PIXEL);
+      trackCheckout("plan", { value: 675, contact: { email: "jonas@example.com", name: "Jonas" } });
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(fbq).not.toHaveBeenCalled();
+      expect(report).not.toHaveBeenCalled();
+    });
+
+    it("never attaches a typed contact to a Purchase: that is built from the paid order", async () => {
+      const win = browser({ marketing: true });
+      const fbq = vi.fn();
+      win.fbq = fbq;
+      const { trackPurchase } = await load(PIXEL);
+      trackPurchase("plan", "PS-7", { value: 675, contact: { email: "jonas@example.com", name: "Jonas" } }, "cs_test_a1b2c3d4e5f6");
+      expect(fbq.mock.calls.map((c) => c[0])).toEqual(["track"]);
+      expect(report.mock.calls[0][0]).not.toHaveProperty("contact");
+    });
+  });
 });

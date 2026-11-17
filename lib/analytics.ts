@@ -31,9 +31,22 @@ export type ActivityKind =
   | "plan"
   | "rider_registration";
 
+/**
+ * Contact details the visitor has just typed into the form they are submitting. Used only for Meta matching (hashed, and
+ * only after marketing consent); never sent to Google Analytics and never put in an event's name or parameters.
+ */
+export interface PixelContact {
+  email?: string;
+  /** Full name as typed; split into first and last name where it is sent. */
+  name?: string;
+  phone?: string;
+}
+
 interface ItemInput {
   /** What was chosen, e.g. "Pirtis Marse" or a coupon name; never personal data. */
   itemName?: string;
+  /** Typed contact of the person checking out: sent to Meta (hashed) with the checkout event, never to GA. */
+  contact?: PixelContact;
   /** Euros including VAT. */
   value?: number;
   /** Discount code applied (e.g. a campaign code such as WAKEBLACKFRIDAY2026), so ad and campaign reports can split sales by it. */
@@ -66,10 +79,28 @@ interface PixelOptions {
   eventId?: string;
   /** Purchase only: the payer's proof (reservation payment id or Stripe session id) the server checks before it reports the sale. */
   purchase?: { kind: "reservation" | "coupon" | "plan"; proof: string };
+  /** Contact typed into the form (not for a Purchase: that is built from the paid order). */
+  contact?: PixelContact;
 }
 
 const newEventId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+
+/**
+ * Meta's browser "advanced matching" fields for the typed contact: the Pixel normalises and hashes them itself. The phone is
+ * left to the server copy, which knows how to complete a Lithuanian number.
+ */
+export function pixelUserData(contact: PixelContact | undefined): Record<string, string> | null {
+  if (!contact) return null;
+  const email = contact.email?.trim().toLowerCase();
+  const [first, ...rest] = (contact.name ?? "").trim().split(/\s+/);
+  const data: Record<string, string> = {
+    ...(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? { em: email } : {}),
+    ...(first ? { fn: first.toLowerCase() } : {}),
+    ...(rest.length ? { ln: rest.join(" ").toLowerCase() } : {}),
+  };
+  return Object.keys(data).length ? data : null;
+}
 
 const num = (v: unknown) => (typeof v === "number" ? v : undefined);
 const str = (v: unknown) => (typeof v === "string" ? v : undefined);
@@ -83,9 +114,13 @@ export function trackPixel(name: PixelEventName, params?: PixelParams, options: 
   if (!marketingAllowed()) return;
   const eventId = options.eventId ?? newEventId();
   let tries = 0;
+  const userData = options.purchase ? null : pixelUserData(options.contact);
   const send = () => {
-    if (window.fbq) window.fbq("track", name, params, { eventID: eventId });
-    else if (tries++ < WAIT_TRIES) window.setTimeout(send, WAIT_STEP_MS);
+    if (window.fbq) {
+      // Meta takes later advanced-matching data from another `init` of the same Pixel; it fires no event by itself.
+      if (userData) window.fbq("init", PIXEL_ID, userData);
+      window.fbq("track", name, params, { eventID: eventId });
+    } else if (tries++ < WAIT_TRIES) window.setTimeout(send, WAIT_STEP_MS);
   };
   send();
 
@@ -102,6 +137,7 @@ export function trackPixel(name: PixelEventName, params?: PixelParams, options: 
     contentCategory: str(params?.content_category),
     coupon: str(params?.coupon),
     purchase: options.purchase,
+    ...(options.contact && !options.purchase ? { contact: options.contact } : {}),
   }).catch(() => {});
 }
 
@@ -151,7 +187,7 @@ export function trackLead(kind: ActivityKind, input: ItemInput = {}): void {
 /** The visitor is being sent to Stripe Checkout: `begin_checkout`. */
 export function trackCheckout(kind: ActivityKind, input: ItemInput = {}): void {
   trackEvent("begin_checkout", { ...money(input), ...couponParam(input), items: items(kind, input) });
-  trackPixel("InitiateCheckout", pixelParams(kind, input));
+  trackPixel("InitiateCheckout", pixelParams(kind, input), { contact: input.contact });
 }
 
 /**

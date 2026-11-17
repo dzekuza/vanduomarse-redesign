@@ -1,3 +1,9 @@
+## 2026-11-17 — Typed contact on checkout events (Meta matching)
+
+- **Changed:** `lib/analytics.ts` (`PixelContact`, `pixelUserData`, `trackCheckout`/`trackPixel` contact), `app/actions/meta-capi.ts` (`contact`, precedence), the three checkout forms, privacy sentence, 9 tests.
+- **Status:** tsc/eslint, 148 tests; real Pixel sends `ud[em]` hash; branch `feat/meta-checkout-contact`, PR open.
+- **Next:** merge; then check Events Manager match quality after real traffic. Possible follow-ups: same for Lead forms, an anonymous `external_id` cookie.
+
 ## 2026-11-17 — Discount code field on the Black Friday page
 
 - **Changed:** `PlanRegistration` shows `CouponDiscountField` on the campaign page too (another code replaces the Black Friday one, "Pašalinti" restores it); `hint` prop. Fixed both purchase forms showing at once (forceMount did not hide the inactive tab; it was live after PR #131).

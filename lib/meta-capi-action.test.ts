@@ -152,4 +152,40 @@ describe("reportMetaEvent", () => {
     await reportMetaEvent({ ...base, purchase: { kind: "reservation", proof: id } });
     expect(send).not.toHaveBeenCalled();
   });
+
+  describe("contact typed into the checkout form", () => {
+    const checkout = { name: "InitiateCheckout" as const, eventId: "checkout-evt-1", sourceUrl: "https://www.vanduomarse.lt/registracija/wake/black-friday", value: 675 };
+    const typed = { email: "jonas@example.com", name: "Jonas Jonaitis Vyresnysis", phone: "+37061234567" };
+
+    it("fills the user data of an anonymous visitor's checkout event", async () => {
+      const { reportMetaEvent } = await import("@/app/actions/meta-capi");
+      await reportMetaEvent({ ...checkout, contact: typed });
+      expect(sent().user).toMatchObject({ email: "jonas@example.com", phone: "+37061234567", firstName: "Jonas", lastName: "Jonaitis Vyresnysis" });
+      expect(sent().user.externalId).toBeUndefined();
+    });
+
+    it("lets a signed-in customer's confirmed details win, typed text only fills what the account lacks", async () => {
+      customer.mockResolvedValue({ id: "cust-1", email: null, phone: "+37069999999", name: "Ona Onaitė" });
+      const { reportMetaEvent } = await import("@/app/actions/meta-capi");
+      await reportMetaEvent({ ...checkout, contact: typed });
+      expect(sent().user).toMatchObject({ email: "jonas@example.com", phone: "+37069999999", firstName: "Ona", lastName: "Onaitė", externalId: "cust-1" });
+    });
+
+    it("ignores a typed contact on a Purchase: only the paid order's contact is used", async () => {
+      passRow = { reference: "PS-7", status: "apmoketa", price: 675, discount_code: null, paid_at: hoursAgo(1), refunded_at: null, buyer_email: "payer@b.lt", buyer_name: "Ona Onaitė" };
+      const { reportMetaEvent } = await import("@/app/actions/meta-capi");
+      await reportMetaEvent({ ...base, purchase: { kind: "plan", proof: SESSION }, contact: typed });
+      expect(sent().user).toMatchObject({ email: "payer@b.lt", firstName: "Ona" });
+      expect(sent().user.phone).toBeUndefined();
+    });
+
+    it("still sends the event when the typed e-mail is malformed or over-long fields are cut by the schema", async () => {
+      const { reportMetaEvent } = await import("@/app/actions/meta-capi");
+      await reportMetaEvent({ ...checkout, contact: { email: "not-an-email", name: "Jonas" } });
+      expect(send).toHaveBeenCalledTimes(1);
+      send.mockClear();
+      await reportMetaEvent({ ...checkout, contact: { email: "a".repeat(200) + "@b.lt" } });
+      expect(send).not.toHaveBeenCalled();
+    });
+  });
 });

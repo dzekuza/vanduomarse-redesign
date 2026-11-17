@@ -100,4 +100,14 @@ describe("analytics", () => {
     expect(gtag).toHaveBeenNthCalledWith(2, "event", "begin_checkout", { value: 270, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026", items: [item] });
     expect(gtag).toHaveBeenNthCalledWith(3, "event", "purchase", { transaction_id: "AB-7", value: 270, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026", items: [item] });
   });
+
+  it("never sends the contact typed at checkout to Google Analytics", async () => {
+    const win = browser({ analytics: true });
+    const gtag = vi.fn();
+    win.gtag = gtag;
+    const { trackCheckout } = await load(GA);
+    trackCheckout("plan", { itemName: "WAKE sezono abonementas", value: 675, contact: { email: "jonas@example.com", name: "Jonas Jonaitis", phone: "+37061234567" } });
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(gtag.mock.calls)).not.toMatch(/jonas|example\.com|612/i);
+  });
 });

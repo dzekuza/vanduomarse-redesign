@@ -40,7 +40,7 @@ export function WakeCheckoutDialog({ product, open, onClose }: WakeCheckoutDialo
       setError("root", { message: result.error.message });
       return;
     }
-    trackCheckout("coupon", { itemName: product.name, value: product.value });
+    trackCheckout("coupon", { itemName: product.name, value: product.value, contact: { email: values.buyerEmail, name: values.buyerName, phone: values.buyerPhone } });
     setRedirecting(true);
     goToCheckout(result.data.checkoutUrl);
   });

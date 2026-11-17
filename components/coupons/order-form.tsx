@@ -77,7 +77,7 @@ export function OrderForm({ product, buyer }: { product: CouponProduct; buyer?: 
       setError("root", { message: result.error.message });
       return;
     }
-    trackCheckout("coupon", { itemName: product.name, value: total });
+    trackCheckout("coupon", { itemName: product.name, value: total, contact: { email: values.buyerEmail, name: values.buyerName, phone: values.buyerPhone } });
     setRedirecting(true);
     goToCheckout(result.data.checkoutUrl);
   });
