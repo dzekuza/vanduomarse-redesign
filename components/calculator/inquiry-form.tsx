@@ -51,9 +51,10 @@ export function InquiryForm({ estimate, input, guests, eventLabel, spaceLabel }:
   }, [open, form]);
 
   const submit = form.handleSubmit(async ({ message, ...contact }) => {
+    const eventTime = input.eventTime === "evening" ? "Vakare (nuo 17:00)" : "Dienos metu";
     const result = await createInquiry({
       ...contact,
-      message,
+      message: [`Renginio laikas · ${eventTime}`, message].filter(Boolean).join("\n\n"),
       date: input.date ?? "",
       eventType: eventLabel,
       guests,

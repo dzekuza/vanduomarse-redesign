@@ -101,7 +101,7 @@ function EstimateBody({ estimate, input, guests, spaceLabel, typical, compact = 
         {input.space && input.day ? (
           <InquiryForm estimate={estimate} input={input} guests={guests} eventLabel={typical?.label ?? "Renginys"} spaceLabel={spaceLabel} />
         ) : (
-          <p className="text-xs text-copy">Pasirink erdvę ir dieną, kad galėtum siųsti užklausą.</p>
+          <p className="text-xs text-copy">Pasirink datą, laiką ir erdvę, kad galėtum siųsti užklausą.</p>
         )}
       </div>
     </>

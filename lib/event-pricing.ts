@@ -22,6 +22,7 @@ const ZERO = fixed(0);
 
 /** Weekday daytime (I-IV) vs evening or weekend: the sheet prices these differently. */
 export type DayType = "weekday" | "weekend";
+export type EventTime = "daytime" | "evening";
 
 /* ---------- Spaces (sheet "Kainodara", section 1) ---------- */
 
@@ -267,6 +268,7 @@ export interface EstimateInput {
   /** null until the visitor picks one: nothing is preselected. */
   space: SpaceId | null;
   day: DayType | null;
+  eventTime?: EventTime | null;
   adults: number;
   /** Children 3-10 y.: 50% of the buffet price; under 3 eat free and are not counted. */
   kids: number;
@@ -310,11 +312,11 @@ export const DEFAULT_INPUT: EstimateInput = {
   cabinNights: 1,
 };
 
-/** Mon-Thu are workdays (daytime rates); Fri-Sun are the evening / weekend rates. */
-export function dayTypeOf(isoDate: string): DayType {
+/** Mon–Thu daytime uses workday rates; evenings and Fri–Sun use the other rate. */
+export function dayTypeOf(isoDate: string, time: EventTime = "daytime"): DayType {
   const [y, m, d] = isoDate.split("-").map(Number);
   const dow = new Date(y, m - 1, d).getDay();
-  return dow >= 1 && dow <= 4 ? "weekday" : "weekend";
+  return time === "daytime" && dow >= 1 && dow <= 4 ? "weekday" : "weekend";
 }
 
 export interface EstimateLine {
@@ -348,7 +350,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
   const rent = space && input.day ? space.rent(input.day, guests) : null;
   const available = space !== null && rent !== null && guests <= space.maxGuests;
   if (space) {
-    if (!input.day) warnings.push("Pasirink, kada vyks renginys (darbo diena ar vakaras / savaitgalis): nuo to priklauso erdvės kaina.");
+    if (!input.day) warnings.push("Pasirink renginio datą ir laiką, kad matytum erdvės kainą.");
     if (guests > space.maxGuests) warnings.push(`${space.label}: daugiausia ${space.maxGuests} svečių.`);
     if (input.day && rent === null && guests <= space.maxGuests)
       warnings.push(input.space === "kupolas-seminaras" ? "Seminarams kupolas nuomojamas tik darbo dienomis." : `${space.label}: šiai datai netaikoma.`);

@@ -1,10 +1,9 @@
 "use client";
 
-import type { ComponentType } from "react";
+import { useId, type ComponentType } from "react";
 import { ChoiceTile } from "@/components/booking/choice-tile";
 import { StepLabel } from "@/components/booking/step-label";
 import { Stepper } from "@/components/booking/stepper";
-import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { WakeCards } from "./entertainment-section";
 import { EventDatePicker } from "./event-date-picker";
 import { CateringSection, DrinksSection, HospitalitySection } from "./food-section";
@@ -27,23 +26,39 @@ function TypeSection({ calc: { input, set, applyPreset } }: SectionProps) {
   );
 }
 
-function GuestsSection({ calc: { input, set, chooseDate, today } }: SectionProps) {
+function GuestsSection({ calc: { input, set, chooseDate, chooseTime, guests, today } }: SectionProps) {
+  const guestsId = useId();
+
   return (
     <section className="@container">
       <StepLabel step={2}>Svečiai ir data</StepLabel>
       <div className="space-y-3">
         <EventDatePicker today={today} value={input.date} onChange={chooseDate} />
-        <div className="grid grid-cols-2 gap-2">
-          <ChoiceTile primary="Darbo diena" secondary="I–IV, dienos metu" active={input.day === "weekday"} onClick={() => set("day", input.day === "weekday" ? null : "weekday")} />
-          <ChoiceTile primary="Vakaras / savaitgalis" secondary="Po 17:00, V–VII" active={input.day === "weekend"} onClick={() => set("day", input.day === "weekend" ? null : "weekend")} />
-        </div>
+        {input.date ? (
+          <fieldset>
+            <legend className="mb-2 text-micro uppercase">Renginio laikas</legend>
+            <div className="grid grid-cols-2 gap-2">
+              <ChoiceTile primary="Dienos metu" secondary="Iki 17:00" active={input.eventTime === "daytime"} onClick={() => chooseTime("daytime")} />
+              <ChoiceTile primary="Vakare" secondary="Nuo 17:00" active={input.eventTime === "evening"} onClick={() => chooseTime("evening")} />
+            </div>
+          </fieldset>
+        ) : null}
       </div>
-      <div className="mt-8">
-        <OptionGroupLabel>Svečiai</OptionGroupLabel>
-        <div className="grid gap-3 @xl:grid-cols-2">
-          <Stepper label="Suaugę" value={input.adults} onChange={(v) => set("adults", v)} min={1} max={500} editable />
-          <Stepper label="Vaikai 3–10 m." value={input.kids} onChange={(v) => set("kids", v)} min={0} max={200} editable />
+      <div className="mt-8 border border-line p-3">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor={guestsId} className="text-sm font-bold">Svečių skaičius</label>
+          <span className="bg-ink px-2 py-1 text-xs font-bold text-dust">{guests} asm.</span>
         </div>
+        <input
+          id={guestsId}
+          type="range"
+          min={1}
+          max={500}
+          value={guests}
+          onChange={(event) => set("adults", event.currentTarget.valueAsNumber)}
+          className="block h-11 w-full accent-ink"
+        />
+        <div className="flex justify-between text-xs text-copy"><span>1 asm.</span><span>500 asm.</span></div>
       </div>
     </section>
   );
