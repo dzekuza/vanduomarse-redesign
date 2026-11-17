@@ -99,10 +99,11 @@ async function verifyPurchase(kind: "reservation" | "coupon" | "plan", proof: st
 async function verifyPlanPass(admin: ReturnType<typeof createAdminClient>, proof: string): Promise<VerifiedPurchase | null> {
   const { data } = await admin
     .from("plan_passes")
-    .select("reference, status, price, discount_code, paid_at, buyer_email, buyer_name")
+    .select("reference, status, price, discount_code, paid_at, refunded_at, buyer_email, buyer_name")
     .eq("stripe_session_id", proof)
     .maybeSingle();
-  if (!data || (data.status !== "apmoketa" && data.status !== "priskirtas") || !recentlyPaid(data.paid_at)) return null;
+  // A refunded pass can still read `priskirtas` (the rider keeps the plan until staff change it), so the refund marker decides.
+  if (!data || (data.status !== "apmoketa" && data.status !== "priskirtas") || data.refunded_at || !recentlyPaid(data.paid_at)) return null;
   const [firstName, ...rest] = data.buyer_name.trim().split(/\s+/);
   return {
     transactionId: data.reference,

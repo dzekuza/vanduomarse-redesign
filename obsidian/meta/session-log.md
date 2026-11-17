@@ -2,7 +2,8 @@
 
 - **Changed:** migration `plan_passes_refund_gift` (applied live), form/dialog error handling, gift wording on the payment page, tab state kept, bounded admin pass queries, doc corrections. Two review comments answered without a change (optimistic rider delete is existing behaviour; the admin rider list is capped at the newest 1000 riders, an existing stopgap).
 - **Status:** tsc/eslint clean, 139 tests; the new SQL paths checked in a rolled-back transaction. More review comments were still arriving.
-- **Next:** address the remaining comments, then merge PR #131 and test one real purchase.
+- **Round 2:** migration `plan_passes_refunded_at` (a refunded attached pass no longer emits a Meta Purchase), email grammar, honeypot reachable, test and doc fixes. Two comments answered without a change (checkout-lifecycle refactor, already-added route row).
+- **Next:** merge PR #131 and test one real purchase.
 
 ## 2026-11-17 — New Meta Pixel and CAPI token checked
 

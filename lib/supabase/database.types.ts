@@ -1044,6 +1044,7 @@ export type Database = {
           plan_name: string
           price: number
           purchase_id: string | null
+          refunded_at: string | null
           recipient_name: string
           redeemed_at: string | null
           redeemed_by: string | null
@@ -1070,6 +1071,7 @@ export type Database = {
           plan_name: string
           price: number
           purchase_id?: string | null
+          refunded_at?: string | null
           recipient_name?: string
           redeemed_at?: string | null
           redeemed_by?: string | null
@@ -1096,6 +1098,7 @@ export type Database = {
           plan_name?: string
           price?: number
           purchase_id?: string | null
+          refunded_at?: string | null
           recipient_name?: string
           redeemed_at?: string | null
           redeemed_by?: string | null

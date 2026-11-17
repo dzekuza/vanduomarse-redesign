@@ -327,7 +327,7 @@ export const emailPassPaidCustomer = (o: PlanPassPaidNotice & { code: string }) 
         ? `Šį kodą galite perduoti ${o.recipientName ? o.recipientName : "draugui"}. Kodas veikia vieną kartą ir tik vienam žmogui, todėl nesidalinkite juo viešai.`
         : "Kodą pasilikite: jis patvirtina, kad abonementas apmokėtas.",
       "Kaip aktyvuoti abonementą:",
-      `1. ${o.gift ? "Abonemento gavėjas" : "Jūs"} užsiregistruojate${siteUrl() ? `: ${siteUrl()}/registracija` : " svetainėje (/registracija)"}. Reikia kontaktų, nuotraukos ir pasirašytų taisyklių, užtrunka kelias minutes.`,
+      `1. ${o.gift ? "Abonemento gavėjas užsiregistruoja" : "Jūs užsiregistruojate"}${siteUrl() ? `: ${siteUrl()}/registracija` : " svetainėje (/registracija)"}. Reikia kontaktų, nuotraukos ir pasirašytų taisyklių, užtrunka kelias minutes.`,
       "2. Atvykęs į parką kasoje pasako abonemento kodą: darbuotojas priskiria abonementą ir išduoda apyrankę.",
     ]),
   });

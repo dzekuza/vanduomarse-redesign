@@ -375,3 +375,5 @@ RLS: staff with the `apyrankes` permission can read. Every RPC below is service-
 `private.discount_code_uses` and `discount_code_usage()` count passes too, so a code's use limit and the Nuolaidos report include them.
 
 Follow-up migration `20261117183124_plan_passes_refund_gift.sql` (APPLIED 2026-11-17): `complete_plan_pass_payment` stores the Stripe payment intent on a pending pass whose paid amount differs from the price (no code is issued), so `refund_plan_pass_payment` can find and cancel it; `plan_order_state` gained a `gift` column (false for plan orders).
+
+Follow-up migration `20261117183602_plan_passes_refunded_at.sql` (APPLIED 2026-11-17): `plan_passes.refunded_at` is set by `refund_plan_pass_payment` for every refunded pass; a refunded attached pass keeps status `priskirtas`, so the Meta / GA purchase check (`verifyPlanPass`) refuses any pass with `refunded_at`.

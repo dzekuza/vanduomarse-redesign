@@ -32,6 +32,8 @@ describe("buyPlanPass", () => {
     const result = await buyPlanPass(input);
     expect(result).toEqual({ data: { checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_1" } });
     expect(calls("create_plan_pass")[0][1]).toMatchObject({ p_plan_id: input.planId, p_buyer_email: "jonas@example.com", p_gift: false, p_ip_hash: "hashed-ip" });
+    // The pass is the only thing written: no rider, no registration.
+    expect(rpc.mock.calls.map(([name]) => name)).toEqual(["create_plan_pass"]);
     expect(openCheckout).toHaveBeenCalledWith(expect.objectContaining({ id: "id-1", amount: 675, buyerEmail: "jonas@example.com", gift: false }));
   });
 
@@ -44,7 +46,7 @@ describe("buyPlanPass", () => {
   });
 
   it("stores nothing for a bot, a bad form, or when payments are off", async () => {
-    expect("error" in (await buyPlanPass({ ...input, website: "x" }))).toBe(true);
+    expect(await buyPlanPass({ ...input, website: "x" })).toMatchObject({ error: { code: "db" } });
     expect("error" in (await buyPlanPass({ ...input, buyerEmail: "nope" }))).toBe(true);
     paymentsEnabled.mockReturnValue(false);
     expect("error" in (await buyPlanPass(input))).toBe(true);

@@ -35,8 +35,8 @@ export const planPassSchema = z.object({
   recipientName: z.string().trim().max(80, "Per ilgas vardas"),
   /** Optional discount code; the database validates it and sets the price. */
   discountCode: z.string().trim().max(40).optional(),
-  /** Honeypot: real visitors never see or fill it. */
-  website: z.string().max(0).optional(),
+  /** Honeypot: real visitors never see or fill it. Not rejected here: the action answers a filled one like any failure and stores nothing. */
+  website: z.string().optional(),
 });
 
 export type PlanPassInput = z.infer<typeof planPassSchema>;

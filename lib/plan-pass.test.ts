@@ -29,7 +29,7 @@ describe("planPassSchema", () => {
     expect(planPassSchema.safeParse({ ...valid, buyerEmail: "not-an-email" }).success).toBe(false);
   });
 
-  it("refuses a filled honeypot", () => {
-    expect(planPassSchema.safeParse({ ...valid, website: "http://spam" }).success).toBe(false);
+  it("does not reject a filled honeypot itself: the action answers it like any failure, without feedback", () => {
+    expect(planPassSchema.safeParse({ ...valid, website: "http://spam" }).success).toBe(true);
   });
 });

@@ -91,8 +91,10 @@ describe("reportMetaEvent", () => {
       { reference: "PS-7", status: "laukia_apmokejimo", price: 675, paid_at: null },
       { reference: "PS-7", status: "atsauktas", price: 675, paid_at: hoursAgo(1) },
       { reference: "PS-7", status: "apmoketa", price: 675, paid_at: hoursAgo(49) },
+      // A full refund leaves an attached pass `priskirtas`, so the refund marker is what stops the event.
+      { reference: "PS-7", status: "priskirtas", price: 675, paid_at: hoursAgo(1), refunded_at: hoursAgo(0.5) },
     ]) {
-      passRow = { ...r, discount_code: null, buyer_email: "a@b.lt", buyer_name: "Jonas Jonaitis" };
+      passRow = { discount_code: null, buyer_email: "a@b.lt", buyer_name: "Jonas Jonaitis", refunded_at: null, ...r };
       await reportMetaEvent({ ...base, purchase: { kind: "plan", proof: SESSION } });
     }
     expect(send).not.toHaveBeenCalled();
