@@ -28,7 +28,7 @@ export function SessionTicketRow({ ticket, onOpen }: { ticket: TourTicket; onOpe
       <TableCell>
         <div className="flex flex-wrap gap-1">
           <BookingStatusBadge status={ticket.status} />
-          <PaymentBadge payment={ticket.payment} />
+          <PaymentBadge payment={ticket.payment} method={ticket.paymentMethod} />
         </div>
       </TableCell>
       <TableCell className="hidden sm:table-cell" />

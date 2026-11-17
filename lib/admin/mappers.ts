@@ -10,7 +10,7 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -34,6 +34,12 @@ export function toPaymentInfo(r: Tables<"payments">): PaymentInfo | null {
 /** "19:00:00" -> "19:00" */
 export const toHHMM = (time: string) => time.slice(0, 5);
 
+/** How a staff-entered request was paid at entry; nothing for a request that was not (or was paid online). */
+function staffPaid(r: { paid_at: string | null; payment_method: string | null }): { paidAt?: string; paymentMethod?: StaffPaymentMethod } {
+  if (!r.paid_at) return {};
+  return { paidAt: r.paid_at, paymentMethod: r.payment_method === "kortele" || r.payment_method === "grynais" ? r.payment_method : undefined };
+}
+
 export function toBooking(r: BookingRow): Booking {
   return {
     id: r.id,
@@ -54,6 +60,7 @@ export function toBooking(r: BookingRow): Booking {
     createdAt: r.created_at,
     source: r.source,
     note: r.note ?? undefined,
+    ...staffPaid(r),
     riderId: r.rider_id ?? undefined,
   };
 }
@@ -422,6 +429,7 @@ export function toTourTicket(r: TicketRow): TourTicket {
     status: r.status,
     source: r.source,
     createdAt: r.created_at,
+    ...staffPaid(r),
     riderId: r.rider_id ?? undefined,
   };
 }

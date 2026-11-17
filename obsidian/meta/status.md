@@ -1,7 +1,9 @@
 ---
 tags: [meta, status]
-updated: 2026-11-17
+updated: 2026-11-18
 ---
+
+**Admin payment on new reservations (2026-11-18, ADR-0112): BUILT, NOT committed, merged or deployed (migration `20261118090000_staff_payments.sql` is APPLIED to the live DB). "Nauja rezervacija" has Apmokėjimas (Sumokėta / Nesumokėta) and Mokėjimas (Grynais / Kortele); unpaid creates a 24 h Stripe Checkout link and e-mails it (e-mail required). tsc, eslint, 166 tests (new `lib/staff-payment.test.ts`); the form was browser-checked signed in (both states, nothing saved). NOT tested: a real submit, the link e-mail or a paid Stripe event (live key locally: never complete a checkout here). Next: PR, merge, then one real unpaid booking with a test customer address, pay it, refund it in Stripe. Not built: quad rentals / tours (own dialogs), resend link, mark as paid later.**
 
 **Meta Purchase from the Stripe webhook (2026-11-17, ADR-0111): BUILT on `feat/meta-purchase-webhook`, NOT committed, merged or deployed. A sale reaches Meta's Conversions API from the webhook (all four payment flows) with the browser Pixel's event id, so ad blockers, iOS and closed tabs cannot hide it; consent, `_fbp`, `_fbc`, IP and user agent are saved in the Checkout Session metadata when the order starts. Tested with mocks (new tests), NOT with a real paid event. Next: PR, merge, then watch the first real paid order in Events Manager (a "Server" Purchase deduplicated against the browser one). Possible follow-ups: build fbc/fbp ourselves when the Pixel is blocked, an anonymous external_id.**
 

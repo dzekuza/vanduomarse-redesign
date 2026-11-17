@@ -1,3 +1,9 @@
+## 2026-11-18 — Payment on admin new reservations
+
+- **Changed:** migration `20261118090000_staff_payments.sql` (applied); `lib/staff-payment.ts` (+test), `emailPaymentRequest`; `createBooking` / `createEventTicket` take `payment` and return `{ booking|ticket, emailSent, paymentUrl }`; `BookingPaymentFields`, new schema fields, `PaymentNote` / `PaymentBadge` show the staff-recorded method and awaiting-payment state; types and mappers (`paidAt`, `paymentMethod`); `database.types.ts` patched by hand for the new columns and function; ADR-0112.
+- **Status:** tsc, eslint, 166 tests clean; form browser-checked (nothing saved). Not committed. A real submit, the e-mail and a paid event are untested.
+- **Next:** commit, PR; test with a real address; follow-ups: quad rentals / tours, resend link, mark as paid later.
+
 ## 2026-11-17 — Meta Purchase from the Stripe webhook
 
 - **Changed:** new `lib/meta-purchase.ts`, `lib/meta-tracking-context.ts`; `lib/stripe-events.ts` reports sales; the four Checkout Session creators add tracking metadata; browser Purchase proof path removed; privacy sentence; ADR-0111.

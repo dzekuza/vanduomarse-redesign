@@ -29,6 +29,9 @@ export type BookingKind = "pirtis" | "namelis" | "kemperis";
 export type BookingSource = "svetaine" | "telefonu" | "vietoje";
 export type BookingStatus = "laukia" | "patvirtinta" | "ivykdyta" | "atsaukta";
 
+/** How staff recorded a reservation as paid at entry. */
+export type StaffPaymentMethod = "grynais" | "kortele";
+
 export type PaymentStatus = "laukia" | "apmoketa" | "pasibaige" | "nepavyko" | "grazinta";
 
 /** The Stripe payment a web reservation was paid with (one payment covers all requests of that reservation). */
@@ -70,6 +73,9 @@ export interface Booking {
   /** Internal note from staff (manual bookings). */
   note?: string;
   payment?: PaymentInfo;
+  /** Paid at entry (staff-entered): when and how. Online payments are in `payment`. */
+  paidAt?: string;
+  paymentMethod?: StaffPaymentMethod;
   /** Linked customer (Klientai), when matched or created. ADR-0042 */
   riderId?: string;
 }
@@ -242,6 +248,9 @@ export interface TourTicket {
   source: BookingSource;
   createdAt: string;
   payment?: PaymentInfo;
+  /** Paid at entry (staff-entered): when and how. Online payments are in `payment`. */
+  paidAt?: string;
+  paymentMethod?: StaffPaymentMethod;
   /** Linked customer (Klientai), when matched or created. ADR-0042 */
   riderId?: string;
 }

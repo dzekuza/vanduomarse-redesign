@@ -29,12 +29,12 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
           <>
             <SheetHeader>
               <SheetTitle className="flex items-center gap-3">
-                {booking.reference} <BookingStatusBadge status={booking.status} /> <PaymentBadge payment={booking.payment} />
+                {booking.reference} <BookingStatusBadge status={booking.status} /> <PaymentBadge payment={booking.payment} method={booking.paymentMethod} />
               </SheetTitle>
               <SheetDescription>Gauta {formatDateTime(booking.createdAt)}</SheetDescription>
             </SheetHeader>
             <div className="px-4">
-              <PaymentNote payment={booking.payment} />
+              <PaymentNote payment={booking.payment} paidAt={booking.paidAt} method={booking.paymentMethod} />
             </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 text-sm">
               {[

@@ -85,7 +85,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-1">
                         <BookingStatusBadge status={t.status} />
-                        <PaymentBadge payment={t.payment} />
+                        <PaymentBadge payment={t.payment} method={t.paymentMethod} />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">

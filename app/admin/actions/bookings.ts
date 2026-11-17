@@ -9,6 +9,7 @@ import { notifyRequestOutcome } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { refundRequest } from "@/lib/refund";
+import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
 import { dbError, done, fail, saunaIdSchema, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
 
@@ -95,6 +96,8 @@ const newBookingInput = z
     status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     note: z.string().trim().max(300),
+    /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
+    payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
   })
   .refine((v) => (v.kind === "pirtis" ? v.saunaId !== undefined && v.startHour !== undefined && v.hours !== undefined : v.nights !== undefined));
 
@@ -112,7 +115,10 @@ async function stayTypeFor(supabase: Extract<StaffContext, { ok: true }>["supaba
   return fits?.id ?? null;
 }
 
-export async function createBooking(input: NewBookingInput): Promise<ActionResult<Booking>> {
+/** The new booking, and for an unpaid one whether the payment-link e-mail went out. */
+export type CreatedBooking = { booking: Booking; emailSent?: boolean; paymentUrl?: string };
+
+export async function createBooking(input: NewBookingInput): Promise<ActionResult<CreatedBooking>> {
   const ctx = await staffClient("rezervacijos");
   if (!ctx.ok) return ctx.error;
   const parsed = newBookingInput.safeParse(input);
@@ -120,6 +126,11 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
   const v = parsed.data;
   const sauna = v.kind === "pirtis";
   const { supabase } = ctx;
+  const unpaid = !v.payment.paid;
+  if (unpaid) {
+    const problem = staffPaymentProblem(v.customer.email, v.total);
+    if (problem) return fail(problem.message, problem.code);
+  }
 
   const { data: row, error } = await supabase
     .from("bookings")
@@ -141,8 +152,10 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
       status: v.status,
       source: v.source,
       note: v.note || null,
+      payment_method: unpaid ? null : v.payment.method,
+      paid_at: unpaid ? null : new Date().toISOString(),
     })
-    .select("id")
+    .select("id, reference")
     .single();
   if (error) return dbError(error);
 
@@ -174,13 +187,28 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
     }
   }
 
+  // Not paid at entry: open a payment and e-mail the link. Without it the booking would sit unpaid with no way to pay, so it is removed again.
+  let paymentRequest: Awaited<ReturnType<typeof requestStaffPayment>> | undefined;
+  if (unpaid) {
+    const summary = sauna
+      ? saunaSummary({ date: v.date, startHour: v.startHour ?? 0, hours: v.hours ?? 1, party: v.guests, total: v.total })
+      : describeRequest([v.kind === "kemperis" ? "Kemperio aikštelė" : "Namelis", v.date, `${v.nights} n.`, `${v.total} EUR`]);
+    paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+    if (!paymentRequest.ok) {
+      await supabase.from("bookings").delete().eq("id", row.id);
+      return fail(paymentRequest.message, paymentRequest.code);
+    }
+  }
+
   const { data: saved, error: readError } = await supabase
     .from("bookings")
     .select("*, booking_extras(name, unit, quantity)")
     .eq("id", row.id)
     .single();
   if (readError) return dbError(readError);
-  return done(toBooking(saved));
+  const booking = toBooking(saved);
+  if (paymentRequest?.ok) booking.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  return done({ booking, emailSent: paymentRequest?.ok ? paymentRequest.emailSent : undefined, paymentUrl: paymentRequest?.ok ? paymentRequest.url : undefined });
 }
 
 /* ---------------- sauna blocks ---------------- */

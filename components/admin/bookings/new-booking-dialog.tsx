@@ -9,6 +9,7 @@ import { FormField } from "../form-field";
 import { BookingChooser } from "./booking-chooser";
 import { BookingCustomerFields } from "./booking-customer-fields";
 import { BookingExtrasFields } from "./booking-extras-fields";
+import { BookingPaymentFields } from "./booking-payment-fields";
 import { NewRentalDialog } from "../quads/new-rental-dialog";
 import { NewTourDialog } from "../quads/new-tour-dialog";
 import { BookingWhenFields } from "./booking-when-fields";
@@ -59,14 +60,17 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       email: "",
       status: "patvirtinta",
       source: "telefonu",
+      payMethod: "grynais",
+      paid: "sumoketa",
       priceOverride: "",
       note: "",
     },
   });
-  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride, stayTypeId, eventId] = useWatch({
+  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride, stayTypeId, eventId, paid] = useWatch({
     control,
-    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride", "stayTypeId", "eventId"],
+    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride", "stayTypeId", "eventId", "paid"],
   });
+  const unpaid = paid === "nesumoketa";
   const err = formState.errors;
   const party = Number(guests) || 0;
   const sauna = kind === "pirtis";
@@ -117,6 +121,17 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       ? { title: chosen?.name ?? "Pirtis", detail: "Privati pirtis" }
       : { title: stayType?.label ?? "Apgyvendinimas", detail: stayType ? `Iki ${stayType.maxGuests} žm. · ${formatEur(stayType.pricePerNight)} / naktį` : "" };
 
+  /** The toast after saving; an unpaid one says whether the payment link went out, and offers the link when the e-mail did not. */
+  const reportCreated = (reference: string, outcome: { emailSent?: boolean; paymentUrl?: string }) => {
+    if (outcome.emailSent === undefined) return void toast.success(`${reference} sukurta`);
+    if (outcome.emailSent) return void toast.success(`${reference} sukurta, apmokėjimo nuoroda išsiųsta`);
+    const url = outcome.paymentUrl;
+    toast.warning(`${reference} sukurta, bet laiško išsiųsti nepavyko`, {
+      duration: 15000,
+      action: url ? { label: "Kopijuoti nuorodą", onClick: () => void navigator.clipboard.writeText(url) } : undefined,
+    });
+  };
+
   const submit = handleSubmit(async (v) => {
     if (party > maxGuests) return setError("guests", { message: ticket ? `Liko vietų: ${maxGuests}` : `Daugiausia ${maxGuests} žm.` });
     if (ticket) {
@@ -127,9 +142,10 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
         people: party,
         status: v.status,
         source: v.source,
+        payment: { method: v.payMethod, paid: !unpaid },
       });
-      if ("error" in created) return setError("guests", { message: created.error.message });
-      toast.success(`${created.data.reference} sukurta`);
+      if ("error" in created) return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
+      reportCreated(created.data.ticket.reference, created.data);
       return onOpenChange(false);
     }
     if (sauna && freeHoursFrom(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
@@ -151,14 +167,16 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       status: v.status,
       source: v.source,
       note: v.note,
+      payment: { method: v.payMethod, paid: !unpaid },
     });
     // The database has the final say on conflicts (another booking may have landed meanwhile).
     if ("error" in result) {
+      if (result.error.code === "email_required") return setError("email", { message: result.error.message });
       return setError(sauna ? "startHour" : "nights", { message: result.error.message });
     }
-    toast.success(`${result.data.reference} sukurta`);
+    reportCreated(result.data.booking.reference, result.data);
     onOpenChange(false);
-    onCreated(result.data.id);
+    onCreated(result.data.booking.id);
   });
 
   const choose = (patch: { kind: NewBookingValues["kind"]; saunaId?: string; stayTypeId?: string; eventId?: string; date?: string }) => {
@@ -241,7 +259,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
               />
             ) : null}
 
-            <BookingCustomerFields control={control} register={register} setValue={setValue} errors={err} showNote={!ticket} />
+            <BookingCustomerFields control={control} register={register} setValue={setValue} errors={err} showNote={!ticket} emailRequired={unpaid} />
             {ticket ? null : (
               <FormField
                 id="nb-price"
@@ -253,6 +271,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
                 <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
               </FormField>
             )}
+            <BookingPaymentFields control={control} unpaid={unpaid} />
           </form>
         )}
 

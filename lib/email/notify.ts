@@ -1,9 +1,27 @@
 import "server-only";
-import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, staffExtras, type PaidRequest } from "@/lib/paid-request";
-import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
+import {
+  contactFor,
+  requestDate,
+  requestHeading,
+  requestTime,
+  staffCustomer,
+  staffExtras,
+  type PaidRequest,
+} from "@/lib/paid-request";
+import {
+  MAIN_CONTACT,
+  STAFF_BOOKING_COPY,
+  STAFF_INBOX,
+  serviceOfReference,
+  type NotifyService,
+} from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
 import { formatPassCode } from "@/lib/plan-pass";
-import { bookingTopics, paymentTopics, type MessageTopic } from "@/lib/notification-topics";
+import {
+  bookingTopics,
+  paymentTopics,
+  type MessageTopic,
+} from "@/lib/notification-topics";
 import { staffEmailsFor } from "@/lib/staff-recipients";
 import { SITE_URL } from "@/lib/site";
 import { brandedEmailHtml, type EmailParagraph } from "./layout";
@@ -16,10 +34,16 @@ import { emailList, sendEmail } from "./resend";
 
 const siteUrl = () => (process.env.SITE_URL ?? "").replace(/\/$/, "");
 
-const footer = [`Klausimai? ${MAIN_CONTACT.email}, ${MAIN_CONTACT.phone}`, "Vanduo Marse"];
+const footer = [
+  `Klausimai? ${MAIN_CONTACT.email}, ${MAIN_CONTACT.phone}`,
+  "Vanduo Marse",
+];
 
 /** Every customer mail ends with this button: the account page lists the booking and its cancel option. */
-const CANCEL_BUTTON = { label: "Atšaukti rezervaciją", href: `${SITE_URL}/paskyra` };
+const CANCEL_BUTTON = {
+  label: "Atšaukti rezervaciją",
+  href: `${SITE_URL}/paskyra`,
+};
 
 /**
  * Builds the text and HTML bodies from paragraphs; `strong` paragraphs are bold in HTML. `cancel` adds the
@@ -29,7 +53,10 @@ function body(paragraphs: EmailParagraph[], withFooter = true, cancel = false) {
   const all = withFooter ? [...paragraphs, footer.join("\n")] : paragraphs;
   const textParts = all.map((p) => (typeof p === "string" ? p : p.strong));
   if (cancel) textParts.push(`${CANCEL_BUTTON.label}: ${CANCEL_BUTTON.href}`);
-  const html = brandedEmailHtml({ paragraphs, button: cancel ? CANCEL_BUTTON : undefined });
+  const html = brandedEmailHtml({
+    paragraphs,
+    button: cancel ? CANCEL_BUTTON : undefined,
+  });
   return { text: textParts.join("\n\n"), html };
 }
 
@@ -40,23 +67,34 @@ const SAUNA_DAY_NOTE: (string | { strong: string })[] = [
   "Tikimės, kad Jūsų poilsis bus kupinas gerų emocijų, ramybės ir malonių akimirkų! 🌿",
 ];
 
-const accountLink = () => (siteUrl() ? [`Savo rezervacijas matote paskyroje: ${siteUrl()}/paskyra`] : []);
+const accountLink = () =>
+  siteUrl() ? [`Savo rezervacijas matote paskyroje: ${siteUrl()}/paskyra`] : [];
 
 /* ---------------- customer ---------------- */
 
 /** Right after a visitor submits; the slot is not confirmed yet. */
-export const emailReceived = (to: string | null | undefined, reference: string | undefined, summary: string) =>
+export const emailReceived = (
+  to: string | null | undefined,
+  reference: string | undefined,
+  summary: string,
+) =>
   to
     ? sendEmail({
         to,
-        subject: reference ? `Gavome jūsų užklausą ${reference}` : "Gavome jūsų užklausą",
-        ...body([
-          "Sveiki,",
-          `gavome jūsų užklausą${reference ? ` ${reference}` : ""}.`,
-          { strong: summary },
-          "Ji dar nepatvirtinta: patvirtinsime netrukus ir pranešime atskirai.",
-          ...accountLink(),
-        ], true, true),
+        subject: reference
+          ? `Gavome jūsų užklausą ${reference}`
+          : "Gavome jūsų užklausą",
+        ...body(
+          [
+            "Sveiki,",
+            `gavome jūsų užklausą${reference ? ` ${reference}` : ""}.`,
+            { strong: summary },
+            "Ji dar nepatvirtinta: patvirtinsime netrukus ir pranešime atskirai.",
+            ...accountLink(),
+          ],
+          true,
+          true,
+        ),
       })
     : Promise.resolve(false);
 
@@ -70,18 +108,28 @@ export const emailOutcome = (
   to
     ? sendEmail({
         to,
-        subject: outcome === "patvirtinta" ? `Rezervacija ${reference} patvirtinta` : `Rezervacija ${reference} atšaukta`,
+        subject:
+          outcome === "patvirtinta"
+            ? `Rezervacija ${reference} patvirtinta`
+            : `Rezervacija ${reference} atšaukta`,
         ...body(
           outcome === "patvirtinta"
             ? [
                 "Sveiki,",
                 `jūsų rezervacija ${reference} patvirtinta.`,
                 { strong: summary },
-                ...(serviceOfReference(reference) === "pirtis" ? SAUNA_DAY_NOTE : []),
+                ...(serviceOfReference(reference) === "pirtis"
+                  ? SAUNA_DAY_NOTE
+                  : []),
                 "Iki pasimatymo Vanduo Marse!",
                 ...accountLink(),
               ]
-            : ["Sveiki,", `jūsų rezervacija ${reference} atšaukta.`, { strong: summary }, "Jei tai klaida arba norite kito laiko, susisiekite su mumis."],
+            : [
+                "Sveiki,",
+                `jūsų rezervacija ${reference} atšaukta.`,
+                { strong: summary },
+                "Jei tai klaida arba norite kito laiko, susisiekite su mumis.",
+              ],
           true,
           outcome === "patvirtinta",
         ),
@@ -92,40 +140,90 @@ export const emailOutcome = (
  * Stripe confirmed the payment. A paid reservation is confirmed by the database at once (no staff step), so with
  * `confirmed` the mail lists it; otherwise (a payment that needs a manual look) staff confirm it later.
  */
-export const emailPaid = (to: string | null | undefined, references: string[], amount: number, requests: PaidRequest[] = [], confirmed = false) => {
+export const emailPaid = (
+  to: string | null | undefined,
+  references: string[],
+  amount: number,
+  requests: PaidRequest[] = [],
+  confirmed = false,
+) => {
   if (!to) return Promise.resolve(false);
   if (!confirmed || requests.length === 0) {
     return sendEmail({
       to,
       subject: `Apmokėjimas gautas (${references.join(", ")})`,
-      ...body([
-        "Sveiki,",
-        `gavome jūsų apmokėjimą: ${formatEuro(amount)} už ${references.join(", ")}.`,
-        confirmed ? "Rezervacija patvirtinta." : "Patikrinsime ir patvirtinsime netrukus, pranešime atskirai.",
-        ...accountLink(),
-      ], true, true),
+      ...body(
+        [
+          "Sveiki,",
+          `gavome jūsų apmokėjimą: ${formatEuro(amount)} už ${references.join(", ")}.`,
+          confirmed
+            ? "Rezervacija patvirtinta."
+            : "Patikrinsime ir patvirtinsime netrukus, pranešime atskirai.",
+          ...accountLink(),
+        ],
+        true,
+        true,
+      ),
     });
   }
   const contact = contactFor(requests);
   return sendEmail({
     to,
     subject: `Jūsų mokėjimas gautas (${references.join(", ")})`,
-    ...body([
-      "Jūsų mokėjimas gautas. Jūsų rezervacija:",
-      ...requests.map((r) => ({
-        strong: [
-          requestHeading(r),
-          `Data: ${requestDate(r)}`,
-          ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : []),
-          ...(r.service === "pirtis" ? [`Rezervacijos kodas: ${r.reference}`] : []),
-        ].join("\n"),
-      })),
-      ...(requests.some((r) => r.service === "pirtis") ? SAUNA_DAY_NOTE : []),
-      `Turite klausimų? Skambinkite ${contact.phone} arba rašykite ${contact.email}`,
-      ...accountLink(),
-    ], false, true),
+    ...body(
+      [
+        "Jūsų mokėjimas gautas. Jūsų rezervacija:",
+        ...requests.map((r) => ({
+          strong: [
+            requestHeading(r),
+            `Data: ${requestDate(r)}`,
+            ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : []),
+            ...(r.service === "pirtis"
+              ? [`Rezervacijos kodas: ${r.reference}`]
+              : []),
+          ].join("\n"),
+        })),
+        ...(requests.some((r) => r.service === "pirtis") ? SAUNA_DAY_NOTE : []),
+        `Turite klausimų? Skambinkite ${contact.phone} arba rašykite ${contact.email}`,
+        ...accountLink(),
+      ],
+      false,
+      true,
+    ),
   });
 };
+
+/**
+ * Staff entered a reservation that is not paid yet (ADR-0112): the customer gets the Stripe Checkout link. It lasts a day
+ * (Stripe's maximum); the reservation is confirmed by the payment itself.
+ */
+export function emailPaymentRequest(
+  to: string,
+  reference: string,
+  summary: string,
+  amount: number,
+  url: string,
+): Promise<boolean> {
+  const paragraphs: EmailParagraph[] = [
+    "Sveiki,",
+    `užregistravome jūsų rezervaciją ${reference}.`,
+    { strong: summary },
+    `Prašome apmokėti ${formatEuro(amount)} per 24 val. paspaudus mygtuką žemiau. Apmokėjimas saugus, kortele per Stripe.`,
+    "Jei nuoroda nebegalioja arba turite klausimų, susisiekite su mumis.",
+  ];
+  const button = { label: "Apmokėti", href: url };
+  const text = [
+    ...paragraphs.map((p) => (typeof p === "string" ? p : p.strong)),
+    `${button.label}: ${button.href}`,
+    footer.join("\n"),
+  ].join("\n\n");
+  return sendEmail({
+    to,
+    subject: `Apmokėjimas už rezervaciją ${reference}`,
+    text,
+    html: brandedEmailHtml({ paragraphs, button }),
+  });
+}
 
 /* ---------------- staff: the people in /admin/pranesimai, else the service inbox (STAFF_INBOX), else STAFF_NOTIFY_EMAIL ---------------- */
 
@@ -134,11 +232,17 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
  * there has an e-mail address does it fall back to the inboxes for these services (services without one use
  * STAFF_NOTIFY_EMAIL, comma-separated), plus STAFF_BOOKING_COPY (marketing) once for booking mails.
  */
-async function staffTo(topics: MessageTopic[], services: NotifyService[], withBookingCopy: boolean): Promise<string[]> {
+async function staffTo(
+  topics: MessageTopic[],
+  services: NotifyService[],
+  withBookingCopy: boolean,
+): Promise<string[]> {
   const listed = await staffEmailsFor(topics);
   if (listed) return [...new Set(listed)];
   const fallback = emailList(process.env.STAFF_NOTIFY_EMAIL);
-  const to = services.flatMap((s) => (STAFF_INBOX[s] ? [STAFF_INBOX[s]] : fallback));
+  const to = services.flatMap((s) =>
+    STAFF_INBOX[s] ? [STAFF_INBOX[s]] : fallback,
+  );
   return [...new Set(withBookingCopy ? [...to, STAFF_BOOKING_COPY] : to)];
 }
 
@@ -155,15 +259,32 @@ async function toStaff(
 ) {
   const to = await staffTo(topics, services, withBookingCopy);
   if (to.length === 0) return false;
-  return sendEmail({ to, subject, ...body([...paragraphs, ...adminLink()], false) });
+  return sendEmail({
+    to,
+    subject,
+    ...body([...paragraphs, ...adminLink()], false),
+  });
 }
 
-export const emailStaffNew = (service: NotifyService, reference: string | undefined, summary: string) =>
-  toStaff(bookingTopics(service), [service], `Nauja užklausa${reference ? ` ${reference}` : ""}`, [{ strong: summary }]);
+export const emailStaffNew = (
+  service: NotifyService,
+  reference: string | undefined,
+  summary: string,
+) =>
+  toStaff(
+    bookingTopics(service),
+    [service],
+    `Nauja užklausa${reference ? ` ${reference}` : ""}`,
+    [{ strong: summary }],
+  );
 
 /** "2026-11-13 14:05" in Vilnius time. */
 const vilniusNow = () =>
-  new Intl.DateTimeFormat("lt-LT", { timeZone: "Europe/Vilnius", dateStyle: "short", timeStyle: "short" }).format(new Date());
+  new Intl.DateTimeFormat("lt-LT", {
+    timeZone: "Europe/Vilnius",
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date());
 
 /** The staff mail of a paid reservation: amount and time, who booked (name, phone, e-mail) and each request with date, time, people, price and any code. */
 export const emailStaffPaid = (
@@ -175,38 +296,76 @@ export const emailStaffPaid = (
 ) => {
   const customer = staffCustomer(requests, contact);
   const { discountCodes, notes } = staffExtras(requests);
-  return toStaff(paymentTopics(servicesOf(references)), servicesOf(references), `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`, [
-    { strong: `${formatEuro(amount)} už ${references.join(", ")}` },
-    ...(review ? ["Apmokėta pavėluotai arba kita suma: patikrinkite ir, jei reikia, grąžinkite per Stripe."] : []),
-    `Apmokėjimo laikas: ${vilniusNow()}`,
-    ...(customer
-      ? [["Klientas:", customer.name, customer.phone ? `Tel.: ${customer.phone}` : null, customer.email ? `El. paštas: ${customer.email}` : null].filter(Boolean).join("\n")]
-      : []),
-    ...requests.map((r) =>
-      [
-        r.reference,
-        requestHeading(r),
-        `Data: ${requestDate(r)}`,
-        ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : []),
-        ...(r.staff?.people ? [`Žmonių: ${r.staff.people}`] : []),
-        ...(r.staff?.units && r.service !== "pirtis" ? [`Kiekis: ${r.staff.units}`] : []),
-        ...(r.staff ? [`Kaina: ${formatEuro(r.staff.total)}`] : []),
-      ].join("\n"),
-    ),
-    ...(discountCodes.length ? [`Nuolaidos kodas: ${discountCodes.join(", ")}`] : []),
-    ...(notes.length ? [`Pastabos:\n${notes.join("\n")}`] : []),
-  ]);
+  return toStaff(
+    paymentTopics(servicesOf(references)),
+    servicesOf(references),
+    `${review ? "PATIKRINTI APMOKĖJIMĄ" : "Apmokėta ir patvirtinta"} ${references.join(", ")}`,
+    [
+      { strong: `${formatEuro(amount)} už ${references.join(", ")}` },
+      ...(review
+        ? [
+            "Apmokėta pavėluotai arba kita suma: patikrinkite ir, jei reikia, grąžinkite per Stripe.",
+          ]
+        : []),
+      `Apmokėjimo laikas: ${vilniusNow()}`,
+      ...(customer
+        ? [
+            [
+              "Klientas:",
+              customer.name,
+              customer.phone ? `Tel.: ${customer.phone}` : null,
+              customer.email ? `El. paštas: ${customer.email}` : null,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          ]
+        : []),
+      ...requests.map((r) =>
+        [
+          r.reference,
+          requestHeading(r),
+          `Data: ${requestDate(r)}`,
+          ...(requestTime(r) ? [`Laikas: ${requestTime(r)}`] : []),
+          ...(r.staff?.people ? [`Žmonių: ${r.staff.people}`] : []),
+          ...(r.staff?.units && r.service !== "pirtis"
+            ? [`Kiekis: ${r.staff.units}`]
+            : []),
+          ...(r.staff ? [`Kaina: ${formatEuro(r.staff.total)}`] : []),
+        ].join("\n"),
+      ),
+      ...(discountCodes.length
+        ? [`Nuolaidos kodas: ${discountCodes.join(", ")}`]
+        : []),
+      ...(notes.length ? [`Pastabos:\n${notes.join("\n")}`] : []),
+    ],
+  );
 };
 
 /** The customer cancelled their own request (`refund` says what happened to the money). Booking mail rules apply: the service's people, else its inbox. */
-export const emailStaffCancelled = (service: NotifyService, reference: string, summary: string, refund: string) =>
-  toStaff(bookingTopics(service), [service], `Klientas atšaukė ${reference}`, [{ strong: summary }, refund]);
+export const emailStaffCancelled = (
+  service: NotifyService,
+  reference: string,
+  summary: string,
+  refund: string,
+) =>
+  toStaff(bookingTopics(service), [service], `Klientas atšaukė ${reference}`, [
+    { strong: summary },
+    refund,
+  ]);
 
 export const emailStaffDuplicate = (references: string[], amount: number) =>
-  toStaff(paymentTopics(servicesOf(references)), servicesOf(references), `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`, [
-    { strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.` },
-    "Grąžinkite papildomą mokėjimą per Stripe.",
-  ], false); // a refund task for the service's staff, not a booking
+  toStaff(
+    paymentTopics(servicesOf(references)),
+    servicesOf(references),
+    `DVIGUBAS MOKĖJIMAS ${references.join(", ")}`,
+    [
+      {
+        strong: `Antras mokėjimas ${formatEuro(amount)} už jau apmokėtą rezervaciją ${references.join(", ")}.`,
+      },
+      "Grąžinkite papildomą mokėjimą per Stripe.",
+    ],
+    false,
+  ); // a refund task for the service's staff, not a booking
 
 /* ---------------- gift coupon orders (/kuponai) ---------------- */
 
@@ -225,20 +384,34 @@ const couponStaffTo = async () => {
   const listed = await staffEmailsFor(["mokejimai"]);
   if (listed) return [...new Set(listed)];
   const configured = emailList(process.env.STAFF_NOTIFY_EMAIL);
-  return [...new Set([...(configured.length ? configured : [MAIN_CONTACT.email]), STAFF_BOOKING_COPY])];
+  return [
+    ...new Set([
+      ...(configured.length ? configured : [MAIN_CONTACT.email]),
+      STAFF_BOOKING_COPY,
+    ]),
+  ];
 };
 
 /** A coupon was paid online and issued (or, with `problem`, needs a look). */
-export const emailStaffCouponPaid = async (o: CouponPaidNotice & { problem?: string }) =>
+export const emailStaffCouponPaid = async (
+  o: CouponPaidNotice & { problem?: string },
+) =>
   sendEmail({
     to: await couponStaffTo(),
-    subject: o.problem ? `PATIKRINTI KUPONO MOKĖJIMĄ ${o.reference}` : `Apmokėtas kuponas ${o.reference}`,
+    subject: o.problem
+      ? `PATIKRINTI KUPONO MOKĖJIMĄ ${o.reference}`
+      : `Apmokėtas kuponas ${o.reference}`,
     ...body(
       [
         { strong: `${o.productName}, ${formatEuro(o.amount)}` },
         `Pirkėjas: ${o.buyerName}, ${o.buyerEmail}`,
-        ...(o.recipientName || o.recipientEmail ? [`Gavėjas: ${[o.recipientName, o.recipientEmail].filter(Boolean).join(", ")}`] : []),
-        o.problem ?? "Apmokėta per Stripe, kodas išduotas ir išsiųstas automatiškai.",
+        ...(o.recipientName || o.recipientEmail
+          ? [
+              `Gavėjas: ${[o.recipientName, o.recipientEmail].filter(Boolean).join(", ")}`,
+            ]
+          : []),
+        o.problem ??
+          "Apmokėta per Stripe, kodas išduotas ir išsiųstas automatiškai.",
         ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : []),
       ],
       false,
@@ -250,7 +423,15 @@ export const emailStaffCouponCancelled = async (reference: string) =>
   sendEmail({
     to: await couponStaffTo(),
     subject: `Kuponas ${reference} atšauktas (grąžinti pinigai)`,
-    ...body([{ strong: `Kuponas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : [])], false),
+    ...body(
+      [
+        {
+          strong: `Kuponas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.`,
+        },
+        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/kuponai`] : []),
+      ],
+      false,
+    ),
   });
 
 /* ---------------- bracelet plan orders (WAKE season passes, /registracija) ---------------- */
@@ -264,7 +445,13 @@ export interface PlanPaidNotice {
 }
 
 /** The buyer's receipt: the plan is on their profile and staff bind the bracelet at the park. Returns true when sent. */
-export const emailPlanPaidCustomer = (o: { to: string; riderName: string; planName: string; amount: number; reference: string }) =>
+export const emailPlanPaidCustomer = (o: {
+  to: string;
+  riderName: string;
+  planName: string;
+  amount: number;
+  reference: string;
+}) =>
   sendEmail({
     to: o.to,
     subject: `Apmokėta: ${o.planName} (${o.reference})`,
@@ -276,15 +463,20 @@ export const emailPlanPaidCustomer = (o: { to: string; riderName: string; planNa
   });
 
 /** A plan was paid online and attached (or, with `problem`, needs a look). */
-export const emailStaffPlanPaid = async (o: PlanPaidNotice & { problem?: string }) =>
+export const emailStaffPlanPaid = async (
+  o: PlanPaidNotice & { problem?: string },
+) =>
   sendEmail({
     to: await couponStaffTo(),
-    subject: o.problem ? `PATIKRINTI PLANO MOKĖJIMĄ ${o.reference}` : `Apmokėtas planas ${o.reference}`,
+    subject: o.problem
+      ? `PATIKRINTI PLANO MOKĖJIMĄ ${o.reference}`
+      : `Apmokėtas planas ${o.reference}`,
     ...body(
       [
         { strong: `${o.planName}, ${formatEuro(o.amount)}` },
         `Pirkėjas: ${o.riderName}, ${o.riderEmail}`,
-        o.problem ?? "Apmokėta per Stripe, planas priskirtas. Reikia tik priskirti apyrankę parke.",
+        o.problem ??
+          "Apmokėta per Stripe, planas priskirtas. Reikia tik priskirti apyrankę parke.",
         ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : []),
       ],
       false,
@@ -296,7 +488,16 @@ export const emailStaffPlanCancelled = async (reference: string) =>
   sendEmail({
     to: await couponStaffTo(),
     subject: `Plano užsakymas ${reference} atšauktas (grąžinti pinigai)`,
-    ...body([{ strong: `Užsakymas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja.", ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : [])], false),
+    ...body(
+      [
+        {
+          strong: `Užsakymas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.`,
+        },
+        "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja.",
+        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : []),
+      ],
+      false,
+    ),
   });
 
 /* ---------------- plan passes (bought without registering, ADR-0109) ---------------- */
@@ -315,10 +516,14 @@ export interface PlanPassPaidNotice {
  * The buyer's pass: the code to say at the park, and what to do before then. For a gift the same mail says the code can be
  * passed on; it works once, for one person.
  */
-export const emailPassPaidCustomer = (o: PlanPassPaidNotice & { code: string }) =>
+export const emailPassPaidCustomer = (
+  o: PlanPassPaidNotice & { code: string },
+) =>
   sendEmail({
     to: o.buyerEmail,
-    subject: o.gift ? `Dovana draugui: ${o.planName} (${o.reference})` : `Apmokėta: ${o.planName} (${o.reference})`,
+    subject: o.gift
+      ? `Dovana draugui: ${o.planName} (${o.reference})`
+      : `Apmokėta: ${o.planName} (${o.reference})`,
     ...body([
       `Sveiki, ${o.buyerName}!`,
       { strong: `${o.planName}, ${formatEuro(o.amount)}: apmokėta. Dėkojame!` },
@@ -333,31 +538,51 @@ export const emailPassPaidCustomer = (o: PlanPassPaidNotice & { code: string }) 
   });
 
 /** A pass was paid online (or, with `problem`, needs a look). */
-export const emailStaffPassPaid = async (o: PlanPassPaidNotice & { problem?: string }) =>
+export const emailStaffPassPaid = async (
+  o: PlanPassPaidNotice & { problem?: string },
+) =>
   sendEmail({
     to: await couponStaffTo(),
-    subject: o.problem ? `PATIKRINTI ABONEMENTO MOKĖJIMĄ ${o.reference}` : `Apmokėtas abonementas ${o.reference} (be registracijos)`,
+    subject: o.problem
+      ? `PATIKRINTI ABONEMENTO MOKĖJIMĄ ${o.reference}`
+      : `Apmokėtas abonementas ${o.reference} (be registracijos)`,
     ...body(
       [
-        { strong: `${o.planName}, ${formatEuro(o.amount)}${o.gift ? " (dovana)" : ""}` },
+        {
+          strong: `${o.planName}, ${formatEuro(o.amount)}${o.gift ? " (dovana)" : ""}`,
+        },
         `Pirkėjas: ${o.buyerName}, ${o.buyerEmail}`,
-        o.problem ?? "Apmokėta per Stripe. Abonementas dar nepriskirtas: pirkėjas (ar jo draugas) užsiregistruos ir parke pasakys kodą, tada priskirkite skiltyje Apyrankės → Kodai.",
-        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`] : []),
+        o.problem ??
+          "Apmokėta per Stripe. Abonementas dar nepriskirtas: pirkėjas (ar jo draugas) užsiregistruos ir parke pasakys kodą, tada priskirkite skiltyje Apyrankės → Kodai.",
+        ...(siteUrl()
+          ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`]
+          : []),
       ],
       false,
     ),
   });
 
 /** A paid pass was fully refunded in Stripe. An unattached pass is now cancelled; an attached one needs a manual plan change. */
-export const emailStaffPassCancelled = async (reference: string, wasAttached: boolean) =>
+export const emailStaffPassCancelled = async (
+  reference: string,
+  wasAttached: boolean,
+) =>
   sendEmail({
     to: await couponStaffTo(),
     subject: `Abonementas ${reference}: grąžinti pinigai`,
     ...body(
       [
-        { strong: wasAttached ? `Abonementas ${reference} jau priskirtas klientui, bet mokėjimas grąžintas per Stripe.` : `Abonementas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` },
-        wasAttached ? "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja." : "Jo kodas nebeveikia.",
-        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`] : []),
+        {
+          strong: wasAttached
+            ? `Abonementas ${reference} jau priskirtas klientui, bet mokėjimas grąžintas per Stripe.`
+            : `Abonementas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.`,
+        },
+        wasAttached
+          ? "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja."
+          : "Jo kodas nebeveikia.",
+        ...(siteUrl()
+          ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`]
+          : []),
       ],
       false,
     ),

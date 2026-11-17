@@ -18,6 +18,8 @@ interface BookingCustomerFieldsProps {
   errors: FieldErrors<NewBookingValues>;
   /** Tickets have no note column; the field is left out for them. */
   showNote?: boolean;
+  /** The e-mail is needed to send a payment link. */
+  emailRequired?: boolean;
 }
 
 const STATUS = [
@@ -31,7 +33,7 @@ const SOURCE = [
 ];
 
 /** Contact details (typing a name or phone suggests existing customers), status, channel and an internal note. */
-export function BookingCustomerFields({ control, register, setValue, errors, showNote = true }: BookingCustomerFieldsProps) {
+export function BookingCustomerFields({ control, register, setValue, errors, showNote = true, emailRequired = false }: BookingCustomerFieldsProps) {
   const select = (name: "status" | "source", id: string, options: { value: string; label: string }[]) => (
     <Controller
       control={control}
@@ -73,7 +75,7 @@ export function BookingCustomerFields({ control, register, setValue, errors, sho
           <FormPhoneInput<NewBookingValues> name="phone" control={control} id="nb-phone" invalid={!!errors.phone} />
         </CustomerSuggestions>
       </FormField>
-      <FormField id="nb-email" label="El. paštas" error={errors.email?.message} hint="Neprivaloma">
+      <FormField id="nb-email" label="El. paštas" error={errors.email?.message} hint={emailRequired ? "Privaloma: čia siunčiama apmokėjimo nuoroda" : "Neprivaloma"}>
         <Input id="nb-email" type="email" aria-invalid={!!errors.email} {...register("email")} />
       </FormField>
       <FormField id="nb-status" label="Būsena">

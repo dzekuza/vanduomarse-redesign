@@ -368,7 +368,7 @@ function useAdminReducer(initial: AdminData) {
       /** Not optimistic: the reference comes from the database. */
       createBooking: async (input: NewBookingInput) => {
         const result = await actions.createBooking(input);
-        if ("data" in result) dispatch({ type: "booking/add", booking: result.data });
+        if ("data" in result) dispatch({ type: "booking/add", booking: result.data.booking });
         return result;
       },
       toggleBlock: (saunaId: string, date: string, hour: number, reason = "Uždaryta") => {
@@ -576,7 +576,7 @@ function useAdminReducer(initial: AdminData) {
       /** Staff-entered tickets for an event or session. Not optimistic: the database checks the places left. */
       createEventTicket: async (input: NewEventTicketInput) => {
         const result = await report(actions.createEventTicket(input));
-        if ("data" in result) dispatch({ type: "ticket/add", ticket: result.data });
+        if ("data" in result) dispatch({ type: "ticket/add", ticket: result.data.ticket });
         return result;
       },
       /** Removes a cancelled request (refunded, or never paid online). Not optimistic: the server checks the refund first. */
