@@ -135,6 +135,20 @@ describe("requestStaffPayment", () => {
     expect(emailPaymentRequest).not.toHaveBeenCalled();
   });
 
+  it("expires the new session and abandons the payment when attaching it fails", async () => {
+    rpc.mockImplementation(async (name: string) => {
+      if (name === "start_staff_payment") return { data: [payment], error: null };
+      if (name === "attach_payment_session") return { data: null, error: { message: "boom" } };
+      return { data: null, error: null };
+    });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const outcome = await requestStaffPayment(request);
+    expect(outcome).toMatchObject({ ok: false });
+    expect(sessionsExpire).toHaveBeenCalledWith("cs_1");
+    expect(rpc).toHaveBeenCalledWith("abandon_payment", { p_payment_id: payment.payment_id });
+    expect(emailPaymentRequest).not.toHaveBeenCalled();
+  });
+
   it("fails cleanly when no payment could be started", async () => {
     rpc.mockResolvedValue({ data: null, error: { message: "nope" } });
     vi.spyOn(console, "error").mockImplementation(() => undefined);

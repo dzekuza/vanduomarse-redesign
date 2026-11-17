@@ -1,3 +1,9 @@
+## 2026-11-18 — PR #138 review fixes
+
+- **Changed:** release of the payment link on cancel, read-before-pay in `createBooking`, `removeFailedRequest`, email validation, payment-error toasts, persistent copy-link toast, guarded admin client, `notify.ts` reflow reverted, paired-columns migration (applied), nullable RPC types, one more test.
+- **Status:** tsc, eslint, 174 tests; pushed to PR #138.
+- **Next:** CI, merge, one real test pass with a test address.
+
 ## 2026-11-18 — Staff payments round 2: resend, copy, mark paid, quads
 
 - **Changed:** migration `20261118120000` (applied); `lib/staff-payment.ts` (`openStaffPayment`, `retireStaffPayment`), `app/admin/actions/staff-payments.ts`, `PaymentActions` in four places, `payment-form.ts`, payment fields on `NewRentalDialog` / `NewTourDialog`, quad actions return `{ rental, emailSent, paymentUrl }`; ADR-0113.

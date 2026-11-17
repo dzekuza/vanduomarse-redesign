@@ -5,7 +5,7 @@ import { z } from "zod";
 import { toQuadRental } from "@/lib/admin/mappers";
 import type { QuadRental } from "@/lib/admin/types";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
-import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { dbError, done, fail, removeFailedRequest, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 import { describeRequest } from "@/lib/sms/notify";
 import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 
@@ -161,7 +161,7 @@ const staffRentalInput = z.object({
   hours: z.number().int().min(1).max(8),
   units: z.number().int().min(1).max(20),
   riders: z.number().int().min(1).max(40),
-  customer: z.object({ name: z.string().trim().min(2).max(80), phone: z.string().trim().max(30), email: z.string().trim().max(120) }),
+  customer: z.object({ name: z.string().trim().min(2).max(80), phone: z.string().trim().max(30), email: z.union([z.literal(""), z.email().max(120)]) }),
   status: z.enum(["laukia", "patvirtinta"]),
   source: z.enum(["telefonu", "vietoje"]),
   note: z.string().trim().max(300),
@@ -223,10 +223,7 @@ export async function createRental(input: StaffRentalInput): Promise<ActionResul
   // Not paid at entry: open a payment and e-mail the link; without it the rental would sit unpaid, so it is removed again.
   const summary = describeRequest(["Keturračiai", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${total} EUR`]);
   const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
-  if (!paymentRequest.ok) {
-    await ctx.supabase.from("quad_rentals").delete().eq("id", row.id);
-    return fail(paymentRequest.message, paymentRequest.code);
-  }
+  if (!paymentRequest.ok) return removeFailedRequest(ctx.supabase, "quad_rentals", row.id, row.reference, paymentRequest);
   rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
   return done({ rental, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
 }
@@ -306,9 +303,8 @@ export async function createQuadTour(input: StaffTourInput): Promise<ActionResul
   const summary = describeRequest(["Keturračių turas", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${row.total} EUR`]);
   const paymentRequest = problem ? null : await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
   if (problem || !paymentRequest?.ok) {
-    await ctx.supabase.from("quad_rentals").delete().eq("id", id);
     const failure = problem ?? (paymentRequest && !paymentRequest.ok ? paymentRequest : null);
-    return fail(failure?.message ?? "Nepavyko sukurti apmokėjimo nuorodos.", failure?.code ?? "payment");
+    return removeFailedRequest(ctx.supabase, "quad_rentals", id, row.reference, { message: failure?.message ?? "Nepavyko sukurti apmokėjimo nuorodos.", code: failure?.code ?? "payment" });
   }
   rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
   return done({ rental, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });

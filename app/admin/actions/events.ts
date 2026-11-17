@@ -4,7 +4,7 @@ import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { toTourTicket } from "@/lib/admin/mappers";
 import type { ManagedEvent, PriceItem, TourTicket } from "@/lib/admin/types";
-import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { dbError, done, fail, removeFailedRequest, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 import { describeRequest } from "@/lib/sms/notify";
 import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 
@@ -127,15 +127,15 @@ const eventTicketInput = z.object({
 
 export type NewEventTicketInput = z.infer<typeof eventTicketInput>;
 
+/** The new ticket, and for an unpaid one whether the payment-link e-mail went out. */
+export type CreatedTicket = { ticket: TourTicket; emailSent?: boolean; paymentUrl?: string };
+
 /**
  * Adds tickets to an event or public sauna session for someone who phoned or walked in. The price is the event's ticket
  * price times the people, read here, never from the browser; the database refuses more people than places left
  * (`event_full`, sold and held places count) and links the ticket to the customer by contact. Staff-entered tickets
- * notify nobody, like staff-entered bookings. Quad tour departures are sold as rentals, not here.
+ * notify nobody, except that an unpaid one e-mails its payment link to the customer (ADR-0112). Quad tour departures are sold as rentals, not here.
  */
-/** The new ticket, and for an unpaid one whether the payment-link e-mail went out. */
-export type CreatedTicket = { ticket: TourTicket; emailSent?: boolean; paymentUrl?: string };
-
 export async function createEventTicket(input: NewEventTicketInput): Promise<ActionResult<CreatedTicket>> {
   // Like the tickets table's policy: Renginiai for any event, Keturračiai only for guided quad tours (category keturratis).
   const ctx = await staffClient(EVENT_STAFF);
@@ -182,10 +182,7 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
   // Not paid at entry: open a payment and e-mail the link; without it the ticket would sit unpaid, so it is removed again.
   const summary = describeRequest([event.title, event.date, `${v.people} asm.`, `${total} EUR`]);
   const paymentRequest = await requestStaffPayment({ reference: data.reference, email: v.customer.email, summary });
-  if (!paymentRequest.ok) {
-    await supabase.from("event_tickets").delete().eq("id", data.id);
-    return fail(paymentRequest.message, paymentRequest.code);
-  }
+  if (!paymentRequest.ok) return removeFailedRequest(supabase, "event_tickets", data.id, data.reference, paymentRequest);
   ticket.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
   return done({ ticket, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
 }

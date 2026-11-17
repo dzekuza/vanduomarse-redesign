@@ -6,7 +6,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
 import { BookingPaymentFields } from "../bookings/booking-payment-fields";
-import { PAYMENT_EMAIL_REQUIRED, paymentFormDefaults, paymentFormShape, paymentInput, reportCreated } from "../bookings/payment-form";
+import { isPaymentFailure, PAYMENT_EMAIL_REQUIRED, paymentFormDefaults, paymentFormShape, paymentInput, reportCreated } from "../bookings/payment-form";
 import { FormField } from "../form-field";
 import { TourGearFields } from "./tour-gear-fields";
 import { formatEur } from "@/lib/admin/format";
@@ -78,6 +78,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
       note: v.note,
       payment: paymentInput(v),
     });
+    if ("error" in result && isPaymentFailure(result.error)) return;
     if ("error" in result) return setError(result.error.code === "email_required" ? "email" : "root", { message: result.error.message });
     reportCreated(`Turas ${result.data.rental.reference}`, result.data);
     onOpenChange(false);

@@ -5,7 +5,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
 import { BookingPaymentFields } from "../bookings/booking-payment-fields";
-import { PAYMENT_EMAIL_REQUIRED, paymentFormDefaults, paymentFormShape, paymentInput, reportCreated } from "../bookings/payment-form";
+import { isPaymentFailure, PAYMENT_EMAIL_REQUIRED, paymentFormDefaults, paymentFormShape, paymentInput, reportCreated } from "../bookings/payment-form";
 import { freeForRental, rentalStartsOn } from "@/lib/admin/quad-availability";
 import { hourLabel, rentalPrice } from "@/lib/quads";
 import { todayKey } from "@/lib/sauna";
@@ -88,6 +88,7 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
       note: v.note,
       payment: paymentInput(v),
     });
+    if ("error" in result && isPaymentFailure(result.error)) return;
     if ("error" in result) return setError(result.error.code === "email_required" ? "email" : "root", { message: result.error.message });
     reportCreated(`Nuoma ${result.data.rental.reference}`, result.data);
     onOpenChange(false);

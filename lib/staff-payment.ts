@@ -45,6 +45,17 @@ const SETTLED: Failure = {
   code: "settled",
 };
 
+/** A missing service key is a setup problem the caller should see as a failure, not an exception that leaves a request behind. */
+function adminOrNull() {
+  try {
+    return createAdminClient();
+  } catch (e) {
+    console.error("Staff payment: no admin client", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+const DB_UNAVAILABLE: Failure = { ok: false, message: "Duomenų bazė šiuo metu nepasiekiama.", code: "setup" };
+
 export type StaffLinkOutcome =
   { ok: true; paymentId: string; amount: number; url: string } | Failure;
 export type StaffPaymentOutcome =
@@ -88,7 +99,8 @@ export async function openStaffPayment(
       message: "Internetinis apmokėjimas neįjungtas.",
       code: "setup",
     };
-  const admin = createAdminClient();
+  const admin = adminOrNull();
+  if (!admin) return DB_UNAVAILABLE;
   const { data, error } = await admin.rpc("start_staff_payment", {
     p_refs: [reference],
   });
@@ -166,8 +178,13 @@ export async function openStaffPayment(
     };
   } catch (e) {
     // A payment that never had a session is freed so the caller can remove the request it was made for; an older one is left alone.
-    if (!payment.stripe_session_id)
-      await admin.rpc("abandon_payment", { p_payment_id: payment.payment_id });
+    if (!payment.stripe_session_id) {
+      const { error: abandonError } = await admin.rpc("abandon_payment", {
+        p_payment_id: payment.payment_id,
+      });
+      if (abandonError)
+        console.error("Staff payment: abandon_payment failed", payment.payment_id, abandonError);
+    }
     if (e instanceof MissingStripeKeyError)
       return {
         ok: false,
@@ -205,7 +222,8 @@ export async function requestStaffPayment(request: {
 export async function retireStaffPayment(
   paymentId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const admin = createAdminClient();
+  const admin = adminOrNull();
+  if (!admin) return { ok: false, message: DB_UNAVAILABLE.message };
   const { data, error } = await admin.rpc("payment_state", {
     p_payment_id: paymentId,
   });
@@ -240,4 +258,15 @@ export async function retireStaffPayment(
     return { ok: false, message: "Nepavyko atnaujinti mokėjimo." };
   }
   return { ok: true };
+}
+
+/**
+ * A staff-entered request was cancelled: switch off its unpaid payment link so the customer cannot still pay for it
+ * (ADR-0113). Only a staff payment that is still waiting is touched; a failure is logged, the link then lapses with its
+ * Checkout Session within the day.
+ */
+export async function releaseCancelledStaffPayment(row: { payment_id: string | null; payments: { staff_created: boolean; status: string } | null }): Promise<void> {
+  if (!row.payment_id || !row.payments?.staff_created || row.payments.status !== "laukia") return;
+  const retired = await retireStaffPayment(row.payment_id);
+  if (!retired.ok) console.error("Staff payment: could not release the link of a cancelled request", row.payment_id, retired.message);
 }

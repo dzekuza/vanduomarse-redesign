@@ -85,3 +85,27 @@ export function done<T>(data: T): { data: T } {
 
 /** Sauna ids are slugs; shared by the sauna and booking actions. */
 export const saunaIdSchema = z.string().regex(/^[a-z0-9-]+$/).max(60);
+
+/**
+ * A staff request whose payment link could not be made is removed again. If even that fails, the request survives, so
+ * the message says so and names it: staff can then send the link from its sheet or delete it.
+ */
+export async function removeFailedRequest(
+  supabase: Extract<StaffContext, { ok: true }>["supabase"],
+  table: "bookings" | "quad_rentals" | "event_tickets",
+  id: string,
+  reference: string,
+  failure: { message: string; code?: string },
+) {
+  const { error } =
+    table === "bookings"
+      ? await supabase.from("bookings").delete().eq("id", id)
+      : table === "quad_rentals"
+        ? await supabase.from("quad_rentals").delete().eq("id", id)
+        : await supabase.from("event_tickets").delete().eq("id", id);
+  if (error) {
+    console.error("Staff payment: could not remove the request after a failed payment link", reference);
+    return fail(`${failure.message} Rezervacija ${reference} liko neapmokėta: išsiųskite nuorodą iš jos kortelės arba ištrinkite.`, failure.code);
+  }
+  return fail(failure.message, failure.code);
+}

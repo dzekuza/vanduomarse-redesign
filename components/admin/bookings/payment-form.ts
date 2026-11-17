@@ -31,7 +31,15 @@ export function reportCreated(label: string, outcome: { emailSent?: boolean; pay
   if (outcome.emailSent) return void toast.success(`${label} sukurta, apmokėjimo nuoroda išsiųsta`);
   const url = outcome.paymentUrl;
   toast.warning(`${label} sukurta, bet laiško išsiųsti nepavyko`, {
-    duration: 15000,
+    duration: Number.POSITIVE_INFINITY,
+    closeButton: true,
     action: url ? { label: "Kopijuoti nuorodą", onClick: () => void copyPaymentLink(url) } : undefined,
   });
+}
+
+/** Payment errors that belong to no field (payments off, Stripe refused, an unreachable database) are shown as a toast. */
+export function isPaymentFailure(error: { code?: string; message: string }): boolean {
+  if (error.code !== "setup" && error.code !== "payment" && error.code !== "settled") return false;
+  toast.error(error.message);
+  return true;
 }

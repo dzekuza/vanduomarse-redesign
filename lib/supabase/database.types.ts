@@ -3283,11 +3283,11 @@ export type Database = {
         Args: { p_refs: string[] }
         Returns: {
           amount: number
-          customer_email: string
-          expires_at: string
+          customer_email: string | null
+          expires_at: string | null
           items: Json
           payment_id: string
-          stripe_session_id: string
+          stripe_session_id: string | null
         }[]
       }
       staff_notify_emails_for: { Args: { p_topics: string[] }; Returns: string[] }

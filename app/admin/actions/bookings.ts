@@ -9,9 +9,9 @@ import { notifyRequestOutcome } from "@/lib/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { refundRequest } from "@/lib/refund";
-import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
+import { releaseCancelledStaffPayment, requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 import { upsellTotal, type Upsell } from "@/lib/sauna-upsells";
-import { dbError, done, fail, saunaIdSchema, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
+import { dbError, done, fail, removeFailedRequest, saunaIdSchema, staffClient, type ActionResult, type StaffContext } from "@/lib/admin/action-helpers";
 
 /* ---------------- bookings ---------------- */
 
@@ -64,9 +64,10 @@ export async function setBookingStatus(id: string, status: Booking["status"]): P
     .from("bookings")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, customer_email, user_id, source, kind, date, start_hour, hours")
+    .select("reference, customer_phone, customer_email, user_id, source, kind, date, start_hour, hours, payment_id, payments(staff_created, status)")
     .maybeSingle();
   if (error) return dbError(error);
+  if (data && status === "atsaukta") await releaseCancelledStaffPayment(data);
   if (data) {
     const summary =
       data.start_hour !== null && data.hours !== null
@@ -89,7 +90,7 @@ const newBookingInput = z
     hours: z.number().int().min(1).max(24).optional(),
     nights: z.number().int().min(1).max(60).optional(),
     guests: z.number().int().min(1).max(500),
-    customer: z.object({ name: z.string().trim().min(2), phone: z.string().trim(), email: z.string().trim() }),
+    customer: z.object({ name: z.string().trim().min(2), phone: z.string().trim(), email: z.union([z.literal(""), z.email()]) }),
     /** Upsell id -> quantity; priced on the server from the current upsells. */
     extras: z.record(z.string(), z.number().int().min(0).max(100)),
     total: z.number().min(0).max(1_000_000),
@@ -187,19 +188,6 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
     }
   }
 
-  // Not paid at entry: open a payment and e-mail the link. Without it the booking would sit unpaid with no way to pay, so it is removed again.
-  let paymentRequest: Awaited<ReturnType<typeof requestStaffPayment>> | undefined;
-  if (unpaid) {
-    const summary = sauna
-      ? saunaSummary({ date: v.date, startHour: v.startHour ?? 0, hours: v.hours ?? 1, party: v.guests, total: v.total })
-      : describeRequest([v.kind === "kemperis" ? "Kemperio aikštelė" : "Namelis", v.date, `${v.nights} n.`, `${v.total} EUR`]);
-    paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
-    if (!paymentRequest.ok) {
-      await supabase.from("bookings").delete().eq("id", row.id);
-      return fail(paymentRequest.message, paymentRequest.code);
-    }
-  }
-
   const { data: saved, error: readError } = await supabase
     .from("bookings")
     .select("*, booking_extras(name, unit, quantity)")
@@ -207,8 +195,17 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
     .single();
   if (readError) return dbError(readError);
   const booking = toBooking(saved);
-  if (paymentRequest?.ok) booking.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
-  return done({ booking, emailSent: paymentRequest?.ok ? paymentRequest.emailSent : undefined, paymentUrl: paymentRequest?.ok ? paymentRequest.url : undefined });
+  if (!unpaid) return done({ booking });
+
+  // Not paid at entry: open a payment and e-mail the link (the booking is read first, so a failed read cannot hide a sent link).
+  // Without a link the booking would sit unpaid with no way to pay, so it is removed again.
+  const summary = sauna
+    ? saunaSummary({ date: v.date, startHour: v.startHour ?? 0, hours: v.hours ?? 1, party: v.guests, total: v.total })
+    : describeRequest([v.kind === "kemperis" ? "Kemperio aikštelė" : "Namelis", v.date, `${v.nights} n.`, `${v.total} EUR`]);
+  const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+  if (!paymentRequest.ok) return removeFailedRequest(supabase, "bookings", row.id, row.reference, paymentRequest);
+  booking.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  return done({ booking, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
 }
 
 /* ---------------- sauna blocks ---------------- */
@@ -319,9 +316,10 @@ export async function setRentalStatus(id: string, status: BookingStatus): Promis
     .from("quad_rentals")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, customer_email, user_id, source, date, start_hour")
+    .select("reference, customer_phone, customer_email, user_id, source, date, start_hour, payment_id, payments(staff_created, status)")
     .maybeSingle();
   if (error) return dbError(error);
+  if (data && status === "atsaukta") await releaseCancelledStaffPayment(data);
   if (data) {
     notifyCustomer(data.source, data, data.reference, status, describeRequest(["Keturraciai", data.date, `${String(data.start_hour).padStart(2, "0")}:00`]));
   }
@@ -337,9 +335,10 @@ export async function setTourTicketStatus(id: string, status: BookingStatus): Pr
     .from("event_tickets")
     .update({ status })
     .eq("id", id)
-    .select("reference, customer_phone, customer_email, user_id, source, people")
+    .select("reference, customer_phone, customer_email, user_id, source, people, payment_id, payments(staff_created, status)")
     .maybeSingle();
   if (error) return dbError(error);
+  if (data && status === "atsaukta") await releaseCancelledStaffPayment(data);
   if (data) notifyCustomer(data.source, data, data.reference, status, describeRequest(["Bilietai", `${data.people} asm.`]));
   return done(null);
 }

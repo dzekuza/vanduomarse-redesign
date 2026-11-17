@@ -9,7 +9,7 @@ import { BookingChooser } from "./booking-chooser";
 import { BookingCustomerFields } from "./booking-customer-fields";
 import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingPaymentFields } from "./booking-payment-fields";
-import { paymentFormDefaults, paymentInput, reportCreated } from "./payment-form";
+import { isPaymentFailure, paymentFormDefaults, paymentInput, reportCreated } from "./payment-form";
 import { NewRentalDialog } from "../quads/new-rental-dialog";
 import { NewTourDialog } from "../quads/new-tour-dialog";
 import { BookingWhenFields } from "./booking-when-fields";
@@ -132,7 +132,10 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
         source: v.source,
         payment: paymentInput(v),
       });
-      if ("error" in created) return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
+      if ("error" in created) {
+        if (isPaymentFailure(created.error)) return;
+        return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
+      }
       reportCreated(created.data.ticket.reference, created.data);
       return onOpenChange(false);
     }
@@ -159,6 +162,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     });
     // The database has the final say on conflicts (another booking may have landed meanwhile).
     if ("error" in result) {
+      if (isPaymentFailure(result.error)) return;
       if (result.error.code === "email_required") return setError("email", { message: result.error.message });
       return setError(sauna ? "startHour" : "nights", { message: result.error.message });
     }
