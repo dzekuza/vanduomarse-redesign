@@ -2,6 +2,7 @@ import "server-only";
 import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, staffExtras, type PaidRequest } from "@/lib/paid-request";
 import { MAIN_CONTACT, STAFF_BOOKING_COPY, STAFF_INBOX, serviceOfReference, type NotifyService } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
+import { formatPassCode } from "@/lib/plan-pass";
 import { bookingTopics, paymentTopics, type MessageTopic } from "@/lib/notification-topics";
 import { staffEmailsFor } from "@/lib/staff-recipients";
 import { SITE_URL } from "@/lib/site";
@@ -296,4 +297,68 @@ export const emailStaffPlanCancelled = async (reference: string) =>
     to: await couponStaffTo(),
     subject: `Plano užsakymas ${reference} atšauktas (grąžinti pinigai)`,
     ...body([{ strong: `Užsakymas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` }, "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja.", ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes`] : [])], false),
+  });
+
+/* ---------------- plan passes (bought without registering, ADR-0109) ---------------- */
+
+export interface PlanPassPaidNotice {
+  reference: string;
+  planName: string;
+  amount: number;
+  buyerName: string;
+  buyerEmail: string;
+  gift: boolean;
+  recipientName: string;
+}
+
+/**
+ * The buyer's pass: the code to say at the park, and what to do before then. For a gift the same mail says the code can be
+ * passed on; it works once, for one person.
+ */
+export const emailPassPaidCustomer = (o: PlanPassPaidNotice & { code: string }) =>
+  sendEmail({
+    to: o.buyerEmail,
+    subject: o.gift ? `Dovana draugui: ${o.planName} (${o.reference})` : `Apmokėta: ${o.planName} (${o.reference})`,
+    ...body([
+      `Sveiki, ${o.buyerName}!`,
+      { strong: `${o.planName}, ${formatEuro(o.amount)}: apmokėta. Dėkojame!` },
+      { strong: `Abonemento kodas: ${formatPassCode(o.code)}` },
+      o.gift
+        ? `Šį kodą galite perduoti ${o.recipientName ? o.recipientName : "draugui"}. Kodas veikia vieną kartą ir tik vienam žmogui, todėl nesidalinkite juo viešai.`
+        : "Kodą pasilikite: jis patvirtina, kad abonementas apmokėtas.",
+      "Kaip aktyvuoti abonementą:",
+      `1. ${o.gift ? "Abonemento gavėjas" : "Jūs"} užsiregistruojate${siteUrl() ? `: ${siteUrl()}/registracija` : " svetainėje (/registracija)"}. Reikia kontaktų, nuotraukos ir pasirašytų taisyklių, užtrunka kelias minutes.`,
+      "2. Atvykęs į parką kasoje pasako abonemento kodą: darbuotojas priskiria abonementą ir išduoda apyrankę.",
+    ]),
+  });
+
+/** A pass was paid online (or, with `problem`, needs a look). */
+export const emailStaffPassPaid = async (o: PlanPassPaidNotice & { problem?: string }) =>
+  sendEmail({
+    to: await couponStaffTo(),
+    subject: o.problem ? `PATIKRINTI ABONEMENTO MOKĖJIMĄ ${o.reference}` : `Apmokėtas abonementas ${o.reference} (be registracijos)`,
+    ...body(
+      [
+        { strong: `${o.planName}, ${formatEuro(o.amount)}${o.gift ? " (dovana)" : ""}` },
+        `Pirkėjas: ${o.buyerName}, ${o.buyerEmail}`,
+        o.problem ?? "Apmokėta per Stripe. Abonementas dar nepriskirtas: pirkėjas (ar jo draugas) užsiregistruos ir parke pasakys kodą, tada priskirkite skiltyje Apyrankės → Kodai.",
+        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`] : []),
+      ],
+      false,
+    ),
+  });
+
+/** A paid pass was fully refunded in Stripe. An unattached pass is now cancelled; an attached one needs a manual plan change. */
+export const emailStaffPassCancelled = async (reference: string, wasAttached: boolean) =>
+  sendEmail({
+    to: await couponStaffTo(),
+    subject: `Abonementas ${reference}: grąžinti pinigai`,
+    ...body(
+      [
+        { strong: wasAttached ? `Abonementas ${reference} jau priskirtas klientui, bet mokėjimas grąžintas per Stripe.` : `Abonementas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` },
+        wasAttached ? "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja." : "Jo kodas nebeveikia.",
+        ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`] : []),
+      ],
+      false,
+    ),
   });

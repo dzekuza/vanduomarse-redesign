@@ -2,7 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { couponIdOf, onCouponPaid, onCouponRefund, onCouponSessionClosed } from "@/lib/coupon-payment";
-import { onPlanOrderPaid, onPlanOrderRefund, onPlanSessionClosed, planOrderIdOf } from "@/lib/plan-payment";
+import { onPlanOrderPaid, onPlanOrderRefund, onPlanPassPaid, onPlanSessionClosed, planOrderIdOf, planPassIdOf } from "@/lib/plan-payment";
 import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
 import { loadPaidRequests } from "@/lib/payment-notice";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,6 +28,8 @@ async function onPaid(session: Stripe.Checkout.Session) {
   if (couponId) return onCouponPaid(couponId, session);
   const planOrderId = planOrderIdOf(session);
   if (planOrderId) return onPlanOrderPaid(planOrderId, session);
+  const planPassId = planPassIdOf(session);
+  if (planPassId) return onPlanPassPaid(planPassId, session);
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("complete_payment", {
     p_session_id: session.id,

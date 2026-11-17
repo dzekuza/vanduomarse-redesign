@@ -96,6 +96,7 @@ type Action =
   | { type: "riderCard/bind"; cardNumber: string; riderId: string }
   | { type: "riderSession/scan"; session: RiderSession }
   | { type: "purchase/add"; purchase: Purchase }
+  | { type: "planPass/redeem"; passId: string; riderId: string; planId: string | null; purchase: Purchase }
   | { type: "purchase/payment"; id: string; method: PurchasePaymentMethod }
   | { type: "riderComment/add"; comment: RiderComment }
   | { type: "riderComment/delete"; id: string }
@@ -308,6 +309,7 @@ function reducer(state: AdminData, action: Action): AdminData {
         riderComments: state.riderComments.filter((c) => c.riderId !== action.id),
         riderDocuments: state.riderDocuments.filter((d) => d.riderId !== action.id),
         riderWaivers: state.riderWaivers.filter((w) => w.riderId !== action.id),
+        planPasses: state.planPasses.map((p) => (p.riderId === action.id ? { ...p, riderId: null } : p)),
       };
     case "riderCard/bind":
       return {
@@ -324,6 +326,13 @@ function reducer(state: AdminData, action: Action): AdminData {
       };
     case "purchase/add":
       return { ...state, purchases: [action.purchase, ...state.purchases] };
+    case "planPass/redeem":
+      return {
+        ...state,
+        planPasses: state.planPasses.map((p) => (p.id === action.passId ? { ...p, status: "priskirtas", riderId: action.riderId, redeemedAt: action.purchase.soldAt } : p)),
+        riders: state.riders.map((r) => (r.id === action.riderId ? { ...r, planId: action.planId } : r)),
+        purchases: [action.purchase, ...state.purchases],
+      };
     case "purchase/payment":
       return { ...state, purchases: state.purchases.map((p) => (p.id === action.id ? { ...p, paymentMethod: action.method } : p)) };
     case "riderComment/add":
@@ -667,6 +676,12 @@ function useAdminReducer(initial: AdminData) {
           dispatch({ type: "rider/add", rider: result.data.rider });
           if (result.data.purchase) dispatch({ type: "purchase/add", purchase: result.data.purchase });
         }
+        return result;
+      },
+      /** Not optimistic: the server checks the pass and the rider's registration, and says why it refuses. Not run through `report`, so the dialog shows the message (and can offer to replace an existing plan). */
+      redeemPlanPass: async (passId: string, riderId: string, replace = false) => {
+        const result = await actions.redeemPlanPass(passId, riderId, replace);
+        if ("data" in result) dispatch({ type: "planPass/redeem", passId, riderId, planId: result.data.purchase.planId, purchase: result.data.purchase });
         return result;
       },
       /** Optimistic plan change; the sale it logs arrives once the server confirms. */

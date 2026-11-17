@@ -9,11 +9,12 @@ import { ServiceBookingHelp } from "@/components/services/service-booking-help";
 import { MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
 import { CouponDiscountField } from "@/components/coupons/coupon-discount-field";
 import { formatEuro } from "@/lib/coupons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { discountFor, type CheckedDiscount } from "@/lib/discount-codes";
 import type { RegistrationInput } from "@/lib/registration-schema";
 import { WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_BLACK_FRIDAY_PATH } from "@/lib/wake-black-friday";
 import { MemberPlanCheckout } from "./member-plan-checkout";
-import { RegistrationFlow } from "./registration-flow";
+import { PassBuyForm } from "./pass-buy-form";
 import { WakeBlackFridayArtwork } from "./wake-black-friday-artwork";
 
 export interface RegistrationPlan {
@@ -38,6 +39,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
   const discountAmount = discount ? discountFor(discount, "planai", plan.price) : 0;
   const total = Math.max(plan.price - discountAmount, 0);
   const checkout = { plan, discountCode: discount?.code, total, setBusy };
+  const buyer = initial?.email ? { name: [initial.name, initial.surname].filter(Boolean).join(" "), email: initial.email } : undefined;
   const otherRiderParams = new URLSearchParams({ kitas: "1" });
   if (!blackFriday) {
     otherRiderParams.set("abonementas", plan.id);
@@ -52,9 +54,24 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
       <div className="min-w-0 space-y-8 lg:col-span-2">
         {header}
         <div className="border border-line bg-foam p-4 sm:p-6">
-          {member === null
-            ? <RegistrationFlow initial={initial} checkout={checkout} />
-            : <MemberPlanCheckout name={member} busy={busy} otherRiderHref={otherRiderHref} {...checkout} />}
+          <Tabs defaultValue="sau" className="gap-6">
+            <TabsList>
+              <TabsTrigger value="sau" className="min-h-11" disabled={busy}>
+                Perku sau
+              </TabsTrigger>
+              <TabsTrigger value="draugui" className="min-h-11" disabled={busy}>
+                Perku draugui
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="sau">
+              {member === null
+                ? <PassBuyForm gift={false} buyer={buyer} {...checkout} />
+                : <MemberPlanCheckout name={member} busy={busy} otherRiderHref={otherRiderHref} {...checkout} />}
+            </TabsContent>
+            <TabsContent value="draugui">
+              <PassBuyForm gift buyer={buyer} {...checkout} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       <BookingPanel
@@ -69,7 +86,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
                 {discount ? <del aria-label="Kaina be nuolaidos" className="ml-3 text-sm font-normal text-copy">{formatEuro(plan.price)}</del> : null}
               </>
             }
-            note={<p className="leading-relaxed">Apmokėjus abonementas priskiriamas tau. Apyrankę atsiimsi atvykęs į parką.</p>}
+            note={<p className="leading-relaxed">Apmokėjęs gausi abonemento kodą el. paštu. Užsiregistravęs ir atvykęs į parką, pasakyk kodą kasoje: darbuotojas priskirs abonementą ir apyrankę.</p>}
           />
         </div>
         {invalidDiscount && !discount ? <p role="status" className="text-sm text-rust-ink">Nuorodoje nurodyto nuolaidos kodo pritaikyti nepavyko.</p> : null}

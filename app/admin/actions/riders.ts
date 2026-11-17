@@ -98,6 +98,43 @@ export async function updateRiderPlan(riderId: string, planId: string): Promise<
   return done({ purchase });
 }
 
+const PASS_ERRORS: Record<string, string> = {
+  pass_not_available: "Šis abonementas jau priskirtas arba atšauktas.",
+  pass_unknown: "Abonementas nerastas. Atnaujinkite puslapį.",
+  rider_unknown: "Klientas nerastas.",
+  rider_not_registered: "Klientas dar neužbaigė registracijos (nuotrauka ir pasirašytos taisyklės). Paprašykite jo užsiregistruoti: /registracija.",
+  rider_has_plan: "Klientas jau turi planą.",
+  plan_unavailable: "Šio plano nebėra. Pakeiskite jį skiltyje Planai.",
+};
+
+/**
+ * Attaches a paid pass (bought online without registering, ADR-0109) to a rider who finished registration. Sets the rider's plan
+ * and logs the purchase. `replace` is staff's explicit choice to swap a plan the rider already has.
+ */
+export async function redeemPlanPass(passId: string, riderId: string, replace = false): Promise<ActionResult<{ purchase: Purchase }>> {
+  const ctx = await staffClient("apyrankes");
+  if (!ctx.ok) return ctx.error;
+  const parsed = z.object({ passId: z.uuid(), riderId: z.uuid(), replace: z.boolean() }).safeParse({ passId, riderId, replace });
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const { data, error } = await ctx.supabase.rpc("redeem_plan_pass", { p_pass_id: passId, p_rider_id: riderId, p_replace: replace });
+  const row = data?.[0];
+  if (error || !row) {
+    const message = error?.hint ? PASS_ERRORS[error.hint] : undefined;
+    return message ? fail(message, error?.hint ?? "db") : error ? dbError(error) : fail("Nepavyko priskirti abonemento.", "db");
+  }
+  const purchase: Purchase = {
+    id: row.purchase_id,
+    riderId,
+    planId: row.plan_id,
+    planName: row.plan_name,
+    planCategory: row.plan_category as Purchase["planCategory"],
+    price: row.price,
+    paymentMethod: "kortele",
+    soldAt: row.sold_at,
+  };
+  return done({ purchase });
+}
+
 /** Records how a plan sold at the till was paid (card / cash). Set once: a purchase that already has a method is refused. */
 export async function setPurchasePayment(purchaseId: string, method: (typeof PURCHASE_PAYMENT_METHODS)[number]): Promise<ActionResult> {
   const ctx = await staffClient("apyrankes");

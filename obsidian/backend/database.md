@@ -68,6 +68,8 @@ the SQL takes or returns null):
 |-------|------|-----|
 | `Functions.create_inquiry.Args.p_date` | `string \| null` | contact-form and event-registration inquiries come without a date; the function stores null |
 | `Functions.plan_order_state.Returns.discount_code` | `string \| null` | null when the plan order had no discount (ADR-0106; `/registracija/apmoketa` maps null to "no code") |
+| `Functions.plan_order_state.Returns.pass_code` | `string \| null` | null for plan orders and for a pass that is not paid yet (ADR-0109) |
+| `Functions.complete_plan_pass_payment.Returns.pass_code` | `string \| null` | null when the paid amount did not match the price, so no code was issued (ADR-0109) |
 
 `…_reference_data.sql` and `seed.sql` were generated from the
 `lib/` constants and `lib/admin/mock-data.ts` (one-off script, not kept in the
@@ -351,3 +353,23 @@ idempotent materialisation). Then applied to the live project. Afterwards:
 ## Related
 
 [[api-architecture]] · [[environment-variables]] · [[decisions-log]]
+
+## Plan passes: bracelet plans bought without registering (ADR-0109)
+
+Migration `20261117180903_plan_passes.sql`, APPLIED 2026-11-17. `public.plan_passes` is a paid (or pending) plan that belongs to
+no rider yet: buyer name and e-mail, plan snapshot, the price actually paid (after the discount), `gift`, `recipient_name`,
+a 12-character `code` (issued on payment, same alphabet as coupon codes), `status`
+(`laukia_apmokejimo` → `apmoketa` → `priskirtas`, or `atsauktas`), Stripe session / intent, and once attached `rider_id`,
+`redeemed_at`, `redeemed_by`, `purchase_id`. The Black Friday code check constraint from `rider_plan_orders` is repeated on it.
+RLS: staff with the `apyrankes` permission can read; everything else is service-role RPCs.
+
+| Function | Who | What |
+|----------|-----|------|
+| `create_plan_pass` | service role | new unpaid pass; prices the discount, caps unpaid passes per IP hash (5/hour) and overall (300/hour) |
+| `attach_plan_pass_session`, `abandon_plan_pass` | service role | remember the Stripe session; drop a pass whose Checkout could not open |
+| `complete_plan_pass_payment` | service role (webhook) | marks paid and issues the code once; a wrong amount changes nothing and reports `amount_ok = false` |
+| `expire_plan_pass_session`, `refund_plan_pass_payment` | service role (webhook) | cancel an unpaid pass; a full refund cancels an unattached pass and only reports an attached one |
+| `plan_order_state` | service role | now also answers for a pass session (`kind = 'pass'`, `pass_code`); an attached pass reads as `apmoketa` |
+| `redeem_plan_pass(pass, rider, replace)` | staff (`apyrankes`) | attaches the pass: the rider needs a profile photo and a signed waiver, an existing plan needs `replace`; sets `riders.plan_id` and logs a card purchase |
+
+`private.discount_code_uses` and `discount_code_usage()` count passes too, so a code's use limit and the Nuolaidos report include them.

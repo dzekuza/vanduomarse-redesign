@@ -20,6 +20,8 @@ vi.mock("@/lib/meta-capi", () => ({
 
 /** One table row per lookup; the test sets what the database "has" and checks which key was used. */
 let row: Record<string, unknown> | null = null;
+/** The plan-pass table (a plan bought without registering), read only after the plan-order lookup finds nothing. */
+let passRow: Record<string, unknown> | null = null;
 const lookups: { table: string; column: string; value: string }[] = [];
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
@@ -27,7 +29,7 @@ vi.mock("@/lib/supabase/admin", () => ({
       select: () => ({
         eq: (column: string, value: string) => {
           lookups.push({ table, column, value });
-          return { maybeSingle: async () => ({ data: row }) };
+          return { maybeSingle: async () => ({ data: table === "plan_passes" ? passRow : row }) };
         },
       }),
     }),
@@ -46,6 +48,7 @@ describe("reportMetaEvent", () => {
     customer.mockResolvedValue(null);
     lookups.length = 0;
     row = null;
+    passRow = null;
     cookieJar = { vm_mkt: "1" };
   });
   afterEach(() => vi.restoreAllMocks());
@@ -65,6 +68,34 @@ describe("reportMetaEvent", () => {
     await reportMetaEvent({ ...base, purchase: { kind: "plan", proof: SESSION } });
     expect(lookups).toEqual([{ table: "rider_plan_orders", column: "stripe_session_id", value: SESSION }]);
     expect(sent()).toMatchObject({ eventId: "purchase-AB-7", custom: { value: 675, coupon: "WAKEBLACKFRIDAY2026" } });
+  });
+
+  it("falls back to a plan pass bought without registering, found by the same Stripe session", async () => {
+    passRow = { reference: "PS-7", status: "apmoketa", price: 675, discount_code: "WAKEBLACKFRIDAY2026", paid_at: hoursAgo(1), buyer_email: "a@b.lt", buyer_name: "Jonas Jonaitis" };
+    const { reportMetaEvent } = await import("@/app/actions/meta-capi");
+    await reportMetaEvent({ ...base, purchase: { kind: "plan", proof: SESSION } });
+    expect(lookups).toEqual([
+      { table: "rider_plan_orders", column: "stripe_session_id", value: SESSION },
+      { table: "plan_passes", column: "stripe_session_id", value: SESSION },
+    ]);
+    expect(sent()).toMatchObject({ eventId: "purchase-PS-7", custom: { value: 675, coupon: "WAKEBLACKFRIDAY2026" }, user: { email: "a@b.lt", firstName: "Jonas", lastName: "Jonaitis" } });
+  });
+
+  it("still reports a pass once staff attached it, but not an unpaid, cancelled or old one", async () => {
+    const { reportMetaEvent } = await import("@/app/actions/meta-capi");
+    passRow = { reference: "PS-7", status: "priskirtas", price: 675, discount_code: null, paid_at: hoursAgo(1), buyer_email: "a@b.lt", buyer_name: "Jonas Jonaitis" };
+    await reportMetaEvent({ ...base, purchase: { kind: "plan", proof: SESSION } });
+    expect(send).toHaveBeenCalledTimes(1);
+    send.mockClear();
+    for (const r of [
+      { reference: "PS-7", status: "laukia_apmokejimo", price: 675, paid_at: null },
+      { reference: "PS-7", status: "atsauktas", price: 675, paid_at: hoursAgo(1) },
+      { reference: "PS-7", status: "apmoketa", price: 675, paid_at: hoursAgo(49) },
+    ]) {
+      passRow = { ...r, discount_code: null, buyer_email: "a@b.lt", buyer_name: "Jonas Jonaitis" };
+      await reportMetaEvent({ ...base, purchase: { kind: "plan", proof: SESSION } });
+    }
+    expect(send).not.toHaveBeenCalled();
   });
 
   it("reports a paid coupon at face value, found by the Stripe session", async () => {

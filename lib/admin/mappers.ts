@@ -2,6 +2,7 @@ import { isPermissionId } from "@/lib/admin/permissions";
 import type { StayType } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
+import { PASS_STATUS, type PassStatus } from "@/lib/plan-pass";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type PriceTable, type Sauna, type SaunaRates } from "@/lib/sauna";
@@ -9,7 +10,7 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
+import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -312,6 +313,15 @@ export function toRiderSession(r: Tables<"rider_sessions">): RiderSession {
 
 export function toPurchase(r: Tables<"purchases">): Purchase {
   return { id: r.id, riderId: r.rider_id, planId: r.plan_id, planName: r.plan_name, planCategory: r.plan_category as RidePlanCategory, price: r.price, paymentMethod: r.payment_method === "kortele" || r.payment_method === "grynais" ? r.payment_method : null, soldAt: r.sold_at };
+}
+
+export function toPlanPass(r: Tables<"plan_passes">): PlanPass {
+  const status = (PASS_STATUS as readonly string[]).includes(r.status) ? (r.status as PassStatus) : "atsauktas";
+  return {
+    id: r.id, reference: r.reference, code: r.code, planId: r.plan_id, planName: r.plan_name, price: r.price, discountCode: r.discount_code,
+    buyerName: r.buyer_name, buyerEmail: r.buyer_email, gift: r.gift, recipientName: r.recipient_name, status,
+    paidAt: r.paid_at, riderId: r.rider_id, redeemedAt: r.redeemed_at, createdAt: r.created_at,
+  };
 }
 
 export function toRiderComment(r: Tables<"rider_comments">): RiderComment {
