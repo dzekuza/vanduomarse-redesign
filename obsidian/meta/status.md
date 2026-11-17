@@ -6,7 +6,7 @@ updated: 2026-11-17
 
 **Next.js security update (2026-11-17): 16.4.2 → 16.4.6 plus `experimental.agentUpgrade: "security"`, merged in PR #125. Build, tsc, eslint, 116 tests passed. Deploys with main.**
 
-**Meta Conversions API (2026-11-16, ADR-0107): built on `feat/meta-capi` (on top of PR #120), not deployed. Server copy of every Pixel event after marketing consent; purchases verified in the database. Verified end to end from localhost with `META_CAPI_TEST_EVENT_CODE`: Events Manager → Test events showed ViewContent "Processed", received from Server, value 675 EUR, content_name, hashed e-mail / external id / first name, user agent, country. No Browser copy yet (Pixel still locked). Blocked on: `META_CAPI_ACCESS_TOKEN` in Vercel (no test code there), the Pixel lock in Events Manager, and rotating the token (it was pasted into a chat). Privacy policy should mention hashed data sent to Meta.**
+**Meta Pixel + Conversions API (2026-11-17, ADR-0105/0107): LIVE with the new Pixel. Vercel has the new Pixel id and token; the production JS has the new id (old blocked 1436419551457404 gone). On vanduomarse.lt after "Priimti visus" the Pixel loads, `_fbp` is set, and PageView + ViewContent reach Meta. Not yet seen: InitiateCheckout / Purchase (need one real or test purchase) and the server copy in Events Manager. Next: one test purchase, check both events and the "Server" source in Events Manager.**
 
 **Campaign conversions (2026-11-16, ADR-0106): Black Friday / plan pages send view_item + ViewContent after consent; checkout and purchase carry the discount code as `coupon`. PR open from `feat/campaign-conversions`. Next: GA key event `purchase`, Meta custom conversion on Purchase with coupon WAKEBLACKFRIDAY2026.**
 

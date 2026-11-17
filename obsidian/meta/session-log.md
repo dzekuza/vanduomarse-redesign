@@ -1,3 +1,9 @@
+## 2026-11-17 — New Meta Pixel and CAPI token checked
+
+- **Changed:** nothing in code; owner put a new Pixel id and CAPI token in `.env.local`.
+- **Status:** localhost and live (vanduomarse.lt): Pixel loads, `_fbp` set, PageView + ViewContent sent; live JS has the new Pixel id. Vercel env updated and redeployed.
+- **Next:** one test purchase to see InitiateCheckout + Purchase and the server copy in Events Manager.
+
 ## 2026-11-17 — Admin menu: Vandenlentės and Instruktorius
 
 - **Changed:** `components/admin/admin-nav.ts` (dropdown → two links), `apyrankes-view.tsx` (no Skenavimas tab, default Pardavimas), removed `scan-tab.tsx`.
