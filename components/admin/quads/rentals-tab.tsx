@@ -55,7 +55,7 @@ export function RentalsTab() {
               </CardTitle>
               <div className="flex flex-wrap justify-end gap-1">
                 <BookingStatusBadge status={r.status} />
-                <PaymentBadge payment={r.payment} />
+                <PaymentBadge payment={r.payment} method={r.paymentMethod} />
               </div>
             </CardHeader>
             <CardContent className="space-y-1 text-sm">

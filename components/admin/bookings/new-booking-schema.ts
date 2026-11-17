@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PAYMENT_EMAIL_REQUIRED, paymentFormShape } from "./payment-form";
 import { todayKey } from "@/lib/sauna";
 
 const int = (msg: string) => z.string().trim().regex(/^\d+$/, msg);
@@ -26,8 +27,7 @@ export const newBookingSchema = z
     status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     /** How it was paid at entry (used when `paid`), and whether it was; unpaid ones get a payment link by e-mail. */
-    payMethod: z.enum(["grynais", "kortele"]),
-    paid: z.enum(["sumoketa", "nesumoketa"]),
+    ...paymentFormShape,
     priceOverride: z.string().trim().refine((v) => v === "" || /^\d+(\.\d{1,2})?$/.test(v), "Suma arba tuščia."),
     note: z.string().trim().max(300),
   })
@@ -42,7 +42,7 @@ export const newBookingSchema = z
     } else if (!/^\d+$/.test(v.nights) || Number(v.nights) < 1 || Number(v.nights) > 14) {
       ctx.addIssue({ code: "custom", path: ["nights"], message: "Nuo 1 iki 14 naktų." });
     }
-    if (v.paid === "nesumoketa" && v.email === "") ctx.addIssue({ code: "custom", path: ["email"], message: "Apmokėjimo nuorodai reikia el. pašto." });
+    if (v.paid === "nesumoketa" && v.email === "") ctx.addIssue({ code: "custom", path: ["email"], message: PAYMENT_EMAIL_REQUIRED });
     if (Number(v.guests) < 1) ctx.addIssue({ code: "custom", path: ["guests"], message: "Bent 1 žmogus." });
   });
 

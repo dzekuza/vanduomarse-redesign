@@ -1,3 +1,9 @@
+## 2026-11-18 — Staff payments round 2: resend, copy, mark paid, quads
+
+- **Changed:** migration `20261118120000` (applied); `lib/staff-payment.ts` (`openStaffPayment`, `retireStaffPayment`), `app/admin/actions/staff-payments.ts`, `PaymentActions` in four places, `payment-form.ts`, payment fields on `NewRentalDialog` / `NewTourDialog`, quad actions return `{ rental, emailSent, paymentUrl }`; ADR-0113.
+- **Status:** tsc, eslint, 173 tests; SQL tested in a rolled-back block; sheet buttons seen in the browser, none pressed. On PR #138.
+- **Next:** push; one real pass with a test address: create unpaid, resend, copy, pay, and mark another paid.
+
 ## 2026-11-18 — Payment on admin new reservations
 
 - **Changed:** migration `20261118090000_staff_payments.sql` (applied); `lib/staff-payment.ts` (+test), `emailPaymentRequest`; `createBooking` / `createEventTicket` take `payment` and return `{ booking|ticket, emailSent, paymentUrl }`; `BookingPaymentFields`, new schema fields, `PaymentNote` / `PaymentBadge` show the staff-recorded method and awaiting-payment state; types and mappers (`paidAt`, `paymentMethod`); `database.types.ts` patched by hand for the new columns and function; ADR-0112.

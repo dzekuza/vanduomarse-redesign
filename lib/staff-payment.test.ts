@@ -5,11 +5,14 @@ vi.mock("server-only", () => ({}));
 let enabled = true;
 const sessionsCreate = vi.fn();
 const sessionsExpire = vi.fn(() => Promise.resolve());
+const sessionsRetrieve = vi.fn();
+const closeCheckoutSession = vi.fn<(id: string) => Promise<"expired" | "paid">>();
+vi.mock("@/lib/payment-release", () => ({ closeCheckoutSession: (id: string) => closeCheckoutSession(id) }));
 vi.mock("@/lib/stripe", () => ({
   MissingStripeKeyError: class extends Error {},
   paymentsEnabled: () => enabled,
   getStripe: () => ({
-    checkout: { sessions: { create: sessionsCreate, expire: sessionsExpire } },
+    checkout: { sessions: { create: sessionsCreate, expire: sessionsExpire, retrieve: sessionsRetrieve } },
   }),
   siteOrigin: async () => "https://example.test",
   toCents: (n: number) => Math.round(n * 100),
@@ -23,7 +26,7 @@ vi.mock("@/lib/email/notify", () => ({
   emailPaymentRequest: (...args: unknown[]) => emailPaymentRequest(...args),
 }));
 
-import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
+import { openStaffPayment, requestStaffPayment, retireStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 
 const payment = {
   payment_id: "11111111-1111-4111-8111-111111111111",
@@ -138,5 +141,70 @@ describe("requestStaffPayment", () => {
     const outcome = await requestStaffPayment(request);
     expect(outcome).toMatchObject({ ok: false });
     expect(sessionsCreate).not.toHaveBeenCalled();
+  });
+});
+
+describe("openStaffPayment (send again / copy)", () => {
+  const withSession = (session: string | null) =>
+    rpc.mockImplementation(async (name: string) => (name === "start_staff_payment" ? { data: [{ ...payment, stripe_session_id: session }], error: null } : { data: null, error: null }));
+
+  it("reuses the payment's open Checkout Session", async () => {
+    withSession("cs_old");
+    sessionsRetrieve.mockResolvedValue({ status: "open", url: "https://pay.test/cs_old" });
+    expect(await openStaffPayment("PIR-1", "a@b.lt")).toEqual({ ok: true, paymentId: payment.payment_id, amount: 140, url: "https://pay.test/cs_old" });
+    expect(sessionsCreate).not.toHaveBeenCalled();
+  });
+
+  it("replaces an expired session, handing the old id to attach, and keeps the payment on failure", async () => {
+    withSession("cs_old");
+    sessionsRetrieve.mockResolvedValue({ status: "expired", url: null });
+    expect(await openStaffPayment("PIR-1", "a@b.lt")).toMatchObject({ ok: true, url: "https://pay.test/cs_1" });
+    expect(rpc).toHaveBeenCalledWith("attach_payment_session", expect.objectContaining({ p_expected_session_id: "cs_old" }));
+
+    sessionsCreate.mockRejectedValue(new Error("boom"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    expect(await openStaffPayment("PIR-1", "a@b.lt")).toMatchObject({ ok: false });
+    expect(rpc).not.toHaveBeenCalledWith("abandon_payment", expect.anything());
+  });
+
+  it("refuses when the customer already paid", async () => {
+    withSession("cs_old");
+    sessionsRetrieve.mockResolvedValue({ status: "complete", url: null });
+    expect(await openStaffPayment("PIR-1", "a@b.lt")).toMatchObject({ ok: false, code: "settled" });
+  });
+
+  it("works without an e-mail address (copy only)", async () => {
+    await openStaffPayment("PIR-1", "");
+    expect((sessionsCreate.mock.calls[0][0] as { customer_email?: string }).customer_email).toBeUndefined();
+  });
+});
+
+describe("retireStaffPayment (mark paid at entry)", () => {
+  const state = (status: string, session: string | null) =>
+    rpc.mockImplementation(async (name: string) => (name === "payment_state" ? { data: [{ status, stripe_session_id: session }], error: null } : { data: null, error: null }));
+
+  it("expires the session, then voids the payment", async () => {
+    state("laukia", "cs_1");
+    closeCheckoutSession.mockResolvedValue("expired");
+    expect(await retireStaffPayment(payment.payment_id)).toEqual({ ok: true });
+    expect(closeCheckoutSession).toHaveBeenCalledWith("cs_1");
+    expect(rpc).toHaveBeenCalledWith("void_staff_payment", { p_payment_id: payment.payment_id });
+  });
+
+  it("refuses a payment the customer already paid", async () => {
+    state("apmoketa", "cs_1");
+    expect(await retireStaffPayment(payment.payment_id)).toMatchObject({ ok: false });
+    state("laukia", "cs_1");
+    closeCheckoutSession.mockResolvedValue("paid");
+    expect(await retireStaffPayment(payment.payment_id)).toMatchObject({ ok: false });
+    expect(rpc).not.toHaveBeenCalledWith("void_staff_payment", expect.anything());
+  });
+
+  it("does not void when Stripe cannot confirm the session is closed", async () => {
+    state("laukia", "cs_1");
+    closeCheckoutSession.mockRejectedValue(new Error("still open"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    expect(await retireStaffPayment(payment.payment_id)).toMatchObject({ ok: false });
+    expect(rpc).not.toHaveBeenCalledWith("void_staff_payment", expect.anything());
   });
 });

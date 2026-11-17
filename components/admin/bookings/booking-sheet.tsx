@@ -3,6 +3,7 @@
 import { EnvelopeSimpleIcon, PhoneIcon } from "@phosphor-icons/react";
 import { ACTION_LABEL, NEXT_STATUSES, useBookingStatus } from "./booking-actions";
 import { useAdmin } from "../admin-store";
+import { PaymentActions } from "../payment-actions";
 import { PaymentNote } from "../payment-note";
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { BOOKING_SOURCE } from "@/lib/admin/labels";
@@ -35,6 +36,7 @@ export function BookingSheet({ booking, onOpenChange }: BookingSheetProps) {
             </SheetHeader>
             <div className="px-4">
               <PaymentNote payment={booking.payment} paidAt={booking.paidAt} method={booking.paymentMethod} />
+              <PaymentActions kind="booking" id={booking.id} status={booking.status} source={booking.source} payment={booking.payment} paidAt={booking.paidAt} email={booking.customer.email} />
             </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 text-sm">
               {[

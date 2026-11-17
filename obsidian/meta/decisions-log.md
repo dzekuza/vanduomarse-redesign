@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0113 — Resend, copy and "mark as paid" for staff-entered requests; payment on quad rentals and tours
+
+- **Status:** Accepted (built on `feat/admin-reservation-payment`).
+- **Date:** 2026-11-18
+- **Context:** ADR-0112 let staff record payment only when creating a request. An unpaid request needed a way to send the link again (it lasts 24 h), to hand the link over another way, and to be settled when the customer paid at the till; quad rentals and tours were not covered.
+- **Decision:** `start_staff_payment` is idempotent: asked again it returns the request's open staff payment, or starts a new one when the earlier expired. `openStaffPayment` turns that into a Checkout URL (open session reused, expired one replaced with `p_expected_session_id`). "Pažymėti sumokėta" first expires the Checkout Session (`closeCheckoutSession`; a session that turned out paid refuses), then `void_staff_payment` marks the payment expired and detaches it, then `paid_at` / `payment_method` are written and a "Laukia" request is confirmed (as an online payment does). Quad rentals got the same columns; all three creation dialogs share `payment-form.ts`. Only staff-source (`telefonu` / `vietoje`) requests are touched; website requests stay with the customer.
+- **Consequences:** a request staff entered before ADR-0112 (no payment information) also shows the three buttons until marked. Marking paid on a customer-paid-in-the-meantime request is refused. A paid-online request is refunded through the existing cancel flow. Still not built: mixed payments of several requests in one link.
+
+---
+
 ## ADR-0112 — Staff-entered reservations record how they were paid; unpaid ones get a Stripe payment link by e-mail
 
 - **Status:** Accepted (built, not committed).

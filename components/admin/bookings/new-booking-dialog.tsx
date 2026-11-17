@@ -3,13 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { FormField } from "../form-field";
 import { BookingChooser } from "./booking-chooser";
 import { BookingCustomerFields } from "./booking-customer-fields";
 import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingPaymentFields } from "./booking-payment-fields";
+import { paymentFormDefaults, paymentInput, reportCreated } from "./payment-form";
 import { NewRentalDialog } from "../quads/new-rental-dialog";
 import { NewTourDialog } from "../quads/new-tour-dialog";
 import { BookingWhenFields } from "./booking-when-fields";
@@ -60,8 +60,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       email: "",
       status: "patvirtinta",
       source: "telefonu",
-      payMethod: "grynais",
-      paid: "sumoketa",
+      ...paymentFormDefaults,
       priceOverride: "",
       note: "",
     },
@@ -121,17 +120,6 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       ? { title: chosen?.name ?? "Pirtis", detail: "Privati pirtis" }
       : { title: stayType?.label ?? "Apgyvendinimas", detail: stayType ? `Iki ${stayType.maxGuests} žm. · ${formatEur(stayType.pricePerNight)} / naktį` : "" };
 
-  /** The toast after saving; an unpaid one says whether the payment link went out, and offers the link when the e-mail did not. */
-  const reportCreated = (reference: string, outcome: { emailSent?: boolean; paymentUrl?: string }) => {
-    if (outcome.emailSent === undefined) return void toast.success(`${reference} sukurta`);
-    if (outcome.emailSent) return void toast.success(`${reference} sukurta, apmokėjimo nuoroda išsiųsta`);
-    const url = outcome.paymentUrl;
-    toast.warning(`${reference} sukurta, bet laiško išsiųsti nepavyko`, {
-      duration: 15000,
-      action: url ? { label: "Kopijuoti nuorodą", onClick: () => void navigator.clipboard.writeText(url) } : undefined,
-    });
-  };
-
   const submit = handleSubmit(async (v) => {
     if (party > maxGuests) return setError("guests", { message: ticket ? `Liko vietų: ${maxGuests}` : `Daugiausia ${maxGuests} žm.` });
     if (ticket) {
@@ -142,7 +130,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
         people: party,
         status: v.status,
         source: v.source,
-        payment: { method: v.payMethod, paid: !unpaid },
+        payment: paymentInput(v),
       });
       if ("error" in created) return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
       reportCreated(created.data.ticket.reference, created.data);
@@ -167,7 +155,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       status: v.status,
       source: v.source,
       note: v.note,
-      payment: { method: v.payMethod, paid: !unpaid },
+      payment: paymentInput(v),
     });
     // The database has the final say on conflicts (another booking may have landed meanwhile).
     if ("error" in result) {

@@ -223,6 +223,9 @@ export interface QuadRental {
   note?: string;
   createdAt: string;
   payment?: PaymentInfo;
+  /** Paid at entry (staff-entered): when and how. Online payments are in `payment`. */
+  paidAt?: string;
+  paymentMethod?: StaffPaymentMethod;
   /** Linked customer (Klientai), when matched or created. ADR-0042 */
   riderId?: string;
   /** Tour bookings: the tour product, and the dated departure (an event) it joined. */

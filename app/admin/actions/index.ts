@@ -12,4 +12,5 @@ export * from "./stays";
 export * from "./external-calendars";
 export * from "./quads";
 export * from "./riders";
+export * from "./staff-payments";
 export type { ActionResult } from "@/lib/admin/action-helpers";

@@ -5,6 +5,7 @@ import {
   MIN_CHARGE_MESSAGE,
   payItemsSchema,
 } from "@/lib/payments";
+import { closeCheckoutSession } from "@/lib/payment-release";
 import {
   MissingStripeKeyError,
   getStripe,
@@ -15,9 +16,11 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
- * Payment link for a staff-entered reservation that was not paid at entry (ADR-0112). The booking or ticket already exists;
- * this groups it into a payment (`start_staff_payment`), opens a Stripe Checkout Session that lasts a day, and e-mails the
- * link. Paying is confirmed by the Stripe webhook like any other payment. Staff permission is checked by the caller.
+ * Payment link for a staff-entered reservation that was not paid at entry (ADR-0112, ADR-0113). The booking, rental or
+ * ticket already exists; `openStaffPayment` groups it into a payment (`start_staff_payment`, which gives the open one
+ * back when asked again) and returns a Stripe Checkout URL that lasts a day: the payment's own open session, or a new
+ * one when it expired. Paying is confirmed by the Stripe webhook like any other payment. Staff permission is checked
+ * by the caller.
  */
 
 /** Stripe allows a Checkout Session to live 30 minutes to 24 hours; a few minutes under the maximum. */
@@ -26,9 +29,33 @@ const SESSION_MINUTES = 24 * 60 - 5;
 /** Tags our Checkout Sessions in the Stripe Dashboard (the same as the website flow). */
 const INTEGRATION_ID = "vanduomarse-reservation-qvtmxkdh";
 
+type Failure = {
+  ok: false;
+  message: string;
+  code: "setup" | "payment" | "settled";
+};
+const PAYMENT_FAILED: Failure = {
+  ok: false,
+  message: "Nepavyko sukurti apmokėjimo nuorodos.",
+  code: "payment",
+};
+const SETTLED: Failure = {
+  ok: false,
+  message: "Klientas jau apmokėjo. Atnaujinkite puslapį.",
+  code: "settled",
+};
+
+export type StaffLinkOutcome =
+  { ok: true; paymentId: string; amount: number; url: string } | Failure;
 export type StaffPaymentOutcome =
-  | { ok: true; paymentId: string; amount: number; emailSent: boolean; url: string }
-  | { ok: false; message: string; code: "setup" | "payment" };
+  | {
+      ok: true;
+      paymentId: string;
+      amount: number;
+      emailSent: boolean;
+      url: string;
+    }
+  | Failure;
 
 /** Checks that can run before anything is saved, so a refused request leaves no booking behind. */
 export function staffPaymentProblem(
@@ -50,29 +77,53 @@ export function staffPaymentProblem(
   return null;
 }
 
-export async function requestStaffPayment(request: {
-  reference: string;
-  email: string;
-  summary: string;
-}): Promise<StaffPaymentOutcome> {
+/** The open Checkout URL of the request's staff payment (started or reused), without sending anything. */
+export async function openStaffPayment(
+  reference: string,
+  email: string,
+): Promise<StaffLinkOutcome> {
+  if (!paymentsEnabled())
+    return {
+      ok: false,
+      message: "Internetinis apmokėjimas neįjungtas.",
+      code: "setup",
+    };
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("start_staff_payment", {
-    p_refs: [request.reference],
+    p_refs: [reference],
   });
   const payment = data?.[0];
   if (error || !payment) {
     console.error("Staff payment: start_staff_payment failed", error);
-    return {
-      ok: false,
-      message: "Nepavyko sukurti apmokėjimo nuorodos.",
-      code: "payment",
-    };
+    return error?.hint === "payment_requests"
+      ? {
+          ok: false,
+          message: "Užklausa nerasta, atšaukta arba jau apmokėta.",
+          code: "payment",
+        }
+      : PAYMENT_FAILED;
   }
 
   try {
+    const stripe = getStripe();
+    // An earlier session is reused while it is open; a paid one stops here; an expired one is replaced.
+    if (payment.stripe_session_id) {
+      const existing = await stripe.checkout.sessions.retrieve(
+        payment.stripe_session_id,
+      );
+      if (existing.status === "open" && existing.url)
+        return {
+          ok: true,
+          paymentId: payment.payment_id,
+          amount: payment.amount,
+          url: existing.url,
+        };
+      if (existing.status === "complete") return SETTLED;
+    }
+
     const items = payItemsSchema.parse(payment.items);
     const origin = await siteOrigin();
-    const session = await getStripe().checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: items.map((item) => ({
         quantity: 1,
@@ -82,12 +133,12 @@ export async function requestStaffPayment(request: {
           product_data: { name: `${item.label} · ${item.reference}` },
         },
       })),
-      customer_email: request.email,
+      customer_email: email.trim() || undefined,
       client_reference_id: payment.payment_id,
       metadata: { payment_id: payment.payment_id },
       payment_intent_data: {
         metadata: { payment_id: payment.payment_id },
-        description: `Vanduo Marse ${request.reference}`,
+        description: `Vanduo Marse ${reference}`,
       },
       success_url: `${origin}/rezervacija/mokejimas?pid=${payment.payment_id}`,
       cancel_url: `${origin}/rezervacija/mokejimas?pid=${payment.payment_id}&atsaukta=1`,
@@ -101,31 +152,22 @@ export async function requestStaffPayment(request: {
       p_payment_id: payment.payment_id,
       p_session_id: session.id,
       p_expires_at: new Date(session.expires_at * 1000).toISOString(),
+      p_expected_session_id: payment.stripe_session_id ?? undefined,
     });
     if (attachError) {
-      await getStripe()
-        .checkout.sessions.expire(session.id)
-        .catch(() => null);
+      await stripe.checkout.sessions.expire(session.id).catch(() => null);
       throw attachError;
     }
-
-    const emailSent = await emailPaymentRequest(
-      request.email,
-      request.reference,
-      request.summary,
-      payment.amount,
-      session.url,
-    );
     return {
       ok: true,
       paymentId: payment.payment_id,
       amount: payment.amount,
-      emailSent,
       url: session.url,
     };
   } catch (e) {
-    // Free the payment so the caller can remove the booking it was made for.
-    await admin.rpc("abandon_payment", { p_payment_id: payment.payment_id });
+    // A payment that never had a session is freed so the caller can remove the request it was made for; an older one is left alone.
+    if (!payment.stripe_session_id)
+      await admin.rpc("abandon_payment", { p_payment_id: payment.payment_id });
     if (e instanceof MissingStripeKeyError)
       return {
         ok: false,
@@ -133,10 +175,69 @@ export async function requestStaffPayment(request: {
         code: "setup",
       };
     console.error("Staff payment: checkout failed", e);
+    return PAYMENT_FAILED;
+  }
+}
+
+/** Opens the payment link and e-mails it to the customer. A failed e-mail still returns the link, so staff can pass it on. */
+export async function requestStaffPayment(request: {
+  reference: string;
+  email: string;
+  summary: string;
+}): Promise<StaffPaymentOutcome> {
+  const link = await openStaffPayment(request.reference, request.email);
+  if (!link.ok) return link;
+  const emailSent = await emailPaymentRequest(
+    request.email,
+    request.reference,
+    request.summary,
+    link.amount,
+    link.url,
+  );
+  return { ...link, emailSent };
+}
+
+/**
+ * Retires a request's unpaid staff payment because staff recorded the request as paid at entry: its Checkout Session is
+ * expired first (a customer can no longer pay it), then the payment is voided and detached. Refuses when the customer
+ * already paid.
+ */
+export async function retireStaffPayment(
+  paymentId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const admin = createAdminClient();
+  const { data, error } = await admin.rpc("payment_state", {
+    p_payment_id: paymentId,
+  });
+  const state = data?.[0];
+  if (error || !state) return { ok: false, message: "Mokėjimas nerastas." };
+  if (state.status === "apmoketa" || state.status === "grazinta")
     return {
       ok: false,
-      message: "Nepavyko sukurti apmokėjimo nuorodos.",
-      code: "payment",
+      message: "Klientas jau apmokėjo internetu. Atnaujinkite puslapį.",
+    };
+  try {
+    if (
+      state.stripe_session_id &&
+      (await closeCheckoutSession(state.stripe_session_id)) === "paid"
+    )
+      return {
+        ok: false,
+        message: "Klientas jau apmokėjo internetu. Atnaujinkite puslapį.",
+      };
+  } catch (e) {
+    console.error("Staff payment: could not expire the session", e);
+    return {
+      ok: false,
+      message: "Nepavyko išjungti apmokėjimo nuorodos. Bandykite dar kartą.",
     };
   }
+  const { error: voidError } = await admin.rpc("void_staff_payment", {
+    p_payment_id: paymentId,
+  });
+  if (voidError) {
+    console.error("Staff payment: void failed", voidError);
+    return { ok: false, message: "Nepavyko atnaujinti mokėjimo." };
+  }
+  return { ok: true };
 }

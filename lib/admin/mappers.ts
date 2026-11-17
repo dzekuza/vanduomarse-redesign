@@ -409,6 +409,7 @@ export function toQuadRental(r: QuadRentalRow): QuadRental {
     source: r.source,
     note: r.note ?? undefined,
     createdAt: r.created_at,
+    ...staffPaid(r),
     riderId: r.rider_id ?? undefined,
     tourRouteId: r.tour_route_id ?? undefined,
     tourEventId: r.tour_event_id ?? undefined,

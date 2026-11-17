@@ -1,12 +1,14 @@
 "use client";
 
-import { Controller, type Control } from "react-hook-form";
+import { Controller, type Control, type FieldValues, type Path } from "react-hook-form";
 import { FormField } from "../form-field";
-import type { NewBookingValues } from "./new-booking-schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface BookingPaymentFieldsProps {
-  control: Control<NewBookingValues>;
+/** A form that carries the shared payment fields (`paymentFormShape`). */
+type WithPayment = FieldValues & { paid: "sumoketa" | "nesumoketa"; payMethod: "grynais" | "kortele" };
+
+interface BookingPaymentFieldsProps<T extends WithPayment> {
+  control: Control<T>;
   /** Not paid at entry: the customer is e-mailed a payment link instead of a method being recorded. */
   unpaid: boolean;
 }
@@ -22,11 +24,11 @@ const METHOD = [
 ];
 
 /** How a staff-entered reservation was paid: the method and whether it was; unpaid ones get a payment link by e-mail. */
-export function BookingPaymentFields({ control, unpaid }: BookingPaymentFieldsProps) {
+export function BookingPaymentFields<T extends WithPayment>({ control, unpaid }: BookingPaymentFieldsProps<T>) {
   const select = (name: "paid" | "payMethod", id: string, options: { value: string; label: string }[]) => (
     <Controller
       control={control}
-      name={name}
+      name={name as Path<T>}
       render={({ field }) => (
         <Select value={field.value} onValueChange={field.onChange}>
           <SelectTrigger id={id} className="w-full">

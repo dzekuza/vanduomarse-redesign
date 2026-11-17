@@ -1251,7 +1251,9 @@ export type Database = {
           hours: number
           id: string
           note: string | null
+          paid_at: string | null
           payment_id: string | null
+          payment_method: string | null
           quad_type_id: string | null
           reference: string
           rider_id: string | null
@@ -1279,7 +1281,9 @@ export type Database = {
           hours: number
           id?: string
           note?: string | null
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           quad_type_id?: string | null
           reference: string
           rider_id?: string | null
@@ -1307,7 +1311,9 @@ export type Database = {
           hours?: number
           id?: string
           note?: string | null
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           quad_type_id?: string | null
           reference?: string
           rider_id?: string | null
@@ -3300,6 +3306,10 @@ export type Database = {
       verify_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: string
+      }
+      void_staff_payment: {
+        Args: { p_payment_id: string }
+        Returns: undefined
       }
     }
     Enums: {
