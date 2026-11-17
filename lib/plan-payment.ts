@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { z } from "zod";
 import { emailPassPaidCustomer, emailPlanPaidCustomer, emailStaffPassCancelled, emailStaffPassPaid, emailStaffPlanCancelled, emailStaffPlanPaid } from "@/lib/email/notify";
 import { recordStaffNotification } from "@/lib/staff-notifications";
+import { alertStaffPaidOrder } from "@/lib/staff-order-alert";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -35,14 +36,17 @@ export async function onPlanOrderPaid(orderId: string, session: Stripe.Checkout.
     return;
   }
   const feed = (review: boolean) =>
-    recordStaffNotification({
-      kind: review ? "mokejimas_patikrinti" : "mokejimas",
-      permissions: ["apyrankes"],
-      title: review ? `Patikrinti plano mokėjimą · ${o.reference}` : `Apmokėtas planas · ${o.reference}`,
-      body: `${o.plan_name}, ${review ? paidAmount : o.price} €. ${o.rider_name}`,
-      reference: o.reference,
-      href: "/admin/apyrankes",
-    });
+    Promise.allSettled([
+      recordStaffNotification({
+        kind: review ? "mokejimas_patikrinti" : "mokejimas",
+        permissions: ["apyrankes"],
+        title: review ? `Patikrinti plano mokėjimą · ${o.reference}` : `Apmokėtas planas · ${o.reference}`,
+        body: `${o.plan_name}, ${review ? paidAmount : o.price} €. ${o.rider_name}`,
+        reference: o.reference,
+        href: "/admin/apyrankes",
+      }),
+      alertStaffPaidOrder({ kind: "planas", reference: o.reference, amount: review ? paidAmount : o.price, review }),
+    ]);
   if (!o.amount_ok) {
     await feed(true);
     await emailStaffPlanPaid({ reference: o.reference, planName: o.plan_name, amount: paidAmount, riderName: o.rider_name, riderEmail: o.rider_email, problem: `Apmokėta ${paidAmount} €, o plano kaina ${o.price} €. Planas nepriskirtas: patikrinkite ir, jei reikia, grąžinkite per Stripe.` });
@@ -107,14 +111,17 @@ export async function onPlanPassPaid(passId: string, session: Stripe.Checkout.Se
   }
   const notice = { reference: o.reference, planName: o.plan_name, amount: o.price, buyerName: o.buyer_name, buyerEmail: o.buyer_email, gift: o.gift, recipientName: o.recipient_name };
   const feed = (review: boolean) =>
-    recordStaffNotification({
-      kind: review ? "mokejimas_patikrinti" : "mokejimas",
-      permissions: ["apyrankes"],
-      title: review ? `Patikrinti abonemento mokėjimą · ${o.reference}` : `Apmokėtas abonementas · ${o.reference}`,
-      body: `${o.plan_name}, ${review ? paidAmount : o.price} €. ${o.buyer_name}${o.gift ? " (dovana)" : ""}`,
-      reference: o.reference,
-      href: "/admin/apyrankes?tab=kodai",
-    });
+    Promise.allSettled([
+      recordStaffNotification({
+        kind: review ? "mokejimas_patikrinti" : "mokejimas",
+        permissions: ["apyrankes"],
+        title: review ? `Patikrinti abonemento mokėjimą · ${o.reference}` : `Apmokėtas abonementas · ${o.reference}`,
+        body: `${o.plan_name}, ${review ? paidAmount : o.price} €. ${o.buyer_name}${o.gift ? " (dovana)" : ""}`,
+        reference: o.reference,
+        href: "/admin/apyrankes?tab=kodai",
+      }),
+      alertStaffPaidOrder({ kind: "abonementas", reference: o.reference, amount: review ? paidAmount : o.price, review, gift: o.gift }),
+    ]);
   if (!o.amount_ok) {
     await feed(true);
     await emailStaffPassPaid({ ...notice, amount: paidAmount, problem: `Apmokėta ${paidAmount} €, o abonemento kaina ${o.price} €. Kodas neišduotas: patikrinkite ir, jei reikia, grąžinkite per Stripe.` });
