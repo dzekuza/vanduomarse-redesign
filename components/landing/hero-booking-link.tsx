@@ -3,6 +3,7 @@
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 interface HeroBookingLinkProps {
@@ -23,6 +24,7 @@ export function HeroBookingLink({
   const [floating, setFloating] = useState(false);
   const sticker = useRef<HTMLDivElement>(null);
   const progressRing = useRef<SVGCircleElement>(null);
+  const ringOffset = useRef("1");
   const previousRect = useRef<DOMRect | null>(null);
   const animation = useRef<Animation | null>(null);
 
@@ -34,7 +36,8 @@ export function HeroBookingLink({
       const scrollable = scrollHeight - clientHeight;
       // Round to the nearest pixel so fractional scroll positions can reach 100%.
       const progress = scrollable > 0 ? Math.min(1, Math.max(0, Math.round(window.scrollY) / scrollable)) : 0;
-      progressRing.current?.setAttribute("stroke-dashoffset", String(1 - progress));
+      ringOffset.current = String(1 - progress);
+      progressRing.current?.setAttribute("stroke-dashoffset", ringOffset.current);
 
       const nextPinned = window.scrollY >= 96;
       if (pinned === nextPinned) return;
@@ -58,6 +61,7 @@ export function HeroBookingLink({
 
   useLayoutEffect(() => {
     const element = sticker.current;
+    progressRing.current?.setAttribute("stroke-dashoffset", ringOffset.current);
     const from = previousRect.current;
     previousRect.current = null;
     animation.current?.cancel();
@@ -74,12 +78,12 @@ export function HeroBookingLink({
     );
   }, [floating]);
 
-  return (
+  const bookingLink = (
     <div
       ref={sticker}
       className={cn(
-        "pointer-events-none z-10 size-28 origin-top-left min-[375px]:max-md:size-34 lg:size-46",
-        floating ? floatingClassName : restingClassName,
+        "pointer-events-none size-28 origin-top-left min-[375px]:max-md:size-34 lg:size-46",
+        floating ? cn("z-30", floatingClassName) : cn("z-10", restingClassName),
       )}
     >
       <Link
@@ -106,4 +110,7 @@ export function HeroBookingLink({
       </Link>
     </div>
   );
+
+  // The hero has its own stacking context. Move the pinned link above page sections.
+  return floating ? createPortal(bookingLink, document.body) : bookingLink;
 }
