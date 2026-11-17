@@ -1,5 +1,6 @@
 "use server";
 
+import { trackingMetadata } from "@/lib/meta-tracking-context";
 import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
 import { getCustomer } from "@/lib/customer";
@@ -79,7 +80,7 @@ async function checkoutUrl(payable: Payable): Promise<string> {
     })),
     customer_email: payable.email ?? undefined,
     client_reference_id: payable.id,
-    metadata: { payment_id: payable.id },
+    metadata: { payment_id: payable.id, ...(await trackingMetadata()) },
     payment_intent_data: { metadata: { payment_id: payable.id }, description: `Vanduo Marse ${references.join(", ")}` },
     success_url: `${origin}/rezervacija/mokejimas?pid=${payable.id}`,
     cancel_url: `${origin}/rezervacija/mokejimas?pid=${payable.id}&atsaukta=1`,

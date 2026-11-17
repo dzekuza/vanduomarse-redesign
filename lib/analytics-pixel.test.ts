@@ -100,19 +100,18 @@ describe("Meta Pixel events", () => {
     expect(fbq).toHaveBeenNthCalledWith(2, "track", "InitiateCheckout", params, ANY_ID);
     expect(fbq).toHaveBeenNthCalledWith(3, "track", "Purchase", params, { eventID: "purchase-AB-7" });
   });
-  it("sends the same event id to the Conversions API, with the order to verify for a purchase", async () => {
+  it("sends a browser event's id to the Conversions API too, but never reports a Purchase from the browser (the webhook does)", async () => {
     const win = browser({ marketing: true });
     const fbq = vi.fn();
     win.fbq = fbq;
     const { trackLead, trackPurchase } = await load(PIXEL);
     trackLead("sauna", { itemName: "Pirtis Marse", value: 160 });
-    trackPurchase("plan", "AB-7", { itemName: "WAKE sezono abonementas", value: 675, coupon: "WAKEBLACKFRIDAY2026" }, "cs_test_a1b2c3d4e5f6");
+    trackPurchase("plan", "AB-7", { itemName: "WAKE sezono abonementas", value: 675, coupon: "WAKEBLACKFRIDAY2026" });
     const leadId = (fbq.mock.calls[0][3] as { eventID: string }).eventID;
-    expect(report).toHaveBeenNthCalledWith(1, expect.objectContaining({ name: "Lead", eventId: leadId, value: 160, contentName: "Pirtis Marse", contentCategory: "sauna" }));
-    expect(report).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      name: "Purchase", eventId: "purchase-AB-7", coupon: "WAKEBLACKFRIDAY2026", purchase: { kind: "plan", proof: "cs_test_a1b2c3d4e5f6" },
-      sourceUrl: "https://www.vanduomarse.lt/registracija/wake/black-friday",
-    }));
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Lead", eventId: leadId, value: 160, contentName: "Pirtis Marse", contentCategory: "sauna" }));
+    // The Pixel still sends the browser Purchase with the id the webhook's server copy uses, so Meta keeps one.
+    expect(fbq).toHaveBeenLastCalledWith("track", "Purchase", expect.objectContaining({ value: 675, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026" }), { eventID: "purchase-AB-7" });
   });
 
   it("reports to the Conversions API even when the Pixel script never loads (ad blocker)", async () => {
@@ -127,12 +126,6 @@ describe("Meta Pixel events", () => {
     const { trackLead } = await load(PIXEL);
     trackLead("sauna");
     expect(report).not.toHaveBeenCalled();
-  });
-  it("sends no purchase reference to the server without the payer's proof", async () => {
-    browser({ marketing: true });
-    const { trackPurchase } = await load(PIXEL);
-    trackPurchase("coupon", "KP-1015", { value: 25 });
-    expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Purchase", purchase: undefined }));
   });
 
   describe("typed contact on checkout events", () => {
@@ -172,14 +165,14 @@ describe("Meta Pixel events", () => {
       expect(report).not.toHaveBeenCalled();
     });
 
-    it("never attaches a typed contact to a Purchase: that is built from the paid order", async () => {
+    it("never attaches a typed contact to a Purchase, and reports no Purchase to the server", async () => {
       const win = browser({ marketing: true });
       const fbq = vi.fn();
       win.fbq = fbq;
       const { trackPurchase } = await load(PIXEL);
-      trackPurchase("plan", "PS-7", { value: 675, contact: { email: "jonas@example.com", name: "Jonas" } }, "cs_test_a1b2c3d4e5f6");
+      trackPurchase("plan", "PS-7", { value: 675, contact: { email: "jonas@example.com", name: "Jonas" } });
       expect(fbq.mock.calls.map((c) => c[0])).toEqual(["track"]);
-      expect(report.mock.calls[0][0]).not.toHaveProperty("contact");
+      expect(report).not.toHaveBeenCalled();
     });
   });
 });

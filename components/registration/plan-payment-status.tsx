@@ -19,8 +19,6 @@ export interface PlanPaymentView {
   isGift?: boolean;
   /** The pass code, shown once it is paid: the buyer says it at the park. */
   passCode?: string;
-  /** The Stripe Checkout session id from the return URL: the payer's proof for the Conversions API. */
-  sessionId: string;
 }
 
 const LINK = "inline-flex min-h-11 items-center border-b border-current text-sm font-bold";
@@ -69,7 +67,7 @@ export function PlanPaymentStatus({ order, cancelled }: { order: PlanPaymentView
         ) : null
       }
     >
-      {paid ? <TrackPurchase kind="plan" transactionId={order.reference} itemName={order.planName} value={order.amount} coupon={order.discountCode} proof={order.sessionId} /> : null}
+      {paid ? <TrackPurchase kind="plan" transactionId={order.reference} itemName={order.planName} value={order.amount} coupon={order.discountCode} /> : null}
       {pending && !cancelled ? <PaymentPoller /> : null}
       {paid && pass && !gift ? (
         <Link href="/registracija" className={LINK}>

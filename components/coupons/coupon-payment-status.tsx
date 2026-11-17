@@ -44,7 +44,7 @@ export function CouponPaymentStatus({ coupon }: { coupon: CouponPaymentView | nu
 
   return (
     <PaymentCard title={title} text={text} refs={[coupon.reference]} amount={coupon.amount}>
-      {paid ? <TrackPurchase kind="coupon" transactionId={coupon.reference} itemName={coupon.productName} value={coupon.amount} proof={coupon.sessionId} /> : null}
+      {paid ? <TrackPurchase kind="coupon" transactionId={coupon.reference} itemName={coupon.productName} value={coupon.amount} /> : null}
       {pending ? <PaymentPoller /> : null}
       {paid && coupon.code ? (
         <div className="space-y-4">

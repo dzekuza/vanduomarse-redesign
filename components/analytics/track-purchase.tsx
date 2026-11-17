@@ -12,8 +12,6 @@ interface TrackPurchaseProps {
   value: number;
   /** Discount code used, so campaign sales (e.g. Black Friday) can be told apart in GA and Meta. */
   coupon?: string;
-  /** What only this payer's return page has (reservation payment id or Stripe session id), so the server can check the sale before reporting it to Meta. */
-  proof?: string;
 }
 
 const TRACKERS = ["ga", "meta"] as const;
@@ -40,7 +38,7 @@ function markSent(tracker: string, transactionId: string): void {
  * transaction, as soon as that tracker's consent is given. A buyer who answers the cookie banner on this page is still
  * counted, and allowing marketing after analytics still reaches Meta.
  */
-export function TrackPurchase({ kind, transactionId, itemName, value, coupon, proof }: TrackPurchaseProps) {
+export function TrackPurchase({ kind, transactionId, itemName, value, coupon }: TrackPurchaseProps) {
   const { choice } = useConsent();
   const analytics = choice?.analytics === true;
   const marketing = choice?.marketing === true;
@@ -53,8 +51,8 @@ export function TrackPurchase({ kind, transactionId, itemName, value, coupon, pr
       markSent(tracker, transactionId);
       to[tracker] = true;
     }
-    if (to.ga || to.meta) trackPurchase(kind, transactionId, { itemName, value, coupon }, proof, to);
-  }, [analytics, marketing, kind, transactionId, itemName, value, coupon, proof]);
+    if (to.ga || to.meta) trackPurchase(kind, transactionId, { itemName, value, coupon }, to);
+  }, [analytics, marketing, kind, transactionId, itemName, value, coupon]);
 
   return null;
 }

@@ -1,3 +1,9 @@
+## 2026-11-17 — Meta Purchase from the Stripe webhook
+
+- **Changed:** new `lib/meta-purchase.ts`, `lib/meta-tracking-context.ts`; `lib/stripe-events.ts` reports sales; the four Checkout Session creators add tracking metadata; browser Purchase proof path removed; privacy sentence; ADR-0111.
+- **Status:** tsc/eslint clean, tests pass; branch `feat/meta-purchase-webhook`, not committed. Not tested against a real paid Stripe event (live key locally).
+- **Next:** commit, PR, merge; after deploy the first real paid order should show a Purchase "Server" copy in Events Manager, deduplicated against the browser one (check `purchase-<ref>` ids). Follow-ups: fbc/fbp when the Pixel is blocked, anonymous external_id.
+
 ## 2026-11-17 — Cookie banner: full width and modal
 
 - **Changed:** `components/consent/consent-banner.tsx` (portal, backdrop, inert page, scroll lock, wider layout, policy page exempt).
