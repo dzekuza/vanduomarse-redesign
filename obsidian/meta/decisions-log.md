@@ -22,10 +22,10 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ## ADR-0112 — Staff-entered reservations record how they were paid; unpaid ones get a Stripe payment link by e-mail
 
-- **Status:** Accepted (built, not committed).
+- **Status:** Accepted (PR #138).
 - **Date:** 2026-11-18
 - **Context:** a phone or walk-in booking made in /admin carried no payment information, and the staff had no way to collect payment later. The website flow already has `payments` + Stripe Checkout + a webhook, but `start_payment` needs a customer account.
-- **Decision:** the form asks for Apmokėjimas and Mokėjimas. Paid at entry: `paid_at` and `payment_method` are written on the booking / ticket. Unpaid: `start_staff_payment` (service role, like `start_payment` but for staff-source rows with no account; `payments.staff_created`) opens the payment and `lib/staff-payment.ts` creates a Checkout Session of 24 hours (the Stripe maximum) and e-mails the link. Staff permission is checked by the server action before the service-role call. The webhook is unchanged apart from `payment_notify_email`, which returns the typed address for a staff-created payment. An unpaid booking keeps the status staff chose; with "Laukia" an unpaid link that expires releases the slot (`close_payment`), with "Patvirtinta" it stays and shows unpaid.
+- **Decision:** the form asks for Apmokėjimas and Mokėjimas. Paid at entry: `paid_at` and `payment_method` are written on the booking / ticket. Unpaid: `start_staff_payment` (service role, like `start_payment` but for staff-source rows with no account; `payments.staff_created`) opens the payment and `lib/staff-payment.ts` creates a Checkout Session that lasts 23 h 55 min (just under Stripe's 24 h maximum) and e-mails the link. Staff permission is checked by the server action before the service-role call. The webhook is unchanged apart from `payment_notify_email`, which returns the typed address for a staff-created payment. An unpaid booking keeps the status staff chose; with "Laukia" an unpaid link that expires releases the slot (`close_payment`), with "Patvirtinta" it stays and shows unpaid.
 - **Consequences:** online payment must be enabled and an e-mail given to leave a booking unpaid; a link that cannot be created removes the booking again. Quad rentals and tours are separate dialogs and still record no payment. There is no "resend link" or "mark as paid later" yet.
 
 ---
