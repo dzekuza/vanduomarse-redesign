@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0110 — The cookie banner is modal, except on the privacy policy page
+
+- **Status:** Accepted (PR open). Builds on ADR-0085.
+- **Date:** 2026-11-17
+- **Context:** the first-visit bar was a thin strip that visitors could ignore while using the whole site, and on wide screens its content sat in a narrow centred column. The owner wants the page blocked until the visitor decides.
+- **Decision:** `ConsentBanner` renders through a portal into `<body>` with a `bg-ink/60` backdrop, `role="dialog"` and `aria-modal`, moves focus to itself, sets every other `<body>` child `inert` (so neither clicks nor Tab nor screen readers reach the page) and locks scroll, until a choice is saved. The three choices stay equal ("Tik būtini" is as easy as "Priimti visus"), so this is a prompt, not a forced consent. `/privatumo-politika` is the one exception: the banner stays visible there without blocking, because a visitor must be able to read the policy it links to before deciding. The settings dialog opens later in `<body>`, so it is not made inert and sits above the banner.
+- **Consequences:** a visitor who neither chooses nor opens the policy cannot use the site, which is the intent. Other pages linked from the banner would be blocked, so only the policy link is offered. Any new legal page the banner should link to must be added to `READABLE_PATHS` in `components/consent/consent-banner.tsx`. The consent record itself (storage, categories, trackers) is unchanged.
+
+---
+
 ## ADR-0109 — WAKE passes are bought without registering; staff attach the paid pass to a registered rider
 
 - **Status:** Accepted. Migration `20261117180903_plan_passes.sql` APPLIED to the live project 2026-11-17; code on `feat/plan-passes`.
