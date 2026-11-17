@@ -70,6 +70,7 @@ export function PassBuyForm({
       itemName: plan.name,
       value: total,
       coupon: discountCode,
+      contact: { email: values.buyerEmail, name: values.buyerName },
     });
     setRedirecting(true);
     goToCheckout(result.data.checkoutUrl);

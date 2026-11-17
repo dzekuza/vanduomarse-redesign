@@ -1,8 +1,14 @@
 ## 2026-11-17 — Cookie banner: full width and modal
 
 - **Changed:** `components/consent/consent-banner.tsx` (portal, backdrop, inert page, scroll lock, wider layout, policy page exempt).
-- **Status:** tsc/eslint clean; browser-checked desktop and phone. Branch `feat/cookie-banner-modal`, PR open.
-- **Next:** commit, PR, merge. Consider: Meta/Google consent record is unchanged (same choices, same storage).
+- **Status:** tsc/eslint clean; browser-checked desktop and phone. Branch `feat/cookie-banner-modal`, merged as PR #134.
+- **Next:** merged (PR #134). The Meta/Google consent record is unchanged (same choices, same storage).
+
+## 2026-11-17 — Typed contact on checkout events (Meta matching)
+
+- **Changed:** `lib/analytics.ts` (`PixelContact`, `pixelUserData`, `trackCheckout`/`trackPixel` contact), `app/actions/meta-capi.ts` (`contact`, precedence), the three checkout forms, privacy sentence, 9 tests.
+- **Status:** tsc/eslint, 148 tests; real Pixel sends `ud[em]` hash; branch `feat/meta-checkout-contact`, PR open.
+- **Next:** merge; then check Events Manager match quality after real traffic. Possible follow-ups: same for Lead forms, an anonymous `external_id` cookie.
 
 ## 2026-11-17 — Discount code field on the Black Friday page
 
@@ -42,6 +48,7 @@
 - **Status:** tsc/eslint clean; browser-checked on localhost. Branch `fix/admin-nav-wake`.
 - **Also:** Instruktorius renamed to "Apyrankių skenavimas" (labels only); till tabs always shown with an empty note (`ride-plan-picker.tsx`).
 - **Next:** PR and merge.
+
 ## 2026-11-17 — Next.js security update
 
 - **Changed:** `next` and `eslint-config-next` 16.4.2 → 16.4.6 (security advisory); `experimental.agentUpgrade: "security"` in `next.config.ts`; tech-stack versions.

@@ -28,6 +28,12 @@ const input = z.object({
   contentName: z.string().max(120).optional(),
   contentCategory: z.string().max(40).optional(),
   coupon: z.string().max(40).optional(),
+  /**
+   * Contact the visitor typed into the form they are submitting (checkout events). Never trusted for a Purchase, and a
+   * signed-in customer's own details win. Invalid values are dropped by the normalisers, not rejected here, so a typo in a
+   * form never costs the event itself.
+   */
+  contact: z.object({ email: z.string().max(120).optional(), name: z.string().max(120).optional(), phone: z.string().max(30).optional() }).optional(),
   /** Purchase only: which kind of order and the payer's proof (reservation payment id, or the Stripe session id). */
   purchase: z.object({ kind: z.enum(["reservation", "coupon", "plan"]), proof: z.string().min(10).max(220) }).optional(),
 });
@@ -151,12 +157,15 @@ export async function reportMetaEvent(raw: MetaEventInput): Promise<void> {
       user = { ...technical, ...paid.user };
     } else {
       const customer = await getCustomer();
+      const typed = v.contact;
+      const [typedFirst, ...typedRest] = (typed?.name ?? "").trim().split(/\s+/);
+      // The signed-in customer's confirmed details win; what was typed in the form only fills what the account lacks.
       user = {
         ...technical,
-        email: customer?.email,
-        phone: customer?.phone,
-        firstName: customer?.name.split(/\s+/)[0],
-        lastName: customer?.name.split(/\s+/).slice(1).join(" "),
+        email: customer?.email ?? typed?.email,
+        phone: customer?.phone ?? typed?.phone,
+        firstName: customer ? customer.name.split(/\s+/)[0] : typedFirst,
+        lastName: customer ? customer.name.split(/\s+/).slice(1).join(" ") : typedRest.join(" "),
         externalId: customer?.id,
       };
     }
