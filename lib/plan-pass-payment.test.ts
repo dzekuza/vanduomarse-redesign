@@ -17,6 +17,8 @@ vi.mock("@/lib/email/notify", () => ({
   emailStaffPlanCancelled: vi.fn(),
 }));
 vi.mock("@/lib/staff-notifications", () => ({ recordStaffNotification: (o: unknown) => recordStaffNotification(o) }));
+const alertStaffPaidOrder = vi.fn();
+vi.mock("@/lib/staff-order-alert", () => ({ alertStaffPaidOrder: (o: unknown) => alertStaffPaidOrder(o) }));
 
 const { onPlanPassPaid, onPlanOrderRefund, planPassIdOf } = await import("@/lib/plan-payment");
 
@@ -46,6 +48,9 @@ describe("plan pass payments", () => {
     expect(emailPassPaidCustomer).toHaveBeenCalledWith(expect.objectContaining({ buyerEmail: "jonas@example.com", code: "XZ8DNQKA6FUL", gift: true, recipientName: "Petras" }));
     expect(emailStaffPassPaid).toHaveBeenCalledWith(expect.not.objectContaining({ problem: expect.anything() }));
     expect(recordStaffNotification).toHaveBeenCalledWith(expect.objectContaining({ permissions: ["apyrankes"], kind: "mokejimas" }));
+    // The phones (SMS and app push) are told too, with a reference and amount only.
+    expect(alertStaffPaidOrder).toHaveBeenCalledTimes(1);
+    expect(alertStaffPaidOrder).toHaveBeenCalledWith({ kind: "abonementas", reference: "PS-1", amount: 675, review: false, gift: true });
   });
 
   it("sends nothing again when Stripe repeats the event", async () => {
@@ -53,6 +58,7 @@ describe("plan pass payments", () => {
     await onPlanPassPaid("p1", session);
     expect(emailPassPaidCustomer).not.toHaveBeenCalled();
     expect(emailStaffPassPaid).not.toHaveBeenCalled();
+    expect(alertStaffPaidOrder).not.toHaveBeenCalled();
   });
 
   it("issues no code and flags staff when the paid amount differs from the price", async () => {
@@ -61,6 +67,7 @@ describe("plan pass payments", () => {
     expect(emailPassPaidCustomer).not.toHaveBeenCalled();
     expect(emailStaffPassPaid).toHaveBeenCalledWith(expect.objectContaining({ problem: expect.stringContaining("Kodas neišduotas") }));
     expect(recordStaffNotification).toHaveBeenCalledWith(expect.objectContaining({ kind: "mokejimas_patikrinti" }));
+    expect(alertStaffPaidOrder).toHaveBeenCalledWith(expect.objectContaining({ kind: "abonementas", review: true, amount: 675 }));
   });
 
   it("tells staff when the code e-mail could not be sent", async () => {

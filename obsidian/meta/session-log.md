@@ -1,3 +1,9 @@
+## 2026-11-17 — Staff SMS and push for paid passes, plans and coupons
+
+- **Changed:** new `lib/staff-order-alert.ts`, `lib/push/paid-order-push.ts`; the three payment handlers call them next to the bell entry; ADR-0112; 4 test files.
+- **Status:** tsc/eslint clean, 168 tests; branch `feat/staff-push-paid-orders`, not committed. Today's list reaches 3 phones and 2 e-mails for payments.
+- **Next:** commit, PR, merge; the next real pass payment should text the 3 numbers.
+
 ## 2026-11-17 — Meta Purchase from the Stripe webhook
 
 - **Changed:** new `lib/meta-purchase.ts`, `lib/meta-tracking-context.ts`; `lib/stripe-events.ts` reports sales; the four Checkout Session creators add tracking metadata; browser Purchase proof path removed; privacy sentence; ADR-0111.

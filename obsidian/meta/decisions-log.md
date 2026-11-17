@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0112 — Paid coupons, plans and passes alert staff by SMS and app push as well as e-mail
+
+- **Status:** Accepted (built on `feat/staff-push-paid-orders`).
+- **Date:** 2026-11-17
+- **Context:** a paid WAKE pass (and plan order, and coupon) wrote an admin bell entry and sent a staff e-mail, but no SMS or app push, unlike a paid booking. An e-mail can sit unread; the owner wants the phones told, for everyone in /admin/pranesimai and for people added later.
+- **Decision:** the `feed(review)` helper in `onCouponPaid`, `onPlanOrderPaid` and `onPlanPassPaid` also calls `alertStaffPaidOrder`, which sends an SMS with `sendStaffSms(["mokejimai"], …)` and the Expo push with `pushPaidOrder`. Recipients are not stored in code: `staff_notify_phones_for` / `staff_notify_emails_for` read `notification_recipients` on every call and always include `visi`, so a person added later (with `visi` or `mokejimai`) is reached without a change; with no phones set up the old `STAFF_NOTIFY_PHONE` fallback still applies. The SMS is ASCII (one segment) and, like the push, carries only the kind, reference and amount, never a name, phone or e-mail, because it passes through Twilio / Expo and shows on lock screens; staff open the admin for details. A payment whose amount did not match is sent as "PATIKRINTI …". Sent once, when the payment is newly recorded (a repeated Stripe event sends nothing).
+- **Consequences:** more SMS per sale (one per subscribed number); a campaign day with many passes means many texts, so staff who only want bookings should not follow `mokejimai` or `visi`. Service-specific topics (`pirtis`, `keturraciai`, `nakvyne`) do not receive these (they are not tied to one service). The push reaches only devices registered in the mobile admin app. A delivery failure is swallowed so it cannot fail the Stripe webhook.
+
+---
+
 ## ADR-0111 — The Purchase for Meta's Conversions API is sent from the Stripe webhook
 
 - **Status:** Accepted (built on `feat/meta-purchase-webhook`). Supersedes the "browser proves the sale" part of ADR-0107.
