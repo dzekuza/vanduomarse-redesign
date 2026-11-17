@@ -3,7 +3,7 @@
 - **Changed:** `PlanRegistration` shows `CouponDiscountField` on the campaign page too (another code replaces the Black Friday one, "Pašalinti" restores it); `hint` prop. Fixed both purchase forms showing at once (forceMount did not hide the inactive tab; it was live after PR #131).
 - **Status:** tsc/eslint/tests; browser-checked locally. Branch `feat/pass-discount-field`.
 - **Also:** "Black Friday" main-menu item (`NAV_LINKS`), header labels no longer wrap; checked at 1024 px and mobile.
-- **Next:** merge soon (the double-form bug is in production). Owner decides about the active 97% code `999`.
+- **Next:** merge soon (the double-form bug is in production). Owner reviews the active discount codes in /admin/nuolaidos.
 
 ## 2026-11-17 — WAKE passes merged and live
 
