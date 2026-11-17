@@ -15,6 +15,8 @@ export interface PlanPaymentView {
   discountCode?: string;
   /** A pass bought without registering (ADR-0109) instead of a plan attached to a registered rider. */
   isPass?: boolean;
+  /** "Perku draugui": the buyer hands the code on, so the page speaks to the buyer, not to the rider. */
+  isGift?: boolean;
   /** The pass code, shown once it is paid: the buyer says it at the park. */
   passCode?: string;
   /** The Stripe Checkout session id from the return URL: the payer's proof for the Conversions API. */
@@ -37,9 +39,12 @@ export function PlanPaymentStatus({ order, cancelled }: { order: PlanPaymentView
 
   const paid = order.status === "apmoketa";
   const pass = order.isPass === true;
+  const gift = pass && order.isGift === true;
   const pending = order.status === "laukia_apmokejimo";
-  const title = paid ? (pass ? "Apmokėta. Abonementas tavo." : "Apmokėta. Planas tavo.") : pending && !cancelled ? "Tikriname mokėjimą" : pending ? "Mokėjimas nebaigtas" : "Užsakymas atšauktas";
-  const text = paid && pass
+  const title = paid ? (gift ? "Apmokėta. Dovana paruošta." : pass ? "Apmokėta. Abonementas tavo." : "Apmokėta. Planas tavo.") : pending && !cancelled ? "Tikriname mokėjimą" : pending ? "Mokėjimas nebaigtas" : "Užsakymas atšauktas";
+  const text = paid && gift
+    ? `Abonemento kodą ${order.hasEmail ? "išsiuntėme el. paštu ir " : ""}rodome čia. Perduok jį draugui: jis užsiregistruoja, o atvykęs į parką kasoje pasako kodą, ir darbuotojas priskiria abonementą bei apyrankę. Kodas veikia vieną kartą.`
+    : paid && pass
     ? `Abonemento kodą ${order.hasEmail ? "išsiuntėme el. paštu ir " : ""}rodome čia. Užsiregistruok, o atvykęs į parką kasoje pasakyk kodą: darbuotojas priskirs abonementą ir apyrankę. Kodą gali perduoti ir draugui, kuriam perki.`
     : paid
     ? `Planas priskirtas tavo profiliui${order.hasEmail ? " ir patvirtinimą išsiuntėme el. paštu" : ""}. Atvykęs į parką, kasoje pasakyk savo vardą: darbuotojas priskirs apyrankę.`
@@ -66,7 +71,7 @@ export function PlanPaymentStatus({ order, cancelled }: { order: PlanPaymentView
     >
       {paid ? <TrackPurchase kind="plan" transactionId={order.reference} itemName={order.planName} value={order.amount} coupon={order.discountCode} proof={order.sessionId} /> : null}
       {pending && !cancelled ? <PaymentPoller /> : null}
-      {paid && pass ? (
+      {paid && pass && !gift ? (
         <Link href="/registracija" className={LINK}>
           Užsiregistruoti dabar
         </Link>

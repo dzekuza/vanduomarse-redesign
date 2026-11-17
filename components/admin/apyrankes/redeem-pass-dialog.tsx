@@ -33,28 +33,38 @@ export function RedeemPassDialog({ pass, onClose }: RedeemPassDialogProps) {
   const currentPlan = rider?.planId ? (ridePlans.find((p) => p.id === rider.planId)?.name ?? "planą") : null;
   const canSubmit = !!pass && !!rider && registered && (!currentPlan || replace) && !busy;
 
-  function close(message?: string) {
+  function finish(message?: string) {
     setRiderId(null);
     setReplace(false);
     setError(null);
     onClose(message);
   }
 
+  /** A dismissal (X, Escape, Atšaukti) is ignored while the request runs, so a hidden dialog never hides a pass being attached. */
+  function dismiss() {
+    if (!busy) finish();
+  }
+
   async function submit() {
     if (!pass || !rider) return;
     setBusy(true);
     setError(null);
-    const result = await redeemPlanPass(pass.id, rider.id, replace);
-    setBusy(false);
-    if ("error" in result) {
-      setError(result.error.message);
-      return;
+    try {
+      const result = await redeemPlanPass(pass.id, rider.id, replace);
+      if ("error" in result) {
+        setError(result.error.message);
+        return;
+      }
+      finish(`${pass.planName} priskirtas: ${rider.name} ${rider.surname}. Dabar galite priskirti apyrankę.`);
+    } catch {
+      setError("Nepavyko priskirti abonemento. Patikrinkite ryšį, atnaujinkite puslapį ir bandykite dar kartą.");
+    } finally {
+      setBusy(false);
     }
-    close(`${pass.planName} priskirtas: ${rider.name} ${rider.surname}. Dabar galite priskirti apyrankę.`);
   }
 
   return (
-    <Dialog open={pass !== null} onOpenChange={(open) => (open ? undefined : close())}>
+    <Dialog open={pass !== null} onOpenChange={(open) => (open ? undefined : dismiss())}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Priskirti abonementą</DialogTitle>
@@ -92,7 +102,7 @@ export function RedeemPassDialog({ pass, onClose }: RedeemPassDialogProps) {
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" className="min-h-11" onClick={() => close()}>
+          <Button type="button" variant="outline" className="min-h-11" disabled={busy} onClick={dismiss}>
             Atšaukti
           </Button>
           <Button type="button" className="min-h-11" disabled={!canSubmit} onClick={() => void submit()}>

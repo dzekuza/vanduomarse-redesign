@@ -12,7 +12,7 @@ import { formatEuro } from "@/lib/coupons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { discountFor, type CheckedDiscount } from "@/lib/discount-codes";
 import type { RegistrationInput } from "@/lib/registration-schema";
-import { WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_BLACK_FRIDAY_PATH } from "@/lib/wake-black-friday";
+import { WAKE_BLACK_FRIDAY_DISCOUNT } from "@/lib/wake-black-friday";
 import { MemberPlanCheckout } from "./member-plan-checkout";
 import { PassBuyForm } from "./pass-buy-form";
 import { WakeBlackFridayArtwork } from "./wake-black-friday-artwork";
@@ -40,12 +40,14 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
   const total = Math.max(plan.price - discountAmount, 0);
   const checkout = { plan, discountCode: discount?.code, total, setBusy };
   const buyer = initial?.email ? { name: [initial.name, initial.surname].filter(Boolean).join(" "), email: initial.email } : undefined;
-  const otherRiderParams = new URLSearchParams({ kitas: "1" });
-  if (!blackFriday) {
-    otherRiderParams.set("abonementas", plan.id);
-    if (discount) otherRiderParams.set("nuolaida", discount.code);
-  }
-  const otherRiderHref = `${blackFriday ? WAKE_BLACK_FRIDAY_PATH : "/registracija"}?${otherRiderParams}`;
+  /** Which purchase the visitor is looking at: it decides what the price note promises. */
+  const [mode, setMode] = useState<"sau" | "draugui">("sau");
+  const priceNote =
+    mode === "draugui"
+      ? "Apmokėjęs gausi abonemento kodą el. paštu: perduok jį draugui. Draugas užsiregistruoja ir parke kasoje pasako kodą."
+      : member !== null
+        ? "Apmokėjus abonementas priskiriamas tavo profiliui. Apyrankę atsiimsi atvykęs į parką."
+        : "Apmokėjęs gausi abonemento kodą el. paštu. Užsiregistravęs ir atvykęs į parką, pasakyk kodą kasoje: darbuotojas priskirs abonementą ir apyrankę.";
 
   return (
     <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
@@ -54,7 +56,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
       <div className="min-w-0 space-y-8 lg:col-span-2">
         {header}
         <div className="border border-line bg-foam p-4 sm:p-6">
-          <Tabs defaultValue="sau" className="gap-6">
+          <Tabs value={mode} onValueChange={(v) => setMode(v === "draugui" ? "draugui" : "sau")} className="gap-6">
             <TabsList>
               <TabsTrigger value="sau" className="min-h-11" disabled={busy}>
                 Perku sau
@@ -63,12 +65,13 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
                 Perku draugui
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="sau">
+            {/* Both stay mounted, so switching tabs keeps what was typed. */}
+            <TabsContent value="sau" forceMount>
               {member === null
                 ? <PassBuyForm gift={false} buyer={buyer} {...checkout} />
-                : <MemberPlanCheckout name={member} busy={busy} otherRiderHref={otherRiderHref} {...checkout} />}
+                : <MemberPlanCheckout name={member} busy={busy} {...checkout} />}
             </TabsContent>
-            <TabsContent value="draugui">
+            <TabsContent value="draugui" forceMount>
               <PassBuyForm gift buyer={buyer} {...checkout} />
             </TabsContent>
           </Tabs>
@@ -86,7 +89,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
                 {discount ? <del aria-label="Kaina be nuolaidos" className="ml-3 text-sm font-normal text-copy">{formatEuro(plan.price)}</del> : null}
               </>
             }
-            note={<p className="leading-relaxed">Apmokėjęs gausi abonemento kodą el. paštu. Užsiregistravęs ir atvykęs į parką, pasakyk kodą kasoje: darbuotojas priskirs abonementą ir apyrankę.</p>}
+            note={<p className="leading-relaxed">{priceNote}</p>}
           />
         </div>
         {invalidDiscount && !discount ? <p role="status" className="text-sm text-rust-ink">Nuorodoje nurodyto nuolaidos kodo pritaikyti nepavyko.</p> : null}

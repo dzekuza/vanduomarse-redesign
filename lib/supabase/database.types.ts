@@ -2671,6 +2671,7 @@ export type Database = {
         Args: { p_session_id: string }
         Returns: {
           discount_code: string | null
+          gift: boolean
           kind: string
           pass_code: string | null
           plan_name: string

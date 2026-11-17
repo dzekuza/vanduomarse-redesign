@@ -53,7 +53,14 @@ export function PassBuyForm({
   const submit = handleSubmit(async (values) => {
     clearErrors("root");
     setBusy(true);
-    const result = await buyPlanPass({ ...values, gift, discountCode });
+    let result: Awaited<ReturnType<typeof buyPlanPass>>;
+    try {
+      result = await buyPlanPass({ ...values, gift, discountCode });
+    } catch {
+      setError("root", { message: "Nepavyko pradėti mokėjimo. Patikrinkite ryšį ir bandykite dar kartą." });
+      setBusy(false);
+      return;
+    }
     if ("error" in result) {
       setError("root", { message: result.error.message });
       setBusy(false);

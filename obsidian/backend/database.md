@@ -361,15 +361,17 @@ no rider yet: buyer name and e-mail, plan snapshot, the price actually paid (aft
 a 12-character `code` (issued on payment, same alphabet as coupon codes), `status`
 (`laukia_apmokejimo` → `apmoketa` → `priskirtas`, or `atsauktas`), Stripe session / intent, and once attached `rider_id`,
 `redeemed_at`, `redeemed_by`, `purchase_id`. The Black Friday code check constraint from `rider_plan_orders` is repeated on it.
-RLS: staff with the `apyrankes` permission can read; everything else is service-role RPCs.
+RLS: staff with the `apyrankes` permission can read. Every RPC below is service-role only except `redeem_plan_pass`, which signed-in staff call (it checks the permission itself).
 
 | Function | Who | What |
 |----------|-----|------|
-| `create_plan_pass` | service role | new unpaid pass; prices the discount, caps unpaid passes per IP hash (5/hour) and overall (300/hour) |
+| `create_plan_pass` | service role | new unpaid pass; prices the discount, best-effort caps on unpaid passes (counted before the insert, so concurrent requests can slightly exceed them): 5 per IP hash per hour, 300 across all IPs per hour |
 | `attach_plan_pass_session`, `abandon_plan_pass` | service role | remember the Stripe session; drop a pass whose Checkout could not open |
 | `complete_plan_pass_payment` | service role (webhook) | marks paid and issues the code once; a wrong amount changes nothing and reports `amount_ok = false` |
-| `expire_plan_pass_session`, `refund_plan_pass_payment` | service role (webhook) | cancel an unpaid pass; a full refund cancels an unattached pass and only reports an attached one |
+| `expire_plan_pass_session`, `refund_plan_pass_payment` | service role (webhook) | cancel an unpaid pass; a full refund cancels an unattached pass (and a pending pass whose payment did not match the price) and reports it; for an attached pass it only reports (`was_attached = true`) and the rider keeps the plan until staff change it |
 | `plan_order_state` | service role | now also answers for a pass session (`kind = 'pass'`, `pass_code`); an attached pass reads as `apmoketa` |
 | `redeem_plan_pass(pass, rider, replace)` | staff (`apyrankes`) | attaches the pass: the rider needs a profile photo and a signed waiver, an existing plan needs `replace`; sets `riders.plan_id` and logs a card purchase |
 
 `private.discount_code_uses` and `discount_code_usage()` count passes too, so a code's use limit and the Nuolaidos report include them.
+
+Follow-up migration `20261117183124_plan_passes_refund_gift.sql` (APPLIED 2026-11-17): `complete_plan_pass_payment` stores the Stripe payment intent on a pending pass whose paid amount differs from the price (no code is issued), so `refund_plan_pass_payment` can find and cancel it; `plan_order_state` gained a `gift` column (false for plan orders).

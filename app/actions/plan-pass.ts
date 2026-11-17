@@ -64,7 +64,8 @@ export async function buyPlanPass(input: PlanPassInput): Promise<ActionResult<{ 
   const checkoutUrl = await openPlanPassCheckout({ id: row.id, reference: row.reference, planName: row.plan_name, amount: row.price, buyerEmail: v.buyerEmail, gift: v.gift });
   if (!checkoutUrl) {
     try {
-      await admin.rpc("abandon_plan_pass", { p_pass_id: row.id });
+      const { error: abandonError } = await admin.rpc("abandon_plan_pass", { p_pass_id: row.id });
+      if (abandonError) console.error("Plan pass: could not drop the pass", row.reference, abandonError);
     } catch (e) {
       console.error("Plan pass: could not drop the pass", row.reference, e);
     }

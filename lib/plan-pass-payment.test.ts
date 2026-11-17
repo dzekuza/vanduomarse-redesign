@@ -75,10 +75,22 @@ describe("plan pass payments", () => {
     await expect(onPlanPassPaid("p1", session)).rejects.toThrow("db down");
   });
 
-  it("a refund cancels an unattached pass and alerts staff, saying when it was already attached", async () => {
-    rpc.mockImplementation(async (name: string) => (name === "refund_plan_pass_payment" ? { data: [{ reference: "PS-1", was_attached: true }], error: null } : { data: null, error: null }));
+  it("a refund of an unattached pass tells staff it was cancelled", async () => {
+    rpc.mockImplementation(async (name: string) => (name === "refund_plan_pass_payment" ? { data: [{ reference: "PS-1", was_attached: false }], error: null } : { data: null, error: null }));
     await onPlanOrderRefund({ payment_intent: "pi_1", amount_refunded: 67500 } as unknown as Stripe.Charge);
     expect(rpc).toHaveBeenCalledWith("refund_plan_pass_payment", { p_payment_intent: "pi_1", p_refunded: 675 });
+    expect(emailStaffPassCancelled).toHaveBeenCalledWith("PS-1", false);
+  });
+
+  it("a refund of an already attached pass tells staff to change the rider's plan by hand", async () => {
+    rpc.mockImplementation(async (name: string) => (name === "refund_plan_pass_payment" ? { data: [{ reference: "PS-1", was_attached: true }], error: null } : { data: null, error: null }));
+    await onPlanOrderRefund({ payment_intent: "pi_1", amount_refunded: 67500 } as unknown as Stripe.Charge);
     expect(emailStaffPassCancelled).toHaveBeenCalledWith("PS-1", true);
   });
+
+  it("sends nothing for a refund that is not a pass", async () => {
+    rpc.mockResolvedValue({ data: [], error: null });
+    await onPlanOrderRefund({ payment_intent: "pi_other", amount_refunded: 1000 } as unknown as Stripe.Charge);
+    expect(emailStaffPassCancelled).not.toHaveBeenCalled();
+});
 });
