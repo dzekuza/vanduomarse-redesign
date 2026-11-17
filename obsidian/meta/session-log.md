@@ -1,3 +1,9 @@
+## 2026-11-17 — WAKE passes merged and live
+
+- **Changed:** PR #131 merged and deployed (production serves the new purchase form). Review rounds 1 and 2 are done; migrations `plan_passes_refund_gift` and `plan_passes_refunded_at` are applied.
+- **Status:** all checks green; no real paid purchase tested yet.
+- **Next:** one live test purchase (pay, code e-mail, attach in Kodai) and refund it in Stripe; then the friend-redeems-on-/paskyra step if wanted.
+
 ## 2026-11-17 — PR #131 review fixes
 
 - **Changed:** migration `plan_passes_refund_gift` (applied live), form/dialog error handling, gift wording on the payment page, tab state kept, bounded admin pass queries, doc corrections. Two review comments answered without a change (optimistic rider delete is existing behaviour; the admin rider list is capped at the newest 1000 riders, an existing stopgap).
