@@ -1,4 +1,5 @@
 import { RESERVATION_TYPES, RESERVATION_TYPE_LABEL, serviceHref } from "@/lib/reservation-links";
+import { WAKE_BLACK_FRIDAY_PATH } from "@/lib/wake-black-friday";
 
 export interface NavLink {
   href: string;
@@ -21,6 +22,8 @@ export const NAV_LINKS: readonly NavLink[] = [
       { href: "/restoranas", label: "Skoniai" },
     ]),
   },
+  // Campaign link: remove it when the Black Friday offer ends.
+  { href: WAKE_BLACK_FRIDAY_PATH, label: "Black Friday" },
   { href: "/renginiai", label: "Renginiai" },
   { href: "/kuponai", label: "Dovanų kuponai" },
   { href: "/paskyra", label: "Mano rezervacijos" },

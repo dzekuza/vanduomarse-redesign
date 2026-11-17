@@ -65,13 +65,13 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
                 Perku draugui
               </TabsTrigger>
             </TabsList>
-            {/* Both stay mounted, so switching tabs keeps what was typed. */}
-            <TabsContent value="sau" forceMount>
+            {/* Both stay mounted, so switching tabs keeps what was typed. forceMount stops Radix hiding the inactive one, hence the class. */}
+            <TabsContent value="sau" forceMount className="data-[state=inactive]:hidden">
               {member === null
                 ? <PassBuyForm gift={false} buyer={buyer} {...checkout} />
                 : <MemberPlanCheckout name={member} busy={busy} {...checkout} />}
             </TabsContent>
-            <TabsContent value="draugui" forceMount>
+            <TabsContent value="draugui" forceMount className="data-[state=inactive]:hidden">
               <PassBuyForm gift buyer={buyer} {...checkout} />
             </TabsContent>
           </Tabs>
@@ -93,7 +93,15 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
           />
         </div>
         {invalidDiscount && !discount ? <p role="status" className="text-sm text-rust-ink">Nuorodoje nurodyto nuolaidos kodo pritaikyti nepavyko.</p> : null}
-        {blackFriday ? null : <CouponDiscountField service="planai" discount={discount} amount={discountAmount} disabled={busy} onChange={setDiscount} />}
+        {/* On the campaign page the Black Friday code is the default: another code replaces it (an order holds one code), and removing that code brings the campaign discount back. */}
+        <CouponDiscountField
+          service="planai"
+          discount={blackFriday && discount?.code === WAKE_BLACK_FRIDAY_DISCOUNT.code ? null : discount}
+          amount={discountAmount}
+          disabled={busy}
+          onChange={(next) => setDiscount(next ?? (blackFriday ? WAKE_BLACK_FRIDAY_DISCOUNT : null))}
+          hint={blackFriday ? "Taikomas vienas kodas: jis pakeičia Black Friday nuolaidą." : undefined}
+        />
         <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: MAIN_CONTACT.email }} />
       </BookingPanel>
     </div>
