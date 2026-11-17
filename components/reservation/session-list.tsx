@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { SessionRow } from "@/lib/reservation";
 import { formatHour } from "@/lib/sauna";
 import { SessionInfoLink } from "./session-info-link";
+import { PriceWas } from "@/components/price-was";
 
 interface SessionQuantity {
   value: number;
@@ -116,7 +117,10 @@ function SessionCard({ row, quantity, selected, selectedStart, onSelect, onRemov
         </div>
       ) : null}
       <div className={`flex flex-wrap items-end justify-between gap-3 border-t pt-4 lg:@xl:flex-col lg:@xl:items-end lg:@xl:border-0 lg:@xl:pt-0 lg:@xl:text-right ${isPrivate ? "lg:@xl:col-start-3" : ""} ${line}`}>
-        <span className="max-w-56 text-item font-bold sm:text-figure">{row.rate}</span>
+        <span className="max-w-56 text-item font-bold sm:text-figure">
+          {row.regularRate ? <PriceWas>{row.regularRate}</PriceWas> : null}
+          {row.rate}
+        </span>
         {blocked && <span className="text-xs text-copy">Nepasiekiama</span>}
         {(selected || !blocked) && (
           <div className="ml-auto flex max-w-full flex-wrap items-end justify-end gap-2">

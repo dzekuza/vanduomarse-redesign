@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookingBreadcrumb } from "@/components/booking/booking-header";
+import { BookingBreadcrumb, BookingTitle } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { Cta } from "@/components/cta";
 import { PARK_ADDRESS, SERVICE_GALLERY, SERVICES, type ServicePhoto } from "@/components/landing/content";
@@ -86,7 +86,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
         <div className="grid items-start gap-y-8 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-12">
           <header className="min-w-0 space-y-5 lg:col-span-8 lg:col-start-1 lg:row-start-1">
             <ServiceGallery photos={gallery} variant="hero" label={`${copy.label}: nuotraukos`} />
-            <h1 className="text-total font-bold tracking-tighter uppercase sm:text-title">{copy.title}</h1>
+            <BookingTitle title={[copy.title]} />
             <p className="text-sm leading-loose text-copy">{copy.summary}</p>
           </header>
           <SectionTabs tabs={SECTIONS} className="sticky top-21.5 z-10 -mx-gutter min-w-0 bg-dust px-gutter py-1 md:top-26.5 lg:col-span-8 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:px-0" />

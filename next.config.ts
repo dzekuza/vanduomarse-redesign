@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "4mb" },
     // ~100 files import icons from the package root; this keeps only the icons actually used.
     optimizePackageImports: ["@phosphor-icons/react"],
+    // Next.js agent upgrades track security releases only.
+    agentUpgrade: "security",
   },
   images: {
     // 90 for galleries and photo tiles, 75 (the default) for everything else.

@@ -18,6 +18,8 @@ export const eventSchema = z.object({
   durationMinutes: z.string().trim(),
   place: z.string().trim().min(2, "Nurodykite vietą.").max(80),
   price: optionalAmount,
+  /** Sale price ("akcijos kaina"), "" = no sale; must be below `price`. */
+  salePrice: optionalAmount,
   capacity: optionalAmount,
   blurb: z.string().trim().min(10, "Aprašymas per trumpas.").max(240),
   visibility: z.enum(["draft", "public", "private"]),
@@ -27,6 +29,10 @@ export const eventSchema = z.object({
   ({ category, durationMinutes }) => category !== "pirtis" || durationMinutes === "" ||
     (/^\d+$/.test(durationMinutes) && eventDurationMinutes.safeParse(Number(durationMinutes)).success),
   { path: ["durationMinutes"], message: "Įveskite teigiamą sveiką minučių skaičių arba palikite tuščią." },
+).refine(
+  // A program sets the price and hides the sale field, so a leftover sale value is ignored then (the dialog does not save it).
+  ({ price, salePrice, programId }) => programId !== "" || salePrice === "" || (price !== "" && Number(salePrice) < Number(price)),
+  { path: ["salePrice"], message: "Akcijos kaina turi būti mažesnė už kainą." },
 );
 
 export type EventFormValues = z.infer<typeof eventSchema>;

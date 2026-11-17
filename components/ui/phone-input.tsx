@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDownIcon } from "lucide-react";
 import { useId, useMemo } from "react";
 import { useController, useFormContext, type Control, type FieldValues, type Path } from "react-hook-form";
 import { DEFAULT_PHONE_COUNTRY, joinPhone, PHONE_COUNTRIES, splitPhone } from "@/lib/phone-countries";
@@ -31,22 +32,25 @@ export function PhoneInput({ id, value, onChange, onBlur, invalid, disabled, pla
 
   return (
     <div className={cn("flex gap-2", className)}>
-      <select
-        aria-label="Šalies kodas"
-        value={country.code}
-        disabled={disabled}
-        onChange={(e) => {
-          const next = PHONE_COUNTRIES.find((c) => c.code === e.target.value) ?? DEFAULT_PHONE_COUNTRY;
-          onChange(joinPhone(next, national));
-        }}
-        className={cn(FIELD, "w-30 shrink-0 pr-3 pl-2")}
-      >
-        {PHONE_COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.code} +{c.dial}
-          </option>
-        ))}
-      </select>
+      <div className="relative w-30 shrink-0">
+        <select
+          aria-label="Šalies kodas"
+          value={country.code}
+          disabled={disabled}
+          onChange={(e) => {
+            const next = PHONE_COUNTRIES.find((c) => c.code === e.target.value) ?? DEFAULT_PHONE_COUNTRY;
+            onChange(joinPhone(next, national));
+          }}
+          className={cn(FIELD, "peer w-full appearance-none pr-9 pl-2 forced-colors:appearance-auto")}
+        >
+          {PHONE_COUNTRIES.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.code} +{c.dial}
+            </option>
+          ))}
+        </select>
+        <ChevronDownIcon aria-hidden className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground peer-disabled:opacity-50 forced-colors:hidden" />
+      </div>
       <input
         id={inputId}
         type="tel"

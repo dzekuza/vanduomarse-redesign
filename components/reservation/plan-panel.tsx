@@ -1,15 +1,16 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useRef, type Ref } from "react";
+import { BookingPanel } from "@/components/booking/booking-panel";
 import { BookingPrice } from "@/components/booking/booking-price";
 import type { ServicePhoto } from "@/components/landing/content";
-import { ServiceGallery } from "@/components/landing/service-gallery";
 import { ServiceBookingHelp } from "@/components/services/service-booking-help";
 import { EVENTS_EMAIL, MAIN_CONTACT, RESERVATION_PHONE } from "@/lib/contacts";
-import { ACTIVITY_TITLE, type ActivityId } from "@/lib/reservation";
+import { ACTIVITY_TITLE, saleSaving, type ActivityId } from "@/lib/reservation";
 import { formatEuro } from "@/lib/coupons";
 import { PlanLines, type PlanLinesProps } from "./plan-lines";
 import { PlanActions, type PlanContinueAction } from "./plan-actions";
 import { activityPhotos } from "./activity-photos";
+import { PriceWas } from "@/components/price-was";
 
 export type { PlanContinueAction } from "./plan-actions";
 
@@ -33,30 +34,45 @@ export function PlanPanel({ activity, photos = activityPhotos(activity), inline,
   const saunaOnly = activity === "pirtis" && details.lines.length === 1 && details.lines[0].id === "pirtis";
   const showDetails = !inline || details.lines.length > 0 || activity === "keturraciai";
 
+  const contents = (
+    <>
+      {showDetails ? <PlanDetails {...details} showLines={!saunaSidebar && !saunaOnly} /> : null}
+      {saunaSidebar ? (
+        <p className="flex items-center gap-2 text-xs leading-relaxed text-copy">
+          <ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" />
+          Nemokamas atšaukimas likus bent 24 val. iki pradžios.
+        </p>
+      ) : null}
+      {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
+      {quadSidebar ? null : <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: saunaSidebar ? EVENTS_EMAIL : MAIN_CONTACT.email }} />}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <aside ref={ref} tabIndex={-1} aria-label="Rezervacijos planas" className={`scroll-mt-32 ${quadSidebar ? "" : "border-t border-line"}`}>
+        <div className={`space-y-4 ${quadSidebar ? "" : "pt-4"}`}>{contents}</div>
+      </aside>
+    );
+  }
+
   return (
-    <aside ref={ref} tabIndex={inline ? -1 : undefined} aria-label={inline ? "Rezervacijos planas" : "Rezervuoti"} className={inline
-      ? `scroll-mt-32 ${quadSidebar ? "" : "border-t border-line"}`
-      : "hidden border border-line bg-foam lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto"}>
-      {inline ? null : <ServiceGallery key={`${activity}:${photos.map(({ src }) => src).join("|")}`} photos={photos} variant="panel" label={`${ACTIVITY_TITLE[activity]}: nuotraukos`} />}
-      <div className={inline ? `space-y-4 ${quadSidebar ? "" : "pt-4"}` : "space-y-6 p-5 sm:p-8"}>
-        {inline ? null : <h2 className="text-tile font-bold">Rezervuoti</h2>}
-        {showDetails ? <PlanDetails {...details} showLines={!saunaSidebar && !saunaOnly} /> : null}
-        {saunaSidebar ? (
-          <p className="flex items-center gap-2 text-xs leading-relaxed text-copy">
-            <ClockCounterClockwiseIcon size={16} aria-hidden className="shrink-0" />
-            Nemokamas atšaukimas likus bent 24 val. iki pradžios.
-          </p>
-        ) : null}
-        {continueAction ? <PlanActions continueAction={continueAction} secondaryAction={secondaryAction} /> : null}
-        {quadSidebar ? null : <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: saunaSidebar ? EVENTS_EMAIL : MAIN_CONTACT.email }} />}
-      </div>
-    </aside>
+    <BookingPanel
+      ref={ref}
+      title="Rezervuoti"
+      photos={photos}
+      photoLabel={`${ACTIVITY_TITLE[activity]}: nuotraukos`}
+      galleryKey={`${activity}:${photos.map(({ src }) => src).join("|")}`}
+    >
+      {contents}
+    </BookingPanel>
   );
 }
 
 /** The live plan shown in both the desktop panel and the mobile summary sheet. */
 export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemove, showLines = true }: PlanDetailsProps & { showLines?: boolean }) {
   const totalRef = useRef<HTMLParagraphElement>(null);
+  const saving = saleSaving(lines);
 
   return (
     <>
@@ -68,7 +84,7 @@ export function PlanDetails({ lines, total, quantities, saunaTime, busy, onRemov
       ) : null}
       <div className={showLines ? "border-t border-line pt-4" : undefined}>
         <BookingPrice
-          amount={formatEuro(total)}
+          amount={saving > 0 ? <><PriceWas>{formatEuro(total + saving)}</PriceWas>{formatEuro(total)}</> : formatEuro(total)}
           labelRef={totalRef}
           label={showLines ? undefined : "Galutinė kaina, su PVM"}
           note={showLines ? "Preliminari kaina. Galutinę ir laisvas vietas patvirtinsime." : undefined}

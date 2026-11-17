@@ -1,6 +1,7 @@
 import { BookingPrice } from "@/components/booking/booking-price";
 import { formatEuro } from "@/lib/coupons";
-import type { PlanLine } from "@/lib/reservation";
+import { saleSaving, type PlanLine } from "@/lib/reservation";
+import { PriceWas } from "@/components/price-was";
 
 /** An applied discount code and the euros it takes off the plan. */
 export interface SummaryDiscount {
@@ -12,6 +13,7 @@ export interface SummaryDiscount {
 export function PlanSummary({ lines, total, discount, compact = false }: { lines: PlanLine[]; total: number; discount?: SummaryDiscount; compact?: boolean }) {
   const discounted = discount && discount.amount > 0 ? discount : null;
   const totalInLine = lines.length === 1 && !discounted;
+  const saving = saleSaving(lines);
   return (
     <div className={compact ? "space-y-3" : "space-y-5"}>
       <ul className="divide-y divide-line border-y border-line">
@@ -23,7 +25,14 @@ export function PlanSummary({ lines, total, discount, compact = false }: { lines
               <p className="text-copy">{line.schedule}</p>
             </div>
             <div className="shrink-0 text-right">
-              {totalInLine ? <BookingPrice amount={formatEuro(total)} /> : <p className="font-bold">{line.price} €</p>}
+              {totalInLine ? (
+                <BookingPrice amount={saving > 0 ? <><PriceWas>{formatEuro(total + saving)}</PriceWas>{formatEuro(total)}</> : formatEuro(total)} />
+              ) : (
+                <p className="font-bold">
+                  {line.regularPrice !== undefined ? <PriceWas>{line.regularPrice} €</PriceWas> : null}
+                  {line.price} €
+                </p>
+              )}
             </div>
           </li>
         ))}
@@ -36,7 +45,9 @@ export function PlanSummary({ lines, total, discount, compact = false }: { lines
       ) : null}
       {totalInLine ? null : (
         <div className="text-right">
-          <BookingPrice amount={formatEuro(total - (discounted?.amount ?? 0))} />
+          <BookingPrice
+            amount={saving > 0 ? <><PriceWas>{formatEuro(total + saving)}</PriceWas>{formatEuro(total - (discounted?.amount ?? 0))}</> : formatEuro(total - (discounted?.amount ?? 0))}
+          />
         </div>
       )}
     </div>

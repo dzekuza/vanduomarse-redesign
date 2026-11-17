@@ -18,7 +18,7 @@ export const PERMISSIONS = [
   { id: "kainos", label: "Kainodara", href: "/admin/kainos", hint: "Visas kainų sąrašas." },
   { id: "apyrankes", label: "Apyrankės", href: "/admin/apyrankes", hint: "Apyrankių skenavimas, planų pardavimas ir katalogas." },
   { id: "klientai", label: "Klientai", href: "/admin/klientai", hint: "Klientų sąrašas ir profiliai: kontaktai, apyrankės, rezervacijų ir pirkimų istorija, dokumentai, komentarai." },
-  { id: "instruktorius", label: "Instruktorius", href: "/admin/instruktorius", hint: "Apyrankės skenavimas vandenyje: naudotojo kortelė ir dabartinės sesijos trukmė. Mato naudotojus, planus ir apyrankes (tik peržiūra)." },
+  { id: "instruktorius", label: "Apyrankių skenavimas", href: "/admin/instruktorius", hint: "Apyrankės skenavimas vandenyje: naudotojo kortelė ir dabartinės sesijos trukmė. Mato naudotojus, planus ir apyrankes (tik peržiūra)." },
 ] as const;
 
 export type PermissionId = (typeof PERMISSIONS)[number]["id"];

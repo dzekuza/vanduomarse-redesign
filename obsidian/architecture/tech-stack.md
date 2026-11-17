@@ -12,7 +12,7 @@ added, removed, or majorly upgraded — and add a [[changelog]] entry.
 
 | Package | Version | Why |
 |---------|---------|-----|
-| next | 16.4.2 | App Router site and admin |
+| next | 16.4.6 | App Router site and admin |
 | react / react-dom | 19.3.0 | UI runtime |
 | typescript | ^5 | Strict typing |
 
@@ -56,7 +56,7 @@ Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 | Package | Version | Why |
 |---------|---------|-----|
 | pnpm | 11 | Package manager (`packageManager` in `package.json`) |
-| eslint + eslint-config-next | 9 / 16.4.2 | Lint, incl. React hooks/compiler rules |
+| eslint + eslint-config-next | 9 / 16.4.6 | Lint, incl. React hooks/compiler rules |
 | @tailwindcss/turbopack | 4 | Tailwind in the Turbopack dev server |
 | fflate (dev) | ^0.8.3 | Zips the WordPress plugin in `scripts/build-wp-plugin.mts` (`pnpm build:wp-plugin`, run by `pnpm build`), ADR-0016 |
 

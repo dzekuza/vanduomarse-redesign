@@ -7,6 +7,7 @@ import type { ActivityId, PlanLine } from "@/lib/reservation";
 import { formatHour } from "@/lib/sauna";
 import { ACTIVITY_ICON } from "./activity-icons";
 import type { PlanQuantities } from "./plan-quantities";
+import { PriceWas } from "@/components/price-was";
 
 export interface PlanLinesProps {
   lines: PlanLine[];
@@ -54,7 +55,10 @@ export function PlanLines({ lines, quantities, saunaTime, busy, onRemove }: Plan
                   <p className="font-normal">{l.title}</p>
                   <p className="text-copy">{l.detail}</p>
                 </div>
-                <p className="shrink-0 font-bold">{l.price} €</p>
+                <p className="shrink-0 font-bold">
+                  {l.regularPrice !== undefined ? <PriceWas>{l.regularPrice} €</PriceWas> : null}
+                  {l.price} €
+                </p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-copy">{l.schedule}</p>
               <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-2">

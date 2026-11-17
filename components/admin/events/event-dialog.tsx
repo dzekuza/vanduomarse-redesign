@@ -40,7 +40,9 @@ function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?:
     time: e?.time ?? "19:00",
     durationMinutes: e?.durationMinutes == null ? "" : String(e.durationMinutes),
     place: e ? (presetCategory === "pirtis" ? venueOf(e.place) : e.place) : defaultPlace,
-    price: e?.price == null ? "" : String(e.price),
+    // While a sale runs the form shows the regular price in "Kaina" and the charged price in "Akcijos kaina".
+    price: e?.regularPrice != null ? String(e.regularPrice) : e?.price == null ? "" : String(e.price),
+    salePrice: e?.regularPrice != null && e.price != null ? String(e.price) : "",
     capacity: e?.capacity == null ? "" : String(e.capacity),
     blurb: e?.blurb ?? "",
     visibility: e?.calendarPrivate ? "private" : e?.published ? "public" : "draft",
@@ -81,7 +83,8 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
       durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : source?.durationMinutes,
       place: sessionDialog ? `${v.place}${attendantSuffix(source?.place)}` : v.place,
       blurb: v.blurb,
-      price: program ? program.price : v.price === "" ? null : Number(v.price),
+      price: program ? program.price : v.salePrice !== "" ? Number(v.salePrice) : v.price === "" ? null : Number(v.price),
+      regularPrice: !program && v.salePrice !== "" ? Number(v.price) : undefined,
       capacity: v.capacity === "" ? null : Number(v.capacity),
       sold: event?.sold ?? 0,
       held: event?.held ?? 0,
@@ -197,6 +200,14 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
             program ? `Palikus tuščią, taikoma programos trukmė (${program.durationMinutes} min.).` : "Palikus tuščią, taikoma 60 min. trukmė.",
           ) : null}
           {field("price", "Kaina, €", <Input id="price" inputMode="decimal" placeholder={program ? `Pagal programą: ${program.price} €` : "Nemokamai"} disabled={!!program} aria-invalid={!!err.price} {...register("price")} />)}
+          {program
+            ? null
+            : field(
+                "salePrice",
+                "Akcijos kaina, €",
+                <Input id="salePrice" inputMode="decimal" placeholder="Be akcijos" aria-describedby="salePrice-hint" aria-invalid={!!err.salePrice} {...register("salePrice")} />,
+                "Svetainėje rodoma vietoje kainos, sena kaina perbraukta.",
+              )}
           {field("capacity", "Vietų skaičius", <Input id="capacity" inputMode="numeric" placeholder="Neribota" aria-invalid={!!err.capacity} {...register("capacity")} />)}
           <div className="sm:col-span-2">{field("blurb", "Aprašymas", <Textarea id="blurb" rows={3} aria-invalid={!!err.blurb} {...register("blurb")} />)}</div>
           <div className="sm:col-span-2">

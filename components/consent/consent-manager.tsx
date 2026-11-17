@@ -11,6 +11,7 @@ import {
   REJECT_ALL,
   clearTrackerCookies,
   disallowedCategories,
+  syncMarketingConsentCookie,
   onOpenConsentSettings,
   withdrewConsent,
   writeConsent,
@@ -34,9 +35,12 @@ export function ConsentManager() {
 
   useEffect(() => onOpenConsentSettings(() => setSettingsOpen(true)), []);
 
-  // Cookies of a tracker the visitor has not allowed (or has just withdrawn) are removed on every load.
+  // Cookies of a tracker the visitor has not allowed (or has just withdrawn) are removed on every load, and the
+  // marketing choice is mirrored into the server-readable cookie (also for choices saved before that cookie existed).
   useEffect(() => {
-    if (ready && CONSENT_ENABLED) clearTrackerCookies(disallowedCategories(choice));
+    if (!ready || !CONSENT_ENABLED) return;
+    clearTrackerCookies(disallowedCategories(choice));
+    syncMarketingConsentCookie(choice);
   }, [ready, choice]);
 
   if (!CONSENT_ENABLED || UNTRACKED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
