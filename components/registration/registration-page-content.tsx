@@ -7,14 +7,14 @@ import { RegistrationFlow } from "@/components/registration/registration-flow";
 import { loadMyRiders } from "@/lib/account-data";
 import { getCustomer } from "@/lib/customer";
 import type { RegistrationInput } from "@/lib/registration-schema";
-import { createPublicClient } from "@/lib/supabase/public";
+import { getOnlinePlans } from "@/lib/data/public";
 
 import { isWakeBlackFridayDiscount, WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_SEASON_PASS_ID } from "@/lib/wake-black-friday";
 
 /** The bracelet plan the visitor came to buy (`?abonementas=`), only if it is on sale online. */
 async function loadPlan(id: string | undefined): Promise<RegistrationPlan | undefined> {
   if (!id || !/^[0-9a-f-]{36}$/.test(id)) return undefined;
-  const { data } = await createPublicClient().rpc("online_plans");
+  const { data } = await getOnlinePlans();
   const plan = data?.find((p) => p.id === id);
   return plan ? { id: plan.id, name: plan.name, price: plan.price } : undefined;
 }

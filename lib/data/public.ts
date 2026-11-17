@@ -282,9 +282,15 @@ async function loadCouponProducts(): Promise<CouponProduct[]> {
 /** Memoised per request, so pages and readers that share it query Supabase once. */
 export const getCouponProducts = cache(loadCouponProducts);
 
+/** Bracelet plans currently available to buy online. */
+export const getOnlinePlans = cache(async () => {
+  await connection();
+  return createPublicClient().rpc("online_plans");
+});
+
 /** WAKE offers: coupon rides, plus the bracelet plans sold online (season passes). Plans need `online_plans()`; without it only coupons show. */
 async function loadWakeOffers(): Promise<WakeOffer[]> {
-  const [products, plans] = await Promise.all([getCouponProducts(), createPublicClient().rpc("online_plans")]);
+  const [products, plans] = await Promise.all([getCouponProducts(), getOnlinePlans()]);
   // A missing function (migration not applied yet) is expected and quiet; any other failure must leave a trace.
   if (plans.error && plans.error.code !== "PGRST202") console.error("Public data: online_plans failed", plans.error.message);
   const planOffers: WakeOffer[] = (plans.data ?? []).map((plan) => ({
