@@ -1,8 +1,8 @@
 ## 2026-11-17 — WAKE passes without registration (ADR-0109)
 
 - **Changed:** migration `plan_passes` (table + 8 RPCs, applied live), `buyPlanPass` + `PassBuyForm` ("Perku sau" / "Perku draugui"), webhook `onPlanPassPaid`, pass e-mails, Meta purchase check for passes, admin Kodai tab + `RedeemPassDialog` + `redeemPlanPass`, old register-then-pay removed from `registerRider`.
-- **Status:** tsc/eslint clean, 137 tests; SQL lifecycle verified in a rolled-back transaction; buy form verified to the Stripe redirect (test row deleted). Kodai tab not browser-checked (admin login needed). Local `.env.local` has the LIVE Stripe key: never complete a checkout locally.
-- **Next:** check the Kodai tab signed in; PR and merge; deploy; one end-to-end test purchase (webhook, e-mail, redeem). Later: friend redeems on /paskyra.
+- **Status:** tsc/eslint clean, 137 tests; SQL lifecycle verified in a rolled-back transaction; buy form verified to the Stripe redirect (test row deleted). Kodai tab then browser-checked signed in (list, tab count, redeem dialog: unregistered refused, registered attached, "Priskirti" filter shows the customer link); test rows deleted. Local `.env.local` has the LIVE Stripe key: never complete a checkout locally.
+- **Next:** PR and merge; deploy; one end-to-end test purchase (webhook, e-mail, redeem). Later: friend redeems on /paskyra.
 
 ## 2026-11-17 — Admin menu: Vandenlentės and Instruktorius
 
