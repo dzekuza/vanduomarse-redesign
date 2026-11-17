@@ -1,3 +1,9 @@
+## 2026-11-17 — Cookie banner: full width and modal
+
+- **Changed:** `components/consent/consent-banner.tsx` (portal, backdrop, inert page, scroll lock, wider layout, policy page exempt).
+- **Status:** tsc/eslint clean; browser-checked desktop and phone. Branch `feat/cookie-banner-modal`, PR open.
+- **Next:** commit, PR, merge. Consider: Meta/Google consent record is unchanged (same choices, same storage).
+
 ## 2026-11-17 — Discount code field on the Black Friday page
 
 - **Changed:** `PlanRegistration` shows `CouponDiscountField` on the campaign page too (another code replaces the Black Friday one, "Pašalinti" restores it); `hint` prop. Fixed both purchase forms showing at once (forceMount did not hide the inactive tab; it was live after PR #131).
