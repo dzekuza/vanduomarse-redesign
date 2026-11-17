@@ -198,6 +198,10 @@
   --text-hero: min(clamp(5.25rem, 11.8vw, 12.1875rem), 18svh);
   --text-hero--line-height: 0.99;
   --text-hero--letter-spacing: -0.075em;
+  /* Two wide words from the Black Friday artwork, with room for the spinning star. */
+  --text-campaign-hero: clamp(2.25rem, 15vw, 7.5rem);
+  --text-campaign-hero--line-height: 0.98;
+  --text-campaign-hero--letter-spacing: -0.085em;
   --text-hero-sticker: 6.7cqi;
   --text-hero-sticker--line-height: 1.25;
   --text-hero-sticker--letter-spacing: 0.07em;
@@ -594,5 +598,16 @@ html {
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+}
+
+@utility campaign-hero-outline {
+  -webkit-text-stroke: 0.032em currentColor;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (width >= 64rem) {
+  :root {
+    --text-campaign-hero: min(9.5vw, 19svh);
   }
 }

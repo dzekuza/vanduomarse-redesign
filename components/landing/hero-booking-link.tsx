@@ -5,7 +5,21 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function HeroBookingLink() {
+interface HeroBookingLinkProps {
+  href?: string;
+  lines?: readonly [string, string];
+  restingClassName?: string;
+  floatingClassName?: string;
+  inkClassName?: string;
+}
+
+export function HeroBookingLink({
+  href = "/rezervacija",
+  lines = ["REZERVUOK", "LAIKĄ MARSE"],
+  restingClassName = "absolute right-gutter -bottom-12 md:bottom-28",
+  floatingClassName = "fixed right-6 bottom-6",
+  inkClassName,
+}: HeroBookingLinkProps) {
   const [floating, setFloating] = useState(false);
   const sticker = useRef<HTMLDivElement>(null);
   const progressRing = useRef<SVGCircleElement>(null);
@@ -65,15 +79,16 @@ export function HeroBookingLink() {
       ref={sticker}
       className={cn(
         "pointer-events-none z-10 size-28 origin-top-left min-[375px]:max-md:size-34 lg:size-46",
-        floating ? "fixed right-6 bottom-6" : "absolute right-gutter -bottom-12 md:bottom-28",
+        floating ? floatingClassName : restingClassName,
       )}
     >
       <Link
-        href="/rezervacija"
-        aria-label="Rezervuok laiką Marse"
+        href={href}
+        aria-label={lines.join(" ")}
         className={cn(
           "group/sticker @container pointer-events-auto relative grid size-full origin-bottom-right place-items-center rounded-full bg-rust text-center font-bold text-ink ring-5 ring-rust motion-safe:transition-transform motion-safe:duration-250 motion-safe:ease-out-strong",
           floating ? "scale-80 motion-safe:active:scale-75" : "motion-safe:active:scale-95",
+          inkClassName,
         )}
       >
         <svg aria-hidden="true" viewBox="0 0 100 100" fill="none" className="pointer-events-none absolute inset-0 size-full -rotate-90">
@@ -82,9 +97,9 @@ export function HeroBookingLink() {
         </svg>
         <span className="grid rotate-12 justify-items-center gap-hero-sticker-gap whitespace-nowrap text-hero-sticker motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong motion-safe:group-hover/sticker:rotate-0">
           <span>
-            REZERVUOK
+            {lines[0]}
             <br />
-            LAIKĄ MARSE
+            {lines[1]}
           </span>
           <ArrowUpRightIcon aria-hidden weight="light" className="size-hero-sticker-arrow" />
         </span>

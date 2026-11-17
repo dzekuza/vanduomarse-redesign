@@ -9,7 +9,7 @@ import { LandingAllIn } from "@/components/landing/landing-all-in";
 import { FAQ_ITEMS } from "@/components/landing/content";
 import { LandingFaq } from "@/components/landing/landing-faq";
 
-import { LandingHero } from "@/components/landing/landing-hero";
+import { BlackFridayHero } from "@/components/landing/black-friday-hero";
 import { LandingMoments } from "@/components/landing/landing-moments";
 import { LandingNight } from "@/components/landing/landing-night";
 import { LandingPlace } from "@/components/landing/landing-place";
@@ -34,8 +34,8 @@ export default function Home() {
       </a>
       <MainHeader placement="overlay" />
       <main>
-        <div className="lg:flex lg:h-svh lg:flex-col">
-          <LandingHero />
+        <div className="lg:flex lg:min-h-svh lg:flex-col">
+          <BlackFridayHero />
           <LandingTicker />
         </div>
         <LandingActivities />
