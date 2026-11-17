@@ -79,7 +79,9 @@ export type Database = {
           kind: Database["public"]["Enums"]["booking_kind"]
           nights: number | null
           note: string | null
+          paid_at: string | null
           payment_id: string | null
+          payment_method: string | null
           program_id: string | null
           reference: string
           rider_id: string | null
@@ -109,7 +111,9 @@ export type Database = {
           kind: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           program_id?: string | null
           reference: string
           rider_id?: string | null
@@ -139,7 +143,9 @@ export type Database = {
           kind?: Database["public"]["Enums"]["booking_kind"]
           nights?: number | null
           note?: string | null
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           program_id?: string | null
           reference?: string
           rider_id?: string | null
@@ -461,7 +467,9 @@ export type Database = {
           discount_code_id: string | null
           event_id: string
           id: string
+          paid_at: string | null
           payment_id: string | null
+          payment_method: string | null
           people: number
           reference: string
           rider_id: string | null
@@ -482,7 +490,9 @@ export type Database = {
           discount_code_id?: string | null
           event_id: string
           id?: string
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           people: number
           reference: string
           rider_id?: string | null
@@ -503,7 +513,9 @@ export type Database = {
           discount_code_id?: string | null
           event_id?: string
           id?: string
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           people?: number
           reference?: string
           rider_id?: string | null
@@ -953,6 +965,7 @@ export type Database = {
           needs_review: boolean
           paid_at: string | null
           refunded: number
+          staff_created: boolean
           status: string
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
@@ -969,6 +982,7 @@ export type Database = {
           needs_review?: boolean
           paid_at?: string | null
           refunded?: number
+          staff_created?: boolean
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -985,6 +999,7 @@ export type Database = {
           needs_review?: boolean
           paid_at?: string | null
           refunded?: number
+          staff_created?: boolean
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
@@ -1236,7 +1251,9 @@ export type Database = {
           hours: number
           id: string
           note: string | null
+          paid_at: string | null
           payment_id: string | null
+          payment_method: string | null
           quad_type_id: string | null
           reference: string
           rider_id: string | null
@@ -1264,7 +1281,9 @@ export type Database = {
           hours: number
           id?: string
           note?: string | null
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           quad_type_id?: string | null
           reference: string
           rider_id?: string | null
@@ -1292,7 +1311,9 @@ export type Database = {
           hours?: number
           id?: string
           note?: string | null
+          paid_at?: string | null
           payment_id?: string | null
+          payment_method?: string | null
           quad_type_id?: string | null
           reference?: string
           rider_id?: string | null
@@ -3258,6 +3279,17 @@ export type Database = {
           stripe_session_id: string
         }[]
       }
+      start_staff_payment: {
+        Args: { p_refs: string[] }
+        Returns: {
+          amount: number
+          customer_email: string | null
+          expires_at: string | null
+          items: Json
+          payment_id: string
+          stripe_session_id: string | null
+        }[]
+      }
       staff_notify_emails_for: { Args: { p_topics: string[] }; Returns: string[] }
       staff_notify_phones: { Args: { p_topic: string }; Returns: string[] }
       staff_notify_phones_for: { Args: { p_topics: string[] }; Returns: string[] }
@@ -3274,6 +3306,10 @@ export type Database = {
       verify_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: string
+      }
+      void_staff_payment: {
+        Args: { p_payment_id: string }
+        Returns: undefined
       }
     }
     Enums: {

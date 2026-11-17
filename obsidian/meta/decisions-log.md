@@ -10,6 +10,26 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0113 — Resend, copy and "mark as paid" for staff-entered requests; payment on quad rentals and tours
+
+- **Status:** Accepted (built on `feat/admin-reservation-payment`).
+- **Date:** 2026-11-18
+- **Context:** ADR-0112 let staff record payment only when creating a request. An unpaid request needed a way to send the link again (it lasts 24 h), to hand the link over another way, and to be settled when the customer paid at the till; quad rentals and tours were not covered.
+- **Decision:** `start_staff_payment` is idempotent: asked again it returns the request's open staff payment, or starts a new one when the earlier expired. `openStaffPayment` turns that into a Checkout URL (open session reused, expired one replaced with `p_expected_session_id`). "Pažymėti sumokėta" first expires the Checkout Session (`closeCheckoutSession`; a session that turned out paid refuses), then `void_staff_payment` marks the payment expired and detaches it, then `paid_at` / `payment_method` are written and a "Laukia" request is confirmed (as an online payment does). Quad rentals got the same columns; all three creation dialogs share `payment-form.ts`. Only staff-source (`telefonu` / `vietoje`) requests are touched; website requests stay with the customer.
+- **Consequences:** a request staff entered before ADR-0112 (no payment information) also shows the three buttons until marked. Marking paid on a customer-paid-in-the-meantime request is refused. A paid-online request is refunded through the existing cancel flow. Still not built: mixed payments of several requests in one link.
+
+---
+
+## ADR-0112 — Staff-entered reservations record how they were paid; unpaid ones get a Stripe payment link by e-mail
+
+- **Status:** Accepted (PR #138).
+- **Date:** 2026-11-18
+- **Context:** a phone or walk-in booking made in /admin carried no payment information, and the staff had no way to collect payment later. The website flow already has `payments` + Stripe Checkout + a webhook, but `start_payment` needs a customer account.
+- **Decision:** the form asks for Apmokėjimas and Mokėjimas. Paid at entry: `paid_at` and `payment_method` are written on the booking / ticket. Unpaid: `start_staff_payment` (service role, like `start_payment` but for staff-source rows with no account; `payments.staff_created`) opens the payment and `lib/staff-payment.ts` creates a Checkout Session that lasts 23 h 55 min (just under Stripe's 24 h maximum) and e-mails the link. Staff permission is checked by the server action before the service-role call. The webhook is unchanged apart from `payment_notify_email`, which returns the typed address for a staff-created payment. An unpaid booking keeps the status staff chose; with "Laukia" an unpaid link that expires releases the slot (`close_payment`), with "Patvirtinta" it stays and shows unpaid.
+- **Consequences:** online payment must be enabled and an e-mail given to leave a booking unpaid; a link that cannot be created removes the booking again. Quad rentals and tours are separate dialogs and still record no payment. There is no "resend link" or "mark as paid later" yet.
+
+---
+
 ## ADR-0111 — The Purchase for Meta's Conversions API is sent from the Stripe webhook
 
 - **Status:** Accepted (built on `feat/meta-purchase-webhook`). Supersedes the "browser proves the sale" part of ADR-0107.

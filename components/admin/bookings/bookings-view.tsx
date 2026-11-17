@@ -161,7 +161,7 @@ export function BookingsView() {
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         <BookingStatusBadge status={b.status} />
-                        <PaymentBadge payment={b.payment} />
+                        <PaymentBadge payment={b.payment} method={b.paymentMethod} />
                       </div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell"><BookingActions booking={b} /></TableCell>

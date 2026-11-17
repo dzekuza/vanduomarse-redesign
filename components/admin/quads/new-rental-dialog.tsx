@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
+import { BookingPaymentFields } from "../bookings/booking-payment-fields";
+import { isPaymentFailure, PAYMENT_EMAIL_REQUIRED, paymentFormDefaults, paymentFormShape, paymentInput, reportCreated } from "../bookings/payment-form";
 import { freeForRental, rentalStartsOn } from "@/lib/admin/quad-availability";
 import { hourLabel, rentalPrice } from "@/lib/quads";
 import { todayKey } from "@/lib/sauna";
@@ -33,8 +34,10 @@ const schema = z
     status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     note: z.string().trim().max(300),
+    ...paymentFormShape,
   })
-  .refine((v) => v.phone !== "" || v.email !== "", { message: "Nurodykite telefoną arba el. paštą.", path: ["phone"] });
+  .refine((v) => v.phone !== "" || v.email !== "", { message: "Nurodykite telefoną arba el. paštą.", path: ["phone"] })
+  .refine((v) => v.paid === "sumoketa" || v.email !== "", { message: PAYMENT_EMAIL_REQUIRED, path: ["email"] });
 type Values = z.infer<typeof schema>;
 
 /** A rental taken by phone or on site, for `date` when given (from the booking chooser). The database refuses it when the hours are full. */
@@ -55,10 +58,12 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
       status: "patvirtinta",
       source: "telefonu",
       note: "",
+      ...paymentFormDefaults,
     },
   });
   const err = formState.errors;
-  const [typeId, hours, units, day] = useWatch({ control, name: ["quadTypeId", "hours", "units", "date"] });
+  const [typeId, hours, units, day, paid] = useWatch({ control, name: ["quadTypeId", "hours", "units", "date", "paid"] });
+  const unpaid = paid === "nesumoketa";
   const type = quadTypes.find((t) => t.id === typeId);
   const price = type && /^\d+$/.test(hours) && /^\d+$/.test(units) ? rentalPrice(type, Number(hours), Number(units)) : null;
   const fleet = { types: quadTypes, settings: s, rentals: quadRentals };
@@ -81,9 +86,11 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
       status: v.status,
       source: v.source,
       note: v.note,
+      payment: paymentInput(v),
     });
-    if ("error" in result) return setError("root", { message: result.error.message });
-    toast.success(`Nuoma ${result.data.reference} sukurta`);
+    if ("error" in result && isPaymentFailure(result.error)) return;
+    if ("error" in result) return setError(result.error.code === "email_required" ? "email" : "root", { message: result.error.message });
+    reportCreated(`Nuoma ${result.data.rental.reference}`, result.data);
     onOpenChange(false);
   });
 
@@ -151,7 +158,7 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
             <FormPhoneInput<Values> name="phone" control={control} id="nr-phone" invalid={!!err.phone} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="nr-email">El. paštas</Label>
+            <Label htmlFor="nr-email">{unpaid ? "El. paštas (apmokėjimo nuorodai)" : "El. paštas"}</Label>
             <Input id="nr-email" type="email" aria-invalid={!!err.email} className="min-h-11" {...register("email")} />
           </div>
           <div className="space-y-1.5">
@@ -166,6 +173,7 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
             <Label htmlFor="nr-note">Pastaba</Label>
             <Textarea id="nr-note" rows={2} {...register("note")} />
           </div>
+          <BookingPaymentFields control={control} unpaid={unpaid} />
           {Object.values(err).some((e) => e && "message" in e && e.message) ? (
             <p role="alert" className="col-span-2 text-xs text-destructive">
               {err.root?.message ?? Object.values(err).map((e) => e?.message).find(Boolean)}

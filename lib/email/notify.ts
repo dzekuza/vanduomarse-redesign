@@ -127,6 +127,23 @@ export const emailPaid = (to: string | null | undefined, references: string[], a
   });
 };
 
+/**
+ * Staff entered a reservation that is not paid yet (ADR-0112): the customer gets the Stripe Checkout link. It lasts a day
+ * (Stripe's maximum); the reservation is confirmed by the payment itself.
+ */
+export function emailPaymentRequest(to: string, reference: string, summary: string, amount: number, url: string): Promise<boolean> {
+  const paragraphs: EmailParagraph[] = [
+    "Sveiki,",
+    `užregistravome jūsų rezervaciją ${reference}.`,
+    { strong: summary },
+    `Prašome apmokėti ${formatEuro(amount)} per 24 val. paspaudus mygtuką žemiau. Apmokėjimas saugus, kortele per Stripe.`,
+    "Jei nuoroda nebegalioja arba turite klausimų, susisiekite su mumis.",
+  ];
+  const button = { label: "Apmokėti", href: url };
+  const text = [...paragraphs.map((p) => (typeof p === "string" ? p : p.strong)), `${button.label}: ${button.href}`, footer.join("\n")].join("\n\n");
+  return sendEmail({ to, subject: `Apmokėjimas už rezervaciją ${reference}`, text, html: brandedEmailHtml({ paragraphs, button }) });
+}
+
 /* ---------------- staff: the people in /admin/pranesimai, else the service inbox (STAFF_INBOX), else STAFF_NOTIFY_EMAIL ---------------- */
 
 /**

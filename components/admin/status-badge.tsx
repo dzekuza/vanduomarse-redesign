@@ -1,6 +1,6 @@
 import { BOOKING_STATUS, INQUIRY_STATUS, PAYMENT_STATUS } from "@/lib/admin/labels";
 import { COUPON_STATUS_LABEL, type CouponStatus } from "@/lib/coupons";
-import type { BookingStatus, InquiryStatus, PaymentInfo, PaymentStatus } from "@/lib/admin/types";
+import type { BookingStatus, InquiryStatus, PaymentInfo, PaymentStatus, StaffPaymentMethod } from "@/lib/admin/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -81,21 +81,21 @@ export function CouponStatusBadge({ status }: { status: CouponStatus }) {
   return <StatusPill tone={COUPON_TONE[status]} label={COUPON_STATUS_LABEL[status]} pulse={status === "laukia_apmokejimo"} />;
 }
 
-/** How a request is paid: online by card (Stripe) or in person (cash / on site) when no online payment exists. */
-function PaymentMethodBadge({ payment }: { payment?: PaymentInfo }) {
+/** How a request is paid: online by card (Stripe), or in person: the method staff recorded, cash when none was. */
+function PaymentMethodBadge({ payment, method }: { payment?: PaymentInfo; method?: StaffPaymentMethod }) {
   return (
     <Badge variant="outline" className="border-border bg-muted/50">
-      {payment ? "Kortele" : "Grynaisiais"}
+      {payment || method === "kortele" ? "Kortele" : "Grynaisiais"}
     </Badge>
   );
 }
 
 /** The payment of a request: its Stripe status (when paid online) and always the method, card or cash. */
-export function PaymentBadge({ payment }: { payment?: PaymentInfo }) {
+export function PaymentBadge({ payment, method }: { payment?: PaymentInfo; method?: StaffPaymentMethod }) {
   return (
     <>
       {payment ? <StatusPill tone={PAYMENT_TONE[payment.status]} label={PAYMENT_STATUS[payment.status]} /> : null}
-      <PaymentMethodBadge payment={payment} />
+      <PaymentMethodBadge payment={payment} method={method} />
       {payment?.needsReview ? <StatusPill tone="pending" label="Peržiūrėti mokėjimą" pulse /> : null}
     </>
   );

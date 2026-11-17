@@ -368,7 +368,7 @@ function useAdminReducer(initial: AdminData) {
       /** Not optimistic: the reference comes from the database. */
       createBooking: async (input: NewBookingInput) => {
         const result = await actions.createBooking(input);
-        if ("data" in result) dispatch({ type: "booking/add", booking: result.data });
+        if ("data" in result) dispatch({ type: "booking/add", booking: result.data.booking });
         return result;
       },
       toggleBlock: (saunaId: string, date: string, hour: number, reason = "Uždaryta") => {
@@ -545,13 +545,13 @@ function useAdminReducer(initial: AdminData) {
       /** Not optimistic: the reference and price come from the database. */
       createRental: async (input: StaffRentalInput) => {
         const result = await actions.createRental(input);
-        if ("data" in result) dispatch({ type: "rental/add", rental: result.data });
+        if ("data" in result) dispatch({ type: "rental/add", rental: result.data.rental });
         return result;
       },
       /** Not optimistic: the price, reference and fleet allocation come from the database. */
       createQuadTour: async (input: StaffTourInput) => {
         const result = await actions.createQuadTour(input);
-        if ("data" in result) dispatch({ type: "rental/add", rental: result.data });
+        if ("data" in result) dispatch({ type: "rental/add", rental: result.data.rental });
         return result;
       },
       /** Not optimistic: the database re-checks capacity when a cancelled rental is reopened. */
@@ -576,9 +576,13 @@ function useAdminReducer(initial: AdminData) {
       /** Staff-entered tickets for an event or session. Not optimistic: the database checks the places left. */
       createEventTicket: async (input: NewEventTicketInput) => {
         const result = await report(actions.createEventTicket(input));
-        if ("data" in result) dispatch({ type: "ticket/add", ticket: result.data });
+        if ("data" in result) dispatch({ type: "ticket/add", ticket: result.data.ticket });
         return result;
       },
+      /** The payment link of an unpaid staff-entered request: e-mailed again, or just returned to copy (ADR-0113). */
+      getPaymentLink: (kind: "booking" | "rental" | "ticket", id: string, mode: "email" | "copy") => report(actions.getPaymentLink(kind, id, mode)),
+      /** Records an unpaid staff-entered request as paid at entry; the layout then re-renders with the fresh state. */
+      markRequestPaid: (kind: "booking" | "rental" | "ticket", id: string, method: "grynais" | "kortele") => report(actions.markRequestPaid(kind, id, method)),
       /** Removes a cancelled request (refunded, or never paid online). Not optimistic: the server checks the refund first. */
       deleteRequest: async (kind: "booking" | "rental" | "ticket", id: string) => {
         const result = await report(actions.deleteRequest(kind, id));

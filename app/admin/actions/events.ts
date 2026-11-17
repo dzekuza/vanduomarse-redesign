@@ -4,7 +4,9 @@ import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { toTourTicket } from "@/lib/admin/mappers";
 import type { ManagedEvent, PriceItem, TourTicket } from "@/lib/admin/types";
-import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { dbError, done, fail, removeFailedRequest, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { describeRequest } from "@/lib/sms/notify";
+import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 
 /* ---------------- events ---------------- */
 
@@ -119,17 +121,22 @@ const eventTicketInput = z.object({
   people: z.number().int().min(1).max(500),
   status: z.enum(["patvirtinta", "laukia"]),
   source: z.enum(["telefonu", "vietoje"]),
+  /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
+  payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
 }).refine((v) => v.customer.phone !== "" || v.customer.email !== "");
 
 export type NewEventTicketInput = z.infer<typeof eventTicketInput>;
+
+/** The new ticket, and for an unpaid one whether the payment-link e-mail went out. */
+export type CreatedTicket = { ticket: TourTicket; emailSent?: boolean; paymentUrl?: string };
 
 /**
  * Adds tickets to an event or public sauna session for someone who phoned or walked in. The price is the event's ticket
  * price times the people, read here, never from the browser; the database refuses more people than places left
  * (`event_full`, sold and held places count) and links the ticket to the customer by contact. Staff-entered tickets
- * notify nobody, like staff-entered bookings. Quad tour departures are sold as rentals, not here.
+ * notify nobody, except that an unpaid one e-mails its payment link to the customer (ADR-0112). Quad tour departures are sold as rentals, not here.
  */
-export async function createEventTicket(input: NewEventTicketInput): Promise<ActionResult<TourTicket>> {
+export async function createEventTicket(input: NewEventTicketInput): Promise<ActionResult<CreatedTicket>> {
   // Like the tickets table's policy: Renginiai for any event, Keturračiai only for guided quad tours (category keturratis).
   const ctx = await staffClient(EVENT_STAFF);
   if (!ctx.ok) return ctx.error;
@@ -137,12 +144,18 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const v = parsed.data;
   const { supabase } = ctx;
+  const unpaid = !v.payment.paid;
 
-  const { data: event, error: eventError } = await supabase.from("events").select("price, tour_route_id, calendar_private").eq("id", v.eventId).maybeSingle();
+  const { data: event, error: eventError } = await supabase.from("events").select("price, title, date, tour_route_id, calendar_private").eq("id", v.eventId).maybeSingle();
   if (eventError) return dbError(eventError);
   if (!event) return fail("Renginys nerastas.", "invalid");
   if (event.tour_route_id) return fail("Keturračių turai parduodami kaip nuoma.", "invalid");
   if (event.calendar_private) return fail("Privatus įrašas bilietų neturi.", "invalid");
+  const total = (event.price ?? 0) * v.people;
+  if (unpaid) {
+    const problem = staffPaymentProblem(v.customer.email, total);
+    if (problem) return fail(problem.message, problem.code);
+  }
 
   const { data, error } = await supabase
     .from("event_tickets")
@@ -154,12 +167,22 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
       customer_phone: v.customer.phone || null,
       customer_email: v.customer.email || null,
       people: v.people,
-      total: (event.price ?? 0) * v.people,
+      total,
       status: v.status,
       source: v.source,
+      payment_method: unpaid ? null : v.payment.method,
+      paid_at: unpaid ? null : new Date().toISOString(),
     })
     .select("*, events!inner(title, date, start_time, category)")
     .single();
   if (error) return dbError(error);
-  return done(toTourTicket(data));
+
+  const ticket = toTourTicket(data);
+  if (!unpaid) return done({ ticket });
+  // Not paid at entry: open a payment and e-mail the link; without it the ticket would sit unpaid, so it is removed again.
+  const summary = describeRequest([event.title, event.date, `${v.people} asm.`, `${total} EUR`]);
+  const paymentRequest = await requestStaffPayment({ reference: data.reference, email: v.customer.email, summary });
+  if (!paymentRequest.ok) return removeFailedRequest(supabase, "event_tickets", data.id, data.reference, paymentRequest);
+  ticket.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  return done({ ticket, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
 }

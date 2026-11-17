@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAdmin } from "../admin-store";
+import { PaymentActions } from "../payment-actions";
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { RentalSheet } from "./rental-sheet";
 import { StatusActions } from "./status-actions";
@@ -39,7 +40,7 @@ export function ToursTab() {
               </CardTitle>
               <div className="flex flex-wrap justify-end gap-1">
                 <BookingStatusBadge status={r.status} />
-                <PaymentBadge payment={r.payment} />
+                <PaymentBadge payment={r.payment} method={r.paymentMethod} />
               </div>
             </CardHeader>
             <CardContent className="space-y-1 text-sm">
@@ -61,7 +62,7 @@ export function ToursTab() {
               <CardTitle className="text-item">{t.eventTitle}</CardTitle>
               <div className="flex flex-wrap justify-end gap-1">
                 <BookingStatusBadge status={t.status} />
-                <PaymentBadge payment={t.payment} />
+                <PaymentBadge payment={t.payment} method={t.paymentMethod} />
               </div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
@@ -74,6 +75,7 @@ export function ToursTab() {
               <p className="text-xs text-muted-foreground">
                 {t.customer.name} · {t.customer.phone || t.customer.email} · {t.reference}
               </p>
+              <PaymentActions kind="ticket" id={t.id} status={t.status} source={t.source} payment={t.payment} paidAt={t.paidAt} email={t.customer.email} />
               <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} onCancel={() => cancel({ id: t.id, reference: t.reference, total: t.total, payment: t.payment })} onDelete={() => remove({ id: t.id, reference: t.reference })} />
             </CardContent>
           </Card>

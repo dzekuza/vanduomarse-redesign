@@ -4,6 +4,7 @@ import { useAdmin } from "../admin-store";
 import { HeldSpots } from "../events/held-spots";
 import { CustomerLink } from "../customer-link";
 import { StatusActions } from "../quads/status-actions";
+import { PaymentActions } from "../payment-actions";
 import { BookingStatusBadge, PaymentBadge } from "../status-badge";
 import { seatsLabel, ticketsFor } from "@/lib/admin/calendar-entries";
 import { formatDay, formatEur } from "@/lib/admin/format";
@@ -54,7 +55,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-1">
                         <BookingStatusBadge status={r.status} />
-                        <PaymentBadge payment={r.payment} />
+                        <PaymentBadge payment={r.payment} method={r.paymentMethod} />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
@@ -77,6 +78,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         </a>
                       ) : null}
                     </div>
+                    <PaymentActions kind="rental" id={r.id} status={r.status} source={r.source} payment={r.payment} paidAt={r.paidAt} email={r.customer.email} />
                     <StatusActions status={r.status} onSet={(s) => setRentalStatus(r.id, s)} onCancel={() => cancelRental({ id: r.id, reference: r.reference, total: r.total, payment: r.payment })} onDelete={() => removeRental({ id: r.id, reference: r.reference })} />
                   </div>
                 ))}
@@ -85,7 +87,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-1">
                         <BookingStatusBadge status={t.status} />
-                        <PaymentBadge payment={t.payment} />
+                        <PaymentBadge payment={t.payment} method={t.paymentMethod} />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
@@ -108,6 +110,7 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
                         </a>
                       ) : null}
                     </div>
+                    <PaymentActions kind="ticket" id={t.id} status={t.status} source={t.source} payment={t.payment} paidAt={t.paidAt} email={t.customer.email} />
                     <StatusActions status={t.status} onSet={(s) => setTourTicketStatus(t.id, s)} onCancel={() => cancelTicket({ id: t.id, reference: t.reference, total: t.total, payment: t.payment })} onDelete={() => removeTicket({ id: t.id, reference: t.reference })} />
                   </div>
                 ))}

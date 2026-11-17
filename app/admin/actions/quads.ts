@@ -5,7 +5,9 @@ import { z } from "zod";
 import { toQuadRental } from "@/lib/admin/mappers";
 import type { QuadRental } from "@/lib/admin/types";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
-import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { dbError, done, fail, removeFailedRequest, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { describeRequest } from "@/lib/sms/notify";
+import { requestStaffPayment, staffPaymentProblem } from "@/lib/staff-payment";
 
 /* ---------------- quads ---------------- */
 
@@ -159,16 +161,21 @@ const staffRentalInput = z.object({
   hours: z.number().int().min(1).max(8),
   units: z.number().int().min(1).max(20),
   riders: z.number().int().min(1).max(40),
-  customer: z.object({ name: z.string().trim().min(2).max(80), phone: z.string().trim().max(30), email: z.string().trim().max(120) }),
+  customer: z.object({ name: z.string().trim().min(2).max(80), phone: z.string().trim().max(30), email: z.union([z.literal(""), z.email().max(120)]) }),
   status: z.enum(["laukia", "patvirtinta"]),
   source: z.enum(["telefonu", "vietoje"]),
   note: z.string().trim().max(300),
+  /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
+  payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
 });
+
+/** The new rental, and for an unpaid one whether the payment-link e-mail went out. */
+export type CreatedRental = { rental: QuadRental; emailSent?: boolean; paymentUrl?: string };
 
 export type StaffRentalInput = z.infer<typeof staffRentalInput>;
 
 /** A rental taken by phone or on site. Price comes from the fleet row; the database guards capacity. */
-export async function createRental(input: StaffRentalInput): Promise<ActionResult<QuadRental>> {
+export async function createRental(input: StaffRentalInput): Promise<ActionResult<CreatedRental>> {
   const ctx = await staffClient("keturraciai");
   if (!ctx.ok) return ctx.error;
   const parsed = staffRentalInput.safeParse(input);
@@ -179,6 +186,12 @@ export async function createRental(input: StaffRentalInput): Promise<ActionResul
   const { data: type } = await ctx.supabase.from("quad_types").select("price_per_hour, seats").eq("id", v.quadTypeId).maybeSingle();
   if (!type) return fail("Nežinomas keturračio tipas.", "invalid");
   if (v.riders > v.units * type.seats) return fail("Per daug važiuotojų pasirinktiems keturračiams.", "invalid");
+  const total = v.hours * v.units * type.price_per_hour;
+  const unpaid = !v.payment.paid;
+  if (unpaid) {
+    const problem = staffPaymentProblem(v.customer.email, total);
+    if (problem) return fail(problem.message, problem.code);
+  }
 
   const { data: row, error } = await ctx.supabase
     .from("quad_rentals")
@@ -194,15 +207,25 @@ export async function createRental(input: StaffRentalInput): Promise<ActionResul
       customer_name: v.customer.name,
       customer_phone: v.customer.phone || null,
       customer_email: v.customer.email || null,
-      total: v.hours * v.units * type.price_per_hour,
+      total,
       status: v.status,
       source: v.source,
       note: v.note || null,
+      payment_method: unpaid ? null : v.payment.method,
+      paid_at: unpaid ? null : new Date().toISOString(),
     })
     .select("*")
     .single();
   if (error) return dbError(error);
-  return done(toQuadRental(row));
+
+  const rental = toQuadRental(row);
+  if (!unpaid) return done({ rental });
+  // Not paid at entry: open a payment and e-mail the link; without it the rental would sit unpaid, so it is removed again.
+  const summary = describeRequest(["Keturračiai", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${total} EUR`]);
+  const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+  if (!paymentRequest.ok) return removeFailedRequest(ctx.supabase, "quad_rentals", row.id, row.reference, paymentRequest);
+  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  return done({ rental, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
 }
 
 const staffTourInput = z.object({
@@ -215,6 +238,8 @@ const staffTourInput = z.object({
   status: z.enum(["laukia", "patvirtinta"]),
   source: z.enum(["telefonu", "vietoje"]),
   note: z.string().trim().max(300),
+  /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
+  payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
 });
 
 export type StaffTourInput = z.infer<typeof staffTourInput>;
@@ -233,13 +258,19 @@ const TOUR_ERRORS: Record<string, string> = {
  * website (`create_quad_tour_rental`), so the route price, gear, minimum quads, opening hours and the shared fleet are
  * checked and priced there, never from the browser; the rental is then marked as staff-entered (status and channel).
  */
-export async function createQuadTour(input: StaffTourInput): Promise<ActionResult<QuadRental>> {
+export async function createQuadTour(input: StaffTourInput): Promise<ActionResult<CreatedRental>> {
   const ctx = await staffClient("keturraciai");
   if (!ctx.ok) return ctx.error;
   const parsed = staffTourInput.safeParse(input);
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const v = parsed.data;
   if (!v.customer.phone && !v.customer.email) return fail("Nurodykite telefoną arba el. paštą.", "invalid");
+  const unpaid = !v.payment.paid;
+  // The route price is only known once the database has priced the tour, so the amount is checked after it.
+  if (unpaid) {
+    const problem = staffPaymentProblem(v.customer.email, Number.POSITIVE_INFINITY);
+    if (problem) return fail(problem.message, problem.code);
+  }
 
   const { data: created, error } = await ctx.supabase.rpc("create_quad_tour_rental", {
     p_route_id: v.routeId,
@@ -259,10 +290,22 @@ export async function createQuadTour(input: StaffTourInput): Promise<ActionResul
   // The function files a website request (pending); a staff-entered tour is confirmed and marked by its channel.
   const { data: row, error: updateError } = await ctx.supabase
     .from("quad_rentals")
-    .update({ status: v.status, source: v.source })
+    .update({ status: v.status, source: v.source, payment_method: unpaid ? null : v.payment.method, paid_at: unpaid ? null : new Date().toISOString() })
     .eq("id", id)
     .select("*, quad_rental_items(quad_type_id, units)")
     .single();
   if (updateError) return dbError(updateError);
-  return done(toQuadRental(row));
+
+  const rental = toQuadRental(row);
+  if (!unpaid) return done({ rental });
+  // Not paid at entry: open a payment and e-mail the link; without it the tour would sit unpaid, so it is removed again.
+  const problem = staffPaymentProblem(v.customer.email, row.total);
+  const summary = describeRequest(["Keturračių turas", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${row.total} EUR`]);
+  const paymentRequest = problem ? null : await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+  if (problem || !paymentRequest?.ok) {
+    const failure = problem ?? (paymentRequest && !paymentRequest.ok ? paymentRequest : null);
+    return removeFailedRequest(ctx.supabase, "quad_rentals", id, row.reference, { message: failure?.message ?? "Nepavyko sukurti apmokėjimo nuorodos.", code: failure?.code ?? "payment" });
+  }
+  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  return done({ rental, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
 }

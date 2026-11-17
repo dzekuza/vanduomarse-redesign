@@ -3,9 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import { useAdmin } from "../admin-store";
+import { BookingPaymentFields } from "../bookings/booking-payment-fields";
+import { isPaymentFailure, PAYMENT_EMAIL_REQUIRED, paymentFormDefaults, paymentFormShape, paymentInput, reportCreated } from "../bookings/payment-form";
 import { FormField } from "../form-field";
 import { TourGearFields } from "./tour-gear-fields";
 import { formatEur } from "@/lib/admin/format";
@@ -33,8 +34,10 @@ const schema = z
     status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     note: z.string().trim().max(300),
+    ...paymentFormShape,
   })
-  .refine((v) => v.phone !== "" || v.email !== "", { message: "Nurodykite telefoną arba el. paštą.", path: ["phone"] });
+  .refine((v) => v.phone !== "" || v.email !== "", { message: "Nurodykite telefoną arba el. paštą.", path: ["phone"] })
+  .refine((v) => v.paid === "sumoketa" || v.email !== "", { message: PAYMENT_EMAIL_REQUIRED, path: ["email"] });
 type Values = z.infer<typeof schema>;
 
 /**
@@ -47,9 +50,10 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
   const [gear, setGear] = useState<Record<string, number>>({});
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { routeId, date, startHour: "", units: String(routes.find((r) => r.id === routeId)?.minUnits ?? 1), name: "", phone: "", email: "", status: "patvirtinta", source: "telefonu", note: "" },
+    defaultValues: { routeId, date, startHour: "", units: String(routes.find((r) => r.id === routeId)?.minUnits ?? 1), name: "", phone: "", email: "", status: "patvirtinta", source: "telefonu", note: "", ...paymentFormDefaults },
   });
-  const [chosenRoute, day, startHour, unitsText] = useWatch({ control, name: ["routeId", "date", "startHour", "units"] });
+  const [chosenRoute, day, startHour, unitsText, paid] = useWatch({ control, name: ["routeId", "date", "startHour", "units", "paid"] });
+  const unpaid = paid === "nesumoketa";
   const err = formState.errors;
   const route = routes.find((r) => r.id === chosenRoute);
   const starts = route && day ? tourStartsOn(day, route, { types: quadTypes, settings: quadSettings, rentals: quadRentals }) : [];
@@ -72,9 +76,11 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
       status: v.status,
       source: v.source,
       note: v.note,
+      payment: paymentInput(v),
     });
-    if ("error" in result) return setError("root", { message: result.error.message });
-    toast.success(`Turas ${result.data.reference} sukurtas`);
+    if ("error" in result && isPaymentFailure(result.error)) return;
+    if ("error" in result) return setError(result.error.code === "email_required" ? "email" : "root", { message: result.error.message });
+    reportCreated(`Turas ${result.data.rental.reference}`, result.data);
     onOpenChange(false);
   });
 
@@ -135,7 +141,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
           <FormField id="nt-phone" label="Telefonas" error={err.phone?.message}>
             <FormPhoneInput<Values> name="phone" control={control} id="nt-phone" invalid={!!err.phone} />
           </FormField>
-          <FormField id="nt-email" label="El. paštas" error={err.email?.message}>
+          <FormField id="nt-email" label={unpaid ? "El. paštas (apmokėjimo nuorodai)" : "El. paštas"} error={err.email?.message}>
             <Input id="nt-email" type="email" aria-invalid={!!err.email} className="min-h-11" {...register("email")} />
           </FormField>
           {(["status", "source"] as const).map((name) => (
@@ -157,6 +163,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
           <FormField id="nt-note" label="Pastaba" className="col-span-2">
             <Textarea id="nt-note" rows={2} {...register("note")} />
           </FormField>
+          <BookingPaymentFields control={control} unpaid={unpaid} />
           {err.root?.message ? <p role="alert" className="col-span-2 text-xs text-destructive">{err.root.message}</p> : null}
         </form>
         <DialogFooter className="items-center justify-between *:flex-none">
