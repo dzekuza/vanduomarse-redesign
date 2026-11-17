@@ -2,17 +2,15 @@
 
 import { z } from "zod";
 import type { ActionResult } from "@/app/admin/actions";
-import { checkDiscountCode } from "@/app/actions/discount-codes";
 import { loadMyRiders } from "@/lib/account-data";
 import { getCustomer } from "@/lib/customer";
-import { normalizeDiscountCode } from "@/lib/discount-codes";
 import { registrationSchema } from "@/lib/registration-schema";
 import { TERMS_VERSION } from "@/lib/park-rules";
 import { openPlanCheckout } from "@/lib/plan-checkout";
 import { paymentsEnabled } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicClient } from "@/lib/supabase/public";
-import { isWakeBlackFridayDiscount, WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_SEASON_PASS_ID } from "@/lib/wake-black-friday";
+import { campaignDiscountError } from "@/lib/wake-campaign";
 
 /**
  * Public self-registration for /registracija: creates a `riders` row and its
@@ -33,24 +31,17 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
 
 const PLAN_FAILED = "Registracija įrašyta, bet nepavyko pradėti mokėjimo. Skambinkite mums ir užbaigsime užsakymą.";
-const ALREADY_REGISTERED = "Jūs jau užsiregistravę. Prisijunkite paskyroje ir įsigykite abonementą ten.";
-const CAMPAIGN_UNAVAILABLE = "Šiuo metu „Black Friday“ pasiūlymas negalioja.";
 
 async function validateCampaignDiscount(planId: string, discountCode?: string) {
-  const campaign = WAKE_BLACK_FRIDAY_DISCOUNT;
-  if (!discountCode || normalizeDiscountCode(discountCode) !== campaign.code) return null;
-  if (planId.toLowerCase() !== WAKE_SEASON_PASS_ID) return fail(CAMPAIGN_UNAVAILABLE, "discount");
-  const result = await checkDiscountCode(campaign.code);
-  return "data" in result && isWakeBlackFridayDiscount(result.data)
-    ? null : fail(CAMPAIGN_UNAVAILABLE, "discount");
+  const message = await campaignDiscountError(planId, discountCode);
+  return message ? fail(message, "discount") : null;
 }
 
 /**
- * With `planId` (a bracelet plan sold online, e.g. a WAKE season pass) the registration continues into Stripe
- * Checkout: the order is created here for the rider this call just made, never for a client-supplied rider id.
- * The webhook attaches the plan after payment (ADR-0080). No rider id is sent back to the browser.
+ * Registration never takes payment: a plan is bought first, without registering (`buyPlanPass`, ADR-0109), and a signed-in
+ * member's plan goes straight to Stripe (`buyPlanAsMember`). Staff attach a pass to the rider this creates.
  */
-export async function registerRider(form: FormData): Promise<ActionResult<{ checkoutUrl?: string }>> {
+export async function registerRider(form: FormData): Promise<ActionResult<null>> {
   const parsed = registrationSchema.safeParse({
     name: form.get("name"),
     surname: form.get("surname"),
@@ -63,19 +54,7 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ chec
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Patikrinkite duomenis.", "invalid");
   const v = parsed.data;
   // A bot that filled the honeypot gets the same answer as a person, and nothing is stored.
-  if (v.website) return { data: {} };
-
-  // Buying a plan: refuse a bad plan or a missing payment setup BEFORE anything is saved.
-  const planField = form.get("planId");
-  const planId = typeof planField === "string" && planField !== "" ? planField : null;
-  const discountField = form.get("discountCode");
-  const discountCode = typeof discountField === "string" ? discountField.trim().slice(0, 40) : undefined;
-  if (planId) {
-    if (!z.uuid().safeParse(planId).success) return fail("Netinkamas abonementas.", "invalid");
-    if (!paymentsEnabled()) return fail("Mokėjimas šiuo metu neveikia. Skambinkite mums ir užregistruosime jus.", "setup");
-    const campaignError = await validateCampaignDiscount(planId, discountCode);
-    if (campaignError) return campaignError;
-  }
+  if (v.website) return { data: null };
 
   const photo = form.get("photo");
   const signature = form.get("signature");
@@ -102,11 +81,8 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ chec
   const customer = registered?.[0];
   if (rpcError || !customer) return fail("Nepavyko užregistruoti. Bandykite dar kartą.", "db");
 
-  // A customer who already finished registering (photo and signed rules): nothing is stored and their id is not
-  // returned, so a plan is bought signed in (`buyPlanAsMember`), where the account's confirmed contact finds them.
-  if (customer.already_registered) {
-    return planId ? fail(ALREADY_REGISTERED, "already_registered") : { data: {} };
-  }
+  // A customer who already finished registering (photo and signed rules): nothing is stored and their id is not returned.
+  if (customer.already_registered) return { data: null };
   const riderId: string | null = customer.rider_id;
   if (!riderId) return fail("Nepavyko užregistruoti. Bandykite dar kartą.", "db");
 
@@ -125,10 +101,7 @@ export async function registerRider(form: FormData): Promise<ActionResult<{ chec
     p_signature_path: signaturePath,
   });
 
-  if (!planId) return { data: {} };
-
-  const started = await startPlanCheckout(riderId, planId, discountCode);
-  return "error" in started ? started : { data: { checkoutUrl: started.data.checkoutUrl } };
+  return { data: null };
 }
 
 /** Creates the plan order for a rider and opens Stripe Checkout; drops the order again when Checkout cannot open. */

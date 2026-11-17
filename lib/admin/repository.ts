@@ -2,7 +2,7 @@ import "server-only";
 import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData, SiteSettings } from "./types";
 
@@ -176,7 +176,7 @@ async function readExternalCalendars(supabase: ServerSupabase) {
 
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
-  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories, saunaMasters] = await Promise.all([
+  const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories, saunaMasters, planPassesWaiting, planPassesDone] = await Promise.all([
     supabase.from("bookings").select("*, booking_extras(name, unit, quantity)").order("date").order("start_hour"),
     supabase.from("sauna_blocks").select("*").order("date").order("hour"),
     supabase.from("inquiries").select("*, inquiry_notes(text, created_at)").order("created_at", { ascending: false }),
@@ -222,9 +222,13 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("quad_tour_routes").select("*").order("sort_order").order("id"),
     supabase.from("quad_tour_accessories").select("*").order("sort_order").order("id"),
     supabase.from("sauna_masters").select("*").order("sort_order").order("created_at"),
+    // Every paid, unattached pass (staff look these up by code), then the latest attached or cancelled ones for the history
+    // filters; unpaid passes are never needed. Two bounded queries, so the 1000-row API limit cannot hide a code.
+    supabase.from("plan_passes").select("*").eq("status", "apmoketa").order("created_at", { ascending: false }).limit(1000),
+    supabase.from("plan_passes").select("*").in("status", ["priskirtas", "atsauktas"]).order("created_at", { ascending: false }).limit(300),
   ]);
 
-  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories]) {
+  for (const res of [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, ridePlans, riders, riderCards, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories, planPassesWaiting, planPassesDone]) {
     if (res.error) throw new Error(`Admin data: ${res.error.message}`);
   }
 
@@ -275,5 +279,6 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     riderComments: riderComments.data!.map(toRiderComment),
     riderDocuments: riderDocuments.data!.map(toRiderDocument),
     riderWaivers: riderWaivers.data!.map(toRiderWaiver),
+    planPasses: [...planPassesWaiting.data!, ...planPassesDone.data!].map(toPlanPass),
   };
 }

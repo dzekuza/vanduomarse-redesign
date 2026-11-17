@@ -1026,6 +1026,119 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_passes: {
+        Row: {
+          buyer_email: string
+          buyer_name: string
+          code: string | null
+          created_at: string
+          discount_amount: number
+          discount_code: string | null
+          discount_code_id: string | null
+          gift: boolean
+          id: string
+          ip_hash: string | null
+          paid_at: string | null
+          plan_category: string
+          plan_id: string | null
+          plan_name: string
+          price: number
+          purchase_id: string | null
+          refunded_at: string | null
+          recipient_name: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          reference: string
+          rider_id: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+        }
+        Insert: {
+          buyer_email: string
+          buyer_name: string
+          code?: string | null
+          created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
+          gift?: boolean
+          id?: string
+          ip_hash?: string | null
+          paid_at?: string | null
+          plan_category: string
+          plan_id?: string | null
+          plan_name: string
+          price: number
+          purchase_id?: string | null
+          refunded_at?: string | null
+          recipient_name?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          reference: string
+          rider_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+        }
+        Update: {
+          buyer_email?: string
+          buyer_name?: string
+          code?: string | null
+          created_at?: string
+          discount_amount?: number
+          discount_code?: string | null
+          discount_code_id?: string | null
+          gift?: boolean
+          id?: string
+          ip_hash?: string | null
+          paid_at?: string | null
+          plan_category?: string
+          plan_id?: string | null
+          plan_name?: string
+          price?: number
+          purchase_id?: string | null
+          refunded_at?: string | null
+          recipient_name?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          reference?: string
+          rider_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_passes_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_passes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ride_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_passes_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_passes_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchases: {
         Row: {
           id: string
@@ -2492,10 +2605,78 @@ export type Database = {
           price: number
         }[]
       }
+      create_plan_pass: {
+        Args: {
+          p_buyer_email: string
+          p_buyer_name: string
+          p_discount_code?: string
+          p_gift?: boolean
+          p_ip_hash?: string
+          p_plan_id: string
+          p_recipient_name?: string
+        }
+        Returns: {
+          id: string
+          plan_name: string
+          price: number
+          reference: string
+        }[]
+      }
+      attach_plan_pass_session: {
+        Args: { p_pass_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      abandon_plan_pass: { Args: { p_pass_id: string }; Returns: undefined }
+      complete_plan_pass_payment: {
+        Args: {
+          p_amount: number
+          p_pass_id: string
+          p_payment_intent: string
+          p_session_id: string
+        }
+        Returns: {
+          amount_ok: boolean
+          buyer_email: string
+          buyer_name: string
+          gift: boolean
+          newly_paid: boolean
+          order_status: string
+          pass_code: string | null
+          plan_name: string
+          price: number
+          recipient_name: string
+          reference: string
+        }[]
+      }
+      expire_plan_pass_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
+      refund_plan_pass_payment: {
+        Args: { p_payment_intent: string; p_refunded: number }
+        Returns: {
+          reference: string
+          was_attached: boolean
+        }[]
+      }
+      redeem_plan_pass: {
+        Args: { p_pass_id: string; p_replace?: boolean; p_rider_id: string }
+        Returns: {
+          plan_category: string
+          plan_id: string
+          plan_name: string
+          price: number
+          purchase_id: string
+          sold_at: string
+        }[]
+      }
       plan_order_state: {
         Args: { p_session_id: string }
         Returns: {
           discount_code: string | null
+          gift: boolean
+          kind: string
+          pass_code: string | null
           plan_name: string
           price: number
           reference: string

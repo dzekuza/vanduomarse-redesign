@@ -1,7 +1,6 @@
 "use client";
 
 import { trackCheckout } from "@/lib/analytics";
-import Link from "next/link";
 import { useState } from "react";
 import { buyPlanAsMember } from "@/app/actions/registration";
 import { goToCheckout } from "@/components/coupons/order-form";
@@ -15,12 +14,11 @@ interface MemberPlanCheckoutProps {
   discountCode?: string;
   total: number;
   busy: boolean;
-  otherRiderHref: string;
   setBusy: (busy: boolean) => void;
 }
 
 /** A customer who already registered buys the plan straight away: no contacts, photo or signature again. */
-export function MemberPlanCheckout({ plan, name, discountCode, total, busy, otherRiderHref, setBusy }: MemberPlanCheckoutProps) {
+export function MemberPlanCheckout({ plan, name, discountCode, total, busy, setBusy }: MemberPlanCheckoutProps) {
   const [error, setError] = useState<string | null>(null);
 
   async function pay() {
@@ -44,9 +42,6 @@ export function MemberPlanCheckout({ plan, name, discountCode, total, busy, othe
         <Button type="button" size="lg" className="min-h-11" disabled={busy} onClick={() => void pay()}>
           {busy ? "Nukreipiame į apmokėjimą..." : `Apmokėti ${formatEuro(total)}`}
         </Button>
-        <Link href={otherRiderHref} className="inline-flex min-h-11 items-center text-xs underline underline-offset-4 hover:text-rust">
-          Registruoju kitą asmenį
-        </Link>
       </div>
     </div>
   );

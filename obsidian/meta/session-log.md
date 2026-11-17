@@ -1,8 +1,21 @@
+## 2026-11-17 — PR #131 review fixes
+
+- **Changed:** migration `plan_passes_refund_gift` (applied live), form/dialog error handling, gift wording on the payment page, tab state kept, bounded admin pass queries, doc corrections. Two review comments answered without a change (optimistic rider delete is existing behaviour; the admin rider list is capped at the newest 1000 riders, an existing stopgap).
+- **Status:** tsc/eslint clean, 139 tests; the new SQL paths checked in a rolled-back transaction. More review comments were still arriving.
+- **Round 2:** migration `plan_passes_refunded_at` (a refunded attached pass no longer emits a Meta Purchase), email grammar, honeypot reachable, test and doc fixes. Two comments answered without a change (checkout-lifecycle refactor, already-added route row).
+- **Next:** merge PR #131 and test one real purchase.
+
 ## 2026-11-17 — New Meta Pixel and CAPI token checked
 
 - **Changed:** nothing in code; owner put a new Pixel id and CAPI token in `.env.local`.
 - **Status:** localhost and live (vanduomarse.lt): Pixel loads, `_fbp` set, PageView + ViewContent sent; live JS has the new Pixel id. Vercel env updated and redeployed.
 - **Next:** one test purchase to see InitiateCheckout + Purchase and the server copy in Events Manager.
+
+## 2026-11-17 — WAKE passes without registration (ADR-0109)
+
+- **Changed:** migration `plan_passes` (table + 8 RPCs, applied live), `buyPlanPass` + `PassBuyForm` ("Perku sau" / "Perku draugui"), webhook `onPlanPassPaid`, pass e-mails, Meta purchase check for passes, admin Kodai tab + `RedeemPassDialog` + `redeemPlanPass`, old register-then-pay removed from `registerRider`.
+- **Status:** tsc/eslint clean, 137 tests; SQL lifecycle verified in a rolled-back transaction; buy form verified to the Stripe redirect (test row deleted). Kodai tab then browser-checked signed in (list, tab count, redeem dialog: unregistered refused, registered attached, "Priskirti" filter shows the customer link); test rows deleted. Local `.env.local` has the LIVE Stripe key: never complete a checkout locally.
+- **Next:** PR and merge; deploy; one end-to-end test purchase (webhook, e-mail, redeem). Later: friend redeems on /paskyra.
 
 ## 2026-11-17 — Admin menu: Vandenlentės and Instruktorius
 

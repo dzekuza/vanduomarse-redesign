@@ -79,7 +79,7 @@ export async function RegistrationPageContent({ params, blackFriday = false }: {
       intro={plan && member !== null
         ? "Tavo registracija jau išsaugota, belieka apmokėti."
         : plan
-        ? "Prieš apmokėdamas užsiregistruok: kontaktai, nuotrauka ir taisyklės."
+        ? "Apmokėk dabar su vardu ir el. paštu. Gavęs abonemento kodą, pirkėjas ar jo draugas užsiregistruoja (kontaktai, nuotrauka, taisyklės) prieš gaudamas apyrankę."
         : "Užpildyk kontaktus, nusifotografuok ir pasirašyk taisykles — darbuotojas kasoje iškart priskirs tau apyrankę."}
     />
   );

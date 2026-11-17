@@ -84,13 +84,32 @@ async function verifyPurchase(kind: "reservation" | "coupon" | "plan", proof: st
     .select("reference, status, price, discount_code, paid_at, rider_id, riders(email, phone, name, surname)")
     .eq("stripe_session_id", proof)
     .maybeSingle();
-  if (!data || data.status !== "apmoketa" || !recentlyPaid(data.paid_at)) return null;
+  if (!data) return verifyPlanPass(admin, proof);
+  if (data.status !== "apmoketa" || !recentlyPaid(data.paid_at)) return null;
   const rider = Array.isArray(data.riders) ? data.riders[0] : data.riders;
   return {
     transactionId: data.reference,
     value: Number(data.price),
     coupon: data.discount_code ?? undefined,
     user: { email: rider?.email, phone: rider?.phone, firstName: rider?.name, lastName: rider?.surname, externalId: data.rider_id },
+  };
+}
+
+/** A plan bought without registering (ADR-0109): the payer's Checkout session id finds the pass; no rider exists yet. */
+async function verifyPlanPass(admin: ReturnType<typeof createAdminClient>, proof: string): Promise<VerifiedPurchase | null> {
+  const { data } = await admin
+    .from("plan_passes")
+    .select("reference, status, price, discount_code, paid_at, refunded_at, buyer_email, buyer_name")
+    .eq("stripe_session_id", proof)
+    .maybeSingle();
+  // A refunded pass can still read `priskirtas` (the rider keeps the plan until staff change it), so the refund marker decides.
+  if (!data || (data.status !== "apmoketa" && data.status !== "priskirtas") || data.refunded_at || !recentlyPaid(data.paid_at)) return null;
+  const [firstName, ...rest] = data.buyer_name.trim().split(/\s+/);
+  return {
+    transactionId: data.reference,
+    value: Number(data.price),
+    coupon: data.discount_code ?? undefined,
+    user: { email: data.buyer_email, firstName, lastName: rest.join(" ") },
   };
 }
 

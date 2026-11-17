@@ -4,6 +4,7 @@ import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
+import type { PassStatus } from "@/lib/plan-pass";
 import type { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
@@ -311,6 +312,28 @@ export interface Purchase {
   soldAt: string;
 }
 
+/** A WAKE pass bought online without registering (ADR-0109): paid, with a code, waiting to be attached to a registered rider. */
+export interface PlanPass {
+  id: string;
+  reference: string;
+  /** Null until payment is confirmed. */
+  code: string | null;
+  planId: string | null;
+  planName: string;
+  price: number;
+  discountCode: string | null;
+  buyerName: string;
+  buyerEmail: string;
+  gift: boolean;
+  recipientName: string;
+  status: PassStatus;
+  paidAt: string | null;
+  /** The rider it was attached to; null before that, or after that rider was deleted. */
+  riderId: string | null;
+  redeemedAt: string | null;
+  createdAt: string;
+}
+
 /** A staff note on a rider. */
 export interface RiderComment {
   id: string;
@@ -450,4 +473,6 @@ export interface AdminData {
   riderComments: RiderComment[];
   riderDocuments: RiderDocument[];
   riderWaivers: RiderWaiver[];
+  /** Readable with the Apyrankės page permission only (empty otherwise). */
+  planPasses: PlanPass[];
 }

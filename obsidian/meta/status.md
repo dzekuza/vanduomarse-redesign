@@ -2,6 +2,8 @@
 tags: [meta, status]
 updated: 2026-11-17
 ---
+
+**WAKE passes without registration (2026-11-17, ADR-0109): BUILT and pushed on `feat/plan-passes`, PR #131 open. Migration `20261117180903` is APPLIED to the live DB; the code is NOT merged or deployed. Buying (Perku sau / Perku draugui) needs only name + e-mail; the webhook issues a code; staff attach it in /admin/apyrankes -> Kodai to a customer with a finished registration. Tested: tsc, eslint, build, 137 tests; the SQL lifecycle in a rolled-back transaction; the public form up to the Stripe redirect (local `.env.local` has the LIVE Stripe key, so never complete a checkout locally); the Kodai tab and redeem dialog browser-checked signed in (unregistered customer refused, registered one attached, DB confirmed plan + card purchase; all test rows deleted). NOT checked: a real paid purchase end to end (webhook + e-mail + redeem). Before Black Friday: open the PR (expect vault-note conflicts with main), merge, deploy, one test purchase refunded afterwards. Not built: the friend redeeming on /paskyra.**
 **Admin menu (2026-11-17): Vandenlentės is a plain link to /admin/apyrankes and "Apyrankių skenavimas" (was Instruktorius, route `/admin/instruktorius`) is its own row; the Skenavimas tab on /admin/apyrankes is removed; the till always shows Bilietai / Abonementai / Įranga (empty note when a category has no active plans; all ticket plans were switched off in the DB). Merged to main through a PR.**
 
 **Next.js security update (2026-11-17): 16.4.2 → 16.4.6 plus `experimental.agentUpgrade: "security"`, merged in PR #125. Build, tsc, eslint, 116 tests passed. Deploys with main.**

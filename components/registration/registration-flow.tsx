@@ -1,26 +1,17 @@
 "use client";
 
-import { trackCheckout, trackSignUp } from "@/lib/analytics";
+import { trackSignUp } from "@/lib/analytics";
 import { CheckIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { registerRider } from "@/app/actions/registration";
-import { goToCheckout } from "@/components/coupons/order-form";
-import { formatEuro } from "@/lib/coupons";
 import { clearRegistrationDraft } from "@/lib/registration-draft";
 import type { RegistrationInput } from "@/lib/registration-schema";
 import { CameraCapture } from "./camera-capture";
 import { ContactStep } from "./contact-step";
-import type { RegistrationPlan } from "./plan-registration";
 import { RulesStep } from "./rules-step";
 
 interface RegistrationFlowProps {
   initial?: Partial<RegistrationInput>;
-  checkout?: {
-    plan: RegistrationPlan;
-    discountCode?: string;
-    total: number;
-    setBusy: (busy: boolean) => void;
-  };
 }
 
 const STEPS = [
@@ -32,13 +23,12 @@ const STEPS = [
 type Step = (typeof STEPS)[number]["id"] | "baigta";
 
 /** The 3-step public registration: contacts, a profile photo, then the rules + signature. */
-export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
+export function RegistrationFlow({ initial }: RegistrationFlowProps) {
   const [step, setStep] = useState<Step>("kontaktai");
   const [contact, setContact] = useState<RegistrationInput | null>(null);
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
 
   if (step === "baigta") {
     return (
@@ -47,7 +37,7 @@ export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
           <CheckIcon size={36} className="text-primary-foreground" />
         </div>
         <p className="text-lg font-bold">Registracija baigta!</p>
-        <p className="max-w-sm text-sm text-muted-foreground">Prieikite prie kasos — darbuotojas suras jus vardu ir priskirs apyrankę.</p>
+        <p className="max-w-sm text-sm text-muted-foreground">Prieikite prie kasos: darbuotojas suras jus vardu ir priskirs apyrankę. Jei abonementą pirkote internetu, pasakykite jo kodą.</p>
       </div>
     );
   }
@@ -55,8 +45,6 @@ export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
   async function handleSubmit(signature: Blob) {
     if (!contact || !photo) return;
     setSubmitting(true);
-    checkout?.setBusy(true);
-    let goingToCheckout = false;
     setError(null);
     try {
       const form = new FormData();
@@ -69,8 +57,6 @@ export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
       if (contact.website) form.set("website", contact.website);
       form.set("photo", photo, "photo.jpg");
       form.set("signature", signature, "signature.png");
-      if (checkout) form.set("planId", checkout.plan.id);
-      if (checkout?.discountCode) form.set("discountCode", checkout.discountCode);
 
       const result = await registerRider(form);
       if ("error" in result) {
@@ -79,17 +65,9 @@ export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
       }
       clearRegistrationDraft();
       trackSignUp("rider_registration");
-      if (result.data.checkoutUrl) {
-        if (checkout) trackCheckout("plan", { itemName: checkout.plan.name, value: checkout.total, coupon: checkout.discountCode });
-        setRedirecting(true);
-        goToCheckout(result.data.checkoutUrl);
-        goingToCheckout = true;
-        return;
-      }
       setStep("baigta");
     } finally {
       setSubmitting(false);
-      if (!goingToCheckout) checkout?.setBusy(false);
     }
   }
 
@@ -121,8 +99,7 @@ export function RegistrationFlow({ initial, checkout }: RegistrationFlowProps) {
       {step === "taisykles" && contact ? (
         <RulesStep
           fullName={`${contact.name} ${contact.surname}`}
-          submitting={submitting || redirecting}
-          submitLabel={checkout ? `Sutinku ir mokėti ${formatEuro(checkout.total)}` : undefined}
+          submitting={submitting}
           error={error}
           onBack={() => setStep("nuotrauka")}
           onSubmit={handleSubmit}
