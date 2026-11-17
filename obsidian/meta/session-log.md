@@ -1,3 +1,9 @@
+## 2026-11-17 — New Meta Pixel and CAPI token checked
+
+- **Changed:** nothing in code; owner put a new Pixel id and CAPI token in `.env.local`.
+- **Status:** localhost: Pixel loads, `_fbp` set, PageView + ViewContent sent, server event accepted. Production still serves the old blocked Pixel; Vercel env not updated yet.
+- **Next:** update both values in Vercel, redeploy, test purchase.
+
 ## 2026-11-17 — Admin menu: Vandenlentės and Instruktorius
 
 - **Changed:** `components/admin/admin-nav.ts` (dropdown → two links), `apyrankes-view.tsx` (no Skenavimas tab, default Pardavimas), removed `scan-tab.tsx`.
