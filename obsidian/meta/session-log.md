@@ -1,8 +1,8 @@
 ## 2026-11-17 — New Meta Pixel and CAPI token checked
 
 - **Changed:** nothing in code; owner put a new Pixel id and CAPI token in `.env.local`.
-- **Status:** localhost: Pixel loads, `_fbp` set, PageView + ViewContent sent, server event accepted. Production still serves the old blocked Pixel; Vercel env not updated yet.
-- **Next:** update both values in Vercel, redeploy, test purchase.
+- **Status:** localhost and live (vanduomarse.lt): Pixel loads, `_fbp` set, PageView + ViewContent sent; live JS has the new Pixel id. Vercel env updated and redeployed.
+- **Next:** one test purchase to see InitiateCheckout + Purchase and the server copy in Events Manager.
 
 ## 2026-11-17 — Admin menu: Vandenlentės and Instruktorius
 
