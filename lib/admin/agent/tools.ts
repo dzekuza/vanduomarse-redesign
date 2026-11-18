@@ -5,9 +5,10 @@ import { hasPermission, type StaffAccess } from "@/lib/admin/permissions";
 import { loadAdminData } from "@/lib/admin/repository";
 import type { BookingStatus } from "@/lib/admin/types";
 import { pickStayType } from "@/lib/cabin";
-import { stayUnitsOn } from "@/lib/admin/occupancy";
+import { SESSION_SAUNA_ID, saunaSessionAt, stayUnitsOn } from "@/lib/admin/occupancy";
 import { maxHoursFrom, sessionPrice, startHours, todayKey, vilniusHour, type Sauna } from "@/lib/sauna";
-import type { Block, Booking } from "@/lib/admin/types";
+import type { Block, Booking, ManagedEvent } from "@/lib/admin/types";
+import type { SaunaProgram } from "@/lib/sauna-programs";
 import { createClient } from "@/lib/supabase/server";
 
 export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
@@ -179,7 +180,7 @@ export interface ToolExecutionResult {
 }
 
 /** Hours of one sauna on a day that cannot start a session: booked, closed by staff, or inside the turnaround around a booking. */
-function takenSaunaHours(bookings: Booking[], blocks: Block[], sauna: Sauna, date: string): number[] {
+function takenSaunaHours(bookings: Booking[], blocks: Block[], sauna: Sauna, date: string, events: readonly ManagedEvent[], programs: readonly SaunaProgram[]): number[] {
   const turnaround = sauna.rates.turnaroundHours;
   const booked = bookings
     .filter((b) => b.kind === "pirtis" && b.saunaId === sauna.id && b.date === date && b.status !== "atsaukta")
@@ -187,7 +188,11 @@ function takenSaunaHours(bookings: Booking[], blocks: Block[], sauna: Sauna, dat
       const start = b.startHour ?? 0;
       return Array.from({ length: (b.hours ?? 0) + 2 * turnaround }, (_, i) => start - turnaround + i);
     });
-  return [...booked, ...blocks.filter((bl) => bl.saunaId === sauna.id && bl.date === date).map((bl) => bl.hour)];
+  // Published public sessions occupy the sauna they are held in, even when every ticket is sold.
+  const sessions = sauna.id === SESSION_SAUNA_ID
+    ? Array.from({ length: 24 }, (_, hour) => hour).filter((hour) => saunaSessionAt(events, programs, date, hour))
+    : [];
+  return [...booked, ...sessions, ...blocks.filter((bl) => bl.saunaId === sauna.id && bl.date === date).map((bl) => bl.hour)];
 }
 
 /** Why a start and length cannot be booked, or null when it fits the sauna's hours, length limits and free run. */
@@ -267,7 +272,7 @@ export async function executeAgentTool(
             .map((b) => `${b.startHour}:00 (${b.hours} val., ${b.customer.name})`);
           const blocked = dayBlocks.filter((bl) => bl.saunaId === sauna.id).map((bl) => `${bl.hour}:00 (${bl.reason})`);
           // Starts that fit: not taken (turnaround included), not already past today, with room for the shortest session.
-          const taken = takenSaunaHours(data.bookings, data.blocks, sauna, date);
+          const taken = takenSaunaHours(data.bookings, data.blocks, sauna, date, data.events, data.programs);
           const pastHour = date === todayKey() ? vilniusHour() : -1;
           const freeStarts = startHours(sauna.rates)
             .filter((h) => h > pastHour)
@@ -362,7 +367,7 @@ export async function executeAgentTool(
         if (args.startHour === undefined || args.hours === undefined || !Number.isInteger(startHour) || startHour < 0 || startHour > 23 || !Number.isInteger(hours) || hours < 1) {
           return { ok: false, summary: "Trūksta pirties pradžios valandos arba trukmės. Paklauskite darbuotojo, kada pradėti ir kiek valandų." };
         }
-        const problem = saunaSlotProblem(matchedSauna, takenSaunaHours(adminData.bookings, adminData.blocks, matchedSauna, date), date, startHour, hours, guests);
+        const problem = saunaSlotProblem(matchedSauna, takenSaunaHours(adminData.bookings, adminData.blocks, matchedSauna, date, adminData.events, adminData.programs), date, startHour, hours, guests);
         if (problem) return { ok: false, summary: `Rezervacija nesukurta: ${problem}` };
         total = sessionPrice(hours, guests, matchedSauna.rates, date);
       } else {
