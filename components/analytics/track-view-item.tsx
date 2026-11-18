@@ -8,7 +8,7 @@ interface TrackViewItemProps {
   kind: ActivityKind;
   itemName: string;
   /** Euros including VAT, after any discount shown on the page. */
-  value: number;
+  value?: number;
   coupon?: string;
 }
 

@@ -18,6 +18,7 @@ import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
+import { trackingForPlans } from "@/lib/analytics-kind";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
 import { discountFor, isDiscountService, type CheckedDiscount } from "@/lib/discount-codes";
@@ -151,6 +152,7 @@ export function ReservationFlow({
   const plans = planAll(picks, data, when);
   const quadTour = quadTourPlan(data.quads, when, tourPick, planHours(plans.pirtis));
   const lines = describePlans(plans, when);
+  const tracking = trackingForPlans(plans);
   if (quadTour) lines.unshift(quadTour.line);
   const total = totalOf(lines);
   const discount = appliedDiscount;
@@ -334,7 +336,7 @@ export function ReservationFlow({
       const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount, tourPick);
       // The code stopped holding (used up, expired) part-way: drop it so "Bandyti dar kartą" files the rest without it.
       if (DISCOUNT_HINTS.has(result.error?.code ?? "")) setDiscount(null);
-      if (!result.error) trackLead("reservation", { value: Math.max(total - discountAmount, 0) });
+      if (!result.error) trackLead(tracking.kind, { itemName: tracking.itemName, value: Math.max(total - discountAmount, 0) });
       setOutcome(result);
       return;
     }
@@ -355,7 +357,7 @@ export function ReservationFlow({
       }
       return;
     }
-    trackCheckout("reservation", { value: Math.max(total - discountAmount, 0) });
+    trackCheckout(tracking.kind, { itemName: tracking.itemName, value: Math.max(total - discountAmount, 0) });
     setRedirecting(true);
     window.location.assign(result.data.url);
   });
