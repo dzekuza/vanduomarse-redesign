@@ -4,6 +4,7 @@ import { openApproval, overRateLimit, releaseApproval, signApproval } from "@/li
 import { AGENT_SYSTEM_PROMPT } from "@/lib/admin/agent/system-prompt";
 import { AGENT_TOOL_DECLARATIONS, MUTATING_AGENT_TOOLS, executeAgentTool } from "@/lib/admin/agent/tools";
 import type { AgentChatRequest, AgentMessage, AgentPendingAction, AgentToolCallTrace } from "@/lib/admin/agent/types";
+import { todayKey } from "@/lib/sauna";
 import { currentStaff } from "@/lib/admin/repository";
 import { createClient } from "@/lib/supabase/server";
 
@@ -33,7 +34,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = (await req.json()) as AgentChatRequest;
+    let body: AgentChatRequest;
+    try {
+      body = (await req.json()) as AgentChatRequest;
+    } catch {
+      return NextResponse.json({ error: "Netinkama užklausa." }, { status: 400 });
+    }
 
     if (overRateLimit(user.id)) {
       return NextResponse.json({ error: "Per daug užklausų. Palaukite minutę." }, { status: 429 });
@@ -92,7 +98,7 @@ export async function POST(req: Request) {
         model: modelName,
         contents,
         config: {
-          systemInstruction: AGENT_SYSTEM_PROMPT,
+          systemInstruction: `${AGENT_SYSTEM_PROMPT}\n\nŠiandien (Vilniaus laiku): ${todayKey()}. Santykines datas („šiandien“, „rytoj“, „šį penktadienį“) paversk į YYYY-MM-DD pagal šią datą.`,
           tools: [{ functionDeclarations: AGENT_TOOL_DECLARATIONS }],
         },
       });
@@ -187,6 +193,6 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     console.error("Agent chat error:", err);
     const message = err instanceof Error ? err.message : "Nežinoma serverio klaida";
-    return NextResponse.json({ error: `Klaida kreipiantis į Gemini: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: `Asistento klaida: ${message}` }, { status: 500 });
   }
 }

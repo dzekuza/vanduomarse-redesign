@@ -225,6 +225,7 @@ export async function executeAgentTool(
           const blocked = dayBlocks.filter((bl) => bl.saunaId === sauna.id).map((bl) => `${bl.hour}:00 (${bl.reason})`);
 
           return {
+            saunaId: sauna.id,
             pirtis: sauna.name,
             rezervacijos: booked.length > 0 ? booked : "Nėra",
             blokavimai: blocked.length > 0 ? blocked : "Nėra",
@@ -238,7 +239,7 @@ export async function executeAgentTool(
         };
       }
 
-      if (service.includes("namuk") || service.includes("kemper")) {
+      if (service.includes("nam") || service.includes("kemper")) {
         const kind = service.includes("kemper") ? "kemperis" : "namelis";
         const nightOf = (start: string, offset: number) => new Date(Date.parse(`${start}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
         // A stay occupies its unit on every night from check-in up to the night before it ends.
@@ -294,9 +295,10 @@ export async function executeAgentTool(
       let total = 0;
 
       if (kind === "pirtis") {
-        const requestedSaunaId = String(args.saunaId ?? "").trim();
-        const matchedSauna = adminData.saunas.find((s) => s.id === requestedSaunaId || s.name.toLowerCase().includes(requestedSaunaId.toLowerCase())) ?? adminData.saunas[0];
-        if (!matchedSauna) return { ok: false, summary: "Nerasta tokia pirtis. Patikslinkite pirties pavadinimą." };
+        const requestedSauna = String(args.saunaId ?? "").trim().toLowerCase();
+        // An id or the exact name; an empty or unknown value never falls back to some other sauna.
+        const matchedSauna = requestedSauna ? adminData.saunas.find((s) => s.id.toLowerCase() === requestedSauna || s.name.toLowerCase() === requestedSauna) : undefined;
+        if (!matchedSauna) return { ok: false, summary: "Nerasta tokia pirtis. Nurodykite tikslų pirties pavadinimą arba id (get_availability grąžina saunaId)." };
         saunaId = matchedSauna.id;
         startHour = Number(args.startHour);
         hours = Number(args.hours);

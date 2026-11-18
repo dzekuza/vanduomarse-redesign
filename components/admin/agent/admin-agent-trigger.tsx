@@ -30,7 +30,7 @@ export function AdminAgentTrigger() {
       <TooltipContent side="bottom" align="center">
         <p className="flex items-center gap-1.5 font-medium">
           <span>AI Asistentas</span>
-          <kbd className="rounded border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">⌘J / Ctrl+J</kbd>
+          <kbd className="rounded border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">⌘J / Ctrl+J</kbd>
         </p>
       </TooltipContent>
     </Tooltip>

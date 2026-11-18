@@ -59,17 +59,17 @@ export function AdminAgentPanel() {
       {/* Header */}
       <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
         <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-lake/15 text-lake dark:bg-lake/25 dark:text-foam">
+          <div className="flex size-11 items-center justify-center rounded-lg bg-lake/15 text-lake dark:bg-lake/25 dark:text-foam">
             <Sparkle size={18} weight="fill" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-bold tracking-tight">AI Asistentas</span>
-              <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium text-muted-foreground">
-                Gemini 2.5
+              <Badge variant="outline" className="px-1.5 py-0 text-xs font-medium text-muted-foreground">
+                Gemini
               </Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground">Vanduo Marse valdymo pagalbininkas</p>
+            <p className="text-xs text-muted-foreground">Vanduo Marse valdymo pagalbininkas</p>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export function AdminAgentPanel() {
           {messages.length > 0 ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={clearMessages} aria-label="Išvalyti pokalbį" className="size-8 text-muted-foreground">
+                <Button variant="ghost" size="icon" onClick={clearMessages} disabled={isLoading} aria-label="Išvalyti pokalbį" className="size-11 text-muted-foreground">
                   <Broom size={16} />
                 </Button>
               </TooltipTrigger>
@@ -85,7 +85,7 @@ export function AdminAgentPanel() {
             </Tooltip>
           ) : null}
 
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Uždaryti" className="size-8 text-muted-foreground">
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Uždaryti" className="size-11 text-muted-foreground">
             <X size={16} />
           </Button>
         </div>
@@ -104,13 +104,13 @@ export function AdminAgentPanel() {
             </p>
 
             <div className="mt-6 flex flex-col gap-2 text-left">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Pasiūlymai</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pasiūlymai</span>
               {PROMPT_SUGGESTIONS.map((suggestion, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => sendMessage(suggestion)}
-                  className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-foreground transition-colors hover:border-lake/50 hover:bg-lake/5 text-left active:scale-[0.99]"
+                  className="min-h-11 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-foreground transition-colors hover:border-lake/50 hover:bg-lake/5 text-left"
                 >
                   {suggestion}
                 </button>
@@ -125,7 +125,7 @@ export function AdminAgentPanel() {
             >
               <div
                 className={cn(
-                  "max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed",
+                  "max-w-11/12 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed",
                   msg.role === "user"
                     ? "bg-lake text-foam dark:bg-lake/90 font-medium"
                     : "bg-muted/50 border border-border/50 text-foreground",
@@ -138,9 +138,9 @@ export function AdminAgentPanel() {
                       <div
                         key={t.id}
                         className={cn(
-                          "flex items-center gap-1.5 rounded border px-2 py-1 text-[11px] font-mono",
+                          "flex items-center gap-1.5 rounded border px-2 py-1 text-xs font-mono",
                           t.status === "error"
-                            ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
+                            ? "border-destructive/30 bg-destructive/10 text-destructive"
                             : "border-lake/30 bg-lake/10 text-lake dark:text-foam",
                         )}
                       >
@@ -159,15 +159,15 @@ export function AdminAgentPanel() {
                   <div className="mt-3 space-y-2 border-t border-border/40 pt-2">
                     {msg.pendingActions.map((action) => (
                       <div key={action.id} className="space-y-1.5 rounded border border-border/60 bg-background p-2">
-                        <p className="font-mono text-[11px] font-bold">{action.name}</p>
-                        <pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words text-[11px] text-muted-foreground">{JSON.stringify(action.args, null, 2)}</pre>
+                        <p className="font-mono text-xs font-bold">{action.name}</p>
+                        <pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">{JSON.stringify(action.args, null, 2)}</pre>
                         {action.status === "pending" ? (
                           <div className="flex gap-1.5">
                             <Button size="sm" disabled={isLoading} onClick={() => resolveAction(msg.id, action, true)} className="min-h-11 text-xs font-semibold">Patvirtinti</Button>
                             <Button size="sm" variant="outline" disabled={isLoading} onClick={() => resolveAction(msg.id, action, false)} className="min-h-11 text-xs font-semibold">Atmesti</Button>
                           </div>
                         ) : (
-                          <p className="text-[11px] font-semibold text-muted-foreground">{action.status === "approved" ? "Patvirtinta" : "Atmesta"}</p>
+                          <p className="text-xs font-semibold text-muted-foreground">{action.status === "approved" ? "Patvirtinta" : "Atmesta"}</p>
                         )}
                       </div>
                     ))}
@@ -178,7 +178,7 @@ export function AdminAgentPanel() {
                 {msg.actionLinks && msg.actionLinks.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/40 pt-2">
                     {msg.actionLinks.map((link, idx) => (
-                      <Button key={idx} variant="secondary" size="sm" asChild className="h-7 text-xs font-semibold">
+                      <Button key={idx} variant="secondary" size="sm" asChild className="min-h-11 text-xs font-semibold">
                         <Link href={link.href}>{link.label} →</Link>
                       </Button>
                     ))}
@@ -186,7 +186,7 @@ export function AdminAgentPanel() {
                 ) : null}
               </div>
 
-              <span className="text-[10px] text-muted-foreground px-1">
+              <span className="text-xs text-muted-foreground px-1">
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>
@@ -219,7 +219,7 @@ export function AdminAgentPanel() {
             onKeyDown={handleKeyDown}
             placeholder="Paklauskite agento (pvz. laisvi laikai, sukurti užsakymą)..."
             rows={1}
-            disabled={isLoading}
+            readOnly={isLoading}
             className="flex-1 resize-none rounded-xl border border-input bg-muted/20 px-3.5 py-2.5 text-xs sm:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lake max-h-32 min-h-11"
           />
           <Button
@@ -232,7 +232,7 @@ export function AdminAgentPanel() {
             {isLoading ? <CircleNotch size={18} className="animate-spin" /> : <PaperPlaneTilt size={18} weight="bold" />}
           </Button>
         </form>
-        <p className="mt-1 text-center text-[10px] text-muted-foreground">
+        <p className="mt-1 text-center text-xs text-muted-foreground">
           Enter – siųsti, Shift+Enter – nauja eilutė
         </p>
       </div>
@@ -245,7 +245,7 @@ export function AdminAgentPanel() {
       {isOpen ? (
         <aside
           aria-label="AI Asistentas"
-          className="hidden xl:flex w-[380px] 2xl:w-[420px] shrink-0 border-l bg-background sticky top-16 h-[calc(100vh-4rem)] z-10 overflow-hidden"
+          className="hidden xl:flex w-95 2xl:w-105 shrink-0 border-l bg-background sticky top-16 h-[calc(100vh-4rem)] z-10 overflow-hidden"
         >
           {renderContent()}
         </aside>
