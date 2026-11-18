@@ -8,7 +8,6 @@ import type { ManagedEvent } from "@/lib/admin/types";
 import type { StayType } from "@/lib/cabin";
 import type { QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
-import { todayKey } from "@/lib/sauna";
 import { DatePicker } from "@/components/ui/date-picker";
 
 interface BookingChooserProps {
@@ -60,7 +59,7 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
   return (
     <div className="space-y-5">
       <FormField id="nb-choose-date" label="Data">
-        <DatePicker id="nb-choose-date" value={date} onChange={onDateChange} min={todayKey()} />
+        <DatePicker id="nb-choose-date" value={date} onChange={onDateChange} />
       </FormField>
 
       {canTickets ? (

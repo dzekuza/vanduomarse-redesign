@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { PAYMENT_EMAIL_REQUIRED, paymentFormShape } from "./payment-form";
-import { todayKey } from "@/lib/sauna";
 
 const int = (msg: string) => z.string().trim().regex(/^\d+$/, msg);
 
 /**
  * Manual booking form. Inputs are strings; per-type requirements are checked
- * here, live availability (conflicts, cabins, group size) on submit.
+ * here, live availability (conflicts, cabins, group size) on submit. The date
+ * may be in the past (e.g. adding an unpaid ticket to a sauna seansas that already
+ * happened, so a payment link can still be e-mailed for it).
  */
 export const newBookingSchema = z
   .object({
@@ -32,7 +33,6 @@ export const newBookingSchema = z
     note: z.string().trim().max(300),
   })
   .superRefine((v, ctx) => {
-    if (v.date < todayKey()) ctx.addIssue({ code: "custom", path: ["date"], message: "Praėjusios dienos rezervuoti negalima." });
     if (v.kind === "pirtis") {
       if (!v.saunaId) ctx.addIssue({ code: "custom", path: ["saunaId"], message: "Pasirinkite pirtį." });
       if (!v.startHour) ctx.addIssue({ code: "custom", path: ["startHour"], message: "Pasirinkite laisvą laiką." });
