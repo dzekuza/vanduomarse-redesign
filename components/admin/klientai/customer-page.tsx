@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
+import { CustomerPointsTab } from "./customer-points-tab";
 import { CustomerPurchasesTab } from "./customer-purchases-tab";
 import { CustomerRoleTab } from "./customer-role-tab";
 import { useAdmin } from "../admin-store";
@@ -63,6 +64,9 @@ export function CustomerPage({ id }: { id: string }) {
           <TabsTrigger value="veikla" className="min-h-11 shrink-0">
             Veikla
           </TabsTrigger>
+          <TabsTrigger value="taskai" className="min-h-11 shrink-0">
+            Taškai
+          </TabsTrigger>
           <TabsTrigger value="dokumentai" className="min-h-11 shrink-0">
             Dokumentai
           </TabsTrigger>
@@ -83,6 +87,9 @@ export function CustomerPage({ id }: { id: string }) {
         </TabsContent>
         <TabsContent value="veikla" className="mt-4">
           <ActivityTab riderId={rider.id} />
+        </TabsContent>
+        <TabsContent value="taskai" className="mt-4">
+          <CustomerPointsTab rider={rider} />
         </TabsContent>
         <TabsContent value="dokumentai" className="mt-4">
           <RiderDocumentsTab riderId={rider.id} />

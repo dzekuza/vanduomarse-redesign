@@ -293,6 +293,8 @@ export interface Rider {
   createdAt: string;
   /** Created through /registracija rather than by staff (ADR-0043). */
   selfRegistered: boolean;
+  /** Points / kreditai balance (ADR-0121). */
+  pointsBalance: number;
 }
 
 /** A physical bracelet (USB IC/RFID reader UID) bound to a rider. One bracelet -> one rider. */

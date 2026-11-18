@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
+import { LoyaltySettingsCard } from "./loyalty-settings-card";
 import { useAdmin } from "../admin-store";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +46,7 @@ export function SiteSettingsView() {
       ) : (
         <p className="max-w-2xl border border-dashed p-6 text-sm text-muted-foreground">Nustatymų nepavyko įkelti. Patikrinkite, ar pritaikyta duomenų bazės migracija „site_settings“.</p>
       )}
+      <LoyaltySettingsCard />
     </AdminPage>
   );
 }

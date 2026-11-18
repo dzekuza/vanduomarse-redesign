@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0121 — Points / kreditai: a ledger per customer record, earned by trigger, granted by staff
+
+- **Status:** Accepted (phase 1; spending is phase 2).
+- **Date:** 2026-11-19
+- **Context:** customers should collect points from paid purchases and plans, staff should be able to grant or remove them, and later spend them as a discount. There is no customer table: an account (Supabase Auth) is matched to `riders` (Klientai) by confirmed contact at read time.
+- **Decision:** the balance lives on `riders` (`points_balance`) with an append-only `points_ledger`; one function (`private.apply_points`) changes both under a per-rider lock, so balances cannot go negative or double-credit (unique source key). Earning is a trigger on `payments` and `rider_plan_orders` (so the large `complete_payment` / `complete_plan_order_payment` functions stay untouched), only for real online payments that need no manual review. Staff adjust through `adjust_rider_points` with the `klientai` permission and a required reason; the owner sets the earn rate and point value in `loyalty_settings`. Customers read through `my_points()` (all riders matching the account's confirmed contact). Plan passes and gift coupons are anonymous and earn nothing.
+- **Consequences:** a family sharing one phone number sees one balance per rider. A payment flagged `needs_review` earns nothing, even if staff later clear it (they can add points by hand). Refunds take earned points back by trigger (pro rata for a partial refund, all of a cancelled plan order, capped at what the customer still holds; migration `20261119140000_points_integrity.sql`), and `points_balance` cannot be written outside `apply_points`. Known limit: a partial refund of a plan order keeps its points, because `refund_plan_order_payment` only cancels an order on a full refund (the plan stays active and no refunded amount is stored); a pro-rata clawback would need a `refunded` column and a change to that money function, left for when partial plan refunds become common. Phase 2 will add spending at checkout (`payments.points_spent`, a Stripe `amount_off` coupon, cash-share refund caps) and the return of spent points on refunds.
+
 ## ADR-0120 — Pixel events say what was viewed, started and bought (sauna, session, stay, quad, event)
 
 - **Status:** Accepted.

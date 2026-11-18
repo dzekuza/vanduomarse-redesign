@@ -307,6 +307,7 @@ export function toRider(r: Tables<"riders">): Rider {
     planId: r.plan_id,
     createdAt: r.created_at,
     selfRegistered: r.self_registered,
+    pointsBalance: r.points_balance,
   };
 }
 

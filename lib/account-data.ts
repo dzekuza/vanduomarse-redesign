@@ -1,5 +1,5 @@
 import "server-only";
-import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyCoupon, type MyInquiry, type MyRequest, type MyRider } from "@/lib/account";
+import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyCoupon, type MyInquiry, type MyPoints, type MyRequest, type MyRider } from "@/lib/account";
 import { cancelPolicy } from "@/lib/request-cancel";
 import { formatHour } from "@/lib/sauna";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -193,5 +193,24 @@ export async function loadMyCoupons(): Promise<MyCoupon[]> {
     recipientName: c.recipient_name,
     message: c.message,
     sessionId: c.session_id,
+  }));
+}
+
+/** The points of every customer record that belongs to this account, through `my_points()`. A failure shows an empty tab instead of breaking the page. */
+export async function loadMyPoints(): Promise<MyPoints[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("my_points");
+  if (error || !data) return [];
+  return data.map((row): MyPoints => ({
+    riderId: row.rider_id,
+    name: row.rider_name,
+    balance: row.balance,
+    entries: Array.isArray(row.entries)
+      ? row.entries.flatMap((e) => {
+          if (!e || typeof e !== "object" || Array.isArray(e)) return [];
+          const { delta, kind, reason, at } = e as Record<string, unknown>;
+          return typeof delta === "number" && typeof at === "string" ? [{ delta, kind: String(kind ?? ""), reason: String(reason ?? ""), at }] : [];
+        })
+      : [],
   }));
 }
