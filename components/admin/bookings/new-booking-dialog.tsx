@@ -51,7 +51,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       saunaId: initial?.saunaId ?? (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "",
       stayTypeId: "",
       eventId: initialEvent?.id ?? "",
-      date: initialEvent ? initialEvent.date : initial?.date && initial.date >= dateKey(new Date()) ? initial.date : dateKey(new Date()),
+      date: initialEvent ? initialEvent.date : (initial?.date ?? dateKey(new Date())),
       startHour: initial?.startHour != null ? String(initial.startHour) : "",
       hours: "",
       nights: "1",

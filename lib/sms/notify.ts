@@ -59,6 +59,10 @@ export const notifyStaffCancelled = (topics: MessageTopic[], reference: string, 
 
 const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amount.toFixed(2));
 
+/** Sent alongside the e-mail for a staff-entered request left unpaid: the Stripe Checkout link, so the customer can pay from their phone (ADR-0117). */
+export const notifyPaymentRequest = (phone: string | null | undefined, reference: string, amount: number, url: string) =>
+  sendSms(phone, `Vanduo Marse: rezervacijai ${reference} apmoketi reikia ${eur(amount)} EUR. Nuoroda (galioja 24 val.): ${url}`);
+
 /** Lithuanian letters to ASCII, so the text stays a 160-character GSM message ("Pirties ritualas" stays, "Nakvynė" becomes "Nakvyne"). */
 const ascii = (text: string) =>
   text

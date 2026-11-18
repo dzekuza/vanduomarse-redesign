@@ -1,5 +1,6 @@
 import "server-only";
 import { emailPaymentRequest } from "@/lib/email/notify";
+import { notifyPaymentRequest } from "@/lib/sms/notify";
 import {
   MIN_CHARGE_EUR,
   MIN_CHARGE_MESSAGE,
@@ -64,6 +65,7 @@ export type StaffPaymentOutcome =
       paymentId: string;
       amount: number;
       emailSent: boolean;
+      smsSent: boolean;
       url: string;
     }
   | Failure;
@@ -196,22 +198,20 @@ export async function openStaffPayment(
   }
 }
 
-/** Opens the payment link and e-mails it to the customer. A failed e-mail still returns the link, so staff can pass it on. */
+/** Opens the payment link, e-mails it and (when there is a phone) texts it too. A failed send still returns the link, so staff can pass it on. */
 export async function requestStaffPayment(request: {
   reference: string;
   email: string;
+  phone?: string | null;
   summary: string;
 }): Promise<StaffPaymentOutcome> {
   const link = await openStaffPayment(request.reference, request.email);
   if (!link.ok) return link;
-  const emailSent = await emailPaymentRequest(
-    request.email,
-    request.reference,
-    request.summary,
-    link.amount,
-    link.url,
-  );
-  return { ...link, emailSent };
+  const [emailSent, smsSent] = await Promise.all([
+    emailPaymentRequest(request.email, request.reference, request.summary, link.amount, link.url),
+    notifyPaymentRequest(request.phone, request.reference, link.amount, link.url),
+  ]);
+  return { ...link, emailSent, smsSent };
 }
 
 /**

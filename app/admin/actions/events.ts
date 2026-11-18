@@ -128,7 +128,7 @@ const eventTicketInput = z.object({
 export type NewEventTicketInput = z.infer<typeof eventTicketInput>;
 
 /** The new ticket, and for an unpaid one whether the payment-link e-mail went out. */
-export type CreatedTicket = { ticket: TourTicket; emailSent?: boolean; paymentUrl?: string };
+export type CreatedTicket = { ticket: TourTicket; emailSent?: boolean; smsSent?: boolean; paymentUrl?: string };
 
 /**
  * Adds tickets to an event or public sauna session for someone who phoned or walked in. The price is the event's ticket
@@ -181,8 +181,8 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
   if (!unpaid) return done({ ticket });
   // Not paid at entry: open a payment and e-mail the link; without it the ticket would sit unpaid, so it is removed again.
   const summary = describeRequest([event.title, event.date, `${v.people} asm.`, `${total} EUR`]);
-  const paymentRequest = await requestStaffPayment({ reference: data.reference, email: v.customer.email, summary });
+  const paymentRequest = await requestStaffPayment({ reference: data.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (!paymentRequest.ok) return removeFailedRequest(supabase, "event_tickets", data.id, data.reference, paymentRequest);
   ticket.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
-  return done({ ticket, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
+  return done({ ticket, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }

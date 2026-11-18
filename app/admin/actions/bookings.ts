@@ -117,7 +117,7 @@ async function stayTypeFor(supabase: Extract<StaffContext, { ok: true }>["supaba
 }
 
 /** The new booking, and for an unpaid one whether the payment-link e-mail went out. */
-export type CreatedBooking = { booking: Booking; emailSent?: boolean; paymentUrl?: string };
+export type CreatedBooking = { booking: Booking; emailSent?: boolean; smsSent?: boolean; paymentUrl?: string };
 
 export async function createBooking(input: NewBookingInput): Promise<ActionResult<CreatedBooking>> {
   const ctx = await staffClient("rezervacijos");
@@ -202,10 +202,10 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
   const summary = sauna
     ? saunaSummary({ date: v.date, startHour: v.startHour ?? 0, hours: v.hours ?? 1, party: v.guests, total: v.total })
     : describeRequest([v.kind === "kemperis" ? "Kemperio aikštelė" : "Namelis", v.date, `${v.nights} n.`, `${v.total} EUR`]);
-  const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+  const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (!paymentRequest.ok) return removeFailedRequest(supabase, "bookings", row.id, row.reference, paymentRequest);
   booking.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
-  return done({ booking, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
+  return done({ booking, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }
 
 /* ---------------- sauna blocks ---------------- */
