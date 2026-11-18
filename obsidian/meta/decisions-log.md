@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0116 — Staff can enter a discount code or a custom price for any "Nauja rezervacija" booking
+
+- **Status:** Accepted.
+- **Date:** 2026-11-18
+- **Context:** staff taking a phone or walk-in booking sometimes need to honour a promotion (a discount code a customer quotes) or simply charge a one-off price (a manual arrangement, a goodwill gesture). "Kita kaina, €" already let staff override the total for a private sauna hire or a stay, but not for an event/seansas ticket, whose total was 100% server-computed (`event.price * people`, ADR-0112). Discount codes (ADR-0036) existed only on the public checkout — a staff session has no grant on `private.apply_discount_code` (revoked from `authenticated`), so the admin flow could not price one itself.
+- **Decision:** `new-booking-dialog.tsx` now shows "Kita kaina, €" for a ticket too, and a new "Nuolaidos kodas" field (`DiscountCodeField`) for every kind. The field checks the code live via the same `checkDiscountCode` the public checkout preview uses, and prices it client-side with the same pure `discountFor()` — a preview only, exactly like ADR-0036 says. On submit, the server re-validates and re-prices the code itself through a new `lib/admin/discount-code.ts` (`applyStaffDiscountCode`): since staff cannot call `private.apply_discount_code`, it reads `discount_codes` directly with the service-role client (active, covers the service, within its date range, under `max_uses` — counted the same way `private.discount_code_uses()` does, by querying `bookings`/`quad_rentals`/`event_tickets` directly) and reprices off `total + discountAmount` (the client's own numbers reconstruct the pre-discount subtotal). An invalid or expired code fails the whole booking rather than silently dropping the discount. `createBooking` and `createEventTicket` both gained `discountCode` (and `createEventTicket` a `price` override); both insert `discount_code_id` / `discount_code` / `discount_amount`, the same columns the public booking RPCs use, so a staff-applied code counts toward the same `max_uses` a public customer would see. Private sauna hires and event tickets both count as service `"pirtis"` for a code's `services` list, matching what `create_program_ticket` already does for public tickets.
+- **Consequences:** the final `total` for a sauna/stay booking is still entirely client-trusted (unchanged from ADR-0100) — only the discount piece on top of it is server-verified, a deliberate middle ground rather than rebuilding the admin flow on the public booking RPCs. No admin UI shows a booking's or ticket's stored discount yet (not surfaced in `BookingSheet` or the event sheet's ticket rows) — a reasonable follow-up once staff actually use this. Quad rental/tour dialogs (`new-rental-dialog.tsx`, `new-tour-dialog.tsx`) do not get a discount-code or ticket-style price field yet; out of scope here.
+
+---
+
 ## ADR-0115 — "Pridėti rezervaciją" on an event's sheet, skipping straight to its ticket form
 
 - **Status:** Accepted.

@@ -10,6 +10,7 @@ import { BookingCustomerFields } from "./booking-customer-fields";
 import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingPaymentFields } from "./booking-payment-fields";
 import { isPaymentFailure, paymentFormDefaults, paymentInput, reportCreated } from "./payment-form";
+import { DiscountCodeField } from "./discount-code-field";
 import { NewRentalDialog } from "../quads/new-rental-dialog";
 import { NewTourDialog } from "../quads/new-tour-dialog";
 import { BookingWhenFields } from "./booking-when-fields";
@@ -19,6 +20,7 @@ import { formatDay, formatEur } from "@/lib/admin/format";
 import { freeHoursFrom, freeStartHours, fullStayNights, saunaSlice } from "@/lib/admin/occupancy";
 import { hasPermission } from "@/lib/admin/permissions";
 import { pickStayType } from "@/lib/cabin";
+import { discountCovers, discountFor, type CheckedDiscount, type DiscountService } from "@/lib/discount-codes";
 import { DEFAULT_SAUNA_RATES, dateKey, sessionLengths, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,8 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   const { me, bookings, blocks, externalBlocks, saunas, events, upsells: catalogue, stayTypes, quadTypes, quadTourRoutes, createBooking, createEventTicket } = useAdmin();
   const initialEvent = initial?.eventId ? events.find((e) => e.id === initial.eventId) : undefined;
   const [extras, setExtras] = useState<Record<string, number>>({});
+  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const [discountPending, setDiscountPending] = useState(false);
   const [quad, setQuad] = useState<{ kind: "rental" } | { kind: "tour"; routeId: string } | null>(null);
   const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId || initialEvent ? "form" : "choose");
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
@@ -63,12 +67,13 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       source: "telefonu",
       ...paymentFormDefaults,
       priceOverride: "",
+      discountCode: "",
       note: "",
     },
   });
-  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride, stayTypeId, eventId, paid] = useWatch({
+  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride, discountCode, stayTypeId, eventId, paid] = useWatch({
     control,
-    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride", "stayTypeId", "eventId", "paid"],
+    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride", "discountCode", "stayTypeId", "eventId", "paid"],
   });
   const unpaid = paid === "nesumoketa";
   const err = formState.errors;
@@ -107,7 +112,11 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     : sauna
       ? (hours ? sessionPrice(Number(hours), party, saunaRates, date || undefined) : 0) + extrasPrice
       : stayRate * (Number(nights) || 0);
-  const total = priceOverride && !ticket ? Number(priceOverride) : computed;
+  const baseTotal = priceOverride ? Number(priceOverride) : computed;
+  // Event tickets and private sauna hires both count as "pirtis" for a code's services, like the public RPCs treat them.
+  const discountService: DiscountService = stayKind ? "nakvyne" : "pirtis";
+  const discountAmount = discount && discountCovers(discount, discountService) ? discountFor(discount, discountService, baseTotal) : 0;
+  const total = Math.max(0, baseTotal - discountAmount);
 
   const resetSlot = () => {
     setValue("startHour", "");
@@ -132,9 +141,15 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
         status: v.status,
         source: v.source,
         payment: paymentInput(v),
+        price: v.priceOverride ? Number(v.priceOverride) : undefined,
+        discountCode: v.discountCode,
       });
       if ("error" in created) {
         if (isPaymentFailure(created.error)) return;
+        if (created.error.code === "discount_code") {
+          setDiscount(null);
+          return setError("discountCode", { message: created.error.message });
+        }
         return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
       }
       reportCreated(created.data.ticket.reference, created.data);
@@ -160,10 +175,16 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       source: v.source,
       note: v.note,
       payment: paymentInput(v),
+      discountCode: v.discountCode,
+      discountAmount,
     });
     // The database has the final say on conflicts (another booking may have landed meanwhile).
     if ("error" in result) {
       if (isPaymentFailure(result.error)) return;
+      if (result.error.code === "discount_code") {
+        setDiscount(null);
+        return setError("discountCode", { message: result.error.message });
+      }
       if (result.error.code === "email_required") return setError("email", { message: result.error.message });
       return setError(sauna ? "startHour" : "nights", { message: result.error.message });
     }
@@ -180,6 +201,8 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     if (patch.date) setValue("date", patch.date);
     resetSlot();
     setExtras({});
+    setValue("discountCode", "");
+    setDiscount(null);
     setStep("form");
   };
 
@@ -253,30 +276,45 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
             ) : null}
 
             <BookingCustomerFields control={control} register={register} setValue={setValue} errors={err} showNote={!ticket} emailRequired={unpaid} />
-            {ticket ? null : (
-              <FormField
-                id="nb-price"
-                label="Kita kaina, €"
-                error={err.priceOverride?.message}
-                hint={`Apskaičiuota: ${formatEur(computed)}. Palikite tuščią.`}
-                className="sm:col-span-2"
-              >
-                <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
-              </FormField>
-            )}
+            <FormField
+              id="nb-price"
+              label="Kita kaina, €"
+              error={err.priceOverride?.message}
+              hint={`Apskaičiuota: ${formatEur(computed)}. Palikite tuščią.`}
+              className="sm:col-span-2"
+            >
+              <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
+            </FormField>
+            <DiscountCodeField
+              id="nb-discount"
+              value={discountCode}
+              onChange={(v) => setValue("discountCode", v)}
+              service={discountService}
+              subtotal={baseTotal}
+              error={err.discountCode?.message}
+              onChecked={setDiscount}
+              onPendingChange={setDiscountPending}
+            />
             <BookingPaymentFields control={control} unpaid={unpaid} />
           </form>
         )}
 
         <DialogFooter className="items-center justify-between *:flex-none">
-          {step === "form" ? <p className="font-display text-total font-bold">{formatEur(total)}</p> : <span />}
+          {step === "form" ? (
+            <div>
+              {discountAmount > 0 ? <p className="text-xs text-muted-foreground">Nuolaida: -{formatEur(discountAmount)}</p> : null}
+              <p className="font-display text-total font-bold">{formatEur(total)}</p>
+            </div>
+          ) : (
+            <span />
+          )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Atšaukti
             </Button>
             {step === "form" ? (
-              <Button type="submit" form="new-booking" disabled={formState.isSubmitting}>
-                {formState.isSubmitting ? "Kuriama…" : "Sukurti"}
+              <Button type="submit" form="new-booking" disabled={formState.isSubmitting || discountPending}>
+                {formState.isSubmitting ? "Kuriama…" : discountPending ? "Tikrinamas kodas…" : "Sukurti"}
               </Button>
             ) : null}
           </div>
