@@ -35,6 +35,7 @@ export function BookingCalendarTab() {
   const { bookings, saunas, events } = useAdmin();
   const [openEventId, setOpenEventId] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
+  const [ticketEventId, setTicketEventId] = useState<string | null>(null);
   const [saunaId, setSaunaId] = useState(() => (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "");
   const sauna = saunas.find((s) => s.id === saunaId) ?? saunas[0];
   const mobile = useIsMobile();
@@ -104,7 +105,12 @@ export function BookingCalendarTab() {
       </Card>
 
       <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
-      <EventSheet event={events.find((e) => e.id === openEventId) ?? null} onOpenChange={(o) => !o && setOpenEventId(null)} onEdit={(event) => { setOpenEventId(null); setEditingEvent(event); }} />
+      <EventSheet
+        event={events.find((e) => e.id === openEventId) ?? null}
+        onOpenChange={(o) => !o && setOpenEventId(null)}
+        onEdit={(event) => { setOpenEventId(null); setEditingEvent(event); }}
+        onAddTicket={(event) => { setOpenEventId(null); setTicketEventId(event.id); }}
+      />
       {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
       {creating ? (
         <NewBookingDialog
@@ -115,6 +121,9 @@ export function BookingCalendarTab() {
             setOpenId(id);
           }}
         />
+      ) : null}
+      {ticketEventId ? (
+        <NewBookingDialog initial={{ eventId: ticketEventId }} onOpenChange={(o) => !o && setTicketEventId(null)} onCreated={() => setTicketEventId(null)} />
       ) : null}
     </div>
   );

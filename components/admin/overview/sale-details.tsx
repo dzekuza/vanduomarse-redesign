@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useAdmin } from "../admin-store";
 import { BookingSheet } from "../bookings/booking-sheet";
+import { NewBookingDialog } from "../bookings/new-booking-dialog";
 import { EventSheet } from "../calendar/event-sheet";
 import { CouponSheet } from "../coupons/coupon-sheet";
 import { EventDialog } from "../events/event-dialog";
@@ -21,6 +22,7 @@ export function useSaleDetails(): { openSale: (target: Sale["target"]) => void; 
   const router = useRouter();
   const [open, setOpen] = useState<Extract<Sale["target"], { id: string }> | null>(null);
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
+  const [ticketEventId, setTicketEventId] = useState<string | null>(null);
 
   const openSale = (target: Sale["target"]) => (target.kind === "link" ? router.push(target.href) : setOpen(target));
   const close = (isOpen: boolean) => !isOpen && setOpen(null);
@@ -36,8 +38,15 @@ export function useSaleDetails(): { openSale: (target: Sale["target"]) => void; 
           setOpen(null);
           setEditingEvent(event);
         }}
+        onAddTicket={(event) => {
+          setOpen(null);
+          setTicketEventId(event.id);
+        }}
       />
       {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
+      {ticketEventId ? (
+        <NewBookingDialog initial={{ eventId: ticketEventId }} onOpenChange={(o) => !o && setTicketEventId(null)} onCreated={() => setTicketEventId(null)} />
+      ) : null}
       <CouponSheet coupon={open?.kind === "coupon" ? (coupons.find((c) => c.id === open.id) ?? null) : null} onOpenChange={close} />
     </>
   );
