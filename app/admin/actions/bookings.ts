@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { z } from "zod";
+import { applyStaffDiscountCode } from "@/lib/admin/discount-code";
 import { toBooking } from "@/lib/admin/mappers";
 import type { Booking, BookingStatus } from "@/lib/admin/types";
 import { notifyRequestOutcome } from "@/lib/notify";
@@ -99,6 +100,10 @@ const newBookingInput = z
     note: z.string().trim().max(300),
     /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
     payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
+    /** Staff-entered discount code; re-checked and priced here, never trusted from the client (ADR-0036). */
+    discountCode: z.string().trim().max(30),
+    /** What the client's own `total` already has taken off for `discountCode`, so the server can recover the pre-discount subtotal. */
+    discountAmount: z.number().min(0).max(1_000_000),
   })
   .refine((v) => (v.kind === "pirtis" ? v.saunaId !== undefined && v.startHour !== undefined && v.hours !== undefined : v.nights !== undefined));
 
@@ -132,6 +137,8 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
     const problem = staffPaymentProblem(v.customer.email, v.total);
     if (problem) return fail(problem.message, problem.code);
   }
+  const discount = v.discountCode ? await applyStaffDiscountCode(v.discountCode, sauna ? "pirtis" : "nakvyne", v.total + v.discountAmount) : null;
+  if (discount && !discount.ok) return fail(discount.message, "discount_code");
 
   const { data: row, error } = await supabase
     .from("bookings")
@@ -155,6 +162,9 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
       note: v.note || null,
       payment_method: unpaid ? null : v.payment.method,
       paid_at: unpaid ? null : new Date().toISOString(),
+      discount_code_id: discount && discount.ok ? (discount.applied?.id ?? null) : null,
+      discount_code: discount && discount.ok ? (discount.applied?.code ?? null) : null,
+      discount_amount: discount && discount.ok ? (discount.applied?.amount ?? 0) : 0,
     })
     .select("id, reference")
     .single();

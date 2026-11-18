@@ -30,6 +30,8 @@ export const newBookingSchema = z
     /** How it was paid at entry (used when `paid`), and whether it was; unpaid ones get a payment link by e-mail. */
     ...paymentFormShape,
     priceOverride: z.string().trim().refine((v) => v === "" || /^\d+(\.\d{1,2})?$/.test(v), "Suma arba tuščia."),
+    /** Normalised on submit; the server re-checks and prices it (ADR-0036), never trusting this string alone. */
+    discountCode: z.string().trim().max(30),
     note: z.string().trim().max(300),
   })
   .superRefine((v, ctx) => {

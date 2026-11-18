@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
+import { applyStaffDiscountCode } from "@/lib/admin/discount-code";
 import { toTourTicket } from "@/lib/admin/mappers";
 import type { ManagedEvent, PriceItem, TourTicket } from "@/lib/admin/types";
 import { dbError, done, fail, removeFailedRequest, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
@@ -123,6 +124,10 @@ const eventTicketInput = z.object({
   source: z.enum(["telefonu", "vietoje"]),
   /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
   payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
+  /** Staff override of the event's own price × people, e.g. a one-off rate. Empty uses the event's price. */
+  price: z.number().min(0).max(1_000_000).optional(),
+  /** Staff-entered discount code; re-checked and priced here, never trusted from the client (ADR-0036). */
+  discountCode: z.string().trim().max(30),
 }).refine((v) => v.customer.phone !== "" || v.customer.email !== "");
 
 export type NewEventTicketInput = z.infer<typeof eventTicketInput>;
@@ -151,7 +156,10 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
   if (!event) return fail("Renginys nerastas.", "invalid");
   if (event.tour_route_id) return fail("Keturračių turai parduodami kaip nuoma.", "invalid");
   if (event.calendar_private) return fail("Privatus įrašas bilietų neturi.", "invalid");
-  const total = (event.price ?? 0) * v.people;
+  const base = v.price ?? (event.price ?? 0) * v.people;
+  const discount = v.discountCode ? await applyStaffDiscountCode(v.discountCode, "pirtis", base) : null;
+  if (discount && !discount.ok) return fail(discount.message, "discount_code");
+  const total = Math.max(0, base - (discount && discount.ok ? (discount.applied?.amount ?? 0) : 0));
   if (unpaid) {
     const problem = staffPaymentProblem(v.customer.email, total);
     if (problem) return fail(problem.message, problem.code);
@@ -172,6 +180,9 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
       source: v.source,
       payment_method: unpaid ? null : v.payment.method,
       paid_at: unpaid ? null : new Date().toISOString(),
+      discount_code_id: discount && discount.ok ? (discount.applied?.id ?? null) : null,
+      discount_code: discount && discount.ok ? (discount.applied?.code ?? null) : null,
+      discount_amount: discount && discount.ok ? (discount.applied?.amount ?? 0) : 0,
     })
     .select("*, events!inner(title, date, start_time, category)")
     .single();
