@@ -1893,6 +1893,7 @@ export type Database = {
           delta: number
           id: string
           kind: string
+          parent_source_id: string | null
           reason: string
           rider_id: string
           source_id: string | null
@@ -1905,6 +1906,7 @@ export type Database = {
           delta: number
           id?: string
           kind: string
+          parent_source_id?: string | null
           reason?: string
           rider_id: string
           source_id?: string | null
@@ -1917,6 +1919,7 @@ export type Database = {
           delta?: number
           id?: string
           kind?: string
+          parent_source_id?: string | null
           reason?: string
           rider_id?: string
           source_id?: string | null
