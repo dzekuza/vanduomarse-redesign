@@ -2603,6 +2603,7 @@ export type Database = {
         Returns: {
           balance: number
           entries: Json
+          primary_match: boolean
           rider_id: string
           rider_name: string
         }[]

@@ -391,3 +391,5 @@ Follow-up migration `20261119140000_points_integrity.sql` (APPLIED 2026-11-19, s
 Follow-up migration `20261119150000_my_points_phone2.sql` (APPLIED 2026-11-19): `my_points()` also matches a rider through `phone2`, like `my_riders()`.
 
 Follow-up migration `20261119160000_my_points_primary_match.sql` (APPLIED 2026-11-19): `my_points()` uses `my_riders()`'s primary-match split: a match through `phone2` only returns the balance with an empty log.
+
+Follow-up migration `20261119190000_my_points_primary_flag.sql` (APPLIED 2026-11-19): `my_points()` also returns `primary_match`, so `/paskyra` shows a note instead of "no movements" when the log is withheld.

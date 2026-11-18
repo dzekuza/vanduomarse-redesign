@@ -205,6 +205,7 @@ export async function loadMyPoints(): Promise<MyPoints[]> {
     riderId: row.rider_id,
     name: row.rider_name,
     balance: row.balance,
+    logHidden: !row.primary_match,
     entries: Array.isArray(row.entries)
       ? row.entries.flatMap((e) => {
           if (!e || typeof e !== "object" || Array.isArray(e)) return [];
