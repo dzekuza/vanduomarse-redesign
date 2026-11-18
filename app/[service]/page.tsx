@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CelebrationCalculator } from "@/components/calculator/celebration-calculator";
 import { CelebrationSchedule } from "@/components/services/celebration-schedule";
+import { TrackViewItem } from "@/components/analytics/track-view-item";
 import { JsonLd } from "@/components/json-ld";
 import { SERVICE_GALLERY, SERVICES } from "@/components/landing/content";
 import { activityPhotos } from "@/components/reservation/activity-photos";
@@ -12,6 +13,7 @@ import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
 import { getServicePageContent } from "@/lib/data/page-content";
 import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getParkEvents, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
+import type { ActivityKind } from "@/lib/analytics";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { SERVICE_OG_IMAGES, metaDescription, pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
@@ -32,6 +34,18 @@ export function generateStaticParams() {
   return Object.keys(SERVICE_PAGES).map((service) => ({ service }));
 }
 
+/** What a visit to each service page counts as in GA and Meta (ViewContent): sauna, stay, quads, wake, or an event enquiry. */
+const VIEW_KIND: Partial<Record<string, ActivityKind>> = {
+  pirtis: "sauna",
+  nakvyne: "stay",
+  "keturraciu-nuoma": "quad_rental",
+  vandenlentes: "plan",
+  sventes: "event_inquiry",
+  vestuves: "event_inquiry",
+  gimtadieniai: "event_inquiry",
+  "imoniu-renginiai": "event_inquiry",
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
@@ -45,6 +59,7 @@ export default async function ActivityPage({ params }: Props) {
   const { copy }: { copy: ServicePageCopy } = await getServicePageContent(service);
   const schema = (
     <>
+      {VIEW_KIND[service] ? <TrackViewItem kind={VIEW_KIND[service]} itemName={copy.title} /> : null}
       <JsonLd data={serviceSchema({ name: copy.title, description: copy.summary, path: `/${service}`, image: (SERVICE_OG_IMAGES[copy.service] ?? { url: SERVICES[copy.service].photo }).url })} />
       <JsonLd data={breadcrumbSchema({ name: copy.title, path: `/${service}` })} />
       {copy.questions.length > 0 && <JsonLd data={faqSchema(copy.questions.map(({ title, body }) => ({ q: title, a: body })))} />}

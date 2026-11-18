@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSearchParams } from "next/navigation";
+import { TrackViewItem } from "@/components/analytics/track-view-item";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
 import { QuadSchedule } from "@/components/services/quad-schedule";
 import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
@@ -104,19 +105,20 @@ function BookingFlow({
 }) {
   const { data, customer } = useLive();
   const eventId = useSearchParams().get("seansas");
-  const initialDay =
-    activity === "pirtis"
-      ? data.sauna.events.find(({ key }) => key === eventId)?.date
-      : undefined;
+  const session = activity === "pirtis" ? data.sauna.events.find(({ key }) => key === eventId) : undefined;
   return (
-    <ReservationFlow
-      activity={activity}
-      header={null}
-      data={data}
-      initialDay={initialDay}
-      payments={payments}
-      initialCustomer={customer}
-    />
+    <>
+      {/* A visitor arriving on a sauna session's own link (the events list or an ad) viewed that session. */}
+      {session ? <TrackViewItem kind="sauna_session" itemName={session.title} value={session.pricePerPerson} /> : null}
+      <ReservationFlow
+        activity={activity}
+        header={null}
+        data={data}
+        initialDay={session?.date}
+        payments={payments}
+        initialCustomer={customer}
+      />
+    </>
   );
 }
 

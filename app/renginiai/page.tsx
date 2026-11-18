@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import type { Metadata } from "next";
+import { TrackViewItem } from "@/components/analytics/track-view-item";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
 import { EventsAside } from "@/components/events/events-aside";
@@ -23,6 +24,7 @@ export default async function RenginiaiPage() {
   return (
     <BookingPage>
       {schema ? <JsonLd data={schema} /> : null}
+      <TrackViewItem kind="event_registration" itemName="Renginiai" />
       <div className="theme-reservation px-gutter pt-10 pb-16 md:pt-14 md:pb-24">
         <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
           <div className="min-w-0 space-y-10 lg:col-span-2">

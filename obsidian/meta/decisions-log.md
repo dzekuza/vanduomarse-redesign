@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0120 — Pixel events say what was viewed, started and bought (sauna, session, stay, quad, event)
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** the Pixel was built for WAKE plans (ViewContent on the landing page, InitiateCheckout, Purchase). Saunas, sauna sessions and events had only a `Lead` on some forms, and every `/rezervacija` checkout and payment was reported as the same `reservation` category, so ad reports could not tell a sauna from a session or a stay.
+- **Decision:** a visit to each service page, `/renginiai`, `/rezervacija` and a session's own link sends `ViewContent` (through `TrackViewItem`, consent-gated per tracker). `lib/analytics-kind.ts` derives the kind and item name from the chosen plans (single activity keeps its kind; a mix is `reservation`) and from a paid payment's requests, used by the reservation form's `Lead` / `InitiateCheckout` and by the paid return page's `Purchase`. The webhook's server `Purchase` computes the same category from the rows paid by the payment. Event ids and consent rules are unchanged.
+- **Consequences:** sauna session tickets paid online read `event_registration` on `Purchase` (the payment view cannot tell a session ticket from another event ticket) while their checkout reads `sauna_session`. No new Meta event types or custom conversions were created; Events Manager configuration is separate.
+
 ## ADR-0118 — Public service pages are cached (ISR) and load live availability in the browser
 
 - **Status:** Accepted.
