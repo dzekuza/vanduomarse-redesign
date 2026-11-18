@@ -1,3 +1,9 @@
+## 2026-11-18 — Sales table order + column sorting
+
+- **Cause:** `buildSales` sorted by `soldOn` (a day) then `id`, so same-day sales ordered by id prefix, not time (Rūta's ticket `e-` above Agnė's later booking `b-`).
+- **Changed:** `Sale.soldAt` + `whenKey`, `sortSales` / `DEFAULT_SALE_SORT` / `SaleSort` in `lib/admin/sales.ts`; `SalesTable` sortable headers (`SortHead`). tsc (only generated-type noise), 49 lib/admin tests pass.
+- **Next:** browser-check on `/admin`; PR.
+
 ## 2026-11-18 — SMS on staff payment links + empty-day quick-create (ADR-0117)
 
 - **Changed:** `requestStaffPayment` now also sends `notifyPaymentRequest` (new, `lib/sms/notify.ts`) alongside the e-mail for any unpaid staff-entered booking/rental/ticket; `StaffPaymentOutcome` and every `Created*` type gained `smsSent`, `reportCreated`'s toast says "el. paštu ir SMS" when both went out. `MonthGrid`'s day cells: an empty day opens `NewBookingDialog` for that date on a plain click instead of just selecting it; a day with entries is unchanged (`WeekView`/`DayView` untouched — their entries are always shown inline, so a click there still means select/navigate). Found and fixed along the way: `NewBookingDialog`'s `initial.date` had a stale pre-ADR-0114 `>= dateKey(new Date())` guard that silently reset a past date back to today — invisible until clicking an empty past day in the month grid actually exercised it.
