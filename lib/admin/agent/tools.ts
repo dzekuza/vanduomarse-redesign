@@ -5,7 +5,7 @@ import { hasPermission, type StaffAccess } from "@/lib/admin/permissions";
 import { loadAdminData } from "@/lib/admin/repository";
 import type { BookingStatus } from "@/lib/admin/types";
 import { pickStayType } from "@/lib/cabin";
-import { sessionPrice } from "@/lib/sauna";
+import { maxHoursFrom, sessionPrice, startHours, todayKey } from "@/lib/sauna";
 import { createClient } from "@/lib/supabase/server";
 
 export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
@@ -71,6 +71,14 @@ export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
           type: Type.NUMBER,
           description: "Svečių skaičius.",
         },
+        paid: {
+          type: Type.BOOLEAN,
+          description: "Ar klientas jau sumokėjo (grynais ar kortele įvedant rezervaciją). Jei ne, būtinas el. paštas apmokėjimo nuorodai.",
+        },
+        paymentMethod: {
+          type: Type.STRING,
+          description: "Kai paid=true: 'grynais' arba 'kortele'.",
+        },
         saunaId: {
           type: Type.STRING,
           description: "Pirties ID (pvz. 'didele-pirtis', 'mazoji-pirtis'). Būtina, jei kind yra 'pirtis'.",
@@ -135,6 +143,10 @@ export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
           type: Type.STRING,
           description: "Užblokavimo priežastis.",
         },
+        action: {
+          type: Type.STRING,
+          description: "'blokuoti' (numatyta) arba 'atblokuoti'.",
+        },
       },
       required: ["saunaId", "date", "hour", "reason"],
     },
@@ -179,8 +191,14 @@ export async function executeAgentTool(
       }
       const data = await loadAdminData(supabase, access);
       const hits = searchAdmin(data, query, 5);
+      // Bookings with the id update_booking_status needs, matched on reference, name or phone.
+      const needle = query.toLowerCase().replace(/^#/, "");
+      const bookings = data.bookings
+        .filter((b) => b.reference.toLowerCase().includes(needle) || b.customer.name.toLowerCase().includes(needle) || (b.customer.phone ?? "").includes(needle))
+        .slice(0, 5)
+        .map((b) => ({ bookingId: b.id, numeris: b.reference, klientas: b.customer.name, tipas: b.kind, data: b.date, statusas: b.status }));
 
-      if (hits.length === 0) {
+      if (hits.length === 0 && bookings.length === 0) {
         return { ok: true, summary: `Pagal užklausą „${query}“ nieko nerasta.`, data: [] };
       }
 
@@ -199,7 +217,7 @@ export async function executeAgentTool(
       return {
         ok: true,
         summary: `Rasta rezultatų: ${hits.length}`,
-        data: formatted,
+        data: { rezultatai: formatted, rezervacijos: bookings },
         actionLinks,
       };
     }
@@ -223,10 +241,19 @@ export async function executeAgentTool(
             .filter((b) => b.saunaId === sauna.id)
             .map((b) => `${b.startHour}:00 (${b.hours} val., ${b.customer.name})`);
           const blocked = dayBlocks.filter((bl) => bl.saunaId === sauna.id).map((bl) => `${bl.hour}:00 (${bl.reason})`);
+          // Hours that are booked or blocked, so only starts with room for the shortest session are offered.
+          const taken = [
+            ...dayBookings.filter((b) => b.saunaId === sauna.id).flatMap((b) => Array.from({ length: b.hours ?? 0 }, (_, i) => (b.startHour ?? 0) + i)),
+            ...dayBlocks.filter((bl) => bl.saunaId === sauna.id).map((bl) => bl.hour),
+          ];
+          const freeStarts = startHours(sauna.rates)
+            .map((h) => ({ pradzia: `${h}:00`, maxValandu: maxHoursFrom(taken, h, sauna.rates) }))
+            .filter((slot) => slot.maxValandu >= sauna.rates.minHours);
 
           return {
             saunaId: sauna.id,
             pirtis: sauna.name,
+            laisviPradzios: freeStarts.length > 0 ? freeStarts : "Laisvų laikų nėra",
             rezervacijos: booked.length > 0 ? booked : "Nėra",
             blokavimai: blocked.length > 0 ? blocked : "Nėra",
           };
@@ -284,6 +311,12 @@ export async function executeAgentTool(
       const date = String(args.date ?? "").trim();
       const guests = Number(args.guests) || 2;
       const note = String(args.note ?? "").trim();
+      // Unpaid bookings get a payment link by e-mail, so they need an address; a booking paid on entry records how.
+      const paid = args.paid === true;
+      const paymentMethod: "grynais" | "kortele" = String(args.paymentMethod ?? "").toLowerCase().includes("kort") ? "kortele" : "grynais";
+      if (!paid && !customerEmail) {
+        return { ok: false, summary: "Nesumokėtai rezervacijai reikia kliento el. pašto (išsiunčiama apmokėjimo nuoroda). Paklauskite el. pašto arba nurodykite, kad jau sumokėta (paid, paymentMethod)." };
+      }
 
       const adminData = await loadAdminData(supabase, access);
 
@@ -332,7 +365,7 @@ export async function executeAgentTool(
         status: "patvirtinta" as const,
         source: "telefonu" as const,
         note: note ? `[AI Agentas] ${note}` : "[AI Agentas]",
-        payment: { method: "grynais" as const, paid: false },
+        payment: { method: paymentMethod, paid },
         discountCode: "",
         discountAmount: 0,
       };
@@ -369,14 +402,18 @@ export async function executeAgentTool(
         return { ok: false, summary: `Netinkamas statusas. Galimi: ${validStatuses.join(", ")}` };
       }
 
-      const result = await setBookingStatus(bookingId, statusRaw);
+      const known = await loadAdminData(supabase, access);
+      const booking = known.bookings.find((b) => b.id === bookingId || b.reference.toLowerCase() === bookingId.replace(/^#/, "").toLowerCase());
+      if (!booking) return { ok: false, summary: "Tokia rezervacija nerasta. Pirmiausia suraskite ją paieška (search_admin_data) ir naudokite jos bookingId." };
+
+      const result = await setBookingStatus(booking.id, statusRaw);
       if ("error" in result) {
         return { ok: false, summary: `Klaida atnaujinant statusą: ${result.error.message}` };
       }
 
       return {
         ok: true,
-        summary: `Rezervacijos #${bookingId} būsena pakeista į „${statusRaw}“.`,
+        summary: `Rezervacijos #${booking.reference} būsena pakeista į „${statusRaw}“.`,
       };
     }
 
@@ -390,19 +427,28 @@ export async function executeAgentTool(
       const hour = Number(args.hour);
       const reason = String(args.reason ?? "Priežiūros darbai").trim();
 
+      const wanted = String(args.action ?? "").toLowerCase().startsWith("at") ? "unblock" : "block";
+      const current = await loadAdminData(supabase, access);
+      const blocked = current.blocks.some((bl) => bl.saunaId === saunaId && bl.date === date && bl.hour === hour);
+      // toggleBlock flips the state, so only call it when that is what was asked for.
+      if (wanted === "block" && blocked) return { ok: true, summary: `Pirties ${saunaId} laikas ${date} ${hour}:00 jau užblokuotas; nieko nekeičiau.` };
+      if (wanted === "unblock" && !blocked) return { ok: true, summary: `Pirties ${saunaId} laikas ${date} ${hour}:00 nebuvo užblokuotas; nieko nekeičiau.` };
+
       const result = await toggleBlock(saunaId, date, hour, reason);
       if ("error" in result) {
-        return { ok: false, summary: `Klaida blokuojant laiką: ${result.error.message}` };
+        return { ok: false, summary: `Klaida keičiant blokavimą: ${result.error.message}` };
       }
 
       return {
         ok: true,
-        summary: `Pirties ${saunaId} laikas ${date} ${hour}:00 sėkmingai pakeistas (${reason}).`,
+        summary: wanted === "block"
+          ? `Pirties ${saunaId} laikas ${date} ${hour}:00 užblokuotas (${reason}).`
+          : `Pirties ${saunaId} laikas ${date} ${hour}:00 atblokuotas.`,
       };
     }
 
     case "get_daily_summary": {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayKey();
       const targetDate = String(args.date ?? today).trim() || today;
       const data = await loadAdminData(supabase, access);
 
@@ -420,7 +466,7 @@ export async function executeAgentTool(
             numeris: b.reference,
             klientas: b.customer.name,
             tipas: b.kind,
-            laikas: b.startHour !== null ? `${b.startHour}:00 (${b.hours}h)` : `${b.nights} naktys`,
+            laikas: b.startHour != null ? `${b.startHour}:00 (${b.hours}h)` : `${b.nights} naktys`,
             statusas: b.status,
           })),
           keturraciai: dayRentals.map((r) => ({

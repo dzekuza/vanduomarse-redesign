@@ -17,6 +17,7 @@ export function AdminAgentTrigger() {
           size="icon"
           onClick={toggleOpen}
           aria-label="AI Asistentas (Gemini)"
+          aria-expanded={isOpen}
           className={cn(
             "size-11 rounded-full transition-colors",
             isOpen
