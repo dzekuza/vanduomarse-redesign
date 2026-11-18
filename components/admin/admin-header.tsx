@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { activeNavItem, NEW_BOOKING_HREF } from "./admin-nav";
 import { useAdmin } from "./admin-store";
+import { AdminAgentTrigger } from "./agent/admin-agent-trigger";
 import { GlobalSearch } from "./global-search/global-search";
 import { NotificationBell } from "./notification-bell/notification-bell";
 import { ThemeToggle } from "./theme-toggle";
@@ -54,6 +55,7 @@ export function AdminHeader() {
       <div className="ml-auto flex items-center gap-2">
         <GlobalSearch />
         <NotificationBell />
+        <AdminAgentTrigger />
         <ThemeToggle />
         {hasPermission(me, "rezervacijos") ? (
           <Button asChild className="hidden min-h-11 active:scale-[0.98] lg:inline-flex">
