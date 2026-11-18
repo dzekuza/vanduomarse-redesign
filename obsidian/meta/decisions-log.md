@@ -1,6 +1,6 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-17
+updated: 2026-11-18
 ---
 
 # Decisions Log (ADRs)
@@ -16,7 +16,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Date:** 2026-11-18
 - **Context:** a staff-entered booking, rental or ticket left "Nesumokėta" e-mailed the Stripe Checkout link (ADR-0112) but never texted it, even though the same customer almost always has a phone number on file and every other outcome in this codebase (received, confirmed, cancelled, paid) goes out by SMS as well as e-mail. Separately, the admin month calendar's day cells only ever called `onSelect` on a plain click; the quick actions (new booking, seansas, renginys) only existed behind a right-click/long-press context menu, which is not discoverable and does not work as a tap on touch devices.
 - **Decision:** `requestStaffPayment` (`lib/staff-payment.ts`) now also calls a new `notifyPaymentRequest` (`lib/sms/notify.ts`) with the reference, amount and Checkout URL, in parallel with the e-mail; it is skipped silently like every other `sendSms` call when there is no phone, Twilio is not configured, or the destination is not an allowed prefix. `StaffPaymentOutcome` and every `Created*` return type gained `smsSent`, and `reportCreated`'s toast now says "el. paštu ir SMS" when both went out. In `MonthGrid`, a day with zero entries now opens `NewBookingDialog` for that date on a plain click (`onCreate("booking", day)`) instead of just selecting it — there is nothing to select on an empty day; a day that already has entries keeps the old `onSelect` behaviour (the phone agenda, or just to re-view a day already full of cards). The right-click menu is unchanged and still offers seansas/renginys on any day, including a non-empty one. Fixed in the same pass: `NewBookingDialog`'s `initial.date` had a stale `>= dateKey(new Date())` guard from before ADR-0114 that silently fell back to today for any past date passed in this way — invisible until this change made the month grid actually pass one.
-- **Consequences:** `WeekView`'s and `DayView`'s day cells are unchanged (their entries are already shown inline, so a click there still means "select/navigate", not "nothing to see, so create"); only `MonthGrid`, where entries are hidden below `md`, gets this. The "Siųsti nuorodą" resend action (`getPaymentLink`, ADR-0113) still only re-sends by e-mail — out of scope here, a reasonable follow-up.
+- **Consequences:** `WeekView`'s day-label button is unchanged (its entries are already shown inline, so a click there still means "select/navigate", not "nothing to see, so create"), and `DayView` has no day-cell click at all (inline entries; the right-click menu is its only create path); only `MonthGrid`, where entries are hidden below `md`, gets this. The "Siųsti nuorodą" resend action (`getPaymentLink`, ADR-0113) still only re-sends by e-mail — out of scope here, a reasonable follow-up.
 
 ---
 

@@ -46,7 +46,7 @@ export function MonthGrid({ month, entries, selected, today, onSelect, onOpen, o
               <button
                 type="button"
                 onClick={() => (list.length === 0 ? onCreate("booking", day) : onSelect(day))}
-                aria-pressed={day === selected}
+                aria-pressed={list.length === 0 ? undefined : day === selected}
                 aria-label={list.length === 0 ? `${day}: nauja rezervacija` : `${day}: ${list.length} įrašų`}
                 className={cn("flex min-h-16 w-full flex-col items-start gap-1.5 p-1.5 text-left hover:bg-muted md:min-h-11 md:flex-row md:items-center md:justify-between md:p-2", day === selected && "ring-2 ring-ink ring-inset")}
               >

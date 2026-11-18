@@ -4,7 +4,7 @@ import { contactFor, requestDate, requestHeading, requestTime, staffCustomer, st
 import { formatHour } from "@/lib/sauna";
 import { paymentTopics, type MessageTopic } from "@/lib/notification-topics";
 import { sendStaffSms } from "./staff-recipients";
-import { sendSms } from "./twilio";
+import { sendSms, toE164 } from "./twilio";
 
 /**
  * Customer and staff SMS texts. ASCII only on purpose: one Lithuanian letter
@@ -61,7 +61,9 @@ const eur = (amount: number) => (Number.isInteger(amount) ? String(amount) : amo
 
 /** Sent alongside the e-mail for a staff-entered request left unpaid: the Stripe Checkout link, so the customer can pay from their phone (ADR-0117). */
 export const notifyPaymentRequest = (phone: string | null | undefined, reference: string, amount: number, url: string) =>
-  sendSms(phone, `Vanduo Marse: rezervacijai ${reference} apmoketi reikia ${eur(amount)} EUR. Nuoroda (galioja 24 val.): ${url}`);
+  toE164(phone) === null
+    ? Promise.resolve(false)
+    : sendSms(phone, `Vanduo Marse: rezervacijai ${reference} apmoketi reikia ${eur(amount)} EUR. Nuoroda (galioja 24 val.): ${url}`);
 
 /** Lithuanian letters to ASCII, so the text stays a 160-character GSM message ("Pirties ritualas" stays, "Nakvynė" becomes "Nakvyne"). */
 const ascii = (text: string) =>
