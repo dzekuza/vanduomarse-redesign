@@ -41,6 +41,10 @@ export interface Sale {
   category: SaleCategory;
   /** yyyy-mm-dd the sale was made (not the service date). */
   soldOn: string;
+  /** Full timestamp of the sale, to order sales made on the same day. */
+  soldAt: string;
+  /** yyyy-mm-dd (plus hh:mm when known) of the service, for sorting; "" when the sale has none. */
+  whenKey: string;
   /** What was sold, one line. */
   item: string;
   /** Service date and time, when the sale has one. */
@@ -68,6 +72,39 @@ type SalesSource = Pick<
   "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "tourTickets" | "eventTickets" | "events" | "coupons" | "purchases" | "riders"
 >;
 
+export type SaleSortKey = "soldAt" | "item" | "category" | "when" | "customer" | "total" | "state" | "source";
+export interface SaleSort {
+  key: SaleSortKey;
+  dir: "asc" | "desc";
+}
+/** Newest sale first, down to the minute, so two sales on one day list in the order they were made. */
+export const DEFAULT_SALE_SORT: SaleSort = { key: "soldAt", dir: "desc" };
+
+const collator = new Intl.Collator("lt");
+const SORT_VALUE: Record<SaleSortKey, (s: Sale) => string | number> = {
+  soldAt: (s) => Date.parse(s.soldAt),
+  item: (s) => s.item,
+  category: (s) => s.category,
+  when: (s) => s.whenKey,
+  customer: (s) => s.customer,
+  total: (s) => s.total,
+  state: (s) => s.state,
+  source: (s) => s.source,
+};
+
+/** A sorted copy. Empty service dates always sink to the bottom; ties fall back to newest sale first. */
+export function sortSales(sales: readonly Sale[], sort: SaleSort): Sale[] {
+  const value = SORT_VALUE[sort.key];
+  const sign = sort.dir === "asc" ? 1 : -1;
+  return [...sales].sort((a, b) => {
+    const x = value(a);
+    const y = value(b);
+    if (sort.key === "when" && (x === "") !== (y === "")) return x === "" ? 1 : -1;
+    const cmp = typeof x === "number" && typeof y === "number" ? x - y : collator.compare(String(x), String(y));
+    return cmp * sign || Date.parse(b.soldAt) - Date.parse(a.soldAt) || b.id.localeCompare(a.id);
+  });
+}
+
 /** Every sale from every source as one list, newest first. */
 export function buildSales(data: SalesSource): Sale[] {
   const sales: Sale[] = [];
@@ -79,6 +116,8 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `b-${b.id}`,
       category: b.kind === "pirtis" ? "pirtis" : "nakvyne",
       soldOn: soldOn(b.createdAt),
+      soldAt: b.createdAt,
+      whenKey: `${b.date} ${String(b.startHour ?? 0).padStart(2, "0")}`,
       item: bookingTypeLabel(b, data.stayTypes),
       when,
       customer: b.customer.name,
@@ -97,6 +136,8 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `q-${r.id}`,
       category: "keturraciai",
       soldOn: soldOn(r.createdAt),
+      soldAt: r.createdAt,
+      whenKey: r.date,
       item: quadRentalLabel(r, data.quadTypes),
       when: `${formatDay(r.date)}, ${r.hours} val.`,
       customer: r.customer.name,
@@ -115,6 +156,8 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `t-${t.id}`,
       category: "keturraciai",
       soldOn: soldOn(t.createdAt),
+      soldAt: t.createdAt,
+      whenKey: `${t.eventDate} ${t.eventTime}`,
       item: `${t.eventTitle} · ${t.people} asm.`,
       when: `${formatDay(t.eventDate)}, ${t.eventTime}`,
       customer: t.customer.name,
@@ -135,6 +178,8 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `e-${t.id}`,
       category: eventCategory.get(t.eventId) === "pirtis" ? "pirtis" : "renginiai",
       soldOn: soldOn(t.createdAt),
+      soldAt: t.createdAt,
+      whenKey: `${t.eventDate} ${t.eventTime}`,
       item: `${t.eventTitle} · ${t.people} asm.`,
       when: `${formatDay(t.eventDate)}, ${t.eventTime}`,
       customer: t.customer.name,
@@ -153,6 +198,8 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `c-${c.id}`,
       category: "kuponai",
       soldOn: soldOn(c.paidAt ?? c.createdAt),
+      soldAt: c.paidAt ?? c.createdAt,
+      whenKey: "",
       item: c.productName,
       when: "",
       customer: c.buyer.name,
@@ -172,6 +219,8 @@ export function buildSales(data: SalesSource): Sale[] {
       id: `p-${p.id}`,
       category: "vandenlentes",
       soldOn: soldOn(p.soldAt),
+      soldAt: p.soldAt,
+      whenKey: "",
       item: p.planName,
       when: p.paymentMethod ? PURCHASE_PAYMENT_LABELS[p.paymentMethod] : "",
       customer: riderName.get(p.riderId) ?? "—",
@@ -185,7 +234,7 @@ export function buildSales(data: SalesSource): Sale[] {
     });
   }
 
-  return sales.sort((a, b) => b.soldOn.localeCompare(a.soldOn) || b.id.localeCompare(a.id));
+  return sortSales(sales, DEFAULT_SALE_SORT);
 }
 
 export type SaleStateFilter = "galiojancios" | "visos" | SaleState;
