@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 /** An event with the bookings (tickets) made for it. */
-export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEvent | null; onOpenChange: (open: boolean) => void; onEdit: (event: ManagedEvent) => void }) {
+export function EventSheet({ event, onOpenChange, onEdit, onAddTicket }: { event: ManagedEvent | null; onOpenChange: (open: boolean) => void; onEdit: (event: ManagedEvent) => void; onAddTicket: (event: ManagedEvent) => void }) {
   const { tourTickets, eventTickets, setTourTicketStatus, quadRentals, setRentalStatus } = useAdmin();
   const { cancel: cancelRental, dialog: rentalDialog } = useCancelRequest("rental");
   const { cancel: cancelTicket, dialog: ticketDialog } = useCancelRequest("ticket");
@@ -43,9 +43,16 @@ export function EventSheet({ event, onOpenChange, onEdit }: { event: ManagedEven
               </SheetDescription>
             </SheetHeader>
             <div className="space-y-5 px-4 pb-6">
-              <Button variant="outline" size="sm" className="min-h-11" onClick={() => onEdit(event)}>
-                Redaguoti renginį
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" className="min-h-11" onClick={() => onEdit(event)}>
+                  Redaguoti renginį
+                </Button>
+                {event.tourRouteId ? null : (
+                  <Button variant="outline" size="sm" className="min-h-11" onClick={() => onAddTicket(event)}>
+                    Pridėti rezervaciją
+                  </Button>
+                )}
+              </div>
               <HeldSpots event={event} />
               <section className="space-y-3">
                 <h3 className="text-sm font-medium">Rezervacijos ({tickets.length + rentals.length})</h3>

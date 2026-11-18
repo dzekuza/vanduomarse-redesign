@@ -1,3 +1,9 @@
+## 2026-11-18 — "Pridėti rezervaciją" on an event's sheet (ADR-0115)
+
+- **Changed:** `EventSheet` gets a required `onAddTicket(event)` prop and a "Pridėti rezervaciją" button (hidden for a quad tour departure). `NewBookingDialog`'s `initial` grows `eventId`: when set, it looks the event up, skips step 1, and opens step 2 on kind `"renginys"` with that event and its date preselected. Wired `onAddTicket` at all five `EventSheet` call sites (`events-view.tsx`, `calendar-view.tsx`, `bookings-view.tsx`, `booking-calendar-tab.tsx`, `sale-details.tsx`), each with its own `ticketEventId` state kept separate from that view's existing "new booking" state.
+- **Status:** tsc, eslint, 174 tests; browser-checked on `/admin/rezervacijos`: opened the sheet for a past "Vakarinė pirties kelionė su Viliumi" seansas, clicked "Pridėti rezervaciją", landed directly on its ticket form (Žmonių / Vardas / payment fields, no date or event re-picking) — cancelled without submitting. Not committed.
+- **Next:** commit, push.
+
 ## 2026-11-18 — Past-date "Nauja rezervacija" (ADR-0114)
 
 - **Changed:** dropped the past-date restriction from the admin "Nauja rezervacija" flow: removed the `superRefine` check in `new-booking-schema.ts` and the `min={todayKey()}` on the date pickers in `booking-chooser.tsx` (step 1) and `booking-when-fields.tsx` (step 2). Nothing else needed to change — `createBooking`, `createEventTicket`, `lib/staff-payment.ts` and `bookingOptionsOn` never cared about the date being in the future.

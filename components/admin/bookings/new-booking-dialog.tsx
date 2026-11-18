@@ -29,8 +29,8 @@ interface NewBookingDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Called with the new booking's id so the list can open it. */
   onCreated: (id: string) => void;
-  /** Prefills the form, e.g. when opened from a free cell on the Užimtumas grid. A sauna or start time skips the first step; a date alone does not. */
-  initial?: { saunaId?: string; date?: string; startHour?: number };
+  /** Prefills the form, e.g. when opened from a free cell on the Užimtumas grid or an event's sheet. A sauna, start time or event skips the first step; a date alone does not. */
+  initial?: { saunaId?: string; date?: string; startHour?: number; eventId?: string };
 }
 
 /**
@@ -40,17 +40,18 @@ interface NewBookingDialogProps {
  */
 export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookingDialogProps) {
   const { me, bookings, blocks, externalBlocks, saunas, events, upsells: catalogue, stayTypes, quadTypes, quadTourRoutes, createBooking, createEventTicket } = useAdmin();
+  const initialEvent = initial?.eventId ? events.find((e) => e.id === initial.eventId) : undefined;
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [quad, setQuad] = useState<{ kind: "rental" } | { kind: "tour"; routeId: string } | null>(null);
-  const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId ? "form" : "choose");
+  const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId || initialEvent ? "form" : "choose");
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
     defaultValues: {
-      kind: "pirtis",
+      kind: initialEvent ? "renginys" : "pirtis",
       saunaId: initial?.saunaId ?? (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "",
       stayTypeId: "",
-      eventId: "",
-      date: initial?.date && initial.date >= dateKey(new Date()) ? initial.date : dateKey(new Date()),
+      eventId: initialEvent?.id ?? "",
+      date: initialEvent ? initialEvent.date : initial?.date && initial.date >= dateKey(new Date()) ? initial.date : dateKey(new Date()),
       startHour: initial?.startHour != null ? String(initial.startHour) : "",
       hours: "",
       nights: "1",

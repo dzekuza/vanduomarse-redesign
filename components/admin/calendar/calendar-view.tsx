@@ -48,6 +48,7 @@ export function CalendarView() {
   const [openEntry, setOpenEntry] = useState<CalendarEntry | null>(null);
   const [creating, setCreating] = useState<{ action: DayAction; day: string } | null>(null);
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
+  const [ticketEventId, setTicketEventId] = useState<string | null>(null);
 
   const all = useMemo(() => calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks }), [bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks]);
   const visible = useMemo(() => all.filter((e) => !hidden.has(e.kind)), [all, hidden]);
@@ -123,7 +124,14 @@ export function CalendarView() {
           setOpenEntry(null);
           setEditingEvent(event);
         }}
+        onAddTicket={(event) => {
+          setOpenEntry(null);
+          setTicketEventId(event.id);
+        }}
       />
+      {ticketEventId ? (
+        <NewBookingDialog initial={{ eventId: ticketEventId }} onOpenChange={(o) => !o && setTicketEventId(null)} onCreated={() => setTicketEventId(null)} />
+      ) : null}
       <BookingSheet booking={openEntry?.key.startsWith("booking:") ? (bookings.find((b) => b.id === openEntry.id) ?? null) : null} onOpenChange={(o) => !o && setOpenEntry(null)} />
       <RentalSheet rental={openEntry?.key.startsWith("rental:") ? (quadRentals.find((r) => r.id === openEntry.id) ?? null) : null} onOpenChange={(o) => !o && setOpenEntry(null)} />
       {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}

@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0115 — "Pridėti rezervaciją" on an event's sheet, skipping straight to its ticket form
+
+- **Status:** Accepted.
+- **Date:** 2026-11-18
+- **Context:** ADR-0114 let staff pick a past date in "Nauja rezervacija" to add an unpaid ticket to a seansas that already happened, but getting there still meant opening step 1, re-picking the same date, and finding the same event again — all information staff already had open in that event's own `EventSheet`.
+- **Decision:** `EventSheet` gets a required `onAddTicket(event)` prop and a "Pridėti rezervaciją" button next to "Redaguoti renginį" (hidden for a quad tour departure, which is sold as a rental, not a ticket). `NewBookingDialog`'s `initial` grows an `eventId`: when set, the dialog looks the event up from the store, skips step 1, and opens step 2 already on kind `"renginys"` with that event and its date preselected — the same ticket form "Nauja rezervacija" already had, just entered from the other side. All five places that render `EventSheet` (`EventsView`, `CalendarView`, `BookingsView`, `BookingCalendarTab`, `useSaleDetails`) wire `onAddTicket` to a local `ticketEventId` state and a conditionally-rendered `NewBookingDialog`, kept separate from each view's own "new booking" / "new from a day cell" state so the two flows don't collide.
+- **Consequences:** one more required prop on `EventSheet`, so any future caller must supply `onAddTicket` too. The button appears (and works) for a past event exactly because of ADR-0114 — no extra past-date handling needed here. `useSaleDetails` (Apžvalga's sales table) gets the button too, for consistency, even though adding a ticket from a historical sale's details is a less common path than from the live `/admin/renginiai` or `/admin/rezervacijos` lists.
+
+---
+
 ## ADR-0114 — "Nauja rezervacija" allows a past date, so an unpaid past seansas can still get a payment link
 
 - **Status:** Accepted.
