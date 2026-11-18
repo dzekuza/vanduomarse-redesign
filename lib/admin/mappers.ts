@@ -28,7 +28,7 @@ const isPaymentStatus = (value: string): value is PaymentStatus => PAYMENT_STATU
 
 export function toPaymentInfo(r: Tables<"payments">): PaymentInfo | null {
   if (!isPaymentStatus(r.status)) return null;
-  return { id: r.id, status: r.status, amount: r.amount, refunded: r.refunded, paidAt: r.paid_at ?? undefined, needsReview: r.needs_review };
+  return { id: r.id, status: r.status, amount: r.amount, refunded: r.refunded, pointsDiscount: r.points_discount, paidAt: r.paid_at ?? undefined, needsReview: r.needs_review };
 }
 
 /** "19:00:00" -> "19:00" */

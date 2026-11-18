@@ -1,11 +1,13 @@
 import "server-only";
 import { REQUEST_PAYMENT_LABEL, visibleRiders, type MyCoupon, type MyInquiry, type MyPoints, type MyRequest, type MyRider } from "@/lib/account";
+import { cashShare } from "@/lib/points";
 import { cancelPolicy } from "@/lib/request-cancel";
 import { formatHour } from "@/lib/sauna";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const PAYMENTS = Object.keys(REQUEST_PAYMENT_LABEL);
+const cashOf = (total: number, row: { amount: number; points_discount: number } | null) => cashShare(total, row ? { amount: row.amount, pointsDiscount: row.points_discount } : null);
 const paymentOf = (row: { status: string } | null): MyRequest["payment"] =>
   row && PAYMENTS.includes(row.status) ? (row.status as NonNullable<MyRequest["payment"]>) : null;
 
@@ -23,9 +25,9 @@ const policy = (input: Parameters<typeof cancelPolicy>[0]) => {
 export async function loadMyRequests(): Promise<MyRequest[]> {
   const supabase = await createClient();
   const [bookings, rentals, tickets] = await Promise.all([
-    supabase.from("bookings").select("id, reference, kind, date, start_hour, hours, nights, stay_units, total, status, payments(id, status)"),
-    supabase.from("quad_rentals").select("id, reference, date, start_hour, hours, units, total, status, payments(id, status)"),
-    supabase.from("event_tickets").select("id, reference, people, total, status, payments(id, status), events(title, date, start_time)"),
+    supabase.from("bookings").select("id, reference, kind, date, start_hour, hours, nights, stay_units, total, status, payments(id, status, amount, points_discount)"),
+    supabase.from("quad_rentals").select("id, reference, date, start_hour, hours, units, total, status, payments(id, status, amount, points_discount)"),
+    supabase.from("event_tickets").select("id, reference, people, total, status, payments(id, status, amount, points_discount), events(title, date, start_time)"),
   ]);
   for (const result of [bookings, rentals, tickets]) {
     if (result.error) throw new Error(`Account data: ${result.error.message}`);
@@ -46,7 +48,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       status: b.status,
       payment: paymentOf(b.payments),
       paymentId: b.payments?.id ?? null,
-      ...policy({ status: b.status, payment: paymentOf(b.payments), date: b.date, startHour: b.kind === "pirtis" ? (b.start_hour ?? 0) : 0, total: b.total }),
+      ...policy({ status: b.status, payment: paymentOf(b.payments), date: b.date, startHour: b.kind === "pirtis" ? (b.start_hour ?? 0) : 0, total: cashOf(b.total, b.payments) }),
     })),
     ...rentals.data!.map((r): MyRequest => ({
       id: r.id,
@@ -59,7 +61,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       status: r.status,
       payment: paymentOf(r.payments),
       paymentId: r.payments?.id ?? null,
-      ...policy({ status: r.status, payment: paymentOf(r.payments), date: r.date, startHour: r.start_hour, total: r.total }),
+      ...policy({ status: r.status, payment: paymentOf(r.payments), date: r.date, startHour: r.start_hour, total: cashOf(r.total, r.payments) }),
     })),
     ...tickets.data!.map((t): MyRequest => ({
       id: t.id,
@@ -72,7 +74,7 @@ export async function loadMyRequests(): Promise<MyRequest[]> {
       status: t.status,
       payment: paymentOf(t.payments),
       paymentId: t.payments?.id ?? null,
-      ...policy({ status: t.status, payment: paymentOf(t.payments), date: t.events?.date ?? "", startHour: Number(t.events?.start_time.slice(0, 2) ?? 0), total: t.total }),
+      ...policy({ status: t.status, payment: paymentOf(t.payments), date: t.events?.date ?? "", startHour: Number(t.events?.start_time.slice(0, 2) ?? 0), total: cashOf(t.total, t.payments) }),
     })),
   ];
   return all.toSorted((a, b) => b.date.localeCompare(a.date) || b.reference.localeCompare(a.reference));

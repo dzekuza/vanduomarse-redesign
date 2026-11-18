@@ -227,6 +227,7 @@ feature components in `components/<feature>/`. Admin screens build on
 | `CustomerPointsTab` | `components/admin/klientai/customer-points-tab.tsx` | The "Taškai" tab on `/admin/klientai/[id]`: balance, a form (amount + required reason, Pridėti taškus / Nuskaičiuoti; React Hook Form + Zod) and the log of every movement (loaded on demand through `loadRiderPoints`). ADR-0121 | new |
 | `LoyaltySettingsCard` | `components/admin/site-settings/loyalty-settings-card.tsx` | Owner-only card on `/admin/svetaine`: points on/off, points earned per €, euro value of one point, with a live example. ADR-0121 | new |
 | `PointsList` | `components/account/points-list.tsx` | The "Taškai" tab on `/paskyra`: the balance of each customer record on the account and its latest movements. ADR-0121 | new |
+| `UsePointsField` | `components/reservation/use-points-field.tsx` | "Naudoti taškus" checkbox in the reservation checkout dialog (`ReservationAccountDialog`): shows the points that would be used and the euros off (`spendPreview`); the server works it out again. ADR-0122 | new |
 
 ## Related
 

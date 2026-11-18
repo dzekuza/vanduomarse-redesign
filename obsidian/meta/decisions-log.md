@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0122 — Points are spent as a discount on a reservation payment; `payments.amount` stays the cash
+
+- **Status:** Accepted (reservations; plan orders still pay in cash only).
+- **Date:** 2026-11-19
+- **Context:** phase 1 (ADR-0121) let customers earn points but not use them. Spending touches money: the Stripe amount, the amount check in `complete_payment`, refunds and the 0.50 EUR minimum charge.
+- **Decision:** the customer ticks "Naudoti taškus" in the checkout dialog; the form sends only a boolean. After `start_payment` groups the requests, `redeem_points_on_payment` (not a change to `start_payment`) turns as many points as fit into euros off, lowers `payments.amount`, records points and rider on the payment and holds the points. Stripe gets the gross lines plus a one-off `amount_off` coupon ("Taškai"), so its total equals `payments.amount` and every later check keeps working. Expiry gives points back, a late payment takes them again, and a refund of cash returns the same share of points; a request's refund is capped at its cash share (`begin_request_refund`, `cashShare` in `lib/points.ts` for the admin and customer buttons). Earning is on cash, so spending points earns nothing back on the points part.
+- **Consequences:** a failed redeem call only means the customer pays in cash. Plan orders and anonymous purchases (plan passes, gift coupons) do not accept points yet. With several customer records on one contact, the one holding the most points is used. The customer cancelling a paid request is refunded its cash share and gets its points share back through the refund trigger.
+
 ## ADR-0121 — Points / kreditai: a ledger per customer record, earned by trigger, granted by staff
 
 - **Status:** Accepted (phase 1; spending is phase 2).

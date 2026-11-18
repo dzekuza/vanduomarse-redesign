@@ -4,7 +4,7 @@ import { trackCheckout, trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
 import { z } from "zod";
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
@@ -18,7 +18,9 @@ import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
 import { MAX_STAY_NIGHTS } from "@/lib/cabin";
+import { loadSpendablePoints } from "@/app/actions/points";
 import { trackingForPlans } from "@/lib/analytics-kind";
+import { spendPreview, type SpendablePoints } from "@/lib/points";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
 import { discountFor, isDiscountService, type CheckedDiscount } from "@/lib/discount-codes";
@@ -127,6 +129,23 @@ export function ReservationFlow({
   /** Stripe accepted the payment: the browser is on its way to Checkout. */
   const [redirecting, setRedirecting] = useState(false);
   const [customer, setCustomer] = useState<Customer | null>(initialCustomer);
+  // Points the signed-in customer can spend (ADR-0122): looked up once per account, since the customer may sign in inside the dialog.
+  const [wallet, setWallet] = useState<{ customerId: string; points: SpendablePoints | null } | null>(null);
+  const [usePoints, setUsePoints] = useState(false);
+  const customerId = customer?.id;
+  useEffect(() => {
+    if (!customerId || !payments) return;
+    let current = true;
+    void loadSpendablePoints()
+      .catch(() => null)
+      .then((points) => {
+        if (current) setWallet({ customerId, points });
+      });
+    return () => {
+      current = false;
+    };
+  }, [customerId, payments]);
+  const points = wallet && wallet.customerId === customerId ? wallet.points : null;
   const form = useForm<AccountValues>({
     resolver: zodResolver(accountSchema),
     defaultValues: { customerName: initialCustomer?.name ?? "", discountCode: "" },
@@ -160,6 +179,9 @@ export function ReservationFlow({
   const discountAmount = discount
     ? Math.round(lines.reduce((sum, line) => sum + (isDiscountService(line.id) ? discountFor(discount, line.id, line.price) : 0), 0) * 100) / 100
     : 0;
+  // Points only pay an online payment, and never take the cash charge under the Stripe minimum.
+  const spend = payments && !payOnSite && usePoints ? spendPreview(points, total - discountAmount) : { points: 0, euros: 0 };
+  const cashTotal = Math.max(Math.round((total - discountAmount - spend.euros) * 100) / 100, 0);
   const tracksPeople = Boolean(plans.pirtis && plans.pirtis.mode !== "private");
   const dateLabel = longDateLabel(date);
   const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
@@ -342,7 +364,7 @@ export function ReservationFlow({
     }
     // Pay at submit: the server files every request and opens Checkout, or files nothing.
     form.clearErrors("root");
-    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code }, requests: requestsFor(plans, when, tourPick) });
+    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code, usePoints: spend.points > 0 }, requests: requestsFor(plans, when, tourPick) });
     if ("error" in result) {
       if (DISCOUNT_HINTS.has(result.error.code ?? "")) {
         // The code stopped holding between the check and the payment (used up, expired): ask again.
@@ -357,7 +379,7 @@ export function ReservationFlow({
       }
       return;
     }
-    trackCheckout(tracking.kind, { itemName: tracking.itemName, value: Math.max(total - discountAmount, 0) });
+    trackCheckout(tracking.kind, { itemName: tracking.itemName, value: cashTotal });
     setRedirecting(true);
     window.location.assign(result.data.url);
   });
@@ -560,6 +582,9 @@ export function ReservationFlow({
         total={total}
         discount={discount}
         discountAmount={discountAmount}
+        points={points}
+        usePoints={usePoints}
+        onUsePoints={setUsePoints}
         onDiscount={(next) => {
           form.clearErrors("discountCode");
           setDiscount(next);
