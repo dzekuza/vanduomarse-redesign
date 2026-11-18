@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0114 — "Nauja rezervacija" allows a past date, so an unpaid past seansas can still get a payment link
+
+- **Status:** Accepted.
+- **Date:** 2026-11-18
+- **Context:** staff sometimes find, after the fact, that someone at a public pirties seansas (or another booking) never paid. "Nauja rezervacija" refused any date before today (client Zod `superRefine` + `DatePicker min={todayKey()}`), so there was no way to add that person's ticket to the seansas that already happened and send them the usual unpaid-checkout link (ADR-0112). Nothing else enforced "future only": the server action (`createBooking` / `createEventTicket`), `lib/staff-payment.ts` and the day's options (`bookingOptionsOn`) never checked the date against today — a past date already returns the real seansas with its real places left.
+- **Decision:** dropped the past-date restriction from the admin "Nauja rezervacija" flow: the `superRefine` check in `components/admin/bookings/new-booking-schema.ts` and the `min={todayKey()}` on the date pickers in `booking-chooser.tsx` (step 1) and `booking-when-fields.tsx` (step 2, sauna/cabin). The restriction applied to every kind sharing that one date field, so it was dropped for all of them rather than only for event tickets — simpler, and a backdated phone booking for a sauna/cabin is no less legitimate than a backdated ticket. The website's own booking flow (`lib/data/public.ts`) is untouched: customers still only ever see today or later.
+- **Consequences:** staff can now pick any past date in step 1 and find that day's real seansas/events, cabins and private saunas (whatever was actually free that day), and for a session with a past date "Nesumokėta" still opens a Stripe Checkout Session and e-mails the link exactly as for a future one — nothing in `lib/staff-payment.ts` depends on the date. Quad rental/tour dialogs (`new-rental-dialog.tsx`, `new-tour-dialog.tsx`) keep their own separate future-only check; out of scope here.
+
+---
+
 ## ADR-0113 — Resend, copy and "mark as paid" for staff-entered requests; payment on quad rentals and tours
 
 - **Status:** Accepted (built on `feat/admin-reservation-payment`).

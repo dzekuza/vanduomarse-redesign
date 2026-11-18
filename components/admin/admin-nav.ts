@@ -111,9 +111,14 @@ export function flattenNav(access: StaffAccess): AdminNavItem[] {
 
 const hrefPath = (href: string) => href.split("?")[0];
 
-/** Path-only match — a child's href can carry a `?view=`/`?tab=` query the current pathname never includes. */
+/**
+ * Path-only match — a child's href can carry a `?view=`/`?tab=` query the current pathname never includes.
+ * Apžvalga's `/admin` is every other page's prefix, so it only matches itself; every other item still
+ * matches its own sub-pages (e.g. `/admin/pirtis/suomiska-sauna` keeps Pirtis active).
+ */
 export const isActiveHref = (pathname: string, href: string) => {
   const path = hrefPath(href);
+  if (path === "/admin") return pathname === path;
   return pathname === path || pathname.startsWith(`${path}/`);
 };
 
