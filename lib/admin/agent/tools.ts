@@ -239,21 +239,21 @@ export async function executeAgentTool(
       }
 
       if (service.includes("namuk") || service.includes("kemper")) {
-        const stayBookings = data.bookings.filter((b) => (b.kind === "namelis" || b.kind === "kemperis") && b.date === date && b.status !== "atsaukta");
-        const activeStayTypes = data.stayTypes.filter((st) => st.active);
+        const kind = service.includes("kemper") ? "kemperis" : "namelis";
+        const nightOf = (start: string, offset: number) => new Date(Date.parse(`${start}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+        // A stay occupies its unit on every night from check-in up to the night before it ends.
+        const occupying = data.bookings.filter((b) => b.kind === kind && b.status !== "atsaukta" && b.date <= date && date < nightOf(b.date, b.nights ?? 1));
+        const types = data.stayTypes.filter((st) => st.active && st.kind === kind);
 
         return {
           ok: true,
-          summary: `Nakvynių užimtumas ${date}`,
+          summary: `${kind === "kemperis" ? "Kemperių vietų" : "Namelių"} užimtumas ${date}`,
           data: {
-            visoAktyviuTipu: activeStayTypes.map((st) => st.label),
-            uzsakymai: stayBookings.map((b) => ({
-              svecias: b.customer.name,
-              tipas: b.kind,
-              sveciuSk: b.guests,
-              naktys: b.nights,
-              statusas: b.status,
-            })),
+            tipai: types.map((st) => {
+              const taken = occupying.filter((b) => b.stayTypeId === st.id).reduce((sum, b) => sum + (b.stayUnits ?? 1), 0);
+              return { tipas: st.label, vietuIki: st.maxGuests, viso: st.units ?? "neribota", uzimta: taken, laisva: st.units === null ? "neribota" : Math.max(0, st.units - taken) };
+            }),
+            uzsakymai: occupying.map((b) => ({ svecias: b.customer.name, tipas: b.stayTypeId, sveciuSk: b.guests, atvykimas: b.date, naktys: b.nights, statusas: b.status })),
           },
         };
       }
@@ -298,8 +298,11 @@ export async function executeAgentTool(
         const matchedSauna = adminData.saunas.find((s) => s.id === requestedSaunaId || s.name.toLowerCase().includes(requestedSaunaId.toLowerCase())) ?? adminData.saunas[0];
         if (!matchedSauna) return { ok: false, summary: "Nerasta tokia pirtis. Patikslinkite pirties pavadinimą." };
         saunaId = matchedSauna.id;
-        startHour = Number(args.startHour) || 18;
-        hours = Number(args.hours) || 3;
+        startHour = Number(args.startHour);
+        hours = Number(args.hours);
+        if (args.startHour === undefined || args.hours === undefined || !Number.isInteger(startHour) || startHour < 0 || startHour > 23 || !Number.isInteger(hours) || hours < 1) {
+          return { ok: false, summary: "Trūksta pirties pradžios valandos arba trukmės. Paklauskite darbuotojo, kada pradėti ir kiek valandų." };
+        }
         total = sessionPrice(hours, guests, matchedSauna.rates, date);
       } else {
         nights = Number(args.nights) || 1;

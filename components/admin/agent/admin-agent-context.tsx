@@ -17,34 +17,15 @@ interface AdminAgentContextValue {
 
 const AdminAgentContext = createContext<AdminAgentContextValue | null>(null);
 
-const STORAGE_KEY = "vm_admin_agent_messages_v1";
+/** The model sees only the latest turns; older ones stay on screen but are not resent. */
+const MAX_SENT_MESSAGES = 20;
 
 export function AdminAgentProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<AgentMessage[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      return saved ? (JSON.parse(saved) as AgentMessage[]) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Kept in memory only: a transcript holds customer details and pending changes, so it must not outlive the page or the staff member.
+  const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Save messages to sessionStorage
-  useEffect(() => {
-    try {
-      if (messages.length > 0) {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-      } else {
-        sessionStorage.removeItem(STORAGE_KEY);
-      }
-    } catch {
-      // Ignore sessionStorage errors
-    }
-  }, [messages]);
 
   // Global keyboard shortcut: Cmd+J / Ctrl+J to toggle panel
   useEffect(() => {
@@ -86,7 +67,7 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: nextMessages.map((m) => ({
+          messages: nextMessages.slice(-MAX_SENT_MESSAGES).map((m) => ({
             role: m.role,
             content: m.content,
           })),
@@ -101,7 +82,8 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
       }
 
       if (data.message) {
-        setMessages((prev) => [...prev, data.message]);
+        const reply = data.message;
+        setMessages((prev) => [...prev, reply]);
       }
     } catch (err: unknown) {
       console.error("Agent send error:", err);
@@ -130,7 +112,7 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
       const res = await fetch("/api/admin/agent/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [], approve: { name: action.name, args: action.args } }),
+        body: JSON.stringify({ messages: [], approve: { token: action.token } }),
       });
       const data = (await res.json()) as AgentChatResponse;
       if (!res.ok || data.error) {
@@ -138,7 +120,8 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
         markAction(messageId, action.id, "pending");
         return;
       }
-      if (data.message) setMessages((prev) => [...prev, data.message]);
+      const reply = data.message;
+      if (reply) setMessages((prev) => [...prev, reply]);
     } catch (err: unknown) {
       console.error("Agent approve error:", err);
       setError("Ryšio klaida. Patikrinkite interneto ryšį.");

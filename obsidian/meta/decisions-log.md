@@ -13,13 +13,13 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 ## ADR-0119 — Admin Gemini AI Assistant integrated as a collapsible 3rd column with tool calling
 
 - **Status:** Accepted.
-- **Date:** 2026-11-18
+- **Date:** 2026-11-19
 - **Context:** staff navigating `/admin` need a fast way to query availability, look up customers or reservations, toggle sauna maintenance blocks, and create bookings on the fly without clicking through multiple menus or leaving the current screen.
 - **Decision:** integrated Google Gemini (`@google/genai`, default model `gemini-2.5-flash`) as an embedded admin assistant. It is triggered by a `<Sparkle>` icon in `AdminHeader` or keyboard shortcut `Cmd+J`. Closed by default. On desktop (`xl`+ screens), it docks side-by-side as a ~380-420px 3rd column next to `<main>`, allowing staff to view the dashboard/calendar while chatting. On smaller screens (`< xl`), it opens as a full-height `Sheet`. Backend endpoint `/api/admin/agent/chat` enforces staff authentication (`currentStaff(supabase)`), and exposes scoped tools: `search_admin_data`, `get_availability`, `create_booking`, `update_booking_status`, `toggle_sauna_block`, `get_daily_summary`. Actions respect the staff member's permissions (`hasPermission(access, ...)`).
 - **Consequences:** requires `GEMINI_API_KEY` in `.env.local` (added to `.env.example`). Destructive/sensitive mutations use validated server actions (`createBooking`, `setBookingStatus`, `toggleBlock`). Supabase Realtime updates automatically refresh admin views when the agent creates or mutates records.
 
 ---
-- **Approval gate (security review):** the chat route never runs `create_booking`, `update_booking_status` or `toggle_sauna_block` itself, because tool results carry customer-entered text that could steer the model. It returns them as `pendingActions`; the panel shows each with Patvirtinti / Atmesti, and only an approval (`POST` with `approve`) executes it, with the staff member's own access. The system prompt also tells the model to treat data as data.
+- **Approval gate (security review):** the chat route never runs `create_booking`, `update_booking_status` or `toggle_sauna_block` itself, because tool results carry customer-entered text that could steer the model. It returns them as `pendingActions`; the panel shows each with Patvirtinti / Atmesti, and only an approval executes it, with the staff member's own access. Each proposal is signed by the server (`lib/admin/agent/approval.ts`: staff id, tool, exact arguments, 15-minute expiry) and the approve request sends only that token, so the browser cannot approve edited or foreign actions; a token runs once per server instance (best effort). The route also caps the history (30 messages, 4000 characters each) and rate-limits to 20 calls a minute per staff member (best effort per instance). The transcript lives in memory only. The system prompt also tells the model to treat data as data.
 
 ## ADR-0118 — Public service pages are cached (ISR) and load live availability in the browser
 

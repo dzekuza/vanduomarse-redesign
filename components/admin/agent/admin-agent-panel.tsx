@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const PROMPT_SUGGESTIONS = [
@@ -20,6 +21,8 @@ const PROMPT_SUGGESTIONS = [
 export function AdminAgentPanel() {
   const { isOpen, setIsOpen, messages, isLoading, error, sendMessage, resolveAction, clearMessages } = useAdminAgent();
   const [input, setInput] = useState("");
+  /** The docked column starts at xl (1280px); below it the panel is a Sheet. */
+  const isNarrow = useIsMobile(1280);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -89,7 +92,7 @@ export function AdminAgentPanel() {
       </div>
 
       {/* Messages feed */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div aria-live="polite" className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col justify-center text-center px-2 py-6">
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-lake/10 text-lake dark:bg-lake/20">
@@ -250,8 +253,8 @@ export function AdminAgentPanel() {
 
       {/* Mobile / tablet view: Sheet slide-over */}
       <div className="xl:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+        <Sheet open={isOpen && isNarrow} onOpenChange={setIsOpen}>
+          <SheetContent side="right" showCloseButton={false} className="w-full sm:max-w-md p-0 flex flex-col">
             <SheetTitle className="sr-only">AI Asistentas</SheetTitle>
             {renderContent()}
           </SheetContent>

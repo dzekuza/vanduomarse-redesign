@@ -19,6 +19,8 @@ export interface AgentPendingAction {
   id: string;
   name: string;
   args: Record<string, unknown>;
+  /** Signed by the server; the only thing the approve request sends. */
+  token: string;
   status: "pending" | "approved" | "rejected";
 }
 
@@ -38,10 +40,10 @@ export interface AgentChatRequest {
     content: string;
   }>;
   /** A staff member's click on "Patvirtinti": run this change directly, without asking the model. */
-  approve?: { name: string; args: Record<string, unknown> };
+  approve?: { token: string };
 }
 
 export interface AgentChatResponse {
-  message: AgentMessage;
+  message?: AgentMessage;
   error?: string;
 }
