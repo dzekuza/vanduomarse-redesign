@@ -25,7 +25,9 @@ export function PointsList({ points }: { points: MyPoints[] }) {
             <h3 className="font-display text-heading font-bold uppercase">{points.length > 1 ? p.name : "Mano taškai"}</h3>
             <p className="text-heading font-bold tabular-nums">{formatPoints(p.balance)}</p>
           </header>
-          {p.entries.length === 0 ? (
+          {p.logHidden ? (
+            <p className="text-sm text-copy">Šis likutis rastas pagal papildomą telefono numerį, todėl judėjimų sąrašo nerodome. Prisijunkite pagrindiniu telefonu ar el. paštu, kad jį matytumėte.</p>
+          ) : p.entries.length === 0 ? (
             <p className="text-sm text-copy">Judėjimų dar nėra.</p>
           ) : (
             <ul className="divide-y divide-line">
