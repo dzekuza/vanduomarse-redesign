@@ -88,8 +88,8 @@ const SORT_VALUE: Record<SaleSortKey, (s: Sale) => string | number> = {
   when: (s) => s.whenKey,
   customer: (s) => s.customer,
   total: (s) => s.total,
-  state: (s) => s.state,
-  source: (s) => s.source,
+  state: (s) => (s.state === "galioja" ? s.statusLabel : SALE_STATE_LABEL[s.state]),
+  source: (s) => SALE_ORIGIN_LABEL[saleOrigin(s.source)],
 };
 
 /** A sorted copy. Empty service dates always sink to the bottom; ties fall back to newest sale first. */
@@ -137,7 +137,7 @@ export function buildSales(data: SalesSource): Sale[] {
       category: "keturraciai",
       soldOn: soldOn(r.createdAt),
       soldAt: r.createdAt,
-      whenKey: r.date,
+      whenKey: `${r.date} ${String(r.startHour).padStart(2, "0")}`,
       item: quadRentalLabel(r, data.quadTypes),
       when: `${formatDay(r.date)}, ${r.hours} val.`,
       customer: r.customer.name,
