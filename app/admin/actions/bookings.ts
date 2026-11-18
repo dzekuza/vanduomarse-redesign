@@ -101,7 +101,7 @@ const newBookingInput = z
     /** Paid at entry (method recorded), or not: then a payment link is e-mailed to the customer. */
     payment: z.object({ method: z.enum(["grynais", "kortele"]), paid: z.boolean() }),
     /** Staff-entered discount code; re-checked and priced here, never trusted from the client (ADR-0036). */
-    discountCode: z.string().trim().max(30),
+    discountCode: z.string().trim().max(200), // raw input, before normalizeDiscountCode() strips punctuation/spaces; the real 3-30 bound is the DB's own code format
     /** What the client's own `total` already has taken off for `discountCode`, so the server can recover the pre-discount subtotal. */
     discountAmount: z.number().min(0).max(1_000_000),
   })

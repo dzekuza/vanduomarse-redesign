@@ -45,6 +45,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   const initialEvent = initial?.eventId ? events.find((e) => e.id === initial.eventId) : undefined;
   const [extras, setExtras] = useState<Record<string, number>>({});
   const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const [discountPending, setDiscountPending] = useState(false);
   const [quad, setQuad] = useState<{ kind: "rental" } | { kind: "tour"; routeId: string } | null>(null);
   const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId || initialEvent ? "form" : "choose");
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
@@ -145,7 +146,11 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       });
       if ("error" in created) {
         if (isPaymentFailure(created.error)) return;
-        return setError(created.error.code === "discount_code" ? "discountCode" : created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
+        if (created.error.code === "discount_code") {
+          setDiscount(null);
+          return setError("discountCode", { message: created.error.message });
+        }
+        return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
       }
       reportCreated(created.data.ticket.reference, created.data);
       return onOpenChange(false);
@@ -176,7 +181,10 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     // The database has the final say on conflicts (another booking may have landed meanwhile).
     if ("error" in result) {
       if (isPaymentFailure(result.error)) return;
-      if (result.error.code === "discount_code") return setError("discountCode", { message: result.error.message });
+      if (result.error.code === "discount_code") {
+        setDiscount(null);
+        return setError("discountCode", { message: result.error.message });
+      }
       if (result.error.code === "email_required") return setError("email", { message: result.error.message });
       return setError(sauna ? "startHour" : "nights", { message: result.error.message });
     }
@@ -277,7 +285,16 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
             >
               <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
             </FormField>
-            <DiscountCodeField id="nb-discount" value={discountCode} onChange={(v) => setValue("discountCode", v)} service={discountService} subtotal={baseTotal} onChecked={setDiscount} />
+            <DiscountCodeField
+              id="nb-discount"
+              value={discountCode}
+              onChange={(v) => setValue("discountCode", v)}
+              service={discountService}
+              subtotal={baseTotal}
+              error={err.discountCode?.message}
+              onChecked={setDiscount}
+              onPendingChange={setDiscountPending}
+            />
             <BookingPaymentFields control={control} unpaid={unpaid} />
           </form>
         )}
@@ -296,8 +313,8 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
               Atšaukti
             </Button>
             {step === "form" ? (
-              <Button type="submit" form="new-booking" disabled={formState.isSubmitting}>
-                {formState.isSubmitting ? "Kuriama…" : "Sukurti"}
+              <Button type="submit" form="new-booking" disabled={formState.isSubmitting || discountPending}>
+                {formState.isSubmitting ? "Kuriama…" : discountPending ? "Tikrinamas kodas…" : "Sukurti"}
               </Button>
             ) : null}
           </div>

@@ -4,7 +4,7 @@ vi.mock("server-only", () => ({}));
 
 type Row = Record<string, unknown> | null;
 
-function query(result: { data?: unknown; error?: unknown } | { count: number }) {
+function query(result: { data?: unknown; error?: unknown } | { count: number; error?: unknown }) {
   const builder: Record<string, unknown> = {
     select: () => builder,
     eq: () => builder,
@@ -15,12 +15,15 @@ function query(result: { data?: unknown; error?: unknown } | { count: number }) 
   return builder;
 }
 
+const USE_TABLES = ["bookings", "quad_rentals", "event_tickets", "coupons", "rider_plan_orders", "plan_passes"];
+
 let codeRow: Row = null;
-let uses: Record<string, number> = { bookings: 0, quad_rentals: 0, event_tickets: 0 };
+let uses: Record<string, number> = {};
+let useError: string | null = null;
 
 const from = vi.fn((table: string) => {
   if (table === "discount_codes") return query({ data: codeRow, error: null });
-  return query({ count: uses[table] ?? 0 });
+  return query(useError ? { count: 0, error: useError } : { count: uses[table] ?? 0 });
 });
 
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from }) }));
@@ -42,7 +45,8 @@ const ACTIVE_CODE = {
 
 beforeEach(() => {
   codeRow = null;
-  uses = { bookings: 0, quad_rentals: 0, event_tickets: 0 };
+  uses = {};
+  useError = null;
   vi.clearAllMocks();
 });
 
@@ -72,19 +76,33 @@ describe("applyStaffDiscountCode", () => {
   });
 
   it("refuses a code outside its valid date range", async () => {
-    const future = new Date();
-    future.setDate(future.getDate() + 1);
-    codeRow = { ...ACTIVE_CODE, valid_from: future.toISOString().slice(0, 10) };
+    // A fixed far-future date, not "tomorrow" from the real clock: the Vilnius/UTC gap around midnight once flaked this.
+    codeRow = { ...ACTIVE_CODE, valid_from: "2099-01-01" };
     const result = await applyStaffDiscountCode("WAKE10", "pirtis", 100);
     expect(result.ok).toBe(false);
-    expect(todayKey() < (codeRow as { valid_from: string }).valid_from).toBe(true);
+    expect(todayKey() < "2099-01-01").toBe(true);
   });
 
-  it("refuses a code that already hit its use limit", async () => {
-    codeRow = { ...ACTIVE_CODE, max_uses: 2 };
-    uses = { bookings: 1, quad_rentals: 1, event_tickets: 0 };
+  it("refuses a code that already hit its use limit, counting every table a code can land on", async () => {
+    codeRow = { ...ACTIVE_CODE, max_uses: 3 };
+    uses = { bookings: 1, quad_rentals: 1, coupons: 1 };
     const result = await applyStaffDiscountCode("WAKE10", "pirtis", 100);
     expect(result).toEqual({ ok: false, message: "Nuolaidos kodas jau išnaudotas." });
+    for (const table of USE_TABLES) expect(from).toHaveBeenCalledWith(table);
+  });
+
+  it("allows a code under its use limit once every table is counted", async () => {
+    codeRow = { ...ACTIVE_CODE, max_uses: 5 };
+    uses = { bookings: 1, quad_rentals: 1, coupons: 1 };
+    const result = await applyStaffDiscountCode("WAKE10", "pirtis", 100);
+    expect(result.ok).toBe(true);
+  });
+
+  it("fails closed, not open, when a use count cannot be read", async () => {
+    codeRow = { ...ACTIVE_CODE, max_uses: 2 };
+    useError = "db unavailable";
+    const result = await applyStaffDiscountCode("WAKE10", "pirtis", 100);
+    expect(result).toEqual({ ok: false, message: "Nepavyko patikrinti nuolaidos kodo." });
   });
 
   it("refuses a code that does not exist", async () => {

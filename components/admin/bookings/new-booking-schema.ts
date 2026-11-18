@@ -31,7 +31,7 @@ export const newBookingSchema = z
     ...paymentFormShape,
     priceOverride: z.string().trim().refine((v) => v === "" || /^\d+(\.\d{1,2})?$/.test(v), "Suma arba tuščia."),
     /** Normalised on submit; the server re-checks and prices it (ADR-0036), never trusting this string alone. */
-    discountCode: z.string().trim().max(30),
+    discountCode: z.string().trim().max(200), // raw input, before normalizeDiscountCode() strips punctuation/spaces; the real 3-30 bound is the DB's own code format
     note: z.string().trim().max(300),
   })
   .superRefine((v, ctx) => {

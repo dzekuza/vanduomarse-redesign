@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { eventDurationMinutes } from "@/components/admin/events/event-schema";
 import { applyStaffDiscountCode } from "@/lib/admin/discount-code";
+import type { DiscountService } from "@/lib/discount-codes";
 import { toTourTicket } from "@/lib/admin/mappers";
 import type { ManagedEvent, PriceItem, TourTicket } from "@/lib/admin/types";
 import { dbError, done, fail, removeFailedRequest, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
@@ -127,7 +128,7 @@ const eventTicketInput = z.object({
   /** Staff override of the event's own price × people, e.g. a one-off rate. Empty uses the event's price. */
   price: z.number().min(0).max(1_000_000).optional(),
   /** Staff-entered discount code; re-checked and priced here, never trusted from the client (ADR-0036). */
-  discountCode: z.string().trim().max(30),
+  discountCode: z.string().trim().max(200), // raw input, before normalizeDiscountCode() strips punctuation/spaces; the real 3-30 bound is the DB's own code format
 }).refine((v) => v.customer.phone !== "" || v.customer.email !== "");
 
 export type NewEventTicketInput = z.infer<typeof eventTicketInput>;
@@ -137,8 +138,10 @@ export type CreatedTicket = { ticket: TourTicket; emailSent?: boolean; paymentUr
 
 /**
  * Adds tickets to an event or public sauna session for someone who phoned or walked in. The price is the event's ticket
- * price times the people, read here, never from the browser; the database refuses more people than places left
- * (`event_full`, sold and held places count) and links the ticket to the customer by contact. Staff-entered tickets
+ * price times the people unless staff set a one-off `price`, plus any discount code's cut; neither is ever trusted
+ * from the browser as a final number — the code is re-checked and re-priced here (ADR-0036/0116). The database refuses
+ * more people than places left (`event_full`, sold and held places count) and links the ticket to the customer by
+ * contact. Staff-entered tickets
  * notify nobody, except that an unpaid one e-mails its payment link to the customer (ADR-0112). Quad tour departures are sold as rentals, not here.
  */
 export async function createEventTicket(input: NewEventTicketInput): Promise<ActionResult<CreatedTicket>> {
@@ -151,13 +154,15 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
   const { supabase } = ctx;
   const unpaid = !v.payment.paid;
 
-  const { data: event, error: eventError } = await supabase.from("events").select("price, title, date, tour_route_id, calendar_private").eq("id", v.eventId).maybeSingle();
+  const { data: event, error: eventError } = await supabase.from("events").select("price, title, date, tour_route_id, calendar_private, category").eq("id", v.eventId).maybeSingle();
   if (eventError) return dbError(eventError);
   if (!event) return fail("Renginys nerastas.", "invalid");
   if (event.tour_route_id) return fail("Keturračių turai parduodami kaip nuoma.", "invalid");
   if (event.calendar_private) return fail("Privatus įrašas bilietų neturi.", "invalid");
   const base = v.price ?? (event.price ?? 0) * v.people;
-  const discount = v.discountCode ? await applyStaffDiscountCode(v.discountCode, "pirtis", base) : null;
+  // Discount codes cover sauna sessions ("pirtis") and quad tours ("keturraciai"), the only categories a code's services list can name; vakarai/akademija/sventes tickets have no matching service.
+  const discountService: DiscountService | null = event.category === "pirtis" ? "pirtis" : event.category === "keturratis" ? "keturraciai" : null;
+  const discount = v.discountCode ? (discountService ? await applyStaffDiscountCode(v.discountCode, discountService, base) : { ok: false as const, message: "Šis kodas negalioja šiai paslaugai." }) : null;
   if (discount && !discount.ok) return fail(discount.message, "discount_code");
   const total = Math.max(0, base - (discount && discount.ok ? (discount.applied?.amount ?? 0) : 0));
   if (unpaid) {
