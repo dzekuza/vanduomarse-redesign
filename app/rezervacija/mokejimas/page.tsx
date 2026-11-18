@@ -7,7 +7,7 @@ import { releaseCancelledPayment } from "@/lib/payment-release";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
-  title: "Mokėjimas - Vanduo Marse",
+  title: "Mokėjimas",
   robots: { index: false },
 };
 

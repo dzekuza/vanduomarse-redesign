@@ -8,8 +8,12 @@ updated: 2026-10-22
 ## Server data (Supabase, ADR-0007)
 
 - **Public pages** (`/pirtis`, `/miegas`, `/renginiai`) are async Server
-  Components that call `lib/data/public.ts` (cookieless anon client,
-  `connection()` so they render per request). They pass plain props — dates as
+  Components that call `lib/data/public.ts` (cookieless anon client). The
+  loaders do not force per-request rendering (ADR-0118): the service pages and
+  the home page are ISR (`revalidate = 300`) and take live availability and the
+  signed-in customer from `GET /api/availability?activity=` in the browser
+  (`components/services/live-activity.tsx`); `/renginiai` and `/kainos` call
+  `connection()` themselves and stay per-request. They pass plain props — dates as
   `yyyy-mm-dd` — to the Client Components, which turn them into `Date`s with
   `toSaunaEvent` / `toParkEvent` / `nextDays`. "Today" is the Vilnius date
   from the server (`todayKey()`), so server and client agree.

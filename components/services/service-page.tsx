@@ -109,7 +109,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
               <p className="text-sm leading-loose text-copy">{copy.description}</p>
               {isCelebration ? <div className="flex flex-wrap gap-2">
                 {Object.entries(CELEBRATION_LINKS).filter(([key]) => key !== slug).map(([key, label]) => (
-                  <Link key={key} href={`/${key}`} className="inline-flex min-h-11 items-center border border-line px-3 text-xs font-bold hover:border-ink">{label}</Link>
+                  <Link prefetch={false} key={key} href={`/${key}`} className="inline-flex min-h-11 items-center border border-line px-3 text-xs font-bold hover:border-ink">{label}</Link>
                 ))}
               </div> : null}
             </Section>

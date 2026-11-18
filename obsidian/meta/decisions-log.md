@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0118 — Public service pages are cached (ISR) and load live availability in the browser
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** an external speed audit found 16 of 18 public pages rendered per request (`private, no-store`, TTFB 0.3–1.2 s) with the function in `iad1`. The cause was `connection()` inside every loader in `lib/data/public.ts` and `lib/data/page-content.ts`, plus `searchParams` and `getCustomer()` (cookies) read in `app/[service]/page.tsx`.
+- **Decision:** loaders no longer call `connection()`. `app/[service]/page.tsx` and `app/page.tsx` are ISR (`revalidate = 300`, `generateStaticParams` over `SERVICE_PAGES`). Live availability, the signed-in customer and `?seansas=` are read in the browser: `GET /api/availability?activity=pirtis|nakvyne|keturraciai` (`no-store`) feeds `LiveActivityProvider` / `LiveBooking` / `LiveSchedule` (`components/services/live-activity.tsx`), which start from the cached snapshot and swap in fresh data on load and when the tab regains focus. `ReservationFlow` adopts a customer that arrives after first render. `/renginiai` and `/kainos` call `connection()` themselves and stay per-request. Also: `vercel.json` `regions: ["fra1"]`; image quality 75 only, `images.minimumCacheTTL` 30 days, one-week `Cache-Control` on `/landing`, `/brand`, `/quads`, `/og`; `prefetch={false}` on nav/footer/CTA links; the doubled "| Vanduo Marse" removed from page titles.
+- **Consequences:** copy and price edits made in `/admin` reach the public pages within 5 minutes (not instantly); the cached HTML can show a calendar up to 5 minutes old for an instant before the live fetch replaces it, and the booking form renders client-side behind a skeleton. Booking submit still re-validates conflicts on the server. Not done: the proxy's site-gate lookup (`siteGateOn`, 5 s in-memory TTL) still runs per request; `/renginiai` stays dynamic; the Supabase region should be confirmed to match `fra1`.
+
 ## ADR-0117 — Staff payment links text the customer too; an empty month-calendar day opens "Nauja rezervacija" on click
 
 - **Status:** Accepted.

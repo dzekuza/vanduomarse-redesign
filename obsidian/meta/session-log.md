@@ -1,3 +1,9 @@
+## 2026-11-19 — Public page speed (ADR-0118)
+
+- **Cause:** `connection()` in every public loader plus `searchParams`/cookies on `app/[service]/page.tsx` made the pages per-request; function ran in iad1; q90 hero images; link prefetch; doubled title suffix.
+- **Changed:** ISR for service pages + home, `/api/availability` + `live-activity.tsx`, `fra1`, image quality/cache, `prefetch={false}`, titles; vault docs. tsc (only PageProps typegen noise), lint, 186 tests, build OK, prod server checked (cache HIT, deep link, no console errors).
+- **Next:** commit + PR from `perf/public-pages-isr`; confirm Supabase region; verify on Vercel.
+
 ## 2026-11-18 — Sales table order + column sorting
 
 - **Cause:** `buildSales` sorted by `soldOn` (a day) then `id`, so same-day sales ordered by id prefix, not time (Rūta's ticket `e-` above Agnė's later booking `b-`).

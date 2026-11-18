@@ -4,7 +4,7 @@ import { CouponShop } from "@/components/coupons/coupon-shop";
 import { getCouponProducts } from "@/lib/data/public";
 
 export const metadata: Metadata = {
-  title: "Dovanų kuponai - Vanduo Marse",
+  title: "Dovanų kuponai",
 };
 
 export default async function EmbedKuponaiPage({ searchParams }: PageProps<"/embed/kuponai">) {

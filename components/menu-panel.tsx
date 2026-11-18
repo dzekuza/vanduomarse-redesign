@@ -33,7 +33,7 @@ export function MenuPanel({ items, secondary, secondaryTitle, onNavigate }: Menu
             key={l.href}
             className={`border-b border-ink/40 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-400 motion-safe:ease-out-strong motion-safe:fill-mode-both ${LINK_DELAY[Math.min(i, 3)]}`}
           >
-            <Link href={l.href} onClick={onNavigate} className="flex items-center py-6 text-menu font-bold uppercase md:py-5.5">
+            <Link prefetch={false} href={l.href} onClick={onNavigate} className="flex items-center py-6 text-menu font-bold uppercase md:py-5.5">
               <small className="mr-4 text-micro font-normal tracking-normal md:mr-8">{String(i + 1).padStart(2, "0")}</small>
               {l.label}
               <ArrowUpRightIcon aria-hidden className="ml-auto size-8 md:size-12" />
@@ -42,7 +42,7 @@ export function MenuPanel({ items, secondary, secondaryTitle, onNavigate }: Menu
               <ul aria-label={`${l.label}: pasirinkimai`} className="-mt-2 flex flex-wrap gap-x-5 pb-3 md:pl-12">
                 {l.children.map((child) => (
                   <li key={child.href}>
-                    <Link href={child.href} onClick={onNavigate} className="inline-flex min-h-11 items-center border-b border-transparent text-xs font-bold hover:border-ink">
+                    <Link prefetch={false} href={child.href} onClick={onNavigate} className="inline-flex min-h-11 items-center border-b border-transparent text-xs font-bold hover:border-ink">
                       {child.label}
                     </Link>
                   </li>
@@ -57,7 +57,7 @@ export function MenuPanel({ items, secondary, secondaryTitle, onNavigate }: Menu
         <ul className="mt-2 flex flex-wrap gap-x-6">
           {secondary.map((l) => (
             <li key={l.href}>
-              <Link href={l.href} onClick={onNavigate} className="inline-flex min-h-11 items-center border-b border-transparent text-xs font-bold hover:border-ink">
+              <Link prefetch={false} href={l.href} onClick={onNavigate} className="inline-flex min-h-11 items-center border-b border-transparent text-xs font-bold hover:border-ink">
                 {l.label}
               </Link>
             </li>

@@ -5,7 +5,7 @@ import { PlanPaymentStatus, type PlanPaymentView } from "@/components/registrati
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
-  title: "Plano apmokėjimas - Vanduo Marse",
+  title: "Plano apmokėjimas",
   robots: { index: false },
 };
 

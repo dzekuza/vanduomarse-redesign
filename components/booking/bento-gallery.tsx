@@ -36,7 +36,7 @@ function BentoTile({ image, sizes, className = "", loading = "lazy" }: { image: 
         src={image.src}
         alt={image.alt}
         fill
-        quality={90}
+       
         loading={loading}
         fetchPriority={loading === "eager" ? "high" : "auto"}
         sizes={sizes}

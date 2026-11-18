@@ -37,8 +37,9 @@ const nextConfig: NextConfig = {
     agentUpgrade: "security",
   },
   images: {
-    // 90 for galleries and photo tiles, 75 (the default) for everything else.
-    qualities: [75, 90],
+    qualities: [75],
+    // Optimised copies stay in the CDN for a month instead of the 60 s default.
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "images.unsplash.com" },
@@ -55,6 +56,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/((?!embed).*)", headers: SECURITY_HEADERS },
+      // Photos under /public are renamed when they change, so browsers and the CDN may keep them for a week.
+      {
+        source: "/:dir(landing|brand|quads|og)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }],
+      },
       // The staff panel is never cached by the browser or a proxy and never indexed.
       {
         source: "/admin/:path*",

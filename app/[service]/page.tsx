@@ -5,15 +5,11 @@ import { CelebrationSchedule } from "@/components/services/celebration-schedule"
 import { JsonLd } from "@/components/json-ld";
 import { SERVICE_GALLERY, SERVICES } from "@/components/landing/content";
 import { activityPhotos } from "@/components/reservation/activity-photos";
-import { ReservationFlow } from "@/components/reservation/reservation-flow";
-import { QuadSchedule } from "@/components/services/quad-schedule";
-import { SaunaServiceSchedule } from "@/components/services/sauna-service-schedule";
-import { isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
+import { LiveActivityProvider, LiveBooking, LiveSchedule } from "@/components/services/live-activity";
+import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components/services/service-content";
 import { ServicePage } from "@/components/services/service-page";
-import { StayServiceSchedule } from "@/components/services/stay-service-schedule";
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
-import { getCustomer } from "@/lib/customer";
 import { getServicePageContent } from "@/lib/data/page-content";
 import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getParkEvents, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
@@ -23,7 +19,17 @@ import { paymentsEnabled } from "@/lib/stripe";
 
 interface Props {
   params: Promise<{ service: string }>;
-  searchParams: Promise<{ seansas?: string | string[] }>;
+}
+
+/**
+ * Service pages are cached and rebuilt in the background every 5 minutes (prices and copy edited in /admin show up
+ * within that). Live availability and the signed-in customer load in the browser from /api/availability, and `?seansas=`
+ * is read there too, so nothing here depends on the request.
+ */
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return Object.keys(SERVICE_PAGES).map((service) => ({ service }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -33,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return pageMetadata({ title, description: custom ?? metaDescription([summary, description]), path: `/${service}`, image: SERVICE_OG_IMAGES[id] ?? { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
 }
 
-export default async function ActivityPage({ params, searchParams }: Props) {
+export default async function ActivityPage({ params }: Props) {
   const { service } = await params;
   if (!isServiceSlug(service)) notFound();
   const { copy }: { copy: ServicePageCopy } = await getServicePageContent(service);
@@ -48,18 +54,13 @@ export default async function ActivityPage({ params, searchParams }: Props) {
   const availabilityWindow = { days: RESERVATION_DAYS, now: new Date() };
 
   if (activity) {
-    const { seansas } = await searchParams;
-    const eventId = Array.isArray(seansas) ? seansas[0] : seansas;
-    const [sauna, cabin, quads, customer] = await Promise.all([
-      getSaunaPageData(availabilityWindow), getCabinPageData(availabilityWindow), getQuadPageData(availabilityWindow), getCustomer(),
-    ]);
+    const [sauna, cabin, quads] = await Promise.all([getSaunaPageData(availabilityWindow), getCabinPageData(availabilityWindow), getQuadPageData(availabilityWindow)]);
     const data = { sauna, cabin, quads };
-    const saunaDay = activity === "pirtis" ? sauna.events.find(({ key }) => key === eventId)?.date : undefined;
     const photos = activity === "pirtis"
       ? Array.from(new Map([...SERVICE_GALLERY.sauna, ...activityPhotos(activity, data)].map((photo) => [photo.src, photo])).values())
       : activityPhotos(activity, data);
     return (
-      <>
+      <LiveActivityProvider activity={activity} initial={data}>
         {schema}
         <ServicePage
           slug={service}
@@ -67,10 +68,10 @@ export default async function ActivityPage({ params, searchParams }: Props) {
           quads={activity === "keturraciai" ? quads : undefined}
           stayTypes={activity === "nakvyne" ? cabin.stayTypes : undefined}
           photos={photos}
-          booking={<ReservationFlow activity={activity} header={null} data={data} initialDay={saunaDay} payments={paymentsEnabled()} initialCustomer={customer} />}
-          schedule={activity === "pirtis" ? <SaunaServiceSchedule data={sauna} initialDay={saunaDay} /> : activity === "keturraciai" ? <QuadSchedule data={quads} /> : <StayServiceSchedule data={cabin} />}
+          booking={<LiveBooking activity={activity} payments={paymentsEnabled()} />}
+          schedule={<LiveSchedule activity={activity} />}
         />
-      </>
+      </LiveActivityProvider>
     );
   }
 

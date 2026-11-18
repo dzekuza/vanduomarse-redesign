@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BookingHeader } from "@/components/booking/booking-header";
@@ -21,6 +22,7 @@ const SECTIONS: ServiceSlug[] = ["pirtis", "keturraciu-nuoma", "nakvyne", "svent
 
 /** One page with every published price, read from the same data as the service pages, so it never drifts from them. */
 export default async function PricesPage() {
+  await connection();
   const window = { days: RESERVATION_DAYS, now: new Date() };
   const [sauna, cabin, quads] = await Promise.all([getSaunaPageData(window), getCabinPageData(window), getQuadPageData(window)]);
 
