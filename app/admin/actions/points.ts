@@ -50,7 +50,9 @@ export async function loadLoyaltySettings(): Promise<ActionResult<LoyaltySetting
   const ctx = await staffClient("owner");
   if (!ctx.ok) return ctx.error;
   const { data, error } = await ctx.supabase.from("loyalty_settings").select("enabled, earn_points_per_euro, point_value_eur").maybeSingle();
-  if (error || !data) return { data: DEFAULT_LOYALTY };
+  // A failed read must not look like the defaults (the owner could then save over the real values); only a missing row does.
+  if (error) return dbError(error);
+  if (!data) return { data: DEFAULT_LOYALTY };
   return { data: { enabled: data.enabled, earnPointsPerEuro: Number(data.earn_points_per_euro), pointValueEur: Number(data.point_value_eur) } };
 }
 
@@ -59,7 +61,9 @@ export async function saveLoyaltySettings(settings: LoyaltySettings): Promise<Ac
   if (!ctx.ok) return ctx.error;
   const parsed = loyaltySettingsSchema.safeParse(settings);
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
-  const v = parsed.data;
+  // Stored with the database's precision, and shown back the same way: 2 decimals for points per euro, 4 for a point's value.
+  const v = { enabled: parsed.data.enabled, earnPointsPerEuro: Math.round(parsed.data.earnPointsPerEuro * 100) / 100, pointValueEur: Math.round(parsed.data.pointValueEur * 10000) / 10000 };
+  if (v.pointValueEur <= 0) return fail("Taško vertė per maža.", "invalid");
   const { error } = await ctx.supabase
     .from("loyalty_settings")
     .update({ enabled: v.enabled, earn_points_per_euro: v.earnPointsPerEuro, point_value_eur: v.pointValueEur })

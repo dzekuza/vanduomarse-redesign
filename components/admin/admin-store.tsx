@@ -725,7 +725,7 @@ function useAdminReducer(initial: AdminData) {
       },
       adjustRiderPoints: (riderId: string, delta: number, reason: string) => report(actions.adjustRiderPoints(riderId, delta, reason)),
       loadRiderPoints: (riderId: string) => report(actions.loadRiderPoints(riderId)),
-      loadLoyaltySettings: () => actions.loadLoyaltySettings(),
+      loadLoyaltySettings: () => report(actions.loadLoyaltySettings()),
       saveLoyaltySettings: (settings: LoyaltySettings) => report(actions.saveLoyaltySettings(settings)),
       deleteRiderComment: (id: string) => {
         dispatch({ type: "riderComment/delete", id });

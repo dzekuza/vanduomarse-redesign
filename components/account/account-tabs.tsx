@@ -26,7 +26,7 @@ export function AccountTabs({ requests, inquiries, riders, coupons, points }: { 
 
   return (
     <Tabs defaultValue="visi" className="min-w-0 gap-4">
-      <TabsList aria-label="Rezervacijų skiltys" className="scrollbar-ink flex w-full justify-start overflow-x-auto overflow-y-hidden divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto">
+      <TabsList aria-label="Paskyros skiltys" className="scrollbar-ink flex w-full justify-start overflow-x-auto overflow-y-hidden divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto">
         {TABS.map(({ id, label, kinds }) => (
           <TabsTrigger
             key={id}

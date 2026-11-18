@@ -6,6 +6,8 @@ describe("points helpers", () => {
     expect(earnedPoints(40, 5)).toBe(200);
     expect(earnedPoints(19.99, 5)).toBe(99);
     expect(earnedPoints(0.1, 5)).toBe(0);
+    expect(earnedPoints(0.29, 100)).toBe(29);
+    expect(earnedPoints(100, 5.5)).toBe(550);
   });
 
   it("values points to the cent", () => {

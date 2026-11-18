@@ -31,7 +31,7 @@ export function CustomerPointsTab({ rider }: { rider: Rider }) {
   useEffect(() => {
     let current = true;
     void loadRiderPoints(rider.id).then((result) => {
-      if (current && "data" in result) setEntries(result.data);
+      if (current) setEntries("data" in result ? result.data : []);
     });
     return () => {
       current = false;

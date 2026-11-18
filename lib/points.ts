@@ -61,4 +61,6 @@ export const formatPoints = (points: number): string => `${new Intl.NumberFormat
 export const pointsValueEur = (points: number, pointValueEur: number): number => Math.round(points * pointValueEur * 100) / 100;
 
 /** The points a payment earns: whole points only. */
-export const earnedPoints = (euros: number, earnPointsPerEuro: number): number => Math.floor(euros * earnPointsPerEuro);
+export const earnedPoints = (euros: number, earnPointsPerEuro: number): number =>
+  // Whole cents times the rate in hundredths, like the database's exact numeric arithmetic (0.29 EUR at 100 points per EUR is 29, not 28).
+  Math.floor((Math.round(euros * 100) * Math.round(earnPointsPerEuro * 100)) / 10_000);

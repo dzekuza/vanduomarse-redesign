@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
-import { DEFAULT_LOYALTY, loyaltySettingsSchema, pointsValueEur, type LoyaltySettings } from "@/lib/points";
+import { DEFAULT_LOYALTY, earnedPoints, loyaltySettingsSchema, pointsValueEur, type LoyaltySettings } from "@/lib/points";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,17 +60,19 @@ export function LoyaltySettingsCard() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="loyalty-earn">Taškų už 1 €</Label>
-              <Input id="loyalty-earn" type="number" step="any" min={0} className="min-h-11" disabled={!loaded} {...form.register("earnPointsPerEuro", { valueAsNumber: true })} />
-              {form.formState.errors.earnPointsPerEuro ? <p className="text-sm text-destructive">Įveskite skaičių nuo 0 iki 1000.</p> : null}
+              <Input id="loyalty-earn" type="number" step="any" min={0} className="min-h-11" disabled={!loaded} aria-invalid={Boolean(form.formState.errors.earnPointsPerEuro)} aria-describedby={form.formState.errors.earnPointsPerEuro ? "loyalty-earn-error" : undefined} {...form.register("earnPointsPerEuro", { valueAsNumber: true })} />
+              {form.formState.errors.earnPointsPerEuro ? <p id="loyalty-earn-error" className="text-sm text-destructive">Įveskite skaičių nuo 0 iki 1000.</p> : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="loyalty-value">Vieno taško vertė, €</Label>
-              <Input id="loyalty-value" type="number" step="any" min={0} className="min-h-11" disabled={!loaded} {...form.register("pointValueEur", { valueAsNumber: true })} />
-              {form.formState.errors.pointValueEur ? <p className="text-sm text-destructive">Įveskite skaičių didesnį už 0.</p> : null}
+              <Input id="loyalty-value" type="number" step="any" min={0} className="min-h-11" disabled={!loaded} aria-invalid={Boolean(form.formState.errors.pointValueEur)} aria-describedby={form.formState.errors.pointValueEur ? "loyalty-value-error" : undefined} {...form.register("pointValueEur", { valueAsNumber: true })} />
+              {form.formState.errors.pointValueEur ? <p id="loyalty-value-error" className="text-sm text-destructive">Įveskite skaičių didesnį už 0.</p> : null}
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            Dabar: 100 € pirkinys duoda {Number.isFinite(earn) ? Math.floor(100 * earn) : 0} tšk. ({Number.isFinite(earn) && Number.isFinite(value) ? pointsValueEur(Math.floor(100 * earn), value) : 0} € vertės, {percent} %).
+            {!enabled
+              ? "Taškai išjungti: už pirkinius jie neskiriami."
+              : `Dabar: 100 € pirkinys duoda ${Number.isFinite(earn) ? earnedPoints(100, earn) : 0} tšk. (${Number.isFinite(earn) && Number.isFinite(value) ? pointsValueEur(earnedPoints(100, earn), value) : 0} € vertės, ${percent} %).`}
           </p>
           <Button type="submit" className="min-h-11" disabled={!loaded || form.formState.isSubmitting || !form.formState.isDirty}>
             Išsaugoti
