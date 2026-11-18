@@ -4,6 +4,8 @@ import { searchAdmin } from "@/lib/admin/global-search";
 import { hasPermission, type StaffAccess } from "@/lib/admin/permissions";
 import { loadAdminData } from "@/lib/admin/repository";
 import type { BookingStatus } from "@/lib/admin/types";
+import { pickStayType } from "@/lib/cabin";
+import { sessionPrice } from "@/lib/sauna";
 import { createClient } from "@/lib/supabase/server";
 
 export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
@@ -288,16 +290,24 @@ export async function executeAgentTool(
       let startHour: number | undefined = undefined;
       let hours: number | undefined = undefined;
       let nights: number | undefined = undefined;
+      // Priced from the live rates, the same way the admin form does it, never typed in by the model.
+      let total = 0;
 
       if (kind === "pirtis") {
         const requestedSaunaId = String(args.saunaId ?? "").trim();
         const matchedSauna = adminData.saunas.find((s) => s.id === requestedSaunaId || s.name.toLowerCase().includes(requestedSaunaId.toLowerCase())) ?? adminData.saunas[0];
-        saunaId = matchedSauna?.id ?? "didele-pirtis";
+        if (!matchedSauna) return { ok: false, summary: "Nerasta tokia pirtis. Patikslinkite pirties pavadinimą." };
+        saunaId = matchedSauna.id;
         startHour = Number(args.startHour) || 18;
         hours = Number(args.hours) || 3;
+        total = sessionPrice(hours, guests, matchedSauna.rates, date);
       } else {
         nights = Number(args.nights) || 1;
+        const stayType = pickStayType(adminData.stayTypes, kind === "namelis" ? "namelis" : "kemperis", guests);
+        if (!stayType) return { ok: false, summary: "Nerasta tinkama nakvynės rūšis šiam svečių skaičiui." };
+        total = stayType.pricePerNight * nights;
       }
+      if (total <= 0) return { ok: false, summary: "Nepavyko apskaičiuoti kainos pagal kainoraštį, todėl rezervacija nesukurta. Sukurkite ją per „Nauja rezervacija“." };
 
       const input = {
         kind,
@@ -313,7 +323,7 @@ export async function executeAgentTool(
           email: customerEmail || "",
         },
         extras: {},
-        total: 0,
+        total,
         status: "patvirtinta" as const,
         source: "telefonu" as const,
         note: note ? `[AI Agentas] ${note}` : "[AI Agentas]",
@@ -330,7 +340,7 @@ export async function executeAgentTool(
       const ref = result.data.booking.reference;
       return {
         ok: true,
-        summary: `Sėkmingai sukurta rezervacija #${ref} (${customerName}, ${date})`,
+        summary: `Sėkmingai sukurta rezervacija #${ref} (${customerName}, ${date}, ${total} €)`,
         data: result.data.booking,
         actionLinks: [
           {
