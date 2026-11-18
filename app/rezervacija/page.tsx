@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BookingHeader } from "@/components/booking/booking-header";
+import { TrackViewItem } from "@/components/analytics/track-view-item";
 import { BookingPage } from "@/components/booking/booking-page";
 import { ReservationFlow } from "@/components/reservation/reservation-flow";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +27,7 @@ export default function ReservationPage({ searchParams }: { searchParams: Search
   return (
     <BookingPage>
       <div className="theme-reservation">
+        <TrackViewItem kind="reservation" itemName="Rezervacija" />
         <Suspense fallback={<ReservationFallback />}>
           <ReservationContent searchParams={searchParams} />
         </Suspense>
