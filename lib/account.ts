@@ -6,8 +6,10 @@ export interface MyPoints {
   riderId: string;
   name: string;
   balance: number;
-  /** Latest movements, newest first. */
+  /** Latest movements, newest first. Empty when `logHidden`. */
   entries: PointsEntry[];
+  /** Matched only through a second phone number: the balance is shown but not the log (same rule as `my_riders`). */
+  logHidden: boolean;
 }
 
 export type RequestKind = "pirtis" | "nakvyne" | "keturraciai" | "renginys";
