@@ -9,6 +9,7 @@ import * as pageContentActions from "@/app/admin/page-content-actions";
 import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import { formatEuro } from "@/lib/coupons";
+import type { LoyaltySettings } from "@/lib/points";
 import type { ActionResult, NewBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
@@ -722,6 +723,10 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "riderComment/add", comment: result.data });
         return result;
       },
+      adjustRiderPoints: (riderId: string, delta: number, reason: string) => report(actions.adjustRiderPoints(riderId, delta, reason)),
+      loadRiderPoints: (riderId: string) => report(actions.loadRiderPoints(riderId)),
+      loadLoyaltySettings: () => actions.loadLoyaltySettings(),
+      saveLoyaltySettings: (settings: LoyaltySettings) => report(actions.saveLoyaltySettings(settings)),
       deleteRiderComment: (id: string) => {
         dispatch({ type: "riderComment/delete", id });
         return report(actions.deleteRiderComment(id));
