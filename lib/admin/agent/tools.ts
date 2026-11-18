@@ -5,7 +5,9 @@ import { hasPermission, type StaffAccess } from "@/lib/admin/permissions";
 import { loadAdminData } from "@/lib/admin/repository";
 import type { BookingStatus } from "@/lib/admin/types";
 import { pickStayType } from "@/lib/cabin";
-import { maxHoursFrom, sessionPrice, startHours, todayKey } from "@/lib/sauna";
+import { stayUnitsOn } from "@/lib/admin/occupancy";
+import { maxHoursFrom, sessionPrice, startHours, todayKey, vilniusHour, type Sauna } from "@/lib/sauna";
+import type { Block, Booking } from "@/lib/admin/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
@@ -176,6 +178,29 @@ export interface ToolExecutionResult {
   actionLinks?: Array<{ label: string; href: string }>;
 }
 
+/** Hours of one sauna on a day that cannot start a session: booked, closed by staff, or inside the turnaround around a booking. */
+function takenSaunaHours(bookings: Booking[], blocks: Block[], sauna: Sauna, date: string): number[] {
+  const turnaround = sauna.rates.turnaroundHours;
+  const booked = bookings
+    .filter((b) => b.kind === "pirtis" && b.saunaId === sauna.id && b.date === date && b.status !== "atsaukta")
+    .flatMap((b) => {
+      const start = b.startHour ?? 0;
+      return Array.from({ length: (b.hours ?? 0) + 2 * turnaround }, (_, i) => start - turnaround + i);
+    });
+  return [...booked, ...blocks.filter((bl) => bl.saunaId === sauna.id && bl.date === date).map((bl) => bl.hour)];
+}
+
+/** Why a start and length cannot be booked, or null when it fits the sauna's hours, length limits and free run. */
+function saunaSlotProblem(sauna: Sauna, taken: number[], date: string, startHour: number, hours: number, guests: number): string | null {
+  const { rates } = sauna;
+  if (startHour < rates.openHour || startHour + rates.minHours > rates.closeHour) return `Pirtis dirba ${rates.openHour}:00–${rates.closeHour}:00; tokia pradžia netinka.`;
+  if (hours < rates.minHours || hours > rates.maxHours) return `Seanso trukmė turi būti ${rates.minHours}–${rates.maxHours} val.`;
+  if (guests > rates.maxParty) return `Daugiausia ${rates.maxParty} svečių.`;
+  if (date === todayKey() && startHour <= vilniusHour()) return "Ši valanda jau praėjo.";
+  if (maxHoursFrom(taken, startHour, rates) < hours) return "Šis laikas užimtas arba per trumpas laisvas tarpas.";
+  return null;
+}
+
 export async function executeAgentTool(
   toolName: string,
   args: Record<string, unknown>,
@@ -241,12 +266,11 @@ export async function executeAgentTool(
             .filter((b) => b.saunaId === sauna.id)
             .map((b) => `${b.startHour}:00 (${b.hours} val., ${b.customer.name})`);
           const blocked = dayBlocks.filter((bl) => bl.saunaId === sauna.id).map((bl) => `${bl.hour}:00 (${bl.reason})`);
-          // Hours that are booked or blocked, so only starts with room for the shortest session are offered.
-          const taken = [
-            ...dayBookings.filter((b) => b.saunaId === sauna.id).flatMap((b) => Array.from({ length: b.hours ?? 0 }, (_, i) => (b.startHour ?? 0) + i)),
-            ...dayBlocks.filter((bl) => bl.saunaId === sauna.id).map((bl) => bl.hour),
-          ];
+          // Starts that fit: not taken (turnaround included), not already past today, with room for the shortest session.
+          const taken = takenSaunaHours(data.bookings, data.blocks, sauna, date);
+          const pastHour = date === todayKey() ? vilniusHour() : -1;
           const freeStarts = startHours(sauna.rates)
+            .filter((h) => h > pastHour)
             .map((h) => ({ pradzia: `${h}:00`, maxValandu: maxHoursFrom(taken, h, sauna.rates) }))
             .filter((slot) => slot.maxValandu >= sauna.rates.minHours);
 
@@ -278,7 +302,7 @@ export async function executeAgentTool(
           summary: `${kind === "kemperis" ? "Kemperių vietų" : "Namelių"} užimtumas ${date}`,
           data: {
             tipai: types.map((st) => {
-              const taken = occupying.filter((b) => b.stayTypeId === st.id).reduce((sum, b) => sum + (b.stayUnits ?? 1), 0);
+              const taken = stayUnitsOn(data.bookings, date, kind, st.id, data.externalBlocks);
               return { tipas: st.label, vietuIki: st.maxGuests, viso: st.units ?? "neribota", uzimta: taken, laisva: st.units === null ? "neribota" : Math.max(0, st.units - taken) };
             }),
             uzsakymai: occupying.map((b) => ({ svecias: b.customer.name, tipas: b.stayTypeId, sveciuSk: b.guests, atvykimas: b.date, naktys: b.nights, statusas: b.status })),
@@ -330,7 +354,7 @@ export async function executeAgentTool(
       if (kind === "pirtis") {
         const requestedSauna = String(args.saunaId ?? "").trim().toLowerCase();
         // An id or the exact name; an empty or unknown value never falls back to some other sauna.
-        const matchedSauna = requestedSauna ? adminData.saunas.find((s) => s.id.toLowerCase() === requestedSauna || s.name.toLowerCase() === requestedSauna) : undefined;
+        const matchedSauna = requestedSauna ? adminData.saunas.find((s) => s.active && (s.id.toLowerCase() === requestedSauna || s.name.toLowerCase() === requestedSauna)) : undefined;
         if (!matchedSauna) return { ok: false, summary: "Nerasta tokia pirtis. Nurodykite tikslų pirties pavadinimą arba id (get_availability grąžina saunaId)." };
         saunaId = matchedSauna.id;
         startHour = Number(args.startHour);
@@ -338,6 +362,8 @@ export async function executeAgentTool(
         if (args.startHour === undefined || args.hours === undefined || !Number.isInteger(startHour) || startHour < 0 || startHour > 23 || !Number.isInteger(hours) || hours < 1) {
           return { ok: false, summary: "Trūksta pirties pradžios valandos arba trukmės. Paklauskite darbuotojo, kada pradėti ir kiek valandų." };
         }
+        const problem = saunaSlotProblem(matchedSauna, takenSaunaHours(adminData.bookings, adminData.blocks, matchedSauna, date), date, startHour, hours, guests);
+        if (problem) return { ok: false, summary: `Rezervacija nesukurta: ${problem}` };
         total = sessionPrice(hours, guests, matchedSauna.rates, date);
       } else {
         nights = Number(args.nights) || 1;

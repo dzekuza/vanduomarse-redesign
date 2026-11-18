@@ -46,4 +46,6 @@ export interface AgentChatRequest {
 export interface AgentChatResponse {
   message?: AgentMessage;
   error?: string;
+  /** The change may have been saved: the action must not be offered again. */
+  indeterminate?: boolean;
 }

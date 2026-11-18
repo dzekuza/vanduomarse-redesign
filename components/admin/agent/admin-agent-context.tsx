@@ -117,7 +117,8 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
       const data = (await res.json()) as AgentChatResponse;
       if (!res.ok || data.error) {
         setError(data.error || "Nepavyko įvykdyti veiksmo.");
-        markAction(messageId, action.id, "pending");
+        // A thrown failure may have saved the change, so it stays closed instead of going back to pending.
+        markAction(messageId, action.id, data.indeterminate ? "approved" : "pending");
         return;
       }
       const reply = data.message;

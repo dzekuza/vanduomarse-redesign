@@ -51,7 +51,17 @@ export async function POST(req: Request) {
       if ("error" in opened) return NextResponse.json({ error: opened.error }, { status: 400 });
       const { name, args } = opened;
       if (!MUTATING_AGENT_TOOLS.has(name)) return NextResponse.json({ error: "Nežinomas veiksmas." }, { status: 400 });
-      const result = await executeAgentTool(name, args, access);
+      let result: Awaited<ReturnType<typeof executeAgentTool>>;
+      try {
+        result = await executeAgentTool(name, args, access);
+      } catch (err: unknown) {
+        // The change may or may not have been saved, so the token stays used: retrying could book twice.
+        console.error("Agent approve error:", err);
+        return NextResponse.json(
+          { error: "Nepavyko patvirtinti: neaišku, ar veiksmas įvykdytas. Patikrinkite rezervacijas prieš bandydami dar kartą.", indeterminate: true },
+          { status: 500 },
+        );
+      }
       if (!result.ok) {
         releaseApproval(body.approve.token);
         return NextResponse.json({ error: result.summary }, { status: 422 });
@@ -71,7 +81,7 @@ export async function POST(req: Request) {
     if (!body || !Array.isArray(body.messages) || body.messages.length === 0) {
       return NextResponse.json({ error: "Tuščia žinučių istorija." }, { status: 400 });
     }
-    if (body.messages.length > MAX_MESSAGES || body.messages.some((m) => typeof m.content !== "string" || m.content.length > MAX_CHARS)) {
+    if (body.messages.length > MAX_MESSAGES || body.messages.some((m) => !m || (m.role !== "user" && m.role !== "assistant") || typeof m.content !== "string" || m.content.length > MAX_CHARS)) {
       return NextResponse.json({ error: "Pokalbis per ilgas. Išvalykite jį ir bandykite iš naujo." }, { status: 413 });
     }
 
