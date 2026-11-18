@@ -152,6 +152,9 @@ export const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
   },
 ];
 
+/** Tools that change data. The chat route never runs these on the model's say-so; staff approve each one in the panel. */
+export const MUTATING_AGENT_TOOLS: ReadonlySet<string> = new Set(["create_booking", "update_booking_status", "toggle_sauna_block"]);
+
 export interface ToolExecutionResult {
   ok: boolean;
   summary: string;

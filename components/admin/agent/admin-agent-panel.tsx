@@ -18,7 +18,7 @@ const PROMPT_SUGGESTIONS = [
 ];
 
 export function AdminAgentPanel() {
-  const { isOpen, setIsOpen, messages, isLoading, error, sendMessage, clearMessages } = useAdminAgent();
+  const { isOpen, setIsOpen, messages, isLoading, error, sendMessage, resolveAction, clearMessages } = useAdminAgent();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -150,6 +150,26 @@ export function AdminAgentPanel() {
 
                 {/* Formatted message content */}
                 <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+
+                {/* Changes the assistant proposed: nothing runs until staff approve */}
+                {msg.pendingActions && msg.pendingActions.length > 0 ? (
+                  <div className="mt-3 space-y-2 border-t border-border/40 pt-2">
+                    {msg.pendingActions.map((action) => (
+                      <div key={action.id} className="space-y-1.5 rounded border border-border/60 bg-background p-2">
+                        <p className="font-mono text-[11px] font-bold">{action.name}</p>
+                        <pre className="max-h-32 overflow-auto whitespace-pre-wrap break-words text-[11px] text-muted-foreground">{JSON.stringify(action.args, null, 2)}</pre>
+                        {action.status === "pending" ? (
+                          <div className="flex gap-1.5">
+                            <Button size="sm" disabled={isLoading} onClick={() => resolveAction(msg.id, action, true)} className="min-h-11 text-xs font-semibold">Patvirtinti</Button>
+                            <Button size="sm" variant="outline" disabled={isLoading} onClick={() => resolveAction(msg.id, action, false)} className="min-h-11 text-xs font-semibold">Atmesti</Button>
+                          </div>
+                        ) : (
+                          <p className="text-[11px] font-semibold text-muted-foreground">{action.status === "approved" ? "Patvirtinta" : "Atmesta"}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
 
                 {/* Action Links */}
                 {msg.actionLinks && msg.actionLinks.length > 0 ? (

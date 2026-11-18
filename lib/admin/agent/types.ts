@@ -14,12 +14,21 @@ export interface AgentActionLink {
   href: string;
 }
 
+/** A change the model asked for; nothing runs until a staff member approves it. */
+export interface AgentPendingAction {
+  id: string;
+  name: string;
+  args: Record<string, unknown>;
+  status: "pending" | "approved" | "rejected";
+}
+
 export interface AgentMessage {
   id: string;
   role: AgentRole;
   content: string;
   toolCalls?: AgentToolCallTrace[];
   actionLinks?: AgentActionLink[];
+  pendingActions?: AgentPendingAction[];
   createdAt: string;
 }
 
@@ -28,6 +37,8 @@ export interface AgentChatRequest {
     role: "user" | "assistant";
     content: string;
   }>;
+  /** A staff member's click on "Patvirtinti": run this change directly, without asking the model. */
+  approve?: { name: string; args: Record<string, unknown> };
 }
 
 export interface AgentChatResponse {

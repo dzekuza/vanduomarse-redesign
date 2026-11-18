@@ -19,6 +19,8 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** requires `GEMINI_API_KEY` in `.env.local` (added to `.env.example`). Destructive/sensitive mutations use validated server actions (`createBooking`, `setBookingStatus`, `toggleBlock`). Supabase Realtime updates automatically refresh admin views when the agent creates or mutates records.
 
 ---
+- **Approval gate (security review):** the chat route never runs `create_booking`, `update_booking_status` or `toggle_sauna_block` itself, because tool results carry customer-entered text that could steer the model. It returns them as `pendingActions`; the panel shows each with Patvirtinti / Atmesti, and only an approval (`POST` with `approve`) executes it, with the staff member's own access. The system prompt also tells the model to treat data as data.
+
 ## ADR-0118 — Public service pages are cached (ISR) and load live availability in the browser
 
 - **Status:** Accepted.

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import type { AgentChatResponse, AgentMessage } from "@/lib/admin/agent/types";
+import type { AgentChatResponse, AgentMessage, AgentPendingAction } from "@/lib/admin/agent/types";
 
 interface AdminAgentContextValue {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface AdminAgentContextValue {
   isLoading: boolean;
   error: string | null;
   sendMessage: (text: string) => Promise<void>;
+  resolveAction: (messageId: string, action: AgentPendingAction, approve: boolean) => Promise<void>;
   clearMessages: () => void;
 }
 
@@ -110,6 +111,43 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  const markAction = (messageId: string, actionId: string, status: AgentPendingAction["status"]) =>
+    setMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, pendingActions: m.pendingActions?.map((a) => (a.id === actionId ? { ...a, status } : a)) } : m)),
+    );
+
+  /** Staff click on a proposed change: approving runs it on the server, rejecting just closes it. */
+  const resolveAction = async (messageId: string, action: AgentPendingAction, approve: boolean) => {
+    if (isLoading || action.status !== "pending") return;
+    if (!approve) {
+      markAction(messageId, action.id, "rejected");
+      return;
+    }
+    markAction(messageId, action.id, "approved");
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/agent/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [], approve: { name: action.name, args: action.args } }),
+      });
+      const data = (await res.json()) as AgentChatResponse;
+      if (!res.ok || data.error) {
+        setError(data.error || "Nepavyko įvykdyti veiksmo.");
+        markAction(messageId, action.id, "pending");
+        return;
+      }
+      if (data.message) setMessages((prev) => [...prev, data.message]);
+    } catch (err: unknown) {
+      console.error("Agent approve error:", err);
+      setError("Ryšio klaida. Patikrinkite interneto ryšį.");
+      markAction(messageId, action.id, "pending");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AdminAgentContext.Provider
       value={{
@@ -120,6 +158,7 @@ export function AdminAgentProvider({ children }: { children: React.ReactNode }) 
         isLoading,
         error,
         sendMessage,
+        resolveAction,
         clearMessages,
       }}
     >
