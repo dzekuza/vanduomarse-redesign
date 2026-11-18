@@ -6,7 +6,7 @@ import { SESSION_ID_PATTERN } from "@/lib/coupon-voucher";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = {
-  title: "Kupono apmokėjimas - Vanduo Marse",
+  title: "Kupono apmokėjimas",
   robots: { index: false },
 };
 

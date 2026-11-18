@@ -9,7 +9,7 @@ import { loadMyCoupons, loadMyInquiries, loadMyRequests, loadMyRiders } from "@/
 import { getCustomer } from "@/lib/customer";
 
 export const metadata: Metadata = {
-  title: "Mano rezervacijos - Vanduo Marse",
+  title: "Mano rezervacijos",
   robots: { index: false },
 };
 

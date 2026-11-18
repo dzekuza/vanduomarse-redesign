@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import { connection } from "next/server";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
@@ -19,8 +18,10 @@ import { createPublicClient } from "@/lib/supabase/public";
 
 /**
  * Reads for the public pages. Each returns plain, serializable data (dates as
- * yyyy-mm-dd) for Client Components. `connection()` keeps them per-request so
- * availability is never served from a build-time snapshot.
+ * yyyy-mm-dd) for Client Components. They do not opt a page into per-request
+ * rendering: a page that must be fresh on every request calls `connection()`
+ * itself, and cached pages (ISR) get their live availability from
+ * `/api/availability`.
  */
 
 /** Days the sauna and cabin pickers show. */
@@ -61,7 +62,6 @@ async function readAvailabilityRows<T>(
 const spotsLeft = (e: Tables<"events">) => (e.capacity === null ? undefined : Math.max(0, e.capacity - e.sold - e.held));
 
 export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow): Promise<SaunaPageData> {
-  await connection();
   const supabase = createPublicClient();
   const now = availabilityWindow?.now ?? new Date();
   const today = todayKey(now);
@@ -144,7 +144,6 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
 
 /** Active stay types (cabin sizes, camper pitches) in display order; RLS lets anon read inactive rows too, so filter here. */
 async function loadStayTypes(): Promise<StayType[]> {
-  await connection();
   const supabase = createPublicClient();
   return must(await supabase.from("stay_types").select("*").eq("active", true).order("sort_order"), "Stay types").map(toStayType);
 }
@@ -154,7 +153,6 @@ export const getStayTypes = cache(loadStayTypes);
 
 /** Active saunas for the event calculator: the same rows and rates as /pirtis, so quotes match real prices. */
 async function getActiveSaunas(): Promise<Sauna[]> {
-  await connection();
   const supabase = createPublicClient();
   const { url } = supabaseEnv();
   const rows = must(
@@ -166,7 +164,6 @@ async function getActiveSaunas(): Promise<Sauna[]> {
 
 /** Active private sauna programs (a whole sauna at a flat price), for the event calculator. */
 async function getPrivatePrograms(): Promise<SaunaProgram[]> {
-  await connection();
   const supabase = createPublicClient();
   const rows = must(
     await supabase.from("sauna_programs").select("*").eq("active", true).eq("kind", "private").order("sort_order"),
@@ -177,7 +174,6 @@ async function getPrivatePrograms(): Promise<SaunaProgram[]> {
 
 /** Active sauna extras (priedai), for the event calculator. */
 async function getActiveUpsells(): Promise<Upsell[]> {
-  await connection();
   const supabase = createPublicClient();
   return must(await supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"), "Sauna upsells").map(toUpsell);
 }
@@ -192,7 +188,6 @@ async function loadCalculatorCatalog(): Promise<CalculatorCatalog> {
 export const getCalculatorCatalog = cache(loadCalculatorCatalog);
 
 export async function getCabinPageData(availabilityWindow?: AvailabilityWindow): Promise<CabinPageData> {
-  await connection();
   const supabase = createPublicClient();
   const today = todayKey(availabilityWindow?.now);
   // Last check-in day plus the longest stay.
@@ -217,7 +212,6 @@ export async function getCabinPageData(availabilityWindow?: AvailabilityWindow):
 }
 
 async function loadParkEvents(windowDays = EVENTS_WINDOW_DAYS, date?: string): Promise<ParkEventData[]> {
-  await connection();
   const supabase = createPublicClient();
   const today = date ?? todayKey();
   const rows = await readAvailabilityRows(
@@ -260,7 +254,6 @@ export const getParkEvents = cache(loadParkEvents);
 
 /** Public event details plus the dates explicitly marked private by staff. */
 export async function getCelebrationSchedule(): Promise<CelebrationScheduleData> {
-  await connection();
   const today = todayKey();
   const supabase = createPublicClient();
   const [events, dates] = await Promise.all([
@@ -274,7 +267,6 @@ export async function getCelebrationSchedule(): Promise<CelebrationScheduleData>
 
 /** Active coupon products for /kuponai (RLS limits anon to active rows). */
 async function loadCouponProducts(): Promise<CouponProduct[]> {
-  await connection();
   const supabase = createPublicClient();
   return must(await supabase.from("coupon_products").select("*").eq("active", true).order("sort_order"), "Coupon products").map(toCouponProduct);
 }
@@ -284,7 +276,6 @@ export const getCouponProducts = cache(loadCouponProducts);
 
 /** Bracelet plans currently available to buy online. */
 export const getOnlinePlans = cache(async () => {
-  await connection();
   return createPublicClient().rpc("online_plans");
 });
 
@@ -315,7 +306,6 @@ const TOUR_DAYS = 60;
 
 /** Fleet, opening hours, hourly availability and upcoming tours for /keturraciai. */
 export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): Promise<QuadPageData> {
-  await connection();
   const supabase = createPublicClient();
   const now = availabilityWindow?.now ?? new Date();
   const today = todayKey(now);

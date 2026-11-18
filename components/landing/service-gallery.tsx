@@ -100,7 +100,7 @@ export function ServiceGallery({ photos, variant = "default", label = "Veiklos n
         >
           {photos.map((photo, i) => (
             <div key={photo.src} className={cn("relative w-full shrink-0 snap-start", !panel && "h-full")}>
-              <Image src={photo.src} alt={photo.alt} fill quality={90} loading={i === initialIndex && variant !== "lightbox" ? "eager" : "lazy"} sizes={variant === "panel" ? "(min-width: 1024px) 33vw, 100vw" : hero ? "(min-width: 1024px) 58vw, 100vw" : "(min-width: 640px) 768px, 100vw"} className={variant === "lightbox" ? "object-contain" : "object-cover"} />
+              <Image src={photo.src} alt={photo.alt} fill loading={i === initialIndex && variant !== "lightbox" ? "eager" : "lazy"} sizes={variant === "panel" ? "(min-width: 1024px) 33vw, 100vw" : hero ? "(min-width: 1024px) 58vw, 100vw" : "(min-width: 640px) 768px, 100vw"} className={variant === "lightbox" ? "object-contain" : "object-cover"} />
             </div>
           ))}
         </div>

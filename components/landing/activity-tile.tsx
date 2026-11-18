@@ -21,7 +21,7 @@ export function ActivityTile({ card }: { card: ActivityCard }) {
   const service = SERVICES[card.id];
 
   return (
-    <Link href={ACTIVITY_HREF[card.id]} className={TILE_CLASS}>
+    <Link prefetch={false} href={ACTIVITY_HREF[card.id]} className={TILE_CLASS}>
       <span className="relative block h-88 overflow-hidden bg-lake-soft md:h-80 lg:h-96">
         <Image
           src={service.photo}

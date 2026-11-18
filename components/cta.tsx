@@ -45,7 +45,7 @@ export function Cta({ tone, small, className, children, href, ...props }: CtaPro
     const external = href.startsWith("http");
     return (
       <Button asChild className={classes}>
-        <Link href={href} {...(external ? { target: "_blank", rel: "noopener" } : {})}>
+        <Link prefetch={false} href={href} {...(external ? { target: "_blank", rel: "noopener" } : {})}>
           {inner}
         </Link>
       </Button>

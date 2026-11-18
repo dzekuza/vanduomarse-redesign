@@ -130,6 +130,12 @@ export function ReservationFlow({
     resolver: zodResolver(accountSchema),
     defaultValues: { customerName: initialCustomer?.name ?? "", discountCode: "" },
   });
+  // Cached service pages learn who is signed in after they load, so a customer can arrive later than the first render.
+  const [seenCustomer, setSeenCustomer] = useState(initialCustomer);
+  if (initialCustomer !== seenCustomer) {
+    setSeenCustomer(initialCustomer);
+    if (initialCustomer) setCustomer((current) => current ?? initialCustomer);
+  }
   const [appliedDiscount, setDiscount] = useState<CheckedDiscount | null>(null);
   const [checkingCode, setCheckingCode] = useState(false);
   const onCheckingCode = useCallback((checking: boolean) => setCheckingCode(checking), []);
