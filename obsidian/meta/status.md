@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-18
 ---
 
+**Points spending (2026-11-19, ADR-0122): built on `feat/points-spend`; migrations APPLIED (live DB) before the code is merged, harmless until the checkout sends points. Reservation checkout can pay part with points; verified with rolled-back SQL only, NOT with a real Stripe session or a logged-in browser. Plan orders do not take points yet. Next: PR, Stripe test-mode checkout with points (amount, webhook paid, expiry release, refund), then plan orders.**
+
 **Points / kreditai phase 1 (2026-11-19, ADR-0121): PR #147 open (`feat/points-credits`). Both migrations (`20261119120000_points_credits.sql`, `20261119140000_points_integrity.sql`) are APPLIED to the live DB before the code is merged, so the earn triggers already write permanent ledger rows on real paid online reservations and plan orders; the earn rule has been checked with rolled-back SQL only, not with a Stripe test payment. Plan-order earning has no staff/needs-review guard because plan orders only come from the online flow. Next: browser-check admin and /paskyra, Stripe test-mode earn once, review, merge; then phase 2 (spend at checkout).**
 
 **Public page speed (2026-11-19, ADR-0118): implemented on branch `perf/public-pages-isr` (worktree `_worktrees/vanduomarse-perf`), not committed or pushed. Service pages and home are ISR (5 min) with live availability from `/api/availability`; fra1 region, q75 images with long cache, no link prefetch, title suffix fix. Next: commit + PR, confirm the Supabase region matches fra1, re-check `x-vercel-cache` and TTFB after deploy. Not done: proxy site-gate fetch per request, `/renginiai` stays dynamic.**

@@ -40,6 +40,8 @@ export interface PaymentInfo {
   status: PaymentStatus;
   amount: number;
   refunded: number;
+  /** Euros of this payment paid with points (ADR-0122); `amount` is the cash charged after it. */
+  pointsDiscount: number;
   paidAt?: string;
   /** Paid late or for an unexpected amount: staff should check it in Stripe. */
   needsReview: boolean;

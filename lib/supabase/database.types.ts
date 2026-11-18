@@ -964,6 +964,9 @@ export type Database = {
           id: string
           needs_review: boolean
           paid_at: string | null
+          points_discount: number
+          points_rider_id: string | null
+          points_spent: number
           refunded: number
           staff_created: boolean
           status: string
@@ -981,6 +984,9 @@ export type Database = {
           id?: string
           needs_review?: boolean
           paid_at?: string | null
+          points_discount?: number
+          points_rider_id?: string | null
+          points_spent?: number
           refunded?: number
           staff_created?: boolean
           status?: string
@@ -998,6 +1004,9 @@ export type Database = {
           id?: string
           needs_review?: boolean
           paid_at?: string | null
+          points_discount?: number
+          points_rider_id?: string | null
+          points_spent?: number
           refunded?: number
           staff_created?: boolean
           status?: string
@@ -2597,6 +2606,22 @@ export type Database = {
       adjust_rider_points: {
         Args: { p_delta: number; p_reason: string; p_rider: string }
         Returns: number
+      }
+      redeem_points_on_payment: {
+        Args: { p_payment_id: string; p_points: number; p_user: string }
+        Returns: {
+          amount: number
+          points_discount: number
+          points_spent: number
+        }[]
+      }
+      my_spendable_points: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance: number
+          enabled: boolean
+          point_value_eur: number
+        }[]
       }
       my_points: {
         Args: Record<PropertyKey, never>

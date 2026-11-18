@@ -37,6 +37,9 @@ const BY_HINT: Record<string, string> = {
   phone_invalid: "Neteisingas telefono numeris.",
 };
 
+/** "Use as many points as fit": the database caps it at the balance and at the 0.50 EUR minimum charge. */
+const MAX_POINTS_REQUEST = 1_000_000;
+
 /** The checkout session lives 30 minutes (Stripe's minimum) plus a minute for the page load. */
 const SESSION_MINUTES = 31;
 
@@ -50,6 +53,8 @@ class BelowMinimumError extends Error {}
 interface Payable {
   id: string;
   items: PayItem[];
+  /** The cash Stripe charges: the items' total minus what points took off (payments.amount). */
+  amount: number;
   email: string | null;
   sessionId: string | null;
 }
@@ -65,8 +70,12 @@ async function checkoutUrl(payable: Payable): Promise<string> {
     if (existing.status === "complete") throw new PaymentSettledError();
   }
 
-  const total = payable.items.reduce((sum, item) => sum + toCents(item.amount), 0);
+  const gross = payable.items.reduce((sum, item) => sum + toCents(item.amount), 0);
+  const total = toCents(payable.amount);
   if (total < toCents(MIN_CHARGE_EUR)) throw new BelowMinimumError();
+  // Points paid part of it: the lines stay gross and a one-off discount takes the points' value off.
+  const pointsOff = gross - total;
+  const coupon = pointsOff > 0 ? await stripe.coupons.create({ amount_off: pointsOff, currency: "eur", duration: "once", max_redemptions: 1, name: "Taškai" }) : null;
 
   const origin = await siteOrigin();
   const references = payable.items.map((item) => item.reference);
@@ -78,6 +87,7 @@ async function checkoutUrl(payable: Payable): Promise<string> {
       quantity: 1,
       price_data: { currency: "eur", unit_amount: toCents(item.amount), product_data: { name: `${item.label} · ${item.reference}` } },
     })),
+    ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
     customer_email: payable.email ?? undefined,
     client_reference_id: payable.id,
     metadata: { payment_id: payable.id, ...(await trackingMetadata()) },
@@ -174,8 +184,17 @@ export async function startReservationCheckout(input: unknown): Promise<ActionRe
     const payment = data[0];
     const items = payItemsSchema.parse(payment.items);
 
+    // Paying with points: the database works out how many (balance, setting, the 0.50 EUR minimum). A failure here only means the
+    // customer pays the full price in cash; it never blocks the checkout.
+    let amount = Number(payment.amount);
+    if (contact.usePoints && !payment.stripe_session_id) {
+      const redeemed = await admin.rpc("redeem_points_on_payment", { p_payment_id: payment.payment_id, p_user: customer.id, p_points: MAX_POINTS_REQUEST });
+      if (redeemed.error) console.error("Payments: points could not be used", redeemed.error.message);
+      else if (redeemed.data?.[0]) amount = Number(redeemed.data[0].amount);
+    }
+
     try {
-      const url = await checkoutUrl({ id: payment.payment_id, items, email: payment.customer_email || null, sessionId: payment.stripe_session_id });
+      const url = await checkoutUrl({ id: payment.payment_id, items, amount, email: payment.customer_email || null, sessionId: payment.stripe_session_id });
       return { data: { url } };
     } catch (e) {
       // Stripe refused a brand-new payment: free what it held so the slots are not blocked for 48 hours.
@@ -202,6 +221,7 @@ export async function resumeCheckout(input: unknown): Promise<ActionResult<{ url
     const url = await checkoutUrl({
       id: parsed.data.paymentId,
       items: payItemsSchema.parse(state.items),
+      amount: Number(state.amount),
       email: state.customer_email || null,
       sessionId: state.stripe_session_id,
     });

@@ -199,6 +199,6 @@ export async function createEventTicket(input: NewEventTicketInput): Promise<Act
   const summary = describeRequest([event.title, event.date, `${v.people} asm.`, `${total} EUR`]);
   const paymentRequest = await requestStaffPayment({ reference: data.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (!paymentRequest.ok) return removeFailedRequest(supabase, "event_tickets", data.id, data.reference, paymentRequest);
-  ticket.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  ticket.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, pointsDiscount: 0, needsReview: false };
   return done({ ticket, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }

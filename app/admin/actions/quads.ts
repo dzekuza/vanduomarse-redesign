@@ -224,7 +224,7 @@ export async function createRental(input: StaffRentalInput): Promise<ActionResul
   const summary = describeRequest(["Keturračiai", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${total} EUR`]);
   const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (!paymentRequest.ok) return removeFailedRequest(ctx.supabase, "quad_rentals", row.id, row.reference, paymentRequest);
-  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, pointsDiscount: 0, needsReview: false };
   return done({ rental, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }
 
@@ -306,6 +306,6 @@ export async function createQuadTour(input: StaffTourInput): Promise<ActionResul
     const failure = problem ?? (paymentRequest && !paymentRequest.ok ? paymentRequest : null);
     return removeFailedRequest(ctx.supabase, "quad_rentals", id, row.reference, { message: failure?.message ?? "Nepavyko sukurti apmokėjimo nuorodos.", code: failure?.code ?? "payment" });
   }
-  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, pointsDiscount: 0, needsReview: false };
   return done({ rental, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }

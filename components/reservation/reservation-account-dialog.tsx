@@ -6,9 +6,11 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import type { Customer } from "@/lib/customer-types";
 import type { CheckedDiscount } from "@/lib/discount-codes";
 import { MIN_CHARGE_EUR, MIN_CHARGE_MESSAGE } from "@/lib/payments";
+import { formatPoints, spendPreview, type SpendablePoints } from "@/lib/points";
 import type { PlanLine } from "@/lib/reservation";
 import { AccountStep } from "./account-step";
 import { DialogPhotoClose } from "./dialog-photo-close";
+import { UsePointsField } from "./use-points-field";
 import { DiscountCodeField } from "./discount-code-field";
 import { PlanSummary } from "./plan-summary";
 import { ReservationSubmitDetails } from "./reservation-submit-details";
@@ -25,6 +27,10 @@ interface ReservationAccountDialogProps {
   /** Euros the applied code takes off `total`. */
   discountAmount: number;
   onDiscount: (discount: CheckedDiscount | null) => void;
+  /** Points the signed-in customer can spend, when there are any. */
+  points: SpendablePoints | null;
+  usePoints: boolean;
+  onUsePoints: (use: boolean) => void;
   /** A code check is running; the final submit waits for it. */
   checkingCode: boolean;
   onCheckingCode: (checking: boolean) => void;
@@ -37,10 +43,12 @@ interface ReservationAccountDialogProps {
 }
 
 /** Contact verification and final reservation stay in one popup above the selected plan. */
-export function ReservationAccountDialog({ open, onClose, onReturnToPlan, customer, onCustomer, lines, total, discount, discountAmount, onDiscount, checkingCode, onCheckingCode, payments, payOnSite, ready, busy, redirecting, onSubmit }: ReservationAccountDialogProps) {
+export function ReservationAccountDialog({ open, onClose, onReturnToPlan, customer, onCustomer, lines, total, discount, discountAmount, onDiscount, points, usePoints, onUsePoints, checkingCode, onCheckingCode, payments, payOnSite, ready, busy, redirecting, onSubmit }: ReservationAccountDialogProps) {
   const returnFocus = useRef<HTMLElement | null>(null);
   const contactForm = useRef<HTMLFormElement>(null);
-  const payTotal = Math.round((total - discountAmount) * 100) / 100;
+  const afterCode = Math.round((total - discountAmount) * 100) / 100;
+  const spend = payments && !payOnSite ? spendPreview(points, afterCode) : { points: 0, euros: 0 };
+  const payTotal = usePoints ? Math.round((afterCode - spend.euros) * 100) / 100 : afterCode;
   const belowMinimum = payments && !payOnSite && payTotal > 0 && payTotal < MIN_CHARGE_EUR;
 
   function dismiss() {
@@ -80,6 +88,9 @@ export function ReservationAccountDialog({ open, onClose, onReturnToPlan, custom
             <section aria-label="Rezervacijos suvestinė" className="space-y-3">
               <p className="text-micro uppercase text-copy">02 / Rezervacijos suvestinė</p>
               <DiscountCodeField discount={discount} amount={discountAmount} disabled={busy} onChange={onDiscount} onPending={onCheckingCode} />
+              {spend.points > 0 ? (
+                <UsePointsField checked={usePoints} disabled={busy} points={spend.points} euros={spend.euros} balance={formatPoints(points?.balance ?? 0)} onChange={onUsePoints} />
+              ) : null}
               <PlanSummary lines={lines} total={total} discount={discount ? { code: discount.code, amount: discountAmount } : undefined} compact />
             </section>
             <ReservationSubmitDetails payments={payments} payOnSite={payOnSite} />

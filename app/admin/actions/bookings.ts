@@ -214,7 +214,7 @@ export async function createBooking(input: NewBookingInput): Promise<ActionResul
     : describeRequest([v.kind === "kemperis" ? "Kemperio aikštelė" : "Namelis", v.date, `${v.nights} n.`, `${v.total} EUR`]);
   const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (!paymentRequest.ok) return removeFailedRequest(supabase, "bookings", row.id, row.reference, paymentRequest);
-  booking.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
+  booking.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, pointsDiscount: 0, needsReview: false };
   return done({ booking, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }
 
