@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import type { Metadata } from "next";
 import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingPage } from "@/components/booking/booking-page";
@@ -15,6 +16,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default async function RenginiaiPage() {
+  await connection();
   const events = await getParkEvents();
   const schema = eventsSchema(events);
 

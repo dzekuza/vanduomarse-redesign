@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import { connection } from "next/server";
 import type { ServicePhoto } from "@/components/landing/content";
 import { SERVICE_PAGES, type ServicePageCopy, type ServiceSlug } from "@/components/services/service-content";
 import { mergeServiceCopy, pageContentSchema, type PageContentOverride } from "@/lib/page-content";
@@ -8,7 +7,6 @@ import { createPublicClient } from "@/lib/supabase/public";
 
 /** Every saved override by slug. A failed read or an invalid row falls back to the code defaults, so a page never breaks on bad content. */
 const readOverrides = cache(async (): Promise<Map<string, PageContentOverride>> => {
-  await connection();
   const { data, error } = await createPublicClient().from("page_content").select("slug, content");
   if (error) {
     console.error("Page content", error.message);

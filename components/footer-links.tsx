@@ -39,7 +39,7 @@ export function FooterLinks() {
           <p className="mb-1 text-xs font-bold">{title}</p>
           <ul>
             {links.map(({ href, label }) => (
-              <li key={href}><Link href={href} className={LINK}>{label}</Link></li>
+              <li key={href}><Link prefetch={false} href={href} className={LINK}>{label}</Link></li>
             ))}
             {title === "Informacija" ? <li><CookieSettingsLink className={LINK} /></li> : null}
           </ul>

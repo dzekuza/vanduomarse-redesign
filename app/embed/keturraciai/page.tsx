@@ -6,7 +6,7 @@ import { QuadRules } from "@/components/quads/quad-rules";
 import { getQuadPageData } from "@/lib/data/public";
 
 export const metadata: Metadata = {
-  title: "Keturračių nuoma - Vanduo Marse",
+  title: "Keturračių nuoma",
 };
 
 /** Same `?skirtukas=zygiai` switch as /keturraciai. */

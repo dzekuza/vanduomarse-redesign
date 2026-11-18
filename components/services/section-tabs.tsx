@@ -62,6 +62,7 @@ export function SectionTabs({ tabs, className }: { tabs: readonly SectionTab[]; 
       <div ref={stripRef} className="scrollbar-ink flex gap-2 overflow-x-auto p-1">
         {tabs.map(({ id, label }) => (
           <Link
+            prefetch={false}
             key={id}
             href={`#${id}`}
             aria-current={current === id ? "location" : undefined}
