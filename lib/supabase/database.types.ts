@@ -2541,6 +2541,7 @@ export type Database = {
           customer_phone: string
           customer_surname: string
           date: string
+          end_date: string
           end_time: string
           guests: number
           id: string
@@ -2559,6 +2560,7 @@ export type Database = {
           customer_phone: string
           customer_surname?: string
           date: string
+          end_date: string
           end_time: string
           guests?: number
           id?: string
@@ -2577,6 +2579,7 @@ export type Database = {
           customer_phone?: string
           customer_surname?: string
           date?: string
+          end_date?: string
           end_time?: string
           guests?: number
           id?: string

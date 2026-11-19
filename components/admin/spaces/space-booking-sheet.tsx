@@ -30,8 +30,8 @@ export function SpaceBookingSheet({ booking, onOpenChange }: SpaceBookingSheetPr
               <BookingStatusBadge status={booking.status} />
               <dl className="grid grid-cols-2 gap-4 text-sm">
                 {[
-                  ["Data", formatDay(booking.date)],
-                  ["Laikas", `${booking.startTime}–${booking.endTime}`],
+                  ["Nuo", `${formatDay(booking.date)} ${booking.startTime}`],
+                  ["Iki", `${formatDay(booking.endDate)} ${booking.endTime}`],
                   ["Žmonių", String(booking.guests)],
                   ["Kaina", formatEur(booking.price)],
                 ].map(([k, v]) => (

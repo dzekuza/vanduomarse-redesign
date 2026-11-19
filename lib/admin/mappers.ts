@@ -76,6 +76,7 @@ export function toSpaceBooking(r: Tables<"space_bookings">): SpaceBooking {
   return {
     id: r.id,
     date: r.date,
+    endDate: r.end_date,
     startTime: hhmm(r.start_time),
     endTime: hhmm(r.end_time),
     spaces: r.spaces as SpaceId[],

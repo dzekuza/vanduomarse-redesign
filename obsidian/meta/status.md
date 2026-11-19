@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-18
 ---
 
+**Space bookings with a date range (2026-11-19, ADR-0124): on branch `feat/space-booking-date-range`. Migration `end_date` applied. Not browser-checked (login). Next: PR, merge, try a multi-day hire.**
+
 **Event types editable (2026-11-19, ADR-0125): PR #151 (`feat/admin-gemini-agent`). Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
 
 **Event-space bookings (2026-11-19, ADR-0124): PR #151 (`feat/admin-gemini-agent`). Migration `space_bookings` applied to the live DB. Calendar → Nauja rezervacija → Erdvės: several spaces, name, surname, phone, price. Not browser-checked (login); no payment link, no edit yet. Next: try it, commit.**

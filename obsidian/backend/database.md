@@ -405,3 +405,5 @@ Migration `20261119200000_space_bookings.sql`, APPLIED 2026-11-19. `space_bookin
 ## Event presets (ADR-0125)
 
 Migration `20261119210000_event_presets.sql`, APPLIED 2026-11-19. `event_presets`: slug id, label, `per_guest_min` / `per_guest_max`, `adults`, `kids`, `sort_order`, `active`. RLS: public read, write for `kainos`. Seeded with the eight types that used to be `PRESETS`. `database.types.ts` edited by hand.
+
+`20261119220000_space_booking_date_range.sql` (APPLIED 2026-11-19) adds `end_date` (last day, inclusive; `start_time` is on the first day, `end_time` on the last) and replaces the times check with `end_date >= date and (end_date > date or end_time > start_time)`.
