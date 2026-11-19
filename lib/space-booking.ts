@@ -11,8 +11,19 @@ export const spacesClash = (a: SpaceId, b: SpaceId) => a === b || takesAll(a) ||
 /** Whether any space of `wanted` clashes with any of `taken`. */
 export const anySpaceClash = (wanted: readonly SpaceId[], taken: readonly SpaceId[]) => wanted.some((w) => taken.some((t) => spacesClash(w, t)));
 
-/** HH:MM windows overlap when each starts before the other ends (touching ends do not). */
-export const timesOverlap = (aStart: string, aEnd: string, bStart: string, bEnd: string) => aStart < bEnd && bStart < aEnd;
+/** A hire window: the first day at `startTime` until the last day at `endTime`. */
+export interface HireWindow {
+  date: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+}
+
+const startOf = (w: HireWindow) => `${w.date} ${w.startTime}`;
+const endOf = (w: HireWindow) => `${w.endDate} ${w.endTime}`;
+
+/** Windows overlap when each starts before the other ends (touching ends do not). */
+export const windowsOverlap = (a: HireWindow, b: HireWindow) => startOf(a) < endOf(b) && startOf(b) < endOf(a);
 
 /** The price sheet's rent for the chosen spaces on that day (evening hires use the weekend column); spaces not offered then add nothing. Staff overwrite it with the agreed price. */
 export function suggestedSpacePrice(spaces: readonly SpaceId[], date: string, guests: number): number {

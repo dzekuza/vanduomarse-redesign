@@ -10,7 +10,7 @@ import { FormField } from "../form-field";
 import { SpacePicker } from "./space-picker";
 import { formatEur } from "@/lib/admin/format";
 import { SPACES, type SpaceId } from "@/lib/event-pricing";
-import { anySpaceClash, spaceLabels, suggestedSpacePrice, timesOverlap } from "@/lib/space-booking";
+import { anySpaceClash, spaceLabels, suggestedSpacePrice, windowsOverlap } from "@/lib/space-booking";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -26,6 +26,7 @@ const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pasirinkite laiką."
 const schema = z
   .object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite datą."),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite datą."),
     startTime: time,
     endTime: time,
     spaces: z.array(z.enum(SPACE_IDS)).min(1, "Pasirinkite bent vieną erdvę."),
@@ -38,32 +39,34 @@ const schema = z
     status: z.enum(["patvirtinta", "laukia"]),
     note: z.string().trim().max(500),
   })
-  .refine((v) => v.endTime > v.startTime, { message: "Pabaiga turi būti vėlesnė už pradžią.", path: ["endTime"] });
+  .refine((v) => v.endDate >= v.date, { message: "Pabaiga negali būti prieš pradžią.", path: ["endDate"] })
+  .refine((v) => v.endDate > v.date || v.endTime > v.startTime, { message: "Pabaiga turi būti vėlesnė už pradžią.", path: ["endTime"] });
 type Values = z.infer<typeof schema>;
 
 interface NewSpaceBookingDialogProps {
   onOpenChange: (open: boolean) => void;
-  /** Prefilled day, e.g. from the booking chooser. */
+  /** Prefilled first day, e.g. from the booking chooser. */
   date?: string;
 }
 
 /** Hires one or several event spaces for a day and time window to a customer, for the agreed price. */
 export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBookingDialogProps) {
   const { spaceBookings, createSpaceBooking } = useAdmin();
-  const { register, control, handleSubmit, setError, formState } = useForm<Values>({
+  const { register, control, handleSubmit, setError, setValue, getValues, formState } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { date: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", status: "patvirtinta", note: "" },
+    defaultValues: { date: date || todayKey(), endDate: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", status: "patvirtinta", note: "" },
   });
   const err = formState.errors;
-  const [day, startTime, endTime, spaces, guests, price] = useWatch({ control, name: ["date", "startTime", "endTime", "spaces", "guests", "price"] });
+  const [day, endDay, startTime, endTime, spaces, guests, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "guests", "price"] });
 
   const taken = useMemo(() => {
     const ids = new Set<SpaceId>();
-    if (!day || endTime <= startTime) return ids;
-    const clashing = spaceBookings.filter((b) => b.date === day && b.status !== "atsaukta" && timesOverlap(startTime, endTime, b.startTime, b.endTime));
+    const wanted = { date: day, endDate: endDay, startTime, endTime };
+    if (!day || !endDay || `${endDay} ${endTime}` <= `${day} ${startTime}`) return ids;
+    const clashing = spaceBookings.filter((b) => b.status !== "atsaukta" && windowsOverlap(wanted, b));
     for (const s of SPACES) if (anySpaceClash([s.id], clashing.flatMap((b) => b.spaces))) ids.add(s.id);
     return ids;
-  }, [spaceBookings, day, startTime, endTime]);
+  }, [spaceBookings, day, endDay, startTime, endTime]);
 
   const suggested = suggestedSpacePrice(spaces, day, Number(guests) || 1);
   const total = price === "" ? suggested : Number(price.replace(",", "."));
@@ -72,6 +75,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
     if (v.spaces.some((id) => taken.has(id))) return setError("spaces", { message: "Kai kurios erdvės šiuo laiku jau užimtos." });
     const result = await createSpaceBooking({
       date: v.date,
+      endDate: v.endDate,
       startTime: v.startTime,
       endTime: v.endTime,
       spaces: v.spaces,
@@ -94,17 +98,32 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
           <DialogDescription>Pasirinkite vieną ar kelias erdves, laiką ir kliento duomenis. Užimtos erdvės neaktyvios.</DialogDescription>
         </DialogHeader>
         <form id="new-space-booking" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-          <FormField id="sb-date" label="Data" error={err.date?.message}>
-            <Controller control={control} name="date" render={({ field }) => <DatePicker id="sb-date" value={field.value} invalid={!!err.date} onChange={field.onChange} />} />
+          <FormField id="sb-date" label="Nuo datos" error={err.date?.message}>
+            <Controller
+              control={control}
+              name="date"
+              render={({ field }) => (
+                <DatePicker
+                  id="sb-date"
+                  value={field.value}
+                  invalid={!!err.date}
+                  onChange={(v) => {
+                    field.onChange(v);
+                    if (getValues("endDate") < v) setValue("endDate", v, { shouldValidate: true });
+                  }}
+                />
+              )}
+            />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
-            <FormField id="sb-start" label="Nuo" error={err.startTime?.message}>
-              <Input id="sb-start" type="time" aria-invalid={!!err.startTime} className="min-h-11" {...register("startTime")} />
-            </FormField>
-            <FormField id="sb-end" label="Iki" error={err.endTime?.message}>
-              <Input id="sb-end" type="time" aria-invalid={!!err.endTime} className="min-h-11" {...register("endTime")} />
-            </FormField>
-          </div>
+          <FormField id="sb-start" label="Nuo laiko" error={err.startTime?.message}>
+            <Input id="sb-start" type="time" aria-invalid={!!err.startTime} className="min-h-11" {...register("startTime")} />
+          </FormField>
+          <FormField id="sb-end-date" label="Iki datos" error={err.endDate?.message} hint="Kelių dienų nuomai pasirinkite vėlesnę datą.">
+            <Controller control={control} name="endDate" render={({ field }) => <DatePicker id="sb-end-date" value={field.value} min={day} invalid={!!err.endDate} onChange={field.onChange} />} />
+          </FormField>
+          <FormField id="sb-end" label="Iki laiko" error={err.endTime?.message}>
+            <Input id="sb-end" type="time" aria-invalid={!!err.endTime} className="min-h-11" {...register("endTime")} />
+          </FormField>
 
           <div className="space-y-1.5 sm:col-span-2">
             <p className="text-sm font-medium">Erdvės</p>

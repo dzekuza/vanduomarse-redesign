@@ -1,3 +1,10 @@
+## 2026-11-19 — Date range on space bookings
+
+- **Asked:** when adding an erdvė, choose a from–to date range.
+- **Changed:** migration `end_date` (applied), `SpaceBooking.endDate`, `windowsOverlap` + test, `createSpaceBooking` clash by window, dialog "Nuo/Iki datos", calendar entry spans days, sheet shows both ends.
+- **Verified:** tsc, eslint, 209 tests. Not checked in a browser (login).
+- **Next:** PR, merge, try a multi-day hire. Price is still the sheet's one-off suggestion, not per day.
+
 ## 2026-11-19 — Editable event types in /admin/kainos (ADR-0125)
 
 - **Asked:** manage (edit / add) the calculator's "Renginio tipas" choices from `/admin/kainos`.

@@ -95,9 +95,13 @@ export interface Block {
 /** A staff-entered hire of one or more event spaces (erdvės) on a day and time window, with the agreed price. */
 export interface SpaceBooking {
   id: string;
+  /** First day, yyyy-mm-dd. */
   date: string;
-  /** HH:MM. */
+  /** Last day, inclusive; equals `date` for a one-day hire. */
+  endDate: string;
+  /** HH:MM on the first day. */
   startTime: string;
+  /** HH:MM on the last day. */
   endTime: string;
   /** Space ids from lib/event-pricing.ts, one or several hired together. */
   spaces: SpaceId[];
