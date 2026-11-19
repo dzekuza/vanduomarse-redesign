@@ -1,11 +1,11 @@
 "use client";
 
-import { CalendarBlankIcon, CalendarPlusIcon, FireIcon, PlusIcon } from "@phosphor-icons/react";
+import { BuildingsIcon, CalendarBlankIcon, CalendarPlusIcon, FireIcon, PlusIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 
 /** What the day menu can start on a given day. */
-export type DayAction = "booking" | "seansas" | "renginys";
+export type DayAction = "booking" | "erdves" | "seansas" | "renginys";
 
 interface DayMenuProps {
   day: string;
@@ -23,6 +23,9 @@ export function DayMenu({ day, onSelect, onCreate, children }: DayMenuProps) {
       <ContextMenuContent>
         <ContextMenuItem onSelect={() => onCreate("booking", day)}>
           <PlusIcon /> Nauja rezervacija šią dieną
+        </ContextMenuItem>
+        <ContextMenuItem onSelect={() => onCreate("erdves", day)}>
+          <BuildingsIcon /> Nauja erdvių rezervacija
         </ContextMenuItem>
         <ContextMenuItem onSelect={() => onCreate("seansas", day)}>
           <FireIcon /> Naujas pirties seansas

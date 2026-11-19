@@ -79,6 +79,12 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
         </Section>
       ) : null}
 
+      {onPickSpaces ? (
+        <Section title="Erdvės">
+          <Choice title="Erdvių nuoma" detail="Terasa, kupolas, „Corona“, restoranas, visas parkas" meta="Galima pasirinkti kelias erdves" onPick={onPickSpaces} />
+        </Section>
+      ) : null}
+
       <Section title="Apgyvendinimas" empty={options.stays.length === 0 ? "Apgyvendinimo tipų nėra." : undefined}>
         {options.stays.map(({ type, free }) => (
           <Choice
@@ -109,12 +115,6 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
             meta={quads.types.some((t) => t.active) ? `Nuo ${formatEur(Math.min(...quads.types.filter((t) => t.active).map((t) => t.pricePerHour)))} / val.` : "Tipų nėra"}
             onPick={onPickRental}
           />
-        </Section>
-      ) : null}
-
-      {onPickSpaces ? (
-        <Section title="Erdvės">
-          <Choice title="Erdvių nuoma" detail="Terasa, kupolas, „Corona“, restoranas, visas parkas" meta="Galima pasirinkti kelias erdves" onPick={onPickSpaces} />
         </Section>
       ) : null}
 
