@@ -1,6 +1,6 @@
 "use client";
 
-import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { BuildingsIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
@@ -16,8 +16,10 @@ import { MonthGrid } from "./month-grid";
 import { WeekView } from "./week-view";
 import { EventDialog } from "../events/event-dialog";
 import { NewBookingDialog } from "../bookings/new-booking-dialog";
+import { NewSpaceBookingDialog } from "../spaces/new-space-booking-dialog";
 import { CALENDAR_KINDS, calendarEntries, entriesOn, weekDays, type CalendarEntry, type CalendarKind } from "@/lib/admin/calendar-entries";
 import { formatDay, parseDay } from "@/lib/admin/format";
+import { hasPermission } from "@/lib/admin/permissions";
 import type { ManagedEvent } from "@/lib/admin/types";
 import { dateKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
@@ -39,7 +41,7 @@ const STEP_LABEL: Record<View, string> = { menuo: "mėnuo", savaite: "savaitė",
 
 /** Events and bookings of every type, as a day, week or month. The selected day is the cursor all three share. */
 export function CalendarView() {
-  const { bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings } = useAdmin();
+  const { me, bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings } = useAdmin();
   const today = dateKey(new Date());
   const [view, setView] = useState<View>("menuo");
   const [selected, setSelected] = useState(today);
@@ -88,6 +90,11 @@ export function CalendarView() {
           <Button variant="outline" onClick={() => setSelected(today)}>
             Šiandien
           </Button>
+          {hasPermission(me, "rezervacijos") ? (
+            <Button className="min-h-11" onClick={() => setCreating({ action: "erdves", day: selected })}>
+              <BuildingsIcon /> Rezervuoti erdves
+            </Button>
+          ) : null}
           <Tabs value={view} onValueChange={(v) => setView(v as View)}>
             <TabsList>
               {VIEWS.map((v) => (
@@ -140,7 +147,8 @@ export function CalendarView() {
       {creating?.action === "booking" ? (
         <NewBookingDialog initial={{ date: creating.day }} onOpenChange={(o) => !o && setCreating(null)} onCreated={() => setCreating(null)} />
       ) : null}
-      {creating && creating.action !== "booking" ? (
+      {creating?.action === "erdves" ? <NewSpaceBookingDialog date={creating.day} onOpenChange={(o) => !o && setCreating(null)} /> : null}
+      {creating && creating.action !== "booking" && creating.action !== "erdves" ? (
         <EventDialog
           key={`${creating.action}-${creating.day}`}
           open
