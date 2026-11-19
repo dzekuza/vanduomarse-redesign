@@ -2496,6 +2496,63 @@ export type Database = {
         }
         Relationships: []
       }
+      space_bookings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          customer_surname: string
+          date: string
+          end_time: string
+          guests: number
+          id: string
+          note: string
+          price: number
+          spaces: string[]
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          customer_surname?: string
+          date: string
+          end_time: string
+          guests?: number
+          id?: string
+          note?: string
+          price?: number
+          spaces: string[]
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          customer_surname?: string
+          date?: string
+          end_time?: string
+          guests?: number
+          id?: string
+          note?: string
+          price?: number
+          spaces?: string[]
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stay_types: {
         Row: {
           active: boolean

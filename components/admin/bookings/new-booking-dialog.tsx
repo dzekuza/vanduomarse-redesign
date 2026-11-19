@@ -13,6 +13,7 @@ import { isPaymentFailure, paymentFormDefaults, paymentInput, reportCreated } fr
 import { DiscountCodeField } from "./discount-code-field";
 import { NewRentalDialog } from "../quads/new-rental-dialog";
 import { NewTourDialog } from "../quads/new-tour-dialog";
+import { NewSpaceBookingDialog } from "../spaces/new-space-booking-dialog";
 import { BookingWhenFields } from "./booking-when-fields";
 import { newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { bookingOptionsOn } from "@/lib/admin/booking-options";
@@ -47,6 +48,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
   const [discountPending, setDiscountPending] = useState(false);
   const [quad, setQuad] = useState<{ kind: "rental" } | { kind: "tour"; routeId: string } | null>(null);
+  const [spacesOpen, setSpacesOpen] = useState(false);
   const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId || initialEvent ? "form" : "choose");
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
@@ -206,6 +208,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   };
 
   // Quads have their own forms (fleet, hours, riders; or a tour with its route, gear and minimum quads); they open on the chosen date.
+  if (spacesOpen) return <NewSpaceBookingDialog date={date} onOpenChange={onOpenChange} />;
   if (quad?.kind === "rental") return <NewRentalDialog date={date} onOpenChange={onOpenChange} />;
   if (quad?.kind === "tour") return <NewTourDialog date={date} routeId={quad.routeId} onOpenChange={onOpenChange} />;
 
@@ -226,6 +229,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
             quads={hasPermission(me, "keturraciai") ? { routes: quadTourRoutes.filter((r) => r.active), types: quadTypes } : null}
             onPickTour={(route) => setQuad({ kind: "tour", routeId: route.id })}
             onPickRental={() => setQuad({ kind: "rental" })}
+            onPickSpaces={hasPermission(me, "rezervacijos") ? () => setSpacesOpen(true) : null}
             onPickEvent={(e) => choose({ kind: "renginys", eventId: e.id, date: e.date })}
             onPickSauna={(sa) => choose({ kind: "pirtis", saunaId: sa.id })}
             onPickStay={(t) => choose({ kind: t.kind, stayTypeId: t.id })}

@@ -1,6 +1,7 @@
 import { bookingTypeLabel, bookingWhen, parseDay, quadRentalLabel } from "@/lib/admin/format";
 import type { AdminData, BookingStatus, Customer, TourTicket } from "@/lib/admin/types";
 import type { EventCategory } from "@/lib/park-events";
+import { spaceLabels } from "@/lib/space-booking";
 import { dateKey, formatHour } from "@/lib/sauna";
 
 /**
@@ -39,9 +40,11 @@ export interface CalendarEntry {
   event?: { sold: number; held: number; capacity: number | null; published: boolean };
   /** A room Sirvoy (Booking.com or the front desk) has taken: read-only, no customer or sheet. */
   external?: true;
+  /** An event-space hire (erdvės): opens its own sheet. */
+  space?: true;
 }
 
-type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events" | "externalBlocks">;
+type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events" | "externalBlocks" | "spaceBookings">;
 
 const EVENT_KIND: Record<EventCategory, CalendarKind> = { pirtis: "pirtis", keturratis: "keturraciai", vakarai: "renginys", akademija: "renginys", sventes: "renginys" };
 
@@ -60,7 +63,7 @@ function lastNight(date: string, nights: number): string {
 }
 
 /** Every non-cancelled booking and rental, plus every event (its tickets are read with `ticketsFor`), as one flat, date-sorted list. */
-export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks }: Source): CalendarEntry[] {
+export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings }: Source): CalendarEntry[] {
   const entries: CalendarEntry[] = [];
 
   for (const b of bookings) {
@@ -95,6 +98,24 @@ export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, e
       customer: r.customer,
       status: r.status,
       reference: r.reference,
+    });
+  }
+
+  for (const s of spaceBookings) {
+    if (s.status === "atsaukta") continue;
+    entries.push({
+      key: `space:${s.id}`,
+      id: s.id,
+      kind: "renginys",
+      date: s.date,
+      endDate: s.date,
+      time: s.startTime,
+      title: `Erdvės: ${spaceLabels(s.spaces)}`,
+      detail: `${s.startTime}–${s.endTime}`,
+      customer: { name: [s.customer.name, s.customer.surname].filter(Boolean).join(" "), email: s.customer.email, phone: s.customer.phone },
+      status: s.status,
+      reference: "",
+      space: true,
     });
   }
 

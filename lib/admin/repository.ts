@@ -2,7 +2,7 @@ import "server-only";
 import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toSpaceBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData, SiteSettings } from "./types";
 
@@ -174,6 +174,16 @@ async function readExternalCalendars(supabase: ServerSupabase) {
   return { externalCalendars, externalBlocks };
 }
 
+/** Event-space hires; a database without the migration (or a role without access) just has none. */
+async function readSpaceBookings(supabase: ServerSupabase) {
+  const { data, error } = await supabase.from("space_bookings").select("*").order("date").order("start_time");
+  if (error) {
+    console.error("Admin data: space bookings", error.message);
+    return [];
+  }
+  return data.map(toSpaceBooking);
+}
+
 /** All dashboard data, read as the signed-in staff user. Throws if any query fails. */
 export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): Promise<AdminData> {
   const [bookings, blocks, inquiries, events, prices, saunas, upsells, programs, coupons, couponProducts, stayTypes, quadTypes, quadSettings, quadRentals, tourTickets, eventTickets, roles, staff, payments, discountCodes, ridePlans, riders, riderCards, riderSessions, purchases, riderComments, riderDocuments, riderWaivers, quadTourRoutes, quadTourAccessories, saunaMasters, planPassesWaiting, planPassesDone] = await Promise.all([
@@ -242,6 +252,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
   return {
     bookings: bookings.data!.map((r) => ({ ...toBooking(r), payment: paymentOf(r.payment_id) })),
     blocks: blocks.data!.map(toBlock),
+    spaceBookings: await readSpaceBookings(supabase),
     inquiries: inquiries.data!.map(toInquiry),
     events: events.data!.map(toManagedEvent),
     prices: prices.data!.map(toPriceItem),

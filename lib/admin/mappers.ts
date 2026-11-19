@@ -10,7 +10,8 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
+import type { SpaceId } from "@/lib/event-pricing";
+import type { Block, Booking, SpaceBooking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -67,6 +68,23 @@ export function toBooking(r: BookingRow): Booking {
 
 export function toBlock(r: Tables<"sauna_blocks">): Block {
   return { id: r.id, saunaId: r.sauna_id, date: r.date, hour: r.hour, reason: r.reason };
+}
+
+const hhmm = (t: string) => t.slice(0, 5);
+
+export function toSpaceBooking(r: Tables<"space_bookings">): SpaceBooking {
+  return {
+    id: r.id,
+    date: r.date,
+    startTime: hhmm(r.start_time),
+    endTime: hhmm(r.end_time),
+    spaces: r.spaces as SpaceId[],
+    customer: { name: r.customer_name, surname: r.customer_surname, phone: r.customer_phone, email: r.customer_email ?? "" },
+    guests: r.guests,
+    price: Number(r.price),
+    status: r.status,
+    note: r.note,
+  };
 }
 
 export function toInquiry(r: InquiryRow): Inquiry {

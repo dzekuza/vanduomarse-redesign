@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-18
 ---
 
+**Event-space bookings (2026-11-19, ADR-0124): implemented on `feat/admin-gemini-agent`, not committed. Migration `space_bookings` applied to the live DB. Calendar → Nauja rezervacija → Erdvės: several spaces, name, surname, phone, price. Not browser-checked (login); no payment link, no edit yet. Next: try it, commit.**
+
 **Cabin prices by length of stay (2026-11-19, ADR-0123): implemented on `feat/admin-gemini-agent`, not committed. Migration applied to the live DB (project-3); existing prices unchanged (all three tiers = old price). Next: owner enters real 1 / 2 / 3+ night prices at `/admin/namukai`; commit. Not browser-checked: the admin dialog (login).**
 **Points spending (2026-11-19, ADR-0122): built on `feat/points-spend`; migrations APPLIED (live DB) before the code is merged, harmless until the checkout sends points. Reservation checkout can pay part with points; verified with rolled-back SQL only, NOT with a real Stripe session or a logged-in browser. Plan orders do not take points yet. Next: PR, Stripe test-mode checkout with points (amount, webhook paid, expiry release, refund), then plan orders.**
 

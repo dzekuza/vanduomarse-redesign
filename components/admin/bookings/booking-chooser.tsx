@@ -20,6 +20,8 @@ interface BookingChooserProps {
   quads: { routes: readonly QuadTourRoute[]; types: readonly QuadType[] } | null;
   onPickTour: (route: QuadTourRoute) => void;
   onPickRental: () => void;
+  /** Opens the multi-space hire form; null hides the section (needs Rezervacijos). */
+  onPickSpaces: (() => void) | null;
   onPickEvent: (event: ManagedEvent) => void;
   onPickSauna: (sauna: Sauna) => void;
   onPickStay: (type: StayType) => void;
@@ -55,7 +57,7 @@ const placesLabel = (left: number | null) => (left === null ? "Be limito" : left
  * First step of a staff booking: a date, then what can be booked that day. Nothing is preselected, so a reservation
  * is only ever made for something staff chose: an event or session, a cabin or camper type, or a private sauna.
  */
-export function BookingChooser({ date, onDateChange, options, canTickets, quads, onPickTour, onPickRental, onPickEvent, onPickSauna, onPickStay }: BookingChooserProps) {
+export function BookingChooser({ date, onDateChange, options, canTickets, quads, onPickTour, onPickRental, onPickSpaces, onPickEvent, onPickSauna, onPickStay }: BookingChooserProps) {
   return (
     <div className="space-y-5">
       <FormField id="nb-choose-date" label="Data">
@@ -107,6 +109,12 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
             meta={quads.types.some((t) => t.active) ? `Nuo ${formatEur(Math.min(...quads.types.filter((t) => t.active).map((t) => t.pricePerHour)))} / val.` : "Tipų nėra"}
             onPick={onPickRental}
           />
+        </Section>
+      ) : null}
+
+      {onPickSpaces ? (
+        <Section title="Erdvės">
+          <Choice title="Erdvių nuoma" detail="Terasa, kupolas, „Corona“, restoranas, visas parkas" meta="Galima pasirinkti kelias erdves" onPick={onPickSpaces} />
         </Section>
       ) : null}
 

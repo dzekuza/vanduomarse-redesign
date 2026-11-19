@@ -96,6 +96,7 @@ them pure and typed; anything with client state belongs in a hook instead.
 | `EMBED_HEIGHT_MESSAGE` / `toEmbedPath` / `frameAncestors` | `lib/embed.ts` | `toEmbedPath(pathname) => string \| null` / `frameAncestors(list: string \| undefined) => string` | WordPress widgets (ADR-0014): the `vm-embed:height` postMessage type, booking route → `/embed` twin, and the CSP `frame-ancestors` value from `EMBED_ALLOWED_ORIGINS` (drops anything that is not a bare http(s) origin) |
 | `parseEmbedTheme` / `embedThemeCss` / `embedFontHrefs` / `carryEmbedTheme` / `EMBED_THEME_PARAMS` | `lib/embed-theme.ts` | `(params) => EmbedTheme` / `(theme) => string \| null` / `(theme) => string[]` / `(from, to) => void` | WordPress appearance params → validated overrides (hex colours; font names `[A-Za-z0-9 ]`; `heading_case` upper/none) → `body.theme-marse{…}` CSS + Google Fonts links; carry params on in-widget links (ADR-0015) |
 | `CONTACTS` / `MAIN_CONTACT` / `RESERVATION_PHONE` / `MAPS_URL` / `telHref` | `lib/contacts.ts` | `(phone: string) => string` | Public park contacts and the phone shared by the home hero and reservation summary. `telHref` strips spaces for `tel:` links |
+| `spacesClash` / `anySpaceClash` / `timesOverlap` / `suggestedSpacePrice` / `spaceLabels` | `lib/space-booking.ts` | pure helpers | Event-space hire rules: same space or whole park clashes on overlapping times; price-sheet rent suggested for chosen spaces and day |
 
 ## Related
 
