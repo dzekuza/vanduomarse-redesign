@@ -1,4 +1,4 @@
-import { guestsLabel, lowestStayPrice, stayTypesOf } from "@/lib/cabin";
+import { guestsLabel, lowestStayPrice, stayRateLabel, stayTypesOf } from "@/lib/cabin";
 import { Cta } from "@/components/cta";
 import { QuadInformation } from "@/components/quads/quad-information";
 import type { ActivityId, ReservationData } from "@/lib/reservation";
@@ -71,7 +71,7 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
           <Section title="Nameliai">
             <ul className="space-y-3">
               {cabins.map((t) => (
-                <Item key={t.id} title={t.label} text={t.note || undefined} meta={`${t.pricePerNight} € / naktį · ${guestsLabel(t.maxGuests)}`} />
+                <Item key={t.id} title={t.label} text={t.note || undefined} meta={`${stayRateLabel(t)} · ${guestsLabel(t.maxGuests)}`} />
               ))}
             </ul>
           </Section>
@@ -80,7 +80,7 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
           <Section title="Kemperiams">
             <ul className="space-y-3">
               {campers.map((t) => (
-                <Item key={t.id} title={t.note ? `${t.label}, ${t.note}` : t.label} text={`Telpa ${guestsLabel(t.maxGuests)}.`} meta={`${t.pricePerNight} € / naktį`} />
+                <Item key={t.id} title={t.note ? `${t.label}, ${t.note}` : t.label} text={`Telpa ${guestsLabel(t.maxGuests)}.`} meta={stayRateLabel(t)} />
               ))}
             </ul>
           </Section>

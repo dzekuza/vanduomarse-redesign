@@ -19,7 +19,7 @@ import { bookingOptionsOn } from "@/lib/admin/booking-options";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import { freeHoursFrom, freeStartHours, fullStayNights, saunaSlice } from "@/lib/admin/occupancy";
 import { hasPermission } from "@/lib/admin/permissions";
-import { pickStayType } from "@/lib/cabin";
+import { pickStayType, stayPrice, stayTiersLabel } from "@/lib/cabin";
 import { discountCovers, discountFor, type CheckedDiscount, type DiscountService } from "@/lib/discount-codes";
 import { DEFAULT_SAUNA_RATES, dateKey, sessionLengths, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
@@ -105,13 +105,12 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       : (stayType?.maxGuests ?? Math.max(0, ...stayTypes.filter((t) => t.kind === kind && t.active).map((t) => t.maxGuests)));
 
   const extrasCtx = { partySize: party, hours: Number(hours) || 0 };
-  const stayRate = stayType?.pricePerNight ?? 0;
-  const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
+    const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
   const computed = ticket
     ? (chosenEvent?.price ?? 0) * party
     : sauna
       ? (hours ? sessionPrice(Number(hours), party, saunaRates, date || undefined) : 0) + extrasPrice
-      : stayRate * (Number(nights) || 0);
+      : stayType ? stayPrice(stayType, Number(nights) || 0) : 0;
   const baseTotal = priceOverride ? Number(priceOverride) : computed;
   // Event tickets and private sauna hires both count as "pirtis" for a code's services, like the public RPCs treat them.
   const discountService: DiscountService = stayKind ? "nakvyne" : "pirtis";
@@ -128,7 +127,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     ? { title: chosenEvent?.title ?? "Renginys", detail: chosenEvent ? `${formatDay(chosenEvent.date)} · ${chosenEvent.time} · ${chosenEvent.place}` : "" }
     : sauna
       ? { title: chosen?.name ?? "Pirtis", detail: "Privati pirtis" }
-      : { title: stayType?.label ?? "Apgyvendinimas", detail: stayType ? `Iki ${stayType.maxGuests} žm. · ${formatEur(stayType.pricePerNight)} / naktį` : "" };
+      : { title: stayType?.label ?? "Apgyvendinimas", detail: stayType ? `Iki ${stayType.maxGuests} žm. · ${stayTiersLabel(stayType)} / naktį` : "" };
 
   const submit = handleSubmit(async (v) => {
     if (party > maxGuests) return setError("guests", { message: ticket ? `Liko vietų: ${maxGuests}` : `Daugiausia ${maxGuests} žm.` });

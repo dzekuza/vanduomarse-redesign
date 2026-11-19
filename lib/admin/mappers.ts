@@ -355,6 +355,8 @@ export function toStayType(r: Tables<"stay_types">): StayType {
     note: r.note,
     maxGuests: r.max_guests,
     pricePerNight: Number(r.price_per_night),
+    pricePerNight2: Number(r.price_per_night_2),
+    pricePerNight3: Number(r.price_per_night_3),
     units: r.units,
     active: r.active,
     sortOrder: r.sort_order,

@@ -5,7 +5,7 @@ import { FormField } from "../form-field";
 import type { DayOptions } from "@/lib/admin/booking-options";
 import { formatEur } from "@/lib/admin/format";
 import type { ManagedEvent } from "@/lib/admin/types";
-import type { StayType } from "@/lib/cabin";
+import { stayTiersLabel, type StayType } from "@/lib/cabin";
 import type { QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -82,7 +82,7 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
           <Choice
             key={type.id}
             title={type.label}
-            detail={`Iki ${type.maxGuests} žm. · ${formatEur(type.pricePerNight)} / naktį`}
+            detail={`Iki ${type.maxGuests} žm. · ${stayTiersLabel(type)} / naktį`}
             meta={free === null ? "Be limito" : free === 0 ? "Visi užimti" : `Laisvų: ${free}`}
             disabled={free === 0}
             onPick={() => onPickStay(type)}

@@ -1,3 +1,10 @@
+## 2026-11-19 — Cabin prices by length of stay (ADR-0121)
+
+- **Asked:** 3 price fields when adding a home at `/admin/namukai` (1 night 100, 2 nights 80/night, 3+ nights 60/night).
+- **Changed:** migration `20261119100000_stay_night_tiers` (applied to project-3), `lib/cabin.ts` helpers + `lib/cabin.test.ts`, mapper/action/types, admin dialog + list, public price labels, calculator, `NewBookingDialog`, agent `create_booking`, `planStay`.
+- **Verified:** tsc, eslint, 194 tests, both server functions rewritten (checked in DB), `/nakvyne` renders. Not checked: the admin dialog in the browser (needs login).
+- **Next:** owner sets real tier prices in `/admin/namukai`; not committed.
+
 ## 2026-11-19 — Public page speed (ADR-0118)
 
 - **Cause:** `connection()` in every public loader plus `searchParams`/cookies on `app/[service]/page.tsx` made the pages per-request; function ran in iad1; q90 hero images; link prefetch; doubled title suffix.

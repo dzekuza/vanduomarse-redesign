@@ -12,15 +12,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
+const priceField = z.string().trim().regex(/^\d+([.,]\d{1,2})?$/, "Įveskite kainą, pvz. 50.");
+
 const schema = z.object({
   label: z.string().trim().min(2, "Įveskite pavadinimą.").max(60),
   note: z.string().trim().max(120),
   maxGuests: z.string().trim().regex(/^\d+$/, "Sveikas skaičius.").refine((v) => Number(v) >= 1 && Number(v) <= 30, "Nuo 1 iki 30."),
   units: z.string().trim().refine((v) => v === "" || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 500), "Nuo 1 iki 500."),
-  price: z.string().trim().regex(/^\d+([.,]\d{1,2})?$/, "Įveskite kainą, pvz. 50."),
+  price: priceField,
+  price2: priceField,
+  price3: priceField,
   active: z.boolean(),
 });
 type Values = z.infer<typeof schema>;
+
+const toNumber = (v: string) => Number(v.replace(",", "."));
+
+const PRICE_TIERS = [
+  { name: "price", id: "st-price", label: "1 naktis" },
+  { name: "price2", id: "st-price-2", label: "2 naktys" },
+  { name: "price3", id: "st-price-3", label: "3 ir daugiau" },
+] as const;
 
 interface StayTypeDialogProps {
   kind: StayKind;
@@ -39,6 +51,8 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
       maxGuests: String(stayType?.maxGuests ?? (kind === "namelis" ? 2 : 6)),
       units: stayType ? (stayType.units === null ? "" : String(stayType.units)) : kind === "namelis" ? "1" : "",
       price: stayType ? String(stayType.pricePerNight) : "",
+      price2: stayType ? String(stayType.pricePerNight2) : "",
+      price3: stayType ? String(stayType.pricePerNight3) : "",
       active: stayType?.active ?? true,
     },
   });
@@ -53,7 +67,9 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
       label: v.label,
       note: v.note,
       maxGuests: Number(v.maxGuests),
-      pricePerNight: Number(v.price.replace(",", ".")),
+      pricePerNight: toNumber(v.price),
+      pricePerNight2: toNumber(v.price2),
+      pricePerNight3: toNumber(v.price3),
       units: v.units === "" ? null : Number(v.units),
       active: v.active,
       sortOrder: stayType?.sortOrder ?? Math.max(-1, ...stayTypes.map((t) => t.sortOrder)) + 1,
@@ -79,7 +95,7 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
             <Label htmlFor="st-note">Pastaba (nebūtina)</Label>
             <Input id="st-note" placeholder={kind === "kemperis" ? "su elektra" : ""} {...register("note")} />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="st-guests">Svečių</Label>
               <Input id="st-guests" inputMode="numeric" aria-invalid={!!err.maxGuests} {...register("maxGuests")} />
@@ -88,12 +104,22 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
               <Label htmlFor="st-units">{kind === "namelis" ? "Kiekis" : "Vietų"}</Label>
               <Input id="st-units" inputMode="numeric" placeholder={kind === "kemperis" ? "neribota" : ""} aria-invalid={!!err.units} {...register("units")} />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="st-price">€ / naktį</Label>
-              <Input id="st-price" inputMode="decimal" aria-invalid={!!err.price} {...register("price")} />
-            </div>
           </div>
-          {err.maxGuests || err.units || err.price ? <p className="text-xs text-destructive">{err.maxGuests?.message ?? err.units?.message ?? err.price?.message}</p> : null}
+          <fieldset className="space-y-1.5">
+            <legend className="text-sm font-medium">Kaina € už naktį</legend>
+            <div className="grid grid-cols-3 gap-3">
+              {PRICE_TIERS.map(({ name, id, label }) => (
+                <div key={name} className="space-y-1.5">
+                  <Label htmlFor={id} className="text-xs font-normal text-muted-foreground">{label}</Label>
+                  <Input id={id} inputMode="decimal" aria-invalid={!!err[name]} {...register(name)} />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Visoms nakvynės naktims taikoma jos ilgio kaina, pvz. 100 / 80 / 60: 4 naktys = 4 × 60 €.</p>
+          </fieldset>
+          {err.maxGuests || err.units || err.price || err.price2 || err.price3 ? (
+            <p className="text-xs text-destructive">{err.maxGuests?.message ?? err.units?.message ?? err.price?.message ?? err.price2?.message ?? err.price3?.message}</p>
+          ) : null}
           <Controller
             control={control}
             name="active"

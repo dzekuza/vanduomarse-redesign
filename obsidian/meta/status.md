@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-18
 ---
 
+**Cabin prices by length of stay (2026-11-19, ADR-0121): implemented on `feat/admin-gemini-agent`, not committed. Migration applied to the live DB (project-3); existing prices unchanged (all three tiers = old price). Next: owner enters real 1 / 2 / 3+ night prices at `/admin/namukai`; commit. Not browser-checked: the admin dialog (login).**
+
 **Public page speed (2026-11-19, ADR-0118): implemented on branch `perf/public-pages-isr` (worktree `_worktrees/vanduomarse-perf`), not committed or pushed. Service pages and home are ISR (5 min) with live availability from `/api/availability`; fra1 region, q75 images with long cache, no link prefetch, title suffix fix. Next: commit + PR, confirm the Supabase region matches fra1, re-check `x-vercel-cache` and TTFB after deploy. Not done: proxy site-gate fetch per request, `/renginiai` stays dynamic.**
 
 **"Pridėti rezervaciją" on an event's sheet (2026-11-18, ADR-0115): merged (PR #140). `EventSheet` has a new "Pridėti rezervaciją" button (next to "Redaguoti renginį", hidden for quad tours) that opens `NewBookingDialog` already on that event's ticket form via a new `initial.eventId` — no need to re-pick the date and event through step 1. Wired in all five `EventSheet` call sites (`EventsView`, `CalendarView`, `BookingsView`, `BookingCalendarTab`, `useSaleDetails`). tsc, eslint, 174 tests; browser-checked on `/admin/rezervacijos` (opened a past Pirties seansas' sheet, clicked the button, landed on its ticket form) — not submitted. Next: none.**
