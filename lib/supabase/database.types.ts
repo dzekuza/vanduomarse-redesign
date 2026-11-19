@@ -964,6 +964,9 @@ export type Database = {
           id: string
           needs_review: boolean
           paid_at: string | null
+          points_discount: number
+          points_rider_id: string | null
+          points_spent: number
           refunded: number
           staff_created: boolean
           status: string
@@ -981,6 +984,9 @@ export type Database = {
           id?: string
           needs_review?: boolean
           paid_at?: string | null
+          points_discount?: number
+          points_rider_id?: string | null
+          points_spent?: number
           refunded?: number
           staff_created?: boolean
           status?: string
@@ -998,6 +1004,9 @@ export type Database = {
           id?: string
           needs_review?: boolean
           paid_at?: string | null
+          points_discount?: number
+          points_rider_id?: string | null
+          points_spent?: number
           refunded?: number
           staff_created?: boolean
           status?: string
@@ -1861,6 +1870,80 @@ export type Database = {
           },
         ]
       }
+      loyalty_settings: {
+        Row: {
+          earn_points_per_euro: number
+          enabled: boolean
+          id: boolean
+          point_value_eur: number
+          updated_at: string
+        }
+        Insert: {
+          earn_points_per_euro?: number
+          enabled?: boolean
+          id?: boolean
+          point_value_eur?: number
+          updated_at?: string
+        }
+        Update: {
+          earn_points_per_euro?: number
+          enabled?: boolean
+          id?: boolean
+          point_value_eur?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      points_ledger: {
+        Row: {
+          balance_after: number
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          kind: string
+          parent_source_id: string | null
+          reason: string
+          rider_id: string
+          source_id: string | null
+          source_kind: string | null
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          kind: string
+          parent_source_id?: string | null
+          reason?: string
+          rider_id: string
+          source_id?: string | null
+          source_kind?: string | null
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          kind?: string
+          parent_source_id?: string | null
+          reason?: string
+          rider_id?: string
+          source_id?: string | null
+          source_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_ledger_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riders: {
         Row: {
           avatar_path: string | null
@@ -1875,6 +1958,7 @@ export type Database = {
           phone: string | null
           phone2: string | null
           plan_id: string | null
+          points_balance: number
           self_registered: boolean
           surname: string
           updated_at: string
@@ -1892,6 +1976,7 @@ export type Database = {
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
+          points_balance?: number
           self_registered?: boolean
           surname: string
           updated_at?: string
@@ -1909,6 +1994,7 @@ export type Database = {
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
+          points_balance?: number
           self_registered?: boolean
           surname?: string
           updated_at?: string
@@ -2522,6 +2608,36 @@ export type Database = {
       auth_user_has_password: {
         Args: { p_user: string }
         Returns: boolean
+      }
+      adjust_rider_points: {
+        Args: { p_delta: number; p_reason: string; p_rider: string }
+        Returns: number
+      }
+      redeem_points_on_payment: {
+        Args: { p_payment_id: string; p_points: number; p_user: string }
+        Returns: {
+          amount: number
+          points_discount: number
+          points_spent: number
+        }[]
+      }
+      my_spendable_points: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance: number
+          enabled: boolean
+          point_value_eur: number
+        }[]
+      }
+      my_points: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance: number
+          entries: Json
+          primary_match: boolean
+          rider_id: string
+          rider_name: string
+        }[]
       }
       my_riders: {
         Args: Record<PropertyKey, never>

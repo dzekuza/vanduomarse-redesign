@@ -10,7 +10,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0121 — Cabins and camper pitches are priced by length of stay (1 / 2 / 3+ nights)
+## ADR-0123 — Cabins and camper pitches are priced by length of stay (1 / 2 / 3+ nights)
 
 - **Status:** Accepted.
 - **Date:** 2026-11-19
@@ -19,6 +19,21 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** existing prices are unchanged until the owner edits a type. A new stay-pricing path must use `stayPrice()` / `private.stay_night_price()`, never `price_per_night * nights`. Staff bookings priced in the browser (`NewBookingDialog`, the AI agent's `create_booking`) use the same helper.
 
 ---
+## ADR-0122 — Points are spent as a discount on a reservation payment; `payments.amount` stays the cash
+
+- **Status:** Accepted (reservations; plan orders still pay in cash only).
+- **Date:** 2026-11-19
+- **Context:** phase 1 (ADR-0121) let customers earn points but not use them. Spending touches money: the Stripe amount, the amount check in `complete_payment`, refunds and the 0.50 EUR minimum charge.
+- **Decision:** the customer ticks "Naudoti taškus" in the checkout dialog; the form sends only a boolean. After `start_payment` groups the requests, `redeem_points_on_payment` (not a change to `start_payment`) turns as many points as fit into euros off, lowers `payments.amount`, records points and rider on the payment and holds the points. Stripe gets the gross lines plus a one-off `amount_off` coupon ("Taškai"), so its total equals `payments.amount` and every later check keeps working. Expiry gives points back, a late payment takes them again, and a refund of cash returns the same share of points; a request's refund is capped at its cash share (`begin_request_refund`, `cashShare` in `lib/points.ts` for the admin and customer buttons). Earning is on cash, so spending points earns nothing back on the points part.
+- **Consequences:** a failed redeem call only means the customer pays in cash. Plan orders and anonymous purchases (plan passes, gift coupons) do not accept points yet. With several customer records on one contact, the one holding the most points is used. The customer cancelling a paid request is refunded its cash share and gets its points share back through the refund trigger.
+
+## ADR-0121 — Points / kreditai: a ledger per customer record, earned by trigger, granted by staff
+
+- **Status:** Accepted (phase 1; spending is phase 2).
+- **Date:** 2026-11-19
+- **Context:** customers should collect points from paid purchases and plans, staff should be able to grant or remove them, and later spend them as a discount. There is no customer table: an account (Supabase Auth) is matched to `riders` (Klientai) by confirmed contact at read time.
+- **Decision:** the balance lives on `riders` (`points_balance`) with an append-only `points_ledger`; one function (`private.apply_points`) changes both under a per-rider lock, so balances cannot go negative or double-credit (unique source key). Earning is a trigger on `payments` and `rider_plan_orders` (so the large `complete_payment` / `complete_plan_order_payment` functions stay untouched), only for real online payments that need no manual review. Staff adjust through `adjust_rider_points` with the `klientai` permission and a required reason; the owner sets the earn rate and point value in `loyalty_settings`. Customers read through `my_points()` (all riders matching the account's confirmed contact). Plan passes and gift coupons are anonymous and earn nothing.
+- **Consequences:** a family sharing one phone number sees one balance per rider. A payment flagged `needs_review` earns nothing, even if staff later clear it (they can add points by hand). Refunds take earned points back by trigger (pro rata for a partial refund, all of a cancelled plan order, capped at what the customer still holds; migration `20261119140000_points_integrity.sql`), and `points_balance` cannot be written outside `apply_points`. Known limit: a partial refund of a plan order keeps its points, because `refund_plan_order_payment` only cancels an order on a full refund (the plan stays active and no refunded amount is stored); a pro-rata clawback would need a `refunded` column and a change to that money function, left for when partial plan refunds become common. Phase 2 will add spending at checkout (`payments.points_spent`, a Stripe `amount_off` coupon, cash-share refund caps) and the return of spent points on refunds.
 
 ## ADR-0120 — Pixel events say what was viewed, started and bought (sauna, session, stay, quad, event)
 

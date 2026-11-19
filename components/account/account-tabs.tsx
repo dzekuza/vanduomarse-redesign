@@ -2,10 +2,11 @@
 
 import { CouponList } from "./coupon-list";
 import { InquiryList } from "./inquiry-list";
+import { PointsList } from "./points-list";
 import { RequestList } from "./request-list";
 import { RiderPlans } from "./rider-plans";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { MyCoupon, MyInquiry, MyRequest, MyRider, RequestKind } from "@/lib/account";
+import type { MyCoupon, MyInquiry, MyPoints, MyRequest, MyRider, RequestKind } from "@/lib/account";
 
 const TABS: { id: string; label: string; kinds?: readonly RequestKind[] }[] = [
   { id: "visi", label: "Visi" },
@@ -15,16 +16,17 @@ const TABS: { id: string; label: string; kinds?: readonly RequestKind[] }[] = [
   { id: "vandenlentes", label: "Vandenlentės" },
   { id: "pasiulymai", label: "Pasiūlymai" },
   { id: "kuponai", label: "Kuponai" },
+  { id: "taskai", label: "Taškai" },
 ];
 
 /** The account's lists by category: every reservation, one category, or the calculator quotes. */
-export function AccountTabs({ requests, inquiries, riders, coupons }: { requests: MyRequest[]; inquiries: MyInquiry[]; riders: MyRider[]; coupons: MyCoupon[] }) {
+export function AccountTabs({ requests, inquiries, riders, coupons, points }: { requests: MyRequest[]; inquiries: MyInquiry[]; riders: MyRider[]; coupons: MyCoupon[]; points: MyPoints[] }) {
   const count = (id: string, kinds?: readonly RequestKind[]) =>
-    id === "pasiulymai" ? inquiries.length : id === "kuponai" ? coupons.length : id === "vandenlentes" ? riders.length : kinds ? requests.filter((r) => kinds.includes(r.kind)).length : requests.length;
+    id === "pasiulymai" ? inquiries.length : id === "kuponai" ? coupons.length : id === "taskai" ? points.reduce((sum, p) => sum + p.balance, 0) : id === "vandenlentes" ? riders.length : kinds ? requests.filter((r) => kinds.includes(r.kind)).length : requests.length;
 
   return (
     <Tabs defaultValue="visi" className="min-w-0 gap-4">
-      <TabsList aria-label="Rezervacijų skiltys" className="scrollbar-ink flex w-full justify-start overflow-x-auto overflow-y-hidden divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto">
+      <TabsList aria-label="Paskyros skiltys" className="scrollbar-ink flex w-full justify-start overflow-x-auto overflow-y-hidden divide-x divide-line border border-line bg-transparent p-0 group-data-horizontal/tabs:h-auto">
         {TABS.map(({ id, label, kinds }) => (
           <TabsTrigger
             key={id}
@@ -37,7 +39,9 @@ export function AccountTabs({ requests, inquiries, riders, coupons }: { requests
       </TabsList>
       {TABS.map(({ id, kinds }) => (
         <TabsContent key={id} value={id}>
-          {id === "kuponai" ? (
+          {id === "taskai" ? (
+            <PointsList points={points} />
+          ) : id === "kuponai" ? (
             <CouponList coupons={coupons} />
           ) : id === "pasiulymai" ? (
             <InquiryList inquiries={inquiries} />

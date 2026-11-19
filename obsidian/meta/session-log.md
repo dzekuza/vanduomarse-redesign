@@ -1,4 +1,4 @@
-## 2026-11-19 — Cabin prices by length of stay (ADR-0121)
+## 2026-11-19 — Cabin prices by length of stay (ADR-0123)
 
 - **Asked:** 3 price fields when adding a home at `/admin/namukai` (1 night 100, 2 nights 80/night, 3+ nights 60/night).
 - **Changed:** migration `20261119100000_stay_night_tiers` (applied to project-3), `lib/cabin.ts` helpers + `lib/cabin.test.ts`, mapper/action/types, admin dialog + list, public price labels, calculator, `NewBookingDialog`, agent `create_booking`, `planStay`.
