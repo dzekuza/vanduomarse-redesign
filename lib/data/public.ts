@@ -3,8 +3,8 @@ import { cache } from "react";
 import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
-import type { CalculatorCatalog } from "@/lib/event-pricing";
-import { toCouponProduct, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaMaster, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
+import type { CalculatorCatalog, EventPreset } from "@/lib/event-pricing";
+import { toCouponProduct, toEventPreset, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaMaster, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
 import { MAX_STAY_NIGHTS, type CabinAvailability, type StayType } from "@/lib/cabin";
 import type { CouponProduct, WakeOffer } from "@/lib/coupons";
 import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
@@ -178,10 +178,16 @@ async function getActiveUpsells(): Promise<Upsell[]> {
   return must(await supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"), "Sauna upsells").map(toUpsell);
 }
 
-/** Everything the event calculator reads from the database: cabin sizes, saunas and their private programs. */
+/** Active event types of the calculator (renginio tipas), in the order set in /admin/kainos. */
+async function getEventPresets(): Promise<EventPreset[]> {
+  const supabase = createPublicClient();
+  return must(await supabase.from("event_presets").select("*").eq("active", true).order("sort_order"), "Event presets").map(toEventPreset);
+}
+
+/** Everything the event calculator reads from the database: cabin sizes, saunas, their private programs, extras and event types. */
 async function loadCalculatorCatalog(): Promise<CalculatorCatalog> {
-  const [stayTypes, saunas, programs, upsells] = await Promise.all([getStayTypes(), getActiveSaunas(), getPrivatePrograms(), getActiveUpsells()]);
-  return { stayTypes, saunas, programs, upsells };
+  const [stayTypes, saunas, programs, upsells, presets] = await Promise.all([getStayTypes(), getActiveSaunas(), getPrivatePrograms(), getActiveUpsells(), getEventPresets()]);
+  return { stayTypes, saunas, programs, upsells, presets };
 }
 
 /** Memoised per request, so pages and readers that share it query Supabase once. */

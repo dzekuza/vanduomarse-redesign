@@ -7,6 +7,7 @@ export { signIn, sendStaffCode, confirmStaffCode, signOut, changeOwnPassword } f
 export * from "./bookings";
 export * from "./events";
 export * from "./spaces";
+export * from "./event-presets";
 export * from "./sauna";
 export * from "./coupons";
 export * from "./stays";

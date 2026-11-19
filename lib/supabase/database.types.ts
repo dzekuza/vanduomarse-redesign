@@ -455,6 +455,42 @@ export type Database = {
         }
         Relationships: []
       }
+      event_presets: {
+        Row: {
+          active: boolean
+          adults: number
+          id: string
+          kids: number
+          label: string
+          per_guest_max: number
+          per_guest_min: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          adults: number
+          id: string
+          kids?: number
+          label: string
+          per_guest_max: number
+          per_guest_min: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          adults?: number
+          id?: string
+          kids?: number
+          label?: string
+          per_guest_max?: number
+          per_guest_min?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_tickets: {
         Row: {
           children: number

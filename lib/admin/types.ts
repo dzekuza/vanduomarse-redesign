@@ -3,7 +3,7 @@ import type { DiscountCode } from "@/lib/discount-codes";
 import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
-import type { SpaceId } from "@/lib/event-pricing";
+import type { EventPreset, SpaceId } from "@/lib/event-pricing";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { PassStatus } from "@/lib/plan-pass";
 import type { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
@@ -106,6 +106,12 @@ export interface SpaceBooking {
   price: number;
   status: BookingStatus;
   note: string;
+}
+
+/** An event type of the price calculator, with what staff manage (shown or hidden, order). */
+export interface ManagedEventPreset extends EventPreset {
+  active: boolean;
+  sortOrder: number;
 }
 
 export type InquiryStatus = "nauja" | "susisiekta" | "pasiulymas";
@@ -456,6 +462,8 @@ export interface AdminData {
   inquiries: Inquiry[];
   events: ManagedEvent[];
   prices: PriceItem[];
+  /** All event types of the calculator, hidden ones included (edited in /admin/kainos). */
+  eventPresets: ManagedEventPreset[];
   /** All saunas incl. hidden ones, in display order. */
   saunas: Sauna[];
   upsells: Upsell[];

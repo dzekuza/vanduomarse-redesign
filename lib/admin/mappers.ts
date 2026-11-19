@@ -10,8 +10,8 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { SpaceId } from "@/lib/event-pricing";
-import type { Block, Booking, SpaceBooking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
+import type { EventPreset, SpaceId } from "@/lib/event-pricing";
+import type { Block, Booking, ManagedEventPreset, SpaceBooking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -163,6 +163,14 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     programId: r.program_id ?? undefined,
     tourRouteId: r.tour_route_id ?? undefined,
   };
+}
+
+export function toEventPreset(r: Tables<"event_presets">): EventPreset {
+  return { id: r.id, label: r.label, perGuest: { min: Number(r.per_guest_min), max: Number(r.per_guest_max) }, adults: r.adults, kids: r.kids };
+}
+
+export function toManagedEventPreset(r: Tables<"event_presets">): ManagedEventPreset {
+  return { ...toEventPreset(r), active: r.active, sortOrder: r.sort_order };
 }
 
 export function toPriceItem(r: Tables<"price_items">): PriceItem {

@@ -1,3 +1,10 @@
+## 2026-11-19 — Editable event types in /admin/kainos (ADR-0125)
+
+- **Asked:** manage (edit / add) the calculator's "Renginio tipas" choices from `/admin/kainos`.
+- **Changed:** migration `event_presets` (applied, seeded), `EventPreset` now data not code, `CalculatorCatalog.presets`, `getEventPresets`, `saveEventPreset` / `deleteEventPreset`, `EventPresetsCard` + `EventPresetDialog`, `PresetPicker` takes `presets`.
+- **Verified:** tsc, eslint, 208 tests. Not checked in a browser: stale ISR cache on the :3000 dev server returned 500 on `/sventes` (old catalog without `presets`); admin needs login.
+- **Next:** restart the dev server, check `/sventes` and the new card; commit.
+
 ## 2026-11-19 — Event-space bookings in the calendar (ADR-0124)
 
 - **Asked:** from the admin calendar, add a booking for the erdvės, select several, and enter customer name, surname, phone and price.

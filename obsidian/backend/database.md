@@ -401,3 +401,7 @@ Migrations `20261119170000_points_spend.sql` and `20261119180000_my_spendable_po
 ## Space bookings (ADR-0124)
 
 Migration `20261119200000_space_bookings.sql`, APPLIED 2026-11-19. `space_bookings`: date, start/end time, `spaces text[]` (ids from `lib/event-pricing.ts`, checked by constraint), customer name / surname / phone / optional e-mail, guests, agreed price, status (`booking_status`), note. RLS: read for `rezervacijos` / `uzimtumas` / `apzvalga`, write for `rezervacijos`. Clashes are checked by `createSpaceBooking`, not by a constraint. `database.types.ts` was edited by hand.
+
+## Event presets (ADR-0125)
+
+Migration `20261119210000_event_presets.sql`, APPLIED 2026-11-19. `event_presets`: slug id, label, `per_guest_min` / `per_guest_max`, `adults`, `kids`, `sort_order`, `active`. RLS: public read, write for `kainos`. Seeded with the eight types that used to be `PRESETS`. `database.types.ts` edited by hand.

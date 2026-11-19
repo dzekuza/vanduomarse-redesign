@@ -10,7 +10,7 @@ import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import { formatEuro } from "@/lib/coupons";
 import type { LoyaltySettings } from "@/lib/points";
-import type { ActionResult, NewBookingInput, NewSpaceBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
+import type { ActionResult, EventPresetInput, NewBookingInput, NewSpaceBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
 import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, PurchasePaymentMethod, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, SpaceBooking, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
@@ -427,6 +427,9 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "event/publish", id, published });
         return result;
       },
+      /** Not optimistic: a new type's id comes from the server; the list arrives with the revalidated layout. */
+      saveEventPreset: (input: EventPresetInput) => report(actions.saveEventPreset(input)),
+      deleteEventPreset: (id: string) => report(actions.deleteEventPreset(id)),
       updatePrices: (items: PriceItem[]) => {
         dispatch({ type: "prices/update", items });
         return report(actions.updatePrices(items));

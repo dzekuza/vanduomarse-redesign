@@ -3,6 +3,8 @@ tags: [meta, status]
 updated: 2026-11-18
 ---
 
+**Event types editable (2026-11-19, ADR-0125): implemented on `feat/admin-gemini-agent`, not committed. Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
+
 **Event-space bookings (2026-11-19, ADR-0124): implemented on `feat/admin-gemini-agent`, not committed. Migration `space_bookings` applied to the live DB. Calendar → Nauja rezervacija → Erdvės: several spaces, name, surname, phone, price. Not browser-checked (login); no payment link, no edit yet. Next: try it, commit.**
 
 **Cabin prices by length of stay (2026-11-19, ADR-0123): implemented on `feat/admin-gemini-agent`, not committed. Migration applied to the live DB (project-3); existing prices unchanged (all three tiers = old price). Next: owner enters real 1 / 2 / 3+ night prices at `/admin/namukai`; commit. Not browser-checked: the admin dialog (login).**
