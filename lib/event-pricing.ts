@@ -1,4 +1,4 @@
-import { stayTypesOf, type StayType } from "./cabin";
+import { stayPrice, stayTypesOf, type StayType } from "./cabin";
 import { sessionPrice, type Sauna } from "./sauna";
 import { durationLabel, programTotal, type SaunaProgram } from "./sauna-programs";
 import { upsellTotal, type Upsell } from "./sauna-upsells";
@@ -423,7 +423,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
   for (const cabin of stayTypesOf(stayTypes, "namelis")) {
     const units = input.cabinUnits[cabin.id] ?? 0;
     if (units > 0) {
-      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(cabin.pricePerNight * units * input.cabinNights));
+      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(stayPrice(cabin, input.cabinNights, units)));
     }
   }
 

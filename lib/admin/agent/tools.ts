@@ -4,7 +4,7 @@ import { searchAdmin } from "@/lib/admin/global-search";
 import { hasPermission, type StaffAccess } from "@/lib/admin/permissions";
 import { loadAdminData } from "@/lib/admin/repository";
 import type { BookingStatus } from "@/lib/admin/types";
-import { pickStayType } from "@/lib/cabin";
+import { pickStayType, stayPrice } from "@/lib/cabin";
 import { SESSION_SAUNA_ID, saunaSessionAt, stayUnitsOn } from "@/lib/admin/occupancy";
 import { maxHoursFrom, sessionPrice, startHours, todayKey, vilniusHour, type Sauna } from "@/lib/sauna";
 import type { Block, Booking, ManagedEvent } from "@/lib/admin/types";
@@ -374,7 +374,7 @@ export async function executeAgentTool(
         nights = Number(args.nights) || 1;
         const stayType = pickStayType(adminData.stayTypes, kind === "namelis" ? "namelis" : "kemperis", guests);
         if (!stayType) return { ok: false, summary: "Nerasta tinkama nakvynės rūšis šiam svečių skaičiui." };
-        total = stayType.pricePerNight * nights;
+        total = stayPrice(stayType, nights);
       }
       if (total <= 0) return { ok: false, summary: "Nepavyko apskaičiuoti kainos pagal kainoraštį, todėl rezervacija nesukurta. Sukurkite ją per „Nauja rezervacija“." };
 

@@ -2505,6 +2505,8 @@ export type Database = {
           max_guests: number
           note: string
           price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
           sort_order: number
           units: number | null
           updated_at: string
@@ -2517,6 +2519,8 @@ export type Database = {
           max_guests: number
           note?: string
           price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
           sort_order?: number
           units?: number | null
           updated_at?: string
@@ -2529,6 +2533,8 @@ export type Database = {
           max_guests?: number
           note?: string
           price_per_night?: number
+          price_per_night_2?: number
+          price_per_night_3?: number
           sort_order?: number
           units?: number | null
           updated_at?: string

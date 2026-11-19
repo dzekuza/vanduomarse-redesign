@@ -1,4 +1,4 @@
-import { guestsLabel, type StayType } from "@/lib/cabin";
+import { guestsLabel, stayRateLabel, type StayType } from "@/lib/cabin";
 import type { QuadPageData, SaunaPageData } from "@/lib/data/public-types";
 import { SPACES, formatMoney } from "@/lib/event-pricing";
 import { programPriceLine } from "@/lib/sauna-programs";
@@ -23,7 +23,7 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, 
   ];
   if (slug === "nakvyne") return (stayTypes ?? []).map((type) => ({
     label: type.label,
-    price: `${type.pricePerNight} € / naktį`,
+    price: stayRateLabel(type),
     note: [type.kind === "kemperis" ? "Viena transporto priemonė" : "", type.note, `Telpa ${guestsLabel(type.maxGuests)}`].filter(Boolean).join(". ") + ".",
   }));
   if (slug === "restoranas" || slug === "vandenlentes") return [];

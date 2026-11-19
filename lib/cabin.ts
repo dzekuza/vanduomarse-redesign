@@ -14,7 +14,12 @@ export interface StayType {
   label: string;
   note: string;
   maxGuests: number;
+  /** Price per night for a 1-night stay. */
   pricePerNight: number;
+  /** Price per night when the stay is exactly 2 nights. */
+  pricePerNight2: number;
+  /** Price per night when the stay is 3 or more nights. */
+  pricePerNight3: number;
   /** How many exist; null = not limited (camper pitches). */
   units: number | null;
   active: boolean;
@@ -32,10 +37,33 @@ export const stayTypesOf = (types: readonly StayType[], kind: StayKind): StayTyp
 
 export const findStayType = (types: readonly StayType[], id: string): StayType | undefined => types.find((t) => t.id === id);
 
-/** The cheapest nightly price of a kind, or null when there is none. */
+/** Per-night price for a stay of `nights`: the tier of the whole stay's length applies to every night. */
+export function stayNightRate(type: Pick<StayType, "pricePerNight" | "pricePerNight2" | "pricePerNight3">, nights: number): number {
+  if (nights >= 3) return type.pricePerNight3;
+  if (nights === 2) return type.pricePerNight2;
+  return type.pricePerNight;
+}
+
+/** Price of a stay, for one unit unless `units` is given. Mirrors `private.stay_night_price()` in the database. */
+export const stayPrice = (type: Pick<StayType, "pricePerNight" | "pricePerNight2" | "pricePerNight3">, nights: number, units = 1): number =>
+  stayNightRate(type, nights) * nights * units;
+
+/** The cheapest nightly price of a kind (across all night tiers), or null when there is none. */
 export function lowestStayPrice(types: readonly StayType[], kind?: StayKind): number | null {
-  const prices = types.filter((t) => !kind || t.kind === kind).map((t) => t.pricePerNight);
+  const prices = types.filter((t) => !kind || t.kind === kind).map((t) => Math.min(t.pricePerNight, t.pricePerNight2, t.pricePerNight3));
   return prices.length ? Math.min(...prices) : null;
+}
+
+/** "100 € / naktį", or "nuo 60 € / naktį" when longer stays are cheaper per night. */
+export function stayRateLabel(type: Pick<StayType, "pricePerNight" | "pricePerNight2" | "pricePerNight3">): string {
+  const low = Math.min(type.pricePerNight, type.pricePerNight2, type.pricePerNight3);
+  return `${low < type.pricePerNight ? "nuo " : ""}${low} € / naktį`;
+}
+
+/** "100 / 80 / 60 €" for a type, or just "100 €" when every tier is the same. */
+export function stayTiersLabel(type: Pick<StayType, "pricePerNight" | "pricePerNight2" | "pricePerNight3">): string {
+  const { pricePerNight: a, pricePerNight2: b, pricePerNight3: c } = type;
+  return a === b && b === c ? `${a} €` : `${a} / ${b} / ${c} €`;
 }
 
 /** Free units per night and stay type id from `stay_occupancy()`, with no entry for unlimited stock. */

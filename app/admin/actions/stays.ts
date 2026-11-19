@@ -14,6 +14,8 @@ const stayTypeInput = z.object({
   note: z.string().trim().max(120),
   maxGuests: z.number().int().min(1).max(30),
   pricePerNight: z.number().min(0).max(10000),
+  pricePerNight2: z.number().min(0).max(10000),
+  pricePerNight3: z.number().min(0).max(10000),
   /** null = not limited (camper pitches). */
   units: z.number().int().min(1).max(500).nullable(),
   active: z.boolean(),
@@ -40,6 +42,8 @@ export async function saveStayType(type: StayType): Promise<ActionResult> {
     note: t.note,
     max_guests: t.maxGuests,
     price_per_night: t.pricePerNight,
+    price_per_night_2: t.pricePerNight2,
+    price_per_night_3: t.pricePerNight3,
     units: t.units,
     active: t.active,
     sort_order: t.sortOrder,

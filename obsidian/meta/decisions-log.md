@@ -10,6 +10,15 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0123 — Cabins and camper pitches are priced by length of stay (1 / 2 / 3+ nights)
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** the owner wants a cheaper nightly rate for longer stays (e.g. 100 € for 1 night, 80 € per night for 2, 60 € per night for 3 or more). `stay_types` had one `price_per_night`.
+- **Decision:** `stay_types` gets `price_per_night_2` and `price_per_night_3` (not null, backfilled with the old price); `price_per_night` stays the 1-night rate. The rate of the whole stay's length applies to every night (4 nights at 60 = 240 €), not a stepped rate. One rule in two places: `stayNightRate()` / `stayPrice()` in `lib/cabin.ts` and `private.stay_night_price()` in the database. `create_stay_booking_with_units` and `accept_inquiry_stays` (the only server-side stay pricing) were re-created from their live definition to call it. The `/admin/namukai` dialog has three price fields; public pages show "nuo 60 € / naktį" when tiers differ.
+- **Consequences:** existing prices are unchanged until the owner edits a type. A new stay-pricing path must use `stayPrice()` / `private.stay_night_price()`, never `price_per_night * nights`. Staff bookings priced in the browser (`NewBookingDialog`, the AI agent's `create_booking`) use the same helper.
+
+---
 ## ADR-0122 — Points are spent as a discount on a reservation payment; `payments.amount` stays the cash
 
 - **Status:** Accepted (reservations; plan orders still pay in cash only).

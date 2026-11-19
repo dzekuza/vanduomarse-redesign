@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { StayTypeDialog } from "./stay-type-dialog";
-import { guestsLabel, stayTypesOf, type StayKind, type StayType } from "@/lib/cabin";
+import { guestsLabel, stayTiersLabel, stayTypesOf, type StayKind, type StayType } from "@/lib/cabin";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,7 +48,7 @@ export function StayTypesCard({ kind, title, description, onCreate }: StayTypesC
                 {[t.units === null ? "neribota" : `${t.units} vnt.`, guestsLabel(t.maxGuests), t.note].filter(Boolean).join(" · ")}
               </p>
             </div>
-            <p className="shrink-0 font-display text-sm font-bold tabular-nums">{t.pricePerNight} €/n.</p>
+            <p className="shrink-0 font-display text-sm font-bold tabular-nums">{stayTiersLabel(t)} /n.</p>
             <Switch
               checked={t.active}
               aria-label={`Rodyti svetainėje: ${t.label}`}

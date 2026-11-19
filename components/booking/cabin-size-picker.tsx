@@ -1,7 +1,7 @@
 "use client";
 
 import { ChoiceTile } from "./choice-tile";
-import type { StayType } from "@/lib/cabin";
+import { stayRateLabel, type StayType } from "@/lib/cabin";
 
 /** The cabin types, with the nightly price and how many are free for the stay. */
 export function CabinSizePicker({
@@ -26,7 +26,7 @@ export function CabinSizePicker({
           <ChoiceTile
             key={type.id}
             primary={type.label}
-            secondary={left > 0 ? `${type.pricePerNight} €${Number.isFinite(left) ? ` · liko ${left}` : ""}` : "Užimta"}
+            secondary={left > 0 ? `${stayRateLabel(type).replace(" / naktį", "")}${Number.isFinite(left) ? ` · liko ${left}` : ""}` : "Užimta"}
             active={selected === type.id}
             disabled={left === 0}
             onClick={() => onSelect(type.id)}
