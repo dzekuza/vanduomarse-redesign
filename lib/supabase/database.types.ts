@@ -455,6 +455,42 @@ export type Database = {
         }
         Relationships: []
       }
+      event_presets: {
+        Row: {
+          active: boolean
+          adults: number
+          id: string
+          kids: number
+          label: string
+          per_guest_max: number
+          per_guest_min: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          adults: number
+          id: string
+          kids?: number
+          label: string
+          per_guest_max: number
+          per_guest_min: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          adults?: number
+          id?: string
+          kids?: number
+          label?: string
+          per_guest_max?: number
+          per_guest_min?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_tickets: {
         Row: {
           children: number
@@ -2492,6 +2528,63 @@ export type Database = {
           is_owner?: boolean
           name?: string
           permissions?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      space_bookings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          customer_surname: string
+          date: string
+          end_time: string
+          guests: number
+          id: string
+          note: string
+          price: number
+          spaces: string[]
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          customer_surname?: string
+          date: string
+          end_time: string
+          guests?: number
+          id?: string
+          note?: string
+          price?: number
+          spaces: string[]
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          customer_surname?: string
+          date?: string
+          end_time?: string
+          guests?: number
+          id?: string
+          note?: string
+          price?: number
+          spaces?: string[]
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
         }
         Relationships: []

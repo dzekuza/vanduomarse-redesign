@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type PresetId, type SaunaPick } from "@/lib/event-pricing";
+import { DEFAULT_INPUT, EMPTY_CATALOG, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type SaunaPick } from "@/lib/event-pricing";
 import { todayKey } from "@/lib/sauna";
 
 /**
@@ -29,12 +29,13 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
   const result = estimate(input, catalog);
   const guests = input.adults + input.kids;
   const space = input.space ? SPACES.find((s) => s.id === input.space)! : null;
-  const preset = PRESETS.find((p) => p.id === input.preset) ?? null;
+  const preset = catalog.presets.find((p) => p.id === input.preset) ?? null;
 
-  function applyPreset(id: PresetId) {
-    const p = PRESETS.find((x) => x.id === id)!;
+  function applyPreset(id: string) {
+    const p = catalog.presets.find((x) => x.id === id);
+    if (!p) return;
     // The type only suggests a group size (and drives the typical price per guest); nothing else is chosen for the visitor.
-    const suggestedGuests = (p.apply.adults ?? DEFAULT_INPUT.adults) + (p.apply.kids ?? DEFAULT_INPUT.kids);
+    const suggestedGuests = p.adults + p.kids;
     setInput((s) => ({ ...s, preset: id, adults: suggestedGuests }));
   }
 

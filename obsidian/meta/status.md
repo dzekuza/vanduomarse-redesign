@@ -3,7 +3,11 @@ tags: [meta, status]
 updated: 2026-11-18
 ---
 
-**Cabin prices by length of stay (2026-11-19, ADR-0123): implemented on `feat/admin-gemini-agent`, not committed. Migration applied to the live DB (project-3); existing prices unchanged (all three tiers = old price). Next: owner enters real 1 / 2 / 3+ night prices at `/admin/namukai`; commit. Not browser-checked: the admin dialog (login).**
+**Event types editable (2026-11-19, ADR-0125): PR #151 (`feat/admin-gemini-agent`). Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
+
+**Event-space bookings (2026-11-19, ADR-0124): PR #151 (`feat/admin-gemini-agent`). Migration `space_bookings` applied to the live DB. Calendar → Nauja rezervacija → Erdvės: several spaces, name, surname, phone, price. Not browser-checked (login); no payment link, no edit yet. Next: try it, commit.**
+
+**Cabin prices by length of stay (2026-11-19, ADR-0123): PR #151 (`feat/admin-gemini-agent`). Migration applied to the live DB (project-3); existing prices unchanged (all three tiers = old price). Next: owner enters real 1 / 2 / 3+ night prices at `/admin/namukai`; commit. Not browser-checked: the admin dialog (login).**
 **Points spending (2026-11-19, ADR-0122): built on `feat/points-spend`; migrations APPLIED (live DB) before the code is merged, harmless until the checkout sends points. Reservation checkout can pay part with points; verified with rolled-back SQL only, NOT with a real Stripe session or a logged-in browser. Plan orders do not take points yet. Next: PR, Stripe test-mode checkout with points (amount, webhook paid, expiry release, refund), then plan orders.**
 
 **Points / kreditai phase 1 (2026-11-19, ADR-0121): PR #147 open (`feat/points-credits`). Both migrations (`20261119120000_points_credits.sql`, `20261119140000_points_integrity.sql`) are APPLIED to the live DB before the code is merged, so the earn triggers already write permanent ledger rows on real paid online reservations and plan orders; the earn rule has been checked with rolled-back SQL only, not with a Stripe test payment. Plan-order earning has no staff/needs-review guard because plan orders only come from the online flow. Next: browser-check admin and /paskyra, Stripe test-mode earn once, review, merge; then phase 2 (spend at checkout).**

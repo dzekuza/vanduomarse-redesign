@@ -1,3 +1,17 @@
+## 2026-11-19 — Editable event types in /admin/kainos (ADR-0125)
+
+- **Asked:** manage (edit / add) the calculator's "Renginio tipas" choices from `/admin/kainos`.
+- **Changed:** migration `event_presets` (applied, seeded), `EventPreset` now data not code, `CalculatorCatalog.presets`, `getEventPresets`, `saveEventPreset` / `deleteEventPreset`, `EventPresetsCard` + `EventPresetDialog`, `PresetPicker` takes `presets`.
+- **Verified:** tsc, eslint, 208 tests. Not checked in a browser: stale ISR cache on the :3000 dev server returned 500 on `/sventes` (old catalog without `presets`); admin needs login.
+- **Next:** restart the dev server, check `/sventes` and the new card; commit.
+
+## 2026-11-19 — Event-space bookings in the calendar (ADR-0124)
+
+- **Asked:** from the admin calendar, add a booking for the erdvės, select several, and enter customer name, surname, phone and price.
+- **Changed:** migration `space_bookings` (applied to project-3), types/mapper/repository, `createSpaceBooking` / `setSpaceBookingStatus`, store, `lib/space-booking.ts` + test, `components/admin/spaces/*`, chooser section, calendar entries + sheet.
+- **Verified:** tsc, eslint, 208 tests. Not checked in the browser (admin login needed); `database.types.ts` was edited by hand for the new table.
+- **Next:** try it at `/admin/kalendorius` → "Nauja rezervacija" → Erdvės; commit. Not built: payment link, editing a hire, a DB-level clash constraint (the action checks).
+
 ## 2026-11-19 — Cabin prices by length of stay (ADR-0123)
 
 - **Asked:** 3 price fields when adding a home at `/admin/namukai` (1 night 100, 2 nights 80/night, 3+ nights 60/night).

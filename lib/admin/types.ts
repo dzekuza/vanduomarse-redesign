@@ -3,6 +3,7 @@ import type { DiscountCode } from "@/lib/discount-codes";
 import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
+import type { EventPreset, SpaceId } from "@/lib/event-pricing";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { PassStatus } from "@/lib/plan-pass";
 import type { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
@@ -89,6 +90,28 @@ export interface Block {
   date: string;
   hour: number;
   reason: string;
+}
+
+/** A staff-entered hire of one or more event spaces (erdvės) on a day and time window, with the agreed price. */
+export interface SpaceBooking {
+  id: string;
+  date: string;
+  /** HH:MM. */
+  startTime: string;
+  endTime: string;
+  /** Space ids from lib/event-pricing.ts, one or several hired together. */
+  spaces: SpaceId[];
+  customer: Customer & { surname: string };
+  guests: number;
+  price: number;
+  status: BookingStatus;
+  note: string;
+}
+
+/** An event type of the price calculator, with what staff manage (shown or hidden, order). */
+export interface ManagedEventPreset extends EventPreset {
+  active: boolean;
+  sortOrder: number;
 }
 
 export type InquiryStatus = "nauja" | "susisiekta" | "pasiulymas";
@@ -434,9 +457,13 @@ export interface ExternalBlock {
 export interface AdminData {
   bookings: Booking[];
   blocks: Block[];
+  /** Event-space hires; empty before the space bookings migration or without calendar access. */
+  spaceBookings: SpaceBooking[];
   inquiries: Inquiry[];
   events: ManagedEvent[];
   prices: PriceItem[];
+  /** All event types of the calculator, hidden ones included (edited in /admin/kainos). */
+  eventPresets: ManagedEventPreset[];
   /** All saunas incl. hidden ones, in display order. */
   saunas: Sauna[];
   upsells: Upsell[];

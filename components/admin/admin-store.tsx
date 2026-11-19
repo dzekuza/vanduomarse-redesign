@@ -10,10 +10,10 @@ import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import { formatEuro } from "@/lib/coupons";
 import type { LoyaltySettings } from "@/lib/points";
-import type { ActionResult, NewBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
+import type { ActionResult, EventPresetInput, NewBookingInput, NewSpaceBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
-import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, PurchasePaymentMethod, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
+import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, PurchasePaymentMethod, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, SpaceBooking, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
 import type { CouponProduct } from "@/lib/coupons";
 import type { PageContentOverride } from "@/lib/page-content";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
@@ -70,6 +70,8 @@ type Action =
   | { type: "request/delete"; kind: "booking" | "rental" | "ticket"; id: string }
   | { type: "rental/status"; id: string; status: BookingStatus }
   | { type: "rental/add"; rental: QuadRental }
+  | { type: "space/add"; booking: SpaceBooking }
+  | { type: "space/status"; id: string; status: BookingStatus }
   | { type: "ticket/status"; id: string; status: BookingStatus }
   | { type: "ticket/add"; ticket: TourTicket }
   | { type: "stayType/upsert"; stayType: StayType }
@@ -231,6 +233,10 @@ function reducer(state: AdminData, action: Action): AdminData {
           : { ...state, tourTickets: state.tourTickets.filter((t) => t.id !== action.id), eventTickets: state.eventTickets.filter((t) => t.id !== action.id) };
     case "rental/status":
       return { ...state, quadRentals: state.quadRentals.map((r) => (r.id === action.id ? { ...r, status: action.status } : r)) };
+    case "space/add":
+      return { ...state, spaceBookings: [...state.spaceBookings, action.booking] };
+    case "space/status":
+      return { ...state, spaceBookings: state.spaceBookings.map((s) => (s.id === action.id ? { ...s, status: action.status } : s)) };
     case "rental/add":
       return { ...state, quadRentals: [...state.quadRentals, action.rental] };
     case "ticket/status": {
@@ -421,6 +427,9 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "event/publish", id, published });
         return result;
       },
+      /** Not optimistic: a new type's id comes from the server; the list arrives with the revalidated layout. */
+      saveEventPreset: (input: EventPresetInput) => report(actions.saveEventPreset(input)),
+      deleteEventPreset: (id: string) => report(actions.deleteEventPreset(id)),
       updatePrices: (items: PriceItem[]) => {
         dispatch({ type: "prices/update", items });
         return report(actions.updatePrices(items));
@@ -544,6 +553,16 @@ function useAdminReducer(initial: AdminData) {
       /** The coupon as a PDF (base64), for the download button. */
       couponPdf: (id: string) => report(actions.couponPdf(id)),
       /** Not optimistic: the reference and price come from the database. */
+      /** Not optimistic: the database re-checks clashes. */
+      createSpaceBooking: async (input: NewSpaceBookingInput) => {
+        const result = await actions.createSpaceBooking(input);
+        if ("data" in result) dispatch({ type: "space/add", booking: result.data.booking });
+        return result;
+      },
+      setSpaceBookingStatus: (id: string, status: BookingStatus) => {
+        dispatch({ type: "space/status", id, status });
+        return report(actions.setSpaceBookingStatus(id, status));
+      },
       createRental: async (input: StaffRentalInput) => {
         const result = await actions.createRental(input);
         if ("data" in result) dispatch({ type: "rental/add", rental: result.data.rental });

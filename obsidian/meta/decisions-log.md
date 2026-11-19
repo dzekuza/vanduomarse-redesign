@@ -10,6 +10,18 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0125 — Calculator event types live in the database
+
+**Context:** "Renginio tipas" in the price calculator was a fixed `PRESETS` list in `lib/event-pricing.ts`; the owner could not change or add types.
+**Decision:** table `event_presets` (id slug, label, per-guest price range, adults, kids, sort order, active), public read, write for the `kainos` permission, seeded with the old eight. The calculator gets them via `CalculatorCatalog.presets`; the static list is removed so prices have one source. Saving revalidates the public layout because the service pages are ISR.
+**Consequences:** the type id is generated from the label on creation and never changes; `input.preset` is a plain string.
+
+## ADR-0124 — Event spaces are booked through their own table, several at once
+
+**Context:** the calendar could sell sauna, cabins, quads and event tickets, but the event spaces (erdvės, `lib/event-pricing.ts`) only existed as a price sheet and calculator quotes.
+**Decision:** a staff-only `space_bookings` row is one hire: date, time window, `spaces text[]` (ids from the sheet), customer name / surname / phone, agreed price, status. Clash rule in `lib/space-booking.ts`: the same space, or either being the whole park, on overlapping times; checked by the action (no DB constraint, to keep the array rule in one place). The sheet price is only a suggestion; the agreed price is stored.
+**Consequences:** no payment link or customer e-mail flow yet; shown in the calendar as a Renginiai entry. A DB exclusion constraint can be added if two staff racing becomes real.
+
 ## ADR-0123 — Cabins and camper pitches are priced by length of stay (1 / 2 / 3+ nights)
 
 - **Status:** Accepted.

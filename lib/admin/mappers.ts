@@ -10,7 +10,8 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { Block, Booking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
+import type { EventPreset, SpaceId } from "@/lib/event-pricing";
+import type { Block, Booking, ManagedEventPreset, SpaceBooking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
 
 /**
  * Database rows (snake_case, nulls) -> app models (camelCase, optionals).
@@ -67,6 +68,23 @@ export function toBooking(r: BookingRow): Booking {
 
 export function toBlock(r: Tables<"sauna_blocks">): Block {
   return { id: r.id, saunaId: r.sauna_id, date: r.date, hour: r.hour, reason: r.reason };
+}
+
+const hhmm = (t: string) => t.slice(0, 5);
+
+export function toSpaceBooking(r: Tables<"space_bookings">): SpaceBooking {
+  return {
+    id: r.id,
+    date: r.date,
+    startTime: hhmm(r.start_time),
+    endTime: hhmm(r.end_time),
+    spaces: r.spaces as SpaceId[],
+    customer: { name: r.customer_name, surname: r.customer_surname, phone: r.customer_phone, email: r.customer_email ?? "" },
+    guests: r.guests,
+    price: Number(r.price),
+    status: r.status,
+    note: r.note,
+  };
 }
 
 export function toInquiry(r: InquiryRow): Inquiry {
@@ -145,6 +163,14 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     programId: r.program_id ?? undefined,
     tourRouteId: r.tour_route_id ?? undefined,
   };
+}
+
+export function toEventPreset(r: Tables<"event_presets">): EventPreset {
+  return { id: r.id, label: r.label, perGuest: { min: Number(r.per_guest_min), max: Number(r.per_guest_max) }, adults: r.adults, kids: r.kids };
+}
+
+export function toManagedEventPreset(r: Tables<"event_presets">): ManagedEventPreset {
+  return { ...toEventPreset(r), active: r.active, sortOrder: r.sort_order };
 }
 
 export function toPriceItem(r: Tables<"price_items">): PriceItem {

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { BookingSheet } from "../bookings/booking-sheet";
+import { SpaceBookingSheet } from "../spaces/space-booking-sheet";
 import { RentalSheet } from "../quads/rental-sheet";
 import { DayAgenda } from "./day-agenda";
 import { DayView } from "./day-view";
@@ -38,7 +39,7 @@ const STEP_LABEL: Record<View, string> = { menuo: "mėnuo", savaite: "savaitė",
 
 /** Events and bookings of every type, as a day, week or month. The selected day is the cursor all three share. */
 export function CalendarView() {
-  const { bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks } = useAdmin();
+  const { bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings } = useAdmin();
   const today = dateKey(new Date());
   const [view, setView] = useState<View>("menuo");
   const [selected, setSelected] = useState(today);
@@ -50,7 +51,7 @@ export function CalendarView() {
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
   const [ticketEventId, setTicketEventId] = useState<string | null>(null);
 
-  const all = useMemo(() => calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks }), [bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks]);
+  const all = useMemo(() => calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings }), [bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings]);
   const visible = useMemo(() => all.filter((e) => !hidden.has(e.kind)), [all, hidden]);
 
   const selectedEntries = entriesOn(visible, selected);
@@ -134,6 +135,7 @@ export function CalendarView() {
       ) : null}
       <BookingSheet booking={openEntry?.key.startsWith("booking:") ? (bookings.find((b) => b.id === openEntry.id) ?? null) : null} onOpenChange={(o) => !o && setOpenEntry(null)} />
       <RentalSheet rental={openEntry?.key.startsWith("rental:") ? (quadRentals.find((r) => r.id === openEntry.id) ?? null) : null} onOpenChange={(o) => !o && setOpenEntry(null)} />
+      <SpaceBookingSheet booking={openEntry?.key.startsWith("space:") ? (spaceBookings.find((s) => s.id === openEntry.id) ?? null) : null} onOpenChange={(o) => !o && setOpenEntry(null)} />
       {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
       {creating?.action === "booking" ? (
         <NewBookingDialog initial={{ date: creating.day }} onOpenChange={(o) => !o && setCreating(null)} onCreated={() => setCreating(null)} />
