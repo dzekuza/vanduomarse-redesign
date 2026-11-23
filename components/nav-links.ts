@@ -11,8 +11,8 @@ export interface NavLink {
 /** Primary navigation of the public site: the desktop header and the big links of the menu panel. */
 export const NAV_LINKS: readonly NavLink[] = [
   {
-    href: "/rezervacija",
-    label: "Rezervacija",
+    href: "/#kryptys",
+    label: "Pramogos ir poilsis",
     // Sessions and private hire share /pirtis, so they are one entry.
     children: RESERVATION_TYPES.filter((type) => type !== "private").map((type) => ({
       href: serviceHref(type),
@@ -25,9 +25,12 @@ export const NAV_LINKS: readonly NavLink[] = [
   // Campaign link: remove it when the Black Friday offer ends.
   { href: WAKE_BLACK_FRIDAY_PATH, label: "Black Friday" },
   { href: "/renginiai", label: "Renginiai" },
+  { href: "/sventes#rezervuoti", label: "Kainų skaičiuoklė" },
   { href: "/kuponai", label: "Dovanų kuponai" },
-  { href: "/paskyra", label: "Mano rezervacijos" },
 ];
+
+/** Customer account: an icon button beside the "Rezervuok" CTA instead of a text link. */
+export const ACCOUNT_LINK = { href: "/paskyra", label: "Mano rezervacijos" } as const;
 
 /** Sections of the home page, listed under the big links of the menu panel. */
 export const SECTION_LINKS = [

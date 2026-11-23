@@ -57,7 +57,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
       <Link href={logoHref} aria-label="Vanduo Marse, pradžia" className="w-29 shrink-0 md:w-35">
         <Image src="/brand/logo-light.svg" alt="Vanduo Marse" width={121} height={46} loading="eager" fetchPriority="high" className="h-auto w-full" />
       </Link>
-      <nav aria-label="Pagrindinis meniu" className="hidden items-center gap-5 text-xs lg:flex xl:gap-8">
+      <nav aria-label="Pagrindinis meniu" className="hidden items-center gap-8 text-xs xl:flex">
         {nav.map((l) =>
           l.children ? (
             <NavDropdown key={l.href} link={{ ...l, children: l.children }} />
