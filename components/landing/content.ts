@@ -114,6 +114,7 @@ export const SERVICES: Record<ServiceId, Service> = {
       "Po veiksmo, po šventės ar tiesiog vietoj dar vieno vakaro mieste. Jei pasiliksi namelyje prie vandens, ryte niekur nereikės lėkti.",
     facts: [
       "Nameliai prie vandens.",
+      "Lovos dvigulės ir jų negalima išskirti į dvi atskiras.",
       "Tinka ir trumpai išvykai, ir šventės tęsiniui.",
       "Namelių užimtumą, apgyvendinimą ir kainą matai pagal datą.",
     ],

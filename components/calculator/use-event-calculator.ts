@@ -2,13 +2,18 @@
 
 import { useState } from "react";
 import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type PresetId, type SaunaPick } from "@/lib/event-pricing";
+import { stayTypesOf } from "@/lib/cabin";
 import { todayKey } from "@/lib/sauna";
+import { stayFitDetails, type StayAvailability } from "./stay-fit-details";
 
 /**
  * State of the event price calculator: the input, setters and the live estimate. Shared by the page and the drawer.
  * `catalog` holds the live cabin sizes and saunas with their prices (from `public.stay_types` and `public.saunas`).
  */
-export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalog = EMPTY_CATALOG) {
+/** Largest group the slider offers for any event. */
+const MAX_GUESTS = 500;
+
+export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalog = EMPTY_CATALOG, stay?: StayAvailability) {
   const [input, setInput] = useState<EstimateInput>(DEFAULT_INPUT);
   const set = <K extends keyof EstimateInput>(key: K, value: EstimateInput[K]) => setInput((s) => ({ ...s, [key]: value }));
 
@@ -28,14 +33,25 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
 
   const result = estimate(input, catalog);
   const guests = input.adults + input.kids;
-  const space = input.space ? SPACES.find((s) => s.id === input.space)! : null;
+  const spaces = SPACES.filter((s) => input.spaces.includes(s.id));
+  const spaceLabel = spaces.map((s) => s.label).join(" + ");
+  const extraHour = spaces.find((s) => s.extraHour)?.extraHour ?? null;
   const preset = PRESETS.find((p) => p.id === input.preset) ?? null;
+  // A camp sleeps in the cabins, so its group cannot be larger than the beds (camper pitches are not counted: they are not used for camps).
+  const sleepingPlaces = stayTypesOf(catalog.stayTypes, "namelis").filter((t) => t.active && t.units !== null).reduce((sum, t) => sum + (t.units ?? 0) * t.maxGuests, 0);
+  const guestLimit = input.preset === "stovykla" && sleepingPlaces > 0 ? sleepingPlaces : MAX_GUESTS;
 
   function applyPreset(id: PresetId) {
     const p = PRESETS.find((x) => x.id === id)!;
     // The type only suggests a group size (and drives the typical price per guest); nothing else is chosen for the visitor.
     const suggestedGuests = (p.apply.adults ?? DEFAULT_INPUT.adults) + (p.apply.kids ?? DEFAULT_INPUT.kids);
-    setInput((s) => ({ ...s, preset: id, adults: suggestedGuests }));
+    // A group size the visitor already chose (the standalone page asks for it first) is never overwritten.
+    // A camp almost always uses the dome, so it starts chosen (the visitor can switch it off).
+    const limit = id === "stovykla" && sleepingPlaces > 0 ? sleepingPlaces : MAX_GUESTS;
+    setInput((s) => {
+      const adults = s.adults === DEFAULT_INPUT.adults && s.kids === DEFAULT_INPUT.kids ? suggestedGuests : s.adults;
+      return { ...s, spaces: id === "stovykla" && s.spaces.length === 0 ? ["kupolas-svente"] : s.spaces, preset: id, adults: Math.max(1, Math.min(adults, limit - s.kids)) };
+    });
   }
 
   function chooseDate(date: string) {
@@ -51,7 +67,10 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
     setInput((s) => s.date ? { ...s, eventTime, day: dayTypeOf(s.date, eventTime) } : s);
   }
 
-  return { input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, space, preset, applyPreset, chooseDate, chooseTime, today };
+  /** Calendar mark: can the cabins that are free house the whole group for the chosen nights. */
+  const stayDetails = stay ? (date: Date) => stayFitDetails(catalog.stayTypes, stay, date, input.cabinNights, guests) : undefined;
+
+  return { stayDetails, input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, guestLimit, sleepingPlaces, spaces, spaceLabel, extraHour, preset, applyPreset, chooseDate, chooseTime, today };
 }
 
 export type EventCalculatorState = ReturnType<typeof useEventCalculator>;

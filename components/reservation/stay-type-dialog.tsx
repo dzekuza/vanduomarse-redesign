@@ -6,7 +6,8 @@ import { Cta } from "@/components/cta";
 import { SERVICE_GALLERY } from "@/components/landing/content";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MAX_STAY_NIGHTS, type StayType } from "@/lib/cabin";
+import { BedNotice } from "@/components/booking/bed-notice";
+import { MAX_STAY_NIGHTS, hasUpperFloor, type StayType } from "@/lib/cabin";
 
 interface StayTypeDialogProps {
   type: StayType;
@@ -55,6 +56,12 @@ export function StayTypeDialog({ type, className }: StayTypeDialogProps) {
               <dd className="text-sm font-bold">Iki {MAX_STAY_NIGHTS}</dd>
             </div>
           </dl>
+          {camper ? null : (
+            <section className="space-y-3">
+              <BedNotice />
+              <p className="text-xs text-copy">{hasUpperFloor(type) ? "Šiame namelyje yra antras aukštas su dvigule lova (lipama kopėčiomis)." : "Šiame namelyje antro aukšto nėra."}</p>
+            </section>
+          )}
           <section className="space-y-3">
             <h3 className="text-item font-bold">Prieš rezervuojant</h3>
             <p className="text-xs leading-relaxed text-copy">Kaina už vienetą, su PVM. Laisvų vienetų skaičių matysi pasirinkęs atvykimo ir išvykimo datas.</p>

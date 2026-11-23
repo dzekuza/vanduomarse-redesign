@@ -9,6 +9,7 @@ import { ArrowButton } from "./arrow-button";
 import { BookingCard, BookingTotal, type BookingStep } from "./booking-card";
 import { CabinConfirmation } from "./cabin-confirmation";
 import { ContactStep } from "./contact-step";
+import { BedNotice } from "./bed-notice";
 import { CabinSizePicker } from "./cabin-size-picker";
 import { CouponField } from "./coupon-field";
 import { DayPicker, type DayNote } from "./day-picker";
@@ -113,6 +114,7 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
           <div className="grid gap-2">
             <RoomTypePicker types={stayTypes} selected={kind} onSelect={setKind} />
             {ofKind.length > 1 && type ? <CabinSizePicker types={ofKind} selected={type.id} onSelect={setPreferredId} free={free} legend={cabin ? "Namelio tipas" : "Aikštelės tipas"} /> : null}
+            {cabin ? <BedNotice /> : null}
           </div>
         </div>
       ),

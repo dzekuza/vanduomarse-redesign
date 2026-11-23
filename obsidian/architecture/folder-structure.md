@@ -26,7 +26,7 @@ components/
 ├── ui/                 ← shadcn/ui primitives (locally modified, see [[components/ui]])
 ├── booking/            ← embed booking flows (sauna, cabins, quads), receipts, calendar export
 ├── events/             ← /renginiai feed
-├── calculator/         ← /sventes (CelebrationCalculator, shared logic)
+├── calculator/         ← /skaiciuokle (CalculatorPage) and /sventes (CelebrationCalculator), shared logic
 └── admin/              ← store, shell, and a folder per admin screen
 hooks/                  ← shared hooks — catalog: [[hooks]]
 lib/                    ← business rules, prices, data generators — catalog: [[utils]]

@@ -12,7 +12,7 @@ interface EstimateSummaryProps {
   spaceLabel: string;
   compact?: boolean;
   /** Typical per-guest range from the price sheet for the chosen event type. */
-  typical: { label: string; perGuest: Money } | null;
+  typical: { label: string; perGuest: Money | null } | null;
 }
 
 /** Boxed surface shared by the full summary and the breakdown-only variant. */
@@ -31,7 +31,7 @@ function EstimateTotal({ estimate, guests, typical }: Pick<EstimateSummaryProps,
           ≈ {formatMoney(estimate.perGuest)} vienam svečiui · {guests} asm.
         </p>
       ) : null}
-      {typical ? (
+      {typical?.perGuest ? (
         <p className="mt-2 text-xs text-copy">
           {typical.label}: įprastai {formatMoney(typical.perGuest)} / asm.
         </p>
@@ -82,6 +82,14 @@ function EstimateBody({ estimate, input, guests, spaceLabel, typical, compact = 
         })}
       </div>
 
+      {estimate.notes.length ? (
+        <ul className={`space-y-1.5 border-t border-line ${compact ? "p-3" : "px-6 py-4"}`}>
+          {estimate.notes.map((note) => (
+            <li key={note} className="text-xs text-ink/80">{note}</li>
+          ))}
+        </ul>
+      ) : null}
+
       {estimate.warnings.length ? (
         <ul className={`space-y-1.5 border-t border-line ${compact ? "p-3" : "px-6 py-4"}`}>
           {estimate.warnings.map((w) => (
@@ -98,7 +106,7 @@ function EstimateBody({ estimate, input, guests, spaceLabel, typical, compact = 
           Kainos su 21% PVM, galioja iki 2027-12-31. Erdvei taikomas 100% avansas, galutinis meniu tvirtinamas prieš 14 d.
           Tai orientacinė sąmata, ne pasiūlymas.
         </p>
-        {input.space && input.day ? (
+        {input.spaces.length > 0 && input.day ? (
           <InquiryForm estimate={estimate} input={input} guests={guests} eventLabel={typical?.label ?? "Renginys"} spaceLabel={spaceLabel} />
         ) : (
           <p className="text-xs text-copy">Pasirink datą, laiką ir erdvę, kad galėtum siųsti užklausą.</p>

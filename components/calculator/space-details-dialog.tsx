@@ -1,28 +1,11 @@
 "use client";
 
-import { ArrowUpRightIcon } from "@phosphor-icons/react";
-import { GALLERY_SLIDES, SERVICE_GALLERY, type ServicePhoto } from "@/components/landing/content";
+import type { ReactNode } from "react";
 import { ServiceGallery } from "@/components/landing/service-gallery";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { formatMoney, type Space, type SpaceId } from "@/lib/event-pricing";
-
-const parkPhoto = GALLERY_SLIDES[0];
-const [domePhoto, nightPhoto, foodPhoto] = SERVICE_GALLERY.party;
-const domePhotos = [domePhoto, parkPhoto];
-const restaurantPhotos = [parkPhoto, foodPhoto];
-const parkPhotos = [parkPhoto, domePhoto, nightPhoto];
-
-const SPACE_PHOTOS: Record<SpaceId, ServicePhoto[]> = {
-  terasa: restaurantPhotos,
-  "kupolas-svente": [domePhoto, nightPhoto, parkPhoto],
-  "kupolas-seminaras": domePhotos,
-  "kupolas-corona": domePhotos,
-  corona: [parkPhoto, nightPhoto],
-  restoranas: restaurantPhotos,
-  parkas: parkPhotos,
-  "parkas-wake": [parkPhoto, ...SERVICE_GALLERY.wake, domePhoto],
-};
+import { formatMoney, type Space } from "@/lib/event-pricing";
+import { SPACE_PHOTOS } from "./space-photos";
 
 interface SpaceDetailsDialogProps {
   space: Space;
@@ -30,17 +13,13 @@ interface SpaceDetailsDialogProps {
   minimumSpend: number;
 }
 
-export function SpaceDetailsDialog({ space, rentLabel, minimumSpend }: SpaceDetailsDialogProps) {
+/** `children` is the trigger's content (the card's thumbnail); the dialog opens the gallery and the details. */
+export function SpaceDetailsDialog({ space, rentLabel, minimumSpend, children, className }: SpaceDetailsDialogProps & { children: ReactNode; className?: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Daugiau informacijos: ${space.label}`}
-          className="inline-flex min-h-11 items-center gap-2 text-left text-xs font-bold underline underline-offset-4 transition-opacity hover:opacity-70"
-        >
-          Daugiau informacijos
-          <ArrowUpRightIcon aria-hidden className="size-4 shrink-0" />
+        <button type="button" aria-label={`Nuotraukos ir informacija: ${space.label}`} className={className}>
+          {children}
         </button>
       </DialogTrigger>
       <DialogContent showCloseButton={false} className="flex max-h-9/10 flex-col gap-0 overflow-hidden rounded-none border-line bg-popover p-0 text-ink sm:max-w-xl">

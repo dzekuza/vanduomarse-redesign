@@ -26,7 +26,7 @@ export const CELEBRATION_PAGES = {
     facts: [
       { label: "Ceremonija", value: "Vietą ir įrengimą deriname pagal šventės planą." },
       { label: "Vakarienė", value: "Meniu ir aptarnavimą deriname su restorano komanda." },
-      { label: "Nakvynė svečiams", value: "Dviviečiai ir keturviečiai nameliai pagal užimtumą." },
+      { label: "Nakvynė svečiams", value: "Dviviečiai ir keturviečiai nameliai pagal užimtumą. Lovos dvigulės, jų negalima išskirti į dvi atskiras." },
     ],
     questions: [
       { title: "Ar vestuvių svečiai gali pasilikti nakvynei?", body: "Taip, svečiai gali užsisakyti namelius. Dėl didesnio kiekio parašyk iš anksto." },

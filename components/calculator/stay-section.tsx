@@ -1,5 +1,6 @@
 "use client";
 
+import { BedNotice } from "@/components/booking/bed-notice";
 import { StepLabel } from "@/components/booking/step-label";
 import { CompactStepper } from "@/components/booking/stepper";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
@@ -52,6 +53,7 @@ function CabinOptions({ calc: { input, set, setCabinUnits, stayTypes } }: { calc
       </div>
       <div>
         <OptionGroupLabel>Namelio tipas</OptionGroupLabel>
+        <BedNotice className="mb-3" />
         <div className="grid gap-3 lg:grid-cols-2">
           {stayTypesOf(stayTypes, "namelis").map(({ id, label, maxGuests, pricePerNight, units }) => (
             <CalculatorQuantityCard

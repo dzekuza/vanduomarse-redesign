@@ -2,6 +2,7 @@
 
 import { ListBulletsIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { BedNotice } from "@/components/booking/bed-notice";
 import { CompactStepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
 import { MAX_STAY_UNITS, type StayType } from "@/lib/cabin";
@@ -46,6 +47,7 @@ export function StayOptions({ plan, stayTypes, datesSelected, included, onChange
             );
           })}
         </div>
+        {stayTypes.some((type) => type.kind === "namelis") ? <BedNotice className="mt-3" /> : null}
       </fieldset>
       {datesSelected && included && !plan.ok && (
         <p role="status" className="text-sm text-rust-ink">

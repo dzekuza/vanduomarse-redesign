@@ -22,11 +22,11 @@ export const NAV_LINKS: readonly NavLink[] = [
       { href: "/restoranas", label: "Skoniai" },
     ]),
   },
-  // Campaign link: remove it when the Black Friday offer ends.
-  { href: WAKE_BLACK_FRIDAY_PATH, label: "Black Friday" },
   { href: "/renginiai", label: "Renginiai" },
-  { href: "/sventes#rezervuoti", label: "Kainų skaičiuoklė" },
+  { href: "/skaiciuokle", label: "Kainų skaičiuoklė" },
   { href: "/kuponai", label: "Dovanų kuponai" },
+  // Campaign link, kept rightmost: remove it when the Black Friday offer ends.
+  { href: WAKE_BLACK_FRIDAY_PATH, label: "Black Friday" },
 ];
 
 /** Customer account: an icon button beside the "Rezervuok" CTA instead of a text link. */

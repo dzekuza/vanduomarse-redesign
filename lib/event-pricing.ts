@@ -50,7 +50,29 @@ export interface Space {
   extraHour: { label: string; rate: number } | null;
   serviceFee: Money;
   note?: string;
+  /** Rent per day when the event is a camp (stovykla); replaces `rent` for that space. */
+  campRent?: number;
+  /** "nuo" price headline on the calculator card when it should differ from the rent (the owner's wording); the estimate still uses `rent` and `minSpend`. */
+  cardFrom?: number;
 }
+
+/** What the calculator offers to pick: four venues that can be combined (rents add up), and the whole park, which excludes them. */
+export interface Venue {
+  id: string;
+  label: string;
+  /** The priced spaces behind the venue; more than one means a variant the visitor switches between. */
+  spaces: readonly SpaceId[];
+}
+
+export const VENUES: readonly Venue[] = [
+  { id: "kupolas", label: "Kupolas", spaces: ["kupolas-svente", "kupolas-seminaras"] },
+  { id: "terasa", label: "Įstiklinta terasa", spaces: ["terasa"] },
+  { id: "corona", label: "Lauko terasa su baseinu", spaces: ["corona"] },
+  { id: "restoranas", label: "Restoranas + terasa", spaces: ["restoranas"] },
+];
+
+/** Whole-park hire (without or with WAKE); it replaces every single venue. */
+export const WHOLE_PARK: Venue = { id: "parkas", label: "Visas parkas", spaces: ["parkas", "parkas-wake"] };
 
 const TEAM_FEE = range(100, 350);
 const OVERTIME = { label: "Viršvalandžiai po 24:00", rate: 150 };
@@ -84,6 +106,7 @@ export const SPACES: Space[] = [
     minSpend: () => 0,
     extraHour: OVERTIME,
     serviceFee: TEAM_FEE,
+    campRent: 100,
   },
   {
     id: "kupolas-seminaras",
@@ -95,6 +118,7 @@ export const SPACES: Space[] = [
     minSpend: () => 0,
     extraHour: null,
     serviceFee: TEAM_FEE,
+    campRent: 100,
   },
   {
     id: "kupolas-corona",
@@ -109,7 +133,7 @@ export const SPACES: Space[] = [
   },
   {
     id: "corona",
-    label: "„Corona“ su baseinu",
+    label: "Lauko terasa su baseinu („Corona“)",
     blurb: "Privatus baseinas, atskiras baras, minkštasuoliai, DJ zona. Visiškas privatumas.",
     maxGuests: 250,
     includedTime: "Renginio trukmė",
@@ -129,6 +153,7 @@ export const SPACES: Space[] = [
     extraHour: OVERTIME,
     serviceFee: TEAM_FEE,
     note: "Privačiai nuomojamas tik spalio–gegužės mėn.",
+    cardFrom: 1500,
   },
   {
     id: "parkas",
@@ -203,6 +228,35 @@ export const PRICES = {
   atvMinRiders: 10,
 } as const;
 
+/** Camp (stovykla) meals, per person; breakfast includes water, coffee and tea (juice is extra). */
+export type CampMealId = "breakfast" | "lunch" | "dinner";
+
+export const CAMP_MEALS: readonly { id: CampMealId; label: string; price: number; hint?: string }[] = [
+  { id: "breakfast", label: "Pusryčiai", price: 15, hint: "su gėrimais (vanduo, kava, arbata), sultys papildomai" },
+  { id: "lunch", label: "Pietūs", price: 15 },
+  { id: "dinner", label: "Vakarienė", price: 18 },
+];
+
+/** Things a camp can include besides the priced parts (sauna, quads, meals); the price is agreed with the team. */
+export const CAMP_ACTIVITIES = [
+  { id: "film", label: "Filmų vakaras" },
+  { id: "yoga", label: "Joga" },
+  { id: "table-tennis", label: "Stalo tenisas" },
+  { id: "breathing", label: "Kvėpavimo seansas" },
+  { id: "gongs", label: "Gongai" },
+  { id: "other", label: "Kita veikla (parašysi komentare)" },
+] as const;
+
+export type CampActivityId = (typeof CAMP_ACTIVITIES)[number]["id"];
+
+/** Days of a weekend camp on which the sauna is booked. */
+export type CampDay = "sat" | "sun";
+
+export const CAMP_DAY_LABEL: Record<CampDay, string> = { sat: "Šeštadienis", sun: "Sekmadienis" };
+
+/** The usual Friday evening to Sunday morning stay: Fri dinner, Sat breakfast, lunch and dinner, Sun breakfast. */
+export const CAMP_WEEKEND_MEALS: Record<CampMealId, number> = { breakfast: 2, lunch: 1, dinner: 2 };
+
 /* ---------- Event presets (sheet section 3) ---------- */
 
 export type PresetId =
@@ -213,17 +267,20 @@ export type PresetId =
   | "teambuilding"
   | "imones-svente"
   | "konferencija"
-  | "bernvakaris";
+  | "bernvakaris"
+  | "stovykla";
 
 export interface EventPreset {
   id: PresetId;
   label: string;
-  perGuest: Money;
+  /** Typical price per guest from the sheet; null when there is none (camps are priced by their parts). */
+  perGuest: Money | null;
   /** Only the typical group size: venue, day, catering and services are always the visitor's own choice. */
   apply: Pick<Partial<EstimateInput>, "adults" | "kids">;
 }
 
 export const PRESETS: EventPreset[] = [
+  { id: "stovykla", label: "Stovykla", perGuest: null, apply: { adults: 30 } },
   { id: "vestuves", label: "Vestuvės", perGuest: range(55, 95), apply: { adults: 120 } },
   { id: "vestuves-kamerines", label: "Kamerinės vestuvės", perGuest: range(45, 70), apply: { adults: 30 } },
   { id: "krikstynos", label: "Krikštynos", perGuest: range(25, 45), apply: { adults: 20, kids: 5 } },
@@ -265,14 +322,22 @@ export interface EstimateInput {
   preset: PresetId | null;
   /** yyyy-mm-dd of the event, null until chosen. */
   date: string | null;
-  /** null until the visitor picks one: nothing is preselected. */
-  space: SpaceId | null;
+  /** Spaces hired together (empty until the visitor picks): rents add up, the minimum bill is the highest one and one service fee applies. */
+  spaces: SpaceId[];
   day: DayType | null;
   eventTime?: EventTime | null;
   adults: number;
   /** Children 3-10 y.: 50% of the buffet price; under 3 eat free and are not counted. */
   kids: number;
   extraHours: number;
+  /** Days of a camp (preset "stovykla"): the dome is charged per day. */
+  campDays: number;
+  /** Camp meals over the whole stay, by kind; each is priced per guest. */
+  campMeals: Record<CampMealId, number>;
+  /** Activities the camp wants (priced by agreement). */
+  campActivities: CampActivityId[];
+  /** Camp days with the sauna; the sauna price is charged once per day (one when none is ticked). */
+  campSaunaDays: CampDay[];
   /** null = not chosen yet; "none" is the explicit "Be maitinimo". */
   catering: CateringId | null;
   coffeeBreak: boolean;
@@ -293,11 +358,15 @@ export interface EstimateInput {
 export const DEFAULT_INPUT: EstimateInput = {
   preset: null,
   date: null,
-  space: null,
+  spaces: [],
   day: null,
   adults: 20,
   kids: 0,
   extraHours: 0,
+  campDays: 1,
+  campMeals: { breakfast: 0, lunch: 0, dinner: 0 },
+  campActivities: [],
+  campSaunaDays: [],
   catering: null,
   coffeeBreak: false,
   drinks: { keg: 0, wine: 0, sparkling: 0, cocktail: 0, juice: 0 },
@@ -332,33 +401,46 @@ export interface Estimate {
   /** Food and drink still to be ordered to reach the space's minimum bill. */
   minSpendGap: Money;
   warnings: string[];
+  /** Plain remarks shown with the estimate, e.g. the activities whose price is agreed. */
+  notes: string[];
   available: boolean;
 }
 
 
 /** `catalog` supplies the cabin and sauna prices (they live in `public.stay_types` and `public.saunas`). */
 export function estimate(input: EstimateInput, { stayTypes, saunas, programs, upsells }: CalculatorCatalog = EMPTY_CATALOG): Estimate {
-  const space = input.space ? SPACES.find((s) => s.id === input.space)! : null;
+  const spaces = SPACES.filter((s) => input.spaces.includes(s.id));
   const guests = input.adults + input.kids;
   const lines: EstimateLine[] = [];
   const warnings: string[] = [];
+  const notes: string[] = [];
   const push = (group: EstimateLine["group"], label: string, amount: Money) => {
     if (amount.max > 0) lines.push({ group, label, amount });
   };
 
-  // Space
-  const rent = space && input.day ? space.rent(input.day, guests) : null;
-  const available = space !== null && rent !== null && guests <= space.maxGuests;
-  if (space) {
-    if (!input.day) warnings.push("Pasirink renginio datą ir laiką, kad matytum erdvės kainą.");
+  // Spaces: each one's rent is a line and the rents add up (Kupolas + Corona is 700 + 1200, as in the sheet).
+  // Before the date is chosen the rent is a range over both kinds of day, matching the "nuo" price on the venue cards.
+  const dayTypes: DayType[] = input.day ? [input.day] : ["weekday", "weekend"];
+  const camp = input.preset === "stovykla";
+  const campDays = Math.max(1, input.campDays);
+  const rents = spaces.map((space) => {
+    if (camp && space.campRent !== undefined) return fixed(space.campRent * campDays);
+    const values = dayTypes.map((day) => space.rent(day, guests)).filter((rent): rent is number => rent !== null);
+    return values.length ? range(Math.min(...values), Math.max(...values)) : null;
+  });
+  const available = input.day !== null && spaces.length > 0 && rents.every((rent) => rent !== null) && spaces.every((space) => guests <= space.maxGuests);
+  if (spaces.length > 0 && !input.day) warnings.push("Pasirink renginio datą ir laiką, kad matytum tikslią erdvės kainą.");
+  spaces.forEach((space, i) => {
+    const rent = rents[i];
     if (guests > space.maxGuests) warnings.push(`${space.label}: daugiausia ${space.maxGuests} svečių.`);
     if (input.day && rent === null && guests <= space.maxGuests)
-      warnings.push(input.space === "kupolas-seminaras" ? "Seminarams kupolas nuomojamas tik darbo dienomis." : `${space.label}: šiai datai netaikoma.`);
-    push("Erdvė", `${space.label} (${space.includedTime})`, fixed(rent ?? 0));
-    if (space.extraHour && input.extraHours > 0)
-      push("Erdvė", `${space.extraHour.label} × ${input.extraHours}`, fixed(space.extraHour.rate * input.extraHours));
+      warnings.push(space.id === "kupolas-seminaras" ? "Seminarams kupolas nuomojamas tik darbo dienomis." : `${space.label}: šiai datai netaikoma.`);
+    const campRate = camp && space.campRent !== undefined;
+    push("Erdvė", campRate ? `${space.label} (stovykla, ${campDays} d. × ${space.campRent} €)` : `${space.label} (${space.includedTime})`, rent ?? ZERO);
     if (space.note) warnings.push(space.note);
-  }
+  });
+  const extraHour = spaces.find((space) => space.extraHour)?.extraHour;
+  if (extraHour && input.extraHours > 0) push("Erdvė", `${extraHour.label} × ${input.extraHours}`, fixed(extraHour.rate * input.extraHours));
 
   // Food and drink
   const cat = input.catering ? CATERING.find((c) => c.id === input.catering)! : null;
@@ -371,12 +453,21 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
     if (cat.id.startsWith("bufetas") && guests < BUFFET_MIN_GUESTS)
       warnings.push(`Švediškas stalas užsakomas nuo ${BUFFET_MIN_GUESTS} asm.`);
   }
-  if (input.coffeeBreak) {
+  if (camp) {
+    for (const meal of CAMP_MEALS) {
+      const count = input.campMeals[meal.id];
+      if (count <= 0) continue;
+      const amount = fixed(meal.price * count * guests);
+      push("Maistas ir gėrimai", `${meal.label} × ${count} (${guests} asm.)`, amount);
+      fnb = add(fnb, amount);
+    }
+  }
+  if (input.coffeeBreak && !camp) {
     const coffee = times(COFFEE_BREAK, guests);
     push("Maistas ir gėrimai", "Kavos pertrauka", coffee);
     fnb = add(fnb, coffee);
   }
-  for (const d of DRINKS) {
+  for (const d of camp ? [] : DRINKS) {
     const qty = input.drinks[d.id];
     if (qty > 0) {
       const amount = times(d.price, qty);
@@ -384,34 +475,40 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
       fnb = add(fnb, amount);
     }
   }
-  const minSpend = space && input.day ? space.minSpend(input.day, guests) : 0;
+  const minSpend = Math.max(0, ...spaces.flatMap((space) => dayTypes.map((day) => space.minSpend(day, guests))));
   const minSpendGap = range(Math.max(0, minSpend - fnb.max), Math.max(0, minSpend - fnb.min));
   push("Maistas ir gėrimai", `Iki minimalios sąskaitos (${minSpend} €)`, minSpendGap);
 
   // Services
-  if (space) push("Paslaugos", "Aptarnavimo mokestis", space.serviceFee);
-  if (input.bartenders > 0) push("Paslaugos", `Barmenai × ${input.bartenders}`, fixed(PRICES.bartender * input.bartenders));
-  if (input.decor) push("Paslaugos", "Šventinis stalo dekoravimas", PRICES.decor);
-  if (input.serving) push("Paslaugos", "Stalų serviravimas", fixed(PRICES.serving * guests));
+  if (spaces.length > 0 && !camp) push("Paslaugos", "Aptarnavimo mokestis", spaces.reduce((fee, space) => (space.serviceFee.max > fee.max ? space.serviceFee : fee), spaces[0].serviceFee));
+  if (input.bartenders > 0 && !camp) push("Paslaugos", `Barmenai × ${input.bartenders}`, fixed(PRICES.bartender * input.bartenders));
+  if (input.decor && !camp) push("Paslaugos", "Šventinis stalo dekoravimas", PRICES.decor);
+  if (input.serving && !camp) push("Paslaugos", "Stalų serviravimas", fixed(PRICES.serving * guests));
 
   // Activities
+  const saunaDays = camp ? Math.max(1, input.campSaunaDays.length) : 1;
+  const perDay = saunaDays > 1 ? ` × ${saunaDays} d.` : "";
   for (const sauna of saunas) {
     const pick = input.saunas[sauna.id];
     if (!pick || pick.hours <= 0) continue;
     const program = pick.programId ? programs.find((p) => p.id === pick.programId && p.saunaId === sauna.id) : undefined;
     if (program) {
-      push("Pramogos", `${sauna.name}: ${program.name}, ${durationLabel(program.durationMinutes)}`, fixed(programTotal(program, guests, 0)));
+      push("Pramogos", `${sauna.name}: ${program.name}, ${durationLabel(program.durationMinutes)}${perDay}`, fixed(programTotal(program, guests, 0) * saunaDays));
     } else {
-      push("Pramogos", `${sauna.name}, ${Math.max(sauna.rates.minHours, pick.hours)} val.`, fixed(sessionPrice(pick.hours, guests, sauna.rates, input.date ?? undefined)));
+      push("Pramogos", `${sauna.name}, ${Math.max(sauna.rates.minHours, pick.hours)} val.${perDay}`, fixed(sessionPrice(pick.hours, guests, sauna.rates, input.date ?? undefined) * saunaDays));
     }
     const hours = program ? programHours(program) : Math.max(sauna.rates.minHours, pick.hours);
     for (const upsell of upsells) {
       const qty = pick.extras[upsell.id] ?? 0;
       if (qty <= 0 || !sauna.upsellIds.includes(upsell.id)) continue;
-      push("Pramogos", `${upsell.name}${upsell.unit === "vienetui" ? ` × ${qty}` : ""} (${sauna.name})`, fixed(upsellTotal(upsell, qty, { partySize: guests, hours })));
+      push("Pramogos", `${upsell.name}${upsell.unit === "vienetui" ? ` × ${qty}` : ""} (${sauna.name})${perDay}`, fixed(upsellTotal(upsell, qty, { partySize: guests, hours }) * saunaDays));
     }
     if (guests > sauna.rates.maxParty) warnings.push(`${sauna.name}: telpa iki ${sauna.rates.maxParty} asm., didesnė grupė keičiasi.`);
   }
+  if (camp && input.campSaunaDays.length > 0 && saunas.some((sauna) => (input.saunas[sauna.id]?.hours ?? 0) > 0))
+    notes.push(`Pirtis: ${input.campSaunaDays.map((day) => CAMP_DAY_LABEL[day].toLowerCase()).join(", ")}.`);
+  if (camp && input.campActivities.length > 0)
+    notes.push(`Veiklos (kaina aptariama): ${CAMP_ACTIVITIES.filter((activity) => input.campActivities.includes(activity.id)).map((activity) => activity.label.replace(/ \(.*\)$/, "")).join(", ")}.`);
   if (input.wakePrivate) push("Pramogos", "Privati WAKE trasa, 2 val.", fixed(PRICES.wakePrivate));
   if (input.wakeRiders > 0) push("Pramogos", `WAKE plaukimas × ${input.wakeRiders}`, fixed(PRICES.wakeRider * input.wakeRiders));
   if (input.atvRiders > 0) {
@@ -429,7 +526,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
 
   const total = lines.reduce((sum, l) => add(sum, l.amount), ZERO);
   const perGuest = guests > 0 && total.max > 0 ? range(Math.round(total.min / guests), Math.round(total.max / guests)) : null;
-  return { lines, total, perGuest, minSpendGap, warnings, available };
+  return { lines, total, perGuest, minSpendGap, warnings, notes, available };
 }
 
 export function formatMoney(m: Money): string {

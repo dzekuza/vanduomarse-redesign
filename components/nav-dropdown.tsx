@@ -48,7 +48,7 @@ export function NavDropdown({ link }: { link: NavLink & { children: NonNullable<
           aria-expanded={open}
           aria-controls={listId}
           onClick={() => setOpen((current) => !current)}
-          className="grid size-8 place-items-center"
+          className="grid h-11 w-5 place-items-center justify-items-end"
         >
           <CaretDownIcon aria-hidden size={12} weight="bold" className={cn("motion-safe:transition-transform motion-safe:duration-200", open && "rotate-180")} />
         </button>

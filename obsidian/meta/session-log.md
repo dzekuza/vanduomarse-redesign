@@ -1,3 +1,100 @@
+## 2026-11-23 — Cabin bed rule site-wide
+
+- **Changed:** `lib/cabin.ts` (`BED_NOTICE`, `hasUpperFloor`), `bed-notice.tsx` (new), `stay-service-booking.tsx`, `stay-options.tsx`, `cabin-booking.tsx`, `stay-type-dialog.tsx`, `activity-details.tsx`, `cabin-confirmation.tsx`, `stay-section.tsx`, `service-content.ts`, `celebration-content.ts`, `landing/content.ts`, `public/llms.txt`. Docs: changelog, status, catalog.
+- **Status:** tsc/eslint/tests clean; browser-checked `/nakvyne`. Uncommitted. Other placements not browser-checked.
+- **Next:** owner checks /admin/namukai notes and /admin/puslapiai text for conflicting wording; commit.
+
+## 2026-11-23 — Cabin availability in the calendar, camp guest cap
+
+- **Changed:** `stay-fit-details.tsx` (new), `use-event-calculator.ts` (`stayDetails`, `guestLimit`, `sleepingPlaces`), `event-date-picker.tsx`, `calculator-sections.tsx`, `calculator-page.tsx`, `app/skaiciuokle/page.tsx`. Docs: changelog, status, catalog.
+- **Status:** tsc/eslint clean, tests pass; browser-checked at 1280 px. Uncommitted. Not checked: a taken night, mobile marks.
+- **Next:** check a booked night and 375 px; owner: priespirtis, camp prices; commit.
+
+## 2026-11-23 — Camp flow
+
+- **Changed:** `lib/event-pricing.ts` (activities, sauna days, no drinks/service for camps, `notes`), `camp-activities.tsx` (new), `calculator-groups.tsx` (`CAMP_GROUPS`), `use-event-calculator.ts` (dome preselected), `estimate-summary.tsx` (notes). Docs: changelog, status, catalog.
+- **Status:** tests, tsc, eslint clean; browser-checked 1280 and 375 px. Uncommitted. Not checked: sauna days chooser, submitting an inquiry.
+- **Next:** owner: priespirtis price and capacity, camp prices of other spaces, activity prices; commit.
+
+## 2026-11-23 — Camp (Stovykla) in the calculator (ADR-0118)
+
+- **Changed:** `lib/event-pricing.ts` (preset, `campRent`, `campDays`, `campMeals`, `CAMP_MEALS`), `camp-meals.tsx` (new), `food-section.tsx`, `calculator-sections.tsx`, `calculator-groups.tsx` (type first), `venue-card.tsx` / `space-picker.tsx` (camp rate on the card), `estimate-summary.tsx` (nullable typical price). Docs: ADR-0118, changelog, status.
+- **Status:** tsc/eslint clean, tests; browser-checked 1280 and 375 px. Uncommitted.
+- **Next:** owner: price of the priespirtis and other spaces for camps, more camp rules from real orders; commit.
+
+## 2026-11-23 — Restaurant card price
+
+- **Changed:** `Space.cardFrom` (display-only) set to 1 500 for the restaurant; `venue-card.tsx` uses it. Docs: changelog, status.
+- **Status:** tsc/eslint/tests clean; browser-checked. Card says nuo 1 500 €, the estimate shows 2 100–2 350 € (500 rent + 1 500 minimum bill + fee). Uncommitted.
+- **Next:** owner to say whether the 500 € rent is inside the 1 500 € minimum bill; commit.
+
+## 2026-11-23 — Terasa price label
+
+- **Changed:** `venue-card.tsx` (price "nuo 700 €" for a no-rent space, minimum bill on the capacity line). Docs: changelog, status.
+- **Status:** tsc clean; browser-checked at 1280 px. Uncommitted.
+- **Next:** commit; owner confirms summed combinations; taken spaces per date.
+
+## 2026-11-23 — Square venue thumbnails
+
+- **Changed:** `venue-card.tsx` (thumbnail is a fixed square, `size-24 sm:size-28`). Docs: changelog, catalog row.
+- **Status:** browser-checked at 1280 px, all five 112 x 112. Uncommitted.
+- **Next:** commit; owner confirms summed combinations; taken spaces per date.
+
+## 2026-11-23 — Venue cards in one column
+
+- **Changed:** `space-picker.tsx` (grid is one column). Docs: changelog, catalog row.
+- **Status:** tsc clean; browser-checked at 1280 px. Uncommitted.
+- **Next:** owner confirms summed combinations; taken spaces per date; commit.
+
+## 2026-11-23 — Estimate before the date is chosen
+
+- **Changed:** `lib/event-pricing.ts` (rent and minimum bill as a range over both day types when `day` is null; `available` needs a date), `lib/event-pricing.test.ts` (+1 test). Docs: changelog.
+- **Status:** tests, tsc, eslint clean; browser-checked: Kupolas alone 800–1 050 €, Kupolas + lauko terasa 3 500–3 750 €. Uncommitted.
+- **Next:** owner confirms the summed combinations; taken spaces per date; commit.
+
+## 2026-11-23 — Multi-select venues in the calculator (ADR-0117)
+
+- **Changed:** `lib/event-pricing.ts` (`spaces[]`, `VENUES`, `WHOLE_PARK`, corona label), `lib/event-pricing.test.ts` (new, 7 tests), `use-event-calculator.ts` (`spaces`, `spaceLabel`, `extraHour`), `space-picker.tsx` (rewritten), `venue-card.tsx` (new), `calculator-sections.tsx`, `estimate-summary.tsx`, the three consumers of `space`. Docs: ADR-0117, changelog, status, utils and components catalogs.
+- **Status:** tsc/eslint clean, 181 tests; browser-checked 1280 and 375 px; `/sventes` and `/vestuves` still render. Uncommitted. The home-page drawer and the `/sventes` panel use the same picker; not clicked through.
+- **Next:** owner to confirm the summed combinations; decide how taken spaces per date are recorded, then show them in the calendar; click through the drawer and `/sventes`; commit.
+
+## 2026-11-23 — Space cards without the details link
+
+- **Changed:** `space-picker.tsx` (thumbnail is the dialog trigger, `note` shown on the card), `space-details-dialog.tsx` (trigger content via `children`/`className`). Docs: changelog, catalog row.
+- **Status:** tsc/eslint clean; browser-checked at 1280 px (dialog opens from the thumbnail). 375 px not rechecked. Uncommitted.
+- **Next:** recheck mobile; commit; per-space availability decision.
+
+## 2026-11-23 — Compact space cards
+
+- **Changed:** `space-picker.tsx` (thumbnail left, text right, details row under the text). Docs: changelog, status, catalog row.
+- **Status:** tsc/eslint clean; browser-checked 1280 and 375 px. Uncommitted.
+- **Next:** owner decision on per-space availability; maybe group the 8 spaces into 4 families; commit.
+
+## 2026-11-23 — Calculator question order
+
+- **Changed:** `calculator-sections.tsx` (`GuestSlider`, `DateTimeFields`, `PartySection`, `WhenSection`), `calculator-groups.tsx` (group 1 order, labels), `event-date-picker.tsx` (`alwaysOpen`), `use-event-calculator.ts` (`applyPreset` keeps a chosen group size). Docs: changelog, status.
+- **Status:** tsc/eslint clean; browser-checked 1280 px. Uncommitted. Not checked: 375/768 px of the open calendar.
+- **Next:** decide how occupied spaces per date should be recorded (owner), then show them in the calendar; check mobile; commit.
+
+## 2026-11-23 — Space photos on calculator cards
+
+- **Changed:** `space-picker.tsx` (cover photo per card), new `space-photos.ts` (`SPACE_PHOTOS`, moved out of `space-details-dialog.tsx`). Docs: changelog, status, catalog row.
+- **Status:** tsc/eslint clean; browser-checked 1280 px (8/8 load) and 375 px. Uncommitted.
+- **Next:** dedicated photos for spaces that repeat a cover; layout tweaks the owner asked for ("išdėstymas gali pasikeisti"); commit.
+
+## 2026-11-23 — New /skaiciuokle calculator page
+
+- **Changed:** `components/calculator/calculator-page.tsx` (new), `app/skaiciuokle/page.tsx` (new), `calculator-groups.tsx` (all groups open when not `compact`), `next.config.ts` (redirect removed), `app/sitemap.ts`, `public/llms.txt`, `nav-links.ts` (link to `/skaiciuokle`). Docs: routing, folder-structure, components/common, design-system, changelog, ADR-0116.
+- **Status:** tsc/eslint clean; browser-checked at 1280 px (two columns, sticky price, live update) and 375 px (no overflow, total bar). Uncommitted, with the earlier nav tweaks.
+- **Next:** iterate on the design; check 768/1024 px; commit; decide whether `/sventes` keeps its own panel.
+
+## 2026-11-23 — Public header rework
+
+- **Changed:** `components/nav-links.ts` (new order: Pramogos ir poilsis dropdown, Renginiai, Kainų skaičiuoklė, Dovanų kuponai, Black Friday last; `ACCOUNT_LINK` export), `components/main-header.tsx` (user-icon link beside "Rezervuok" from `md`, account link added to the mobile menu items), `components/site-header.tsx` (inline nav from `xl`), `components/nav-dropdown.tsx` (`whitespace-nowrap`, caret button `h-11 w-5` with the icon right-aligned). AGENTS.md rule 3, design-brief, design-system and the `MainHeader` catalog row updated.
+- **Status:** tsc and eslint clean; browser-checked at 1280/1299 and 375 px (no horizontal overflow, nav order, dropdown items and hrefs, mobile menu lists all items). Header rework committed (`171045ef5`); the Black Friday reorder and caret fix are uncommitted. Nothing pushed.
+- **Next:** commit the two tweaks; check the 1024 px burger header with the user; decide on pushing.
+- **Note:** `pnpm` is not installed on this machine, so the stock `dev` launch config fails; `dev-next` (node + next directly) was added to the uncommitted `.claude/launch.json`. The pane's synthetic mouse does not trigger the dropdown's hover-open.
+
 ## 2026-11-18 — Past-date "Nauja rezervacija" (ADR-0114)
 
 - **Changed:** dropped the past-date restriction from the admin "Nauja rezervacija" flow: removed the `superRefine` check in `new-booking-schema.ts` and the `min={todayKey()}` on the date pickers in `booking-chooser.tsx` (step 1) and `booking-when-fields.tsx` (step 2). Nothing else needed to change — `createBooking`, `createEventTicket`, `lib/staff-payment.ts` and `bookingOptionsOn` never cared about the date being in the future.
