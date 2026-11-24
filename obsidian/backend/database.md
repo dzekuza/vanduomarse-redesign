@@ -88,6 +88,7 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
+| `stay_type_seasons` | date ranges (ADR-0126) | summer prices for a stay type; nights outside every range use `stay_types` prices | public read; owner write; no overlapping ranges per type |
 | `external_calendars` | `ExternalCalendar` | One Sirvoy room feed (14 seeded): `label` = Sirvoy room number, `stay_type_id` (`namelis-2` x8: rooms 1-4, 11-14; `namelis-4` x6: rooms 5-10), `active` (set when a URL is stored), `last_synced_at`, `last_error`. ADR-0102. Applied 2026-11-16 | staff (`rezervacijos` / `uzimtumas` / `apzvalga`) read; written only through the functions below |
 | `external_calendar_feeds` | — | The secret Sirvoy iCal export URL per room (`secured.sirvoy.com/ical/…` only). RLS on, **no policies**: reachable only through `set_external_feed` (owner) and `external_sync_feeds` (service role). Never sent to the browser | nobody directly |
 | `external_blocks` | `ExternalBlock` | One reservation or closure from a room's feed: `starts_on`, `nights` (check-out day free), unique (`calendar_id`, `uid`). Replaced wholesale by the sync. The sync never fails on a clash (a Sirvoy overbooking is shown, not rejected) | staff read as above; written only by `sync_external_blocks` |
@@ -156,7 +157,7 @@ deliberate, so a page never opens onto silently empty data.
 | `apyrankes` | ride_plans, riders, rider_cards, purchases (read/insert), rider_comments, rider_documents, rider_waivers (read, ADR-0043) | — |
 | `klientai` (ADR-0042) | riders, rider_comments, rider_documents, rider_waivers (read, ADR-0043) | purchases, bookings, quad_rentals, event_tickets, coupons |
 | `instruktorius` (ADR-0045) | rider_sessions (read/insert/update, no delete — audit log) | riders, ride_plans, rider_cards |
-| owner only | staff, staff_roles, stay_types | everything |
+| owner only | staff, staff_roles, stay_types, stay_type_seasons | everything |
 
 Public reads (anon) are unchanged. The capacity and `sold` triggers are
 `security definer` so every role gets the same checks whatever rows it can see.
@@ -183,7 +184,7 @@ Map `23P01` to a form error with `setError` (the trigger `hint` says which:
 | `create_tour_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Only for published `keturratis` events with capacity; `laukia`, `KZ-` reference; seats enforced by the existing ticket trigger |
 | `create_sauna_booking(sauna, date, start, hours, party, extras jsonb, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Active sauna only (`sauna_unavailable`); prices from its `saunas` row + linked, active `sauna_upsells`; the old signature without `sauna` books the first active sauna (deprecated); `laukia` booking + `booking_extras`; overlap and closed hours enforced by the existing triggers; a valid coupon is recorded in the note for staff to redeem |
 | `create_stay_booking(stay_type, date, nights, guests, name, email, phone, note, coupon)` | anon, authenticated | `security definer`. Single-unit entry point with a required guest count, shared with older forms |
-| `create_stay_booking_with_units(stay_type, date, nights, units, name, guests, email, phone, note, coupon)` | anon, authenticated | `security definer`. One `laukia` booking for 1–20 units of one stay type. Prices from `stay_types` per unit per night, tiered by stay length via `private.stay_night_price()` (1 night / 2 nights / 3+ nights, ADR-0123). Known guests must fit the selected units. Phone, pending requests, and nightly stock are enforced by the existing triggers |
+| `create_stay_booking_with_units(stay_type, date, nights, units, name, guests, email, phone, note, coupon)` | anon, authenticated | `security definer`. One `laukia` booking for 1–20 units of one stay type. Prices each night through `private.stay_price()` / `stay_night_rate()`: the season (`stay_type_seasons`) the night falls in, else the `stay_types` prices, tiered by the whole stay's length (1 night / 2 nights / 3+ nights, ADR-0123, ADR-0126). `accept_inquiry_stays` uses the same function. Known guests must fit the selected units. Phone, pending requests, and nightly stock are enforced by the existing triggers |
 | `create_event_ticket(event, people, name, email, phone)` | anon, authenticated | `security definer`. Published capacity events except `keturratis`; `laukia`, `PR-` reference |
 | `register_for_event(event, people, name, email, phone, message)` | anon, authenticated | `security definer`. Published events without capacity; stored as an `inquiries` row (source `renginys`) |
 | `create_inquiry(...)` | anon, authenticated | `security definer`. Calculator quote with its input; source `skaiciuokle`. |
@@ -407,3 +408,8 @@ Migration `20261119200000_space_bookings.sql`, APPLIED 2026-11-19. `space_bookin
 Migration `20261119210000_event_presets.sql`, APPLIED 2026-11-19. `event_presets`: slug id, label, `per_guest_min` / `per_guest_max`, `adults`, `kids`, `sort_order`, `active`. RLS: public read, write for `kainos`. Seeded with the eight types that used to be `PRESETS`. `database.types.ts` edited by hand.
 
 `20261119220000_space_booking_date_range.sql` (APPLIED 2026-11-19) adds `end_date` (last day, inclusive; `start_time` is on the first day, `end_time` on the last) and replaces the times check with `end_date >= date and (end_date > date or end_time > start_time)`.
+
+## Stay seasons (ADR-0126)
+
+- `20261124120000_stay_type_seasons.sql` (APPLIED 2026-11-24): table `stay_type_seasons` (inclusive date ranges, exclusion constraint against overlap per type, public read, owner write), `private.stay_night_rate()` / `private.stay_price()`, and `create_stay_booking_with_units` / `accept_inquiry_stays` re-created to price per night by season. Requires extension `btree_gist`.
+- `20261124130000_save_stay_type.sql` (APPLIED 2026-11-24): RPC `save_stay_type(p_type jsonb, p_seasons jsonb)`, security invoker (owner RLS applies), upserts the type and replaces its seasons in one transaction; a season id already used by another type fails on the primary key.

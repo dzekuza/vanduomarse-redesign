@@ -406,7 +406,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
   for (const cabin of stayTypesOf(stayTypes, "namelis")) {
     const units = input.cabinUnits[cabin.id] ?? 0;
     if (units > 0) {
-      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(stayPrice(cabin, input.cabinNights, units)));
+      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(stayPrice(cabin, input.cabinNights, units, input.date ?? undefined)));
     }
   }
 

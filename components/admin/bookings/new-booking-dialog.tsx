@@ -112,7 +112,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     ? (chosenEvent?.price ?? 0) * party
     : sauna
       ? (hours ? sessionPrice(Number(hours), party, saunaRates, date || undefined) : 0) + extrasPrice
-      : stayType ? stayPrice(stayType, Number(nights) || 0) : 0;
+      : stayType ? stayPrice(stayType, Number(nights) || 0, 1, date || undefined) : 0;
   const baseTotal = priceOverride ? Number(priceOverride) : computed;
   // Event tickets and private sauna hires both count as "pirtis" for a code's services, like the public RPCs treat them.
   const discountService: DiscountService = stayKind ? "nakvyne" : "pirtis";

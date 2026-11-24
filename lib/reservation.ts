@@ -438,7 +438,7 @@ export function planStay(pick: StayPick, data: CabinPageData, day: string): Stay
   const free = (t: StayType) => freeStayUnits(data.availability, checkIn, nights, t);
   const validNights = Number.isInteger(nights) && nights >= 1 && nights <= MAX_STAY_NIGHTS;
   const ok = !!type && validNights && Number.isInteger(units) && units >= 1 && units <= Math.min(MAX_STAY_UNITS, free(type));
-  return { ...pick, kind: "nakvyne", type, free, ok, price: ok && type ? stayPrice(type, nights, units) : 0 };
+  return { ...pick, kind: "nakvyne", type, free, ok, price: ok && type ? stayPrice(type, nights, units, day) : 0 };
 }
 
 /**

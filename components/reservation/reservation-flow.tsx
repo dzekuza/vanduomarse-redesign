@@ -17,7 +17,7 @@ import type { WakeOffer } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
-import { MAX_STAY_NIGHTS } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, STAY_BOOKING_DAYS } from "@/lib/cabin";
 import { loadSpendablePoints } from "@/app/actions/points";
 import { trackingForPlans } from "@/lib/analytics-kind";
 import { spendPreview, type SpendablePoints } from "@/lib/points";
@@ -99,7 +99,6 @@ export function ReservationFlow({
   initialCustomer: Customer | null;
 }) {
   const { today } = data.sauna;
-  const days = useMemo(() => nextDays(today, RESERVATION_DAYS), [today]);
   const [step, setStep] = useState(0);
   const [payOnSite, setPayOnSite] = useState(false);
   const selectionHeader = useRef<HTMLDivElement>(null);
@@ -113,6 +112,9 @@ export function ReservationFlow({
   const wake = activeTab === "wake" && wakeProducts;
   const wakeBooking = useWakeBooking(wakeProducts);
   const tab = activeTab === "wake" ? tabs[0] : activeTab;
+  /** Cabins can be booked almost a year ahead (summer); the sauna and quads only as far as their loaded availability. */
+  const stayTab = tab === "nakvyne";
+  const days = useMemo(() => nextDays(today, stayTab ? STAY_BOOKING_DAYS : RESERVATION_DAYS), [today, stayTab]);
   /** The sauna's two ways to book are separate chips on /rezervacija; session when there are any, otherwise private hire. */
   const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => initialSaunaMode === "private" ? "private" : sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
   const chipTypes: ReservationType[] = availableTabs.flatMap<ReservationType>((id) => id === "pirtis" ? [...(saunaHasSessions(data.sauna) ? ["session" as const] : []), "private"] : [id]);
@@ -252,6 +254,16 @@ export function ReservationFlow({
     if (busy) return;
     setStep(0);
     const key = dateKey(next);
+    // Sauna and quad availability is only loaded for RESERVATION_DAYS: a cabin date beyond it cannot carry them.
+    if (key > dateKey(nextDays(today, RESERVATION_DAYS).at(-1) ?? next)) {
+      setTourPick(null);
+      setPicks((current) => {
+        const rest = { ...current };
+        delete rest.pirtis;
+        delete rest.keturraciai;
+        return rest;
+      });
+    }
     if (stayDatePhase !== "selectingEnd" || key <= day) {
       if (key !== day) setTourPick(null);
       setDate(next);
@@ -445,6 +457,11 @@ export function ReservationFlow({
                   setTab("pirtis");
                 } else {
                   setTab(type);
+                }
+                // A summer cabin date has no sauna or quad availability loaded: start those from today.
+                if (type !== "nakvyne" && dateKey(date) > dateKey(nextDays(today, RESERVATION_DAYS).at(-1) ?? date)) {
+                  setDate(nextDays(today, 1)[0]);
+                  setStayDatePhase("idle");
                 }
                 // Keep the address in step with the chip, so the header dropdown and a reload land on the same type.
                 window.history.replaceState(null, "", reservationHref(type));

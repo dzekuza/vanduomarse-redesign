@@ -4,12 +4,39 @@ import type { Sauna } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { Upsell } from "@/lib/sauna-upsells";
 import type { CalculatorCatalog, EventPreset } from "@/lib/event-pricing";
-import { toCouponProduct, toEventPreset, toHHMM, toQuadSettings, toQuadTourAccessory, toQuadTourRoute, toQuadType, toSauna, toSaunaMaster, toSaunaProgram, toStayType, toUpsell } from "@/lib/admin/mappers";
-import { MAX_STAY_NIGHTS, type CabinAvailability, type StayType } from "@/lib/cabin";
+import {
+  toCouponProduct,
+  toEventPreset,
+  toHHMM,
+  toQuadSettings,
+  toQuadTourAccessory,
+  toQuadTourRoute,
+  toQuadType,
+  toSauna,
+  toSaunaMaster,
+  toSaunaProgram,
+  toStayType,
+  toUpsell,
+} from "@/lib/admin/mappers";
+import {
+  MAX_STAY_NIGHTS,
+  STAY_BOOKING_DAYS,
+  type CabinAvailability,
+  type StayType,
+} from "@/lib/cabin";
 import type { CouponProduct, WakeOffer } from "@/lib/coupons";
-import type { CabinPageData, QuadPageData, SaunaPageData } from "./public-types";
+import type {
+  CabinPageData,
+  QuadPageData,
+  SaunaPageData,
+} from "./public-types";
 import { QUAD_DAYS, type QuadTaken } from "@/lib/quads";
-import { CELEBRATION_WINDOW_DAYS, EVENTS_WINDOW_DAYS, type CelebrationScheduleData, type ParkEventData } from "@/lib/park-events";
+import {
+  CELEBRATION_WINDOW_DAYS,
+  EVENTS_WINDOW_DAYS,
+  type CelebrationScheduleData,
+  type ParkEventData,
+} from "@/lib/park-events";
 import { todayKey, vilniusHour } from "@/lib/sauna";
 import { EVENT_WINDOW_DAYS, saunaSessionHref } from "@/lib/sauna-events";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -26,7 +53,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 
 /** Days the sauna and cabin pickers show. */
 export const SAUNA_DAYS = 14;
-export const CABIN_DAYS = 21;
+export const CABIN_DAYS = STAY_BOOKING_DAYS;
 const ROW_PAGE_SIZE = 1000;
 
 interface AvailabilityWindow {
@@ -40,14 +67,25 @@ function addDays(key: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-function must<T>(res: { data: T | null; error: { message: string } | null }, what: string): T {
-  if (res.error || res.data === null) throw new Error(`${what}: ${res.error?.message ?? "no data"}`);
+function must<T>(
+  res: { data: T | null; error: { message: string } | null },
+  what: string,
+): T {
+  if (res.error || res.data === null)
+    throw new Error(`${what}: ${res.error?.message ?? "no data"}`);
   return res.data;
 }
 
 /** Busy ranges can exceed Supabase's response limit. Callers order by a unique row key. */
 async function readAvailabilityRows<T>(
-  read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null; count: number | null }>,
+  read: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{
+    data: T[] | null;
+    error: { message: string } | null;
+    count: number | null;
+  }>,
   what: string,
 ): Promise<T[]> {
   const rows: T[] = [];
@@ -55,58 +93,102 @@ async function readAvailabilityRows<T>(
     const result = await read(rows.length, rows.length + ROW_PAGE_SIZE - 1);
     const page = must(result, what);
     rows.push(...page);
-    if (!page.length || (result.count === null ? page.length < ROW_PAGE_SIZE : rows.length >= result.count)) return rows;
+    if (
+      !page.length ||
+      (result.count === null
+        ? page.length < ROW_PAGE_SIZE
+        : rows.length >= result.count)
+    )
+      return rows;
   }
 }
 
-const spotsLeft = (e: Tables<"events">) => (e.capacity === null ? undefined : Math.max(0, e.capacity - e.sold - e.held));
+const spotsLeft = (e: Tables<"events">) =>
+  e.capacity === null ? undefined : Math.max(0, e.capacity - e.sold - e.held);
 
-export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow): Promise<SaunaPageData> {
+export async function getSaunaPageData(
+  availabilityWindow?: AvailabilityWindow,
+): Promise<SaunaPageData> {
   const supabase = createPublicClient();
   const now = availabilityWindow?.now ?? new Date();
   const today = todayKey(now);
   const eventDays = availabilityWindow?.days ?? EVENT_WINDOW_DAYS;
-  const last = addDays(today, Math.max(availabilityWindow?.days ?? SAUNA_DAYS, eventDays) - 1);
+  const last = addDays(
+    today,
+    Math.max(availabilityWindow?.days ?? SAUNA_DAYS, eventDays) - 1,
+  );
 
-  const [saunas, upsells, masters, programs, taken, events] = await Promise.all([
-    // RLS limits anon to active and coming-soon saunas.
-    supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").or("active.eq.true,coming_soon.eq.true").order("sort_order").order("created_at"),
-    supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"),
-    supabase.from("sauna_masters").select("*").eq("active", true).order("sort_order").order("created_at"),
-    supabase.from("sauna_programs").select("*").eq("active", true).order("sort_order"),
-    readAvailabilityRows(
-      (from, to) => supabase
-        .rpc("sauna_taken", { p_from: today, p_to: last }, { count: "exact" })
-        .order("sauna_id").order("day").order("hour")
-        .range(from, to),
-      "Sauna availability",
-    ),
-    readAvailabilityRows(
-      (from, to) => supabase
-        .from("events")
-        .select("*", { count: "exact" })
-        .eq("category", "pirtis")
-        .eq("published", true)
-        .not("capacity", "is", null)
-        .gte("date", today)
-        .lte("date", addDays(today, eventDays - 1))
-        .order("date")
-        .order("start_time")
-        .order("id")
-        .range(from, to),
-      "Sauna events",
-    ),
-  ]);
+  const [saunas, upsells, masters, programs, taken, events] = await Promise.all(
+    [
+      // RLS limits anon to active and coming-soon saunas.
+      supabase
+        .from("saunas")
+        .select("*, sauna_upsell_links(upsell_id)")
+        .or("active.eq.true,coming_soon.eq.true")
+        .order("sort_order")
+        .order("created_at"),
+      supabase
+        .from("sauna_upsells")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order"),
+      supabase
+        .from("sauna_masters")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order")
+        .order("created_at"),
+      supabase
+        .from("sauna_programs")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order"),
+      readAvailabilityRows(
+        (from, to) =>
+          supabase
+            .rpc(
+              "sauna_taken",
+              { p_from: today, p_to: last },
+              { count: "exact" },
+            )
+            .order("sauna_id")
+            .order("day")
+            .order("hour")
+            .range(from, to),
+        "Sauna availability",
+      ),
+      readAvailabilityRows(
+        (from, to) =>
+          supabase
+            .from("events")
+            .select("*", { count: "exact" })
+            .eq("category", "pirtis")
+            .eq("published", true)
+            .not("capacity", "is", null)
+            .gte("date", today)
+            .lte("date", addDays(today, eventDays - 1))
+            .order("date")
+            .order("start_time")
+            .order("id")
+            .range(from, to),
+        "Sauna events",
+      ),
+    ],
+  );
 
   const takenBySauna: Record<string, Record<string, number[]>> = {};
-  for (const row of taken) ((takenBySauna[row.sauna_id] ??= {})[row.day] ??= []).push(row.hour);
+  for (const row of taken)
+    ((takenBySauna[row.sauna_id] ??= {})[row.day] ??= []).push(row.hour);
 
   const activeUpsells = must(upsells, "Sauna upsells").map(toUpsell);
   const offered = new Set(activeUpsells.map((u) => u.id));
   const { url } = supabaseEnv();
   const allSaunas = must(saunas, "Saunas").map((r) => {
     const sauna = toSauna(r, r.sauna_upsell_links, url);
-    return { ...sauna, upsellIds: sauna.upsellIds.filter((id) => offered.has(id)) };
+    return {
+      ...sauna,
+      upsellIds: sauna.upsellIds.filter((id) => offered.has(id)),
+    };
   });
 
   return {
@@ -126,7 +208,10 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         title: e.title,
         host: host ?? e.place,
         venue: venue.trim(),
-        hostName: host && !/^(atvira grupė|su pirtininku|be pirtininko)$/i.test(host) ? host : undefined,
+        hostName:
+          host && !/^(atvira grupė|su pirtininku|be pirtininko)$/i.test(host)
+            ? host
+            : undefined,
         date: e.date,
         time: toHHMM(e.start_time),
         minutes: e.duration_minutes,
@@ -135,7 +220,10 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
         capacity: e.capacity ?? 0,
         spotsLeft: spotsLeft(e) ?? 0,
         blurb: e.blurb,
-        description: "description" in e && typeof e.description === "string" ? e.description : undefined,
+        description:
+          "description" in e && typeof e.description === "string"
+            ? e.description
+            : undefined,
         programId: e.program_id,
       };
     }),
@@ -145,7 +233,14 @@ export async function getSaunaPageData(availabilityWindow?: AvailabilityWindow):
 /** Active stay types (cabin sizes, camper pitches) in display order; RLS lets anon read inactive rows too, so filter here. */
 async function loadStayTypes(): Promise<StayType[]> {
   const supabase = createPublicClient();
-  return must(await supabase.from("stay_types").select("*").eq("active", true).order("sort_order"), "Stay types").map(toStayType);
+  return must(
+    await supabase
+      .from("stay_types")
+      .select("*, stay_type_seasons(*)")
+      .eq("active", true)
+      .order("sort_order"),
+    "Stay types",
+  ).map(toStayType);
 }
 
 /** Memoised per request, so pages and readers that share it query Supabase once. */
@@ -156,7 +251,12 @@ async function getActiveSaunas(): Promise<Sauna[]> {
   const supabase = createPublicClient();
   const { url } = supabaseEnv();
   const rows = must(
-    await supabase.from("saunas").select("*, sauna_upsell_links(upsell_id)").eq("active", true).order("sort_order").order("created_at"),
+    await supabase
+      .from("saunas")
+      .select("*, sauna_upsell_links(upsell_id)")
+      .eq("active", true)
+      .order("sort_order")
+      .order("created_at"),
     "Saunas",
   );
   return rows.map((r) => toSauna(r, r.sauna_upsell_links, url));
@@ -166,7 +266,12 @@ async function getActiveSaunas(): Promise<Sauna[]> {
 async function getPrivatePrograms(): Promise<SaunaProgram[]> {
   const supabase = createPublicClient();
   const rows = must(
-    await supabase.from("sauna_programs").select("*").eq("active", true).eq("kind", "private").order("sort_order"),
+    await supabase
+      .from("sauna_programs")
+      .select("*")
+      .eq("active", true)
+      .eq("kind", "private")
+      .order("sort_order"),
     "Sauna programs",
   );
   return rows.map(toSaunaProgram).filter((p) => p.saunaId !== null);
@@ -175,36 +280,64 @@ async function getPrivatePrograms(): Promise<SaunaProgram[]> {
 /** Active sauna extras (priedai), for the event calculator. */
 async function getActiveUpsells(): Promise<Upsell[]> {
   const supabase = createPublicClient();
-  return must(await supabase.from("sauna_upsells").select("*").eq("active", true).order("sort_order"), "Sauna upsells").map(toUpsell);
+  return must(
+    await supabase
+      .from("sauna_upsells")
+      .select("*")
+      .eq("active", true)
+      .order("sort_order"),
+    "Sauna upsells",
+  ).map(toUpsell);
 }
 
 /** Active event types of the calculator (renginio tipas), in the order set in /admin/kainos. */
 async function getEventPresets(): Promise<EventPreset[]> {
   const supabase = createPublicClient();
-  return must(await supabase.from("event_presets").select("*").eq("active", true).order("sort_order"), "Event presets").map(toEventPreset);
+  return must(
+    await supabase
+      .from("event_presets")
+      .select("*")
+      .eq("active", true)
+      .order("sort_order"),
+    "Event presets",
+  ).map(toEventPreset);
 }
 
 /** Everything the event calculator reads from the database: cabin sizes, saunas, their private programs, extras and event types. */
 async function loadCalculatorCatalog(): Promise<CalculatorCatalog> {
-  const [stayTypes, saunas, programs, upsells, presets] = await Promise.all([getStayTypes(), getActiveSaunas(), getPrivatePrograms(), getActiveUpsells(), getEventPresets()]);
+  const [stayTypes, saunas, programs, upsells, presets] = await Promise.all([
+    getStayTypes(),
+    getActiveSaunas(),
+    getPrivatePrograms(),
+    getActiveUpsells(),
+    getEventPresets(),
+  ]);
   return { stayTypes, saunas, programs, upsells, presets };
 }
 
 /** Memoised per request, so pages and readers that share it query Supabase once. */
 export const getCalculatorCatalog = cache(loadCalculatorCatalog);
 
-export async function getCabinPageData(availabilityWindow?: AvailabilityWindow): Promise<CabinPageData> {
+export async function getCabinPageData(
+  availabilityWindow?: Pick<AvailabilityWindow, "now">,
+): Promise<CabinPageData> {
   const supabase = createPublicClient();
   const today = todayKey(availabilityWindow?.now);
   // Last check-in day plus the longest stay.
-  const last = addDays(today, (availabilityWindow?.days ?? CABIN_DAYS) + MAX_STAY_NIGHTS);
+  const last = addDays(today, STAY_BOOKING_DAYS + MAX_STAY_NIGHTS);
   const [stayTypes, rows] = await Promise.all([
     getStayTypes(),
     readAvailabilityRows(
-      (from, to) => supabase
-        .rpc("stay_occupancy", { p_from: today, p_to: last }, { count: "exact" })
-        .order("day").order("stay_type_id")
-        .range(from, to),
+      (from, to) =>
+        supabase
+          .rpc(
+            "stay_occupancy",
+            { p_from: today, p_to: last },
+            { count: "exact" },
+          )
+          .order("day")
+          .order("stay_type_id")
+          .range(from, to),
       "Cabin availability",
     ),
   ]);
@@ -212,25 +345,32 @@ export async function getCabinPageData(availabilityWindow?: AvailabilityWindow):
   const availability: CabinAvailability = {};
   for (const row of rows) {
     if (row.units === null) continue;
-    (availability[row.day] ??= {})[row.stay_type_id] = Math.max(0, row.units - row.taken);
+    (availability[row.day] ??= {})[row.stay_type_id] = Math.max(
+      0,
+      row.units - row.taken,
+    );
   }
   return { today, stayTypes, availability };
 }
 
-async function loadParkEvents(windowDays = EVENTS_WINDOW_DAYS, date?: string): Promise<ParkEventData[]> {
+async function loadParkEvents(
+  windowDays = EVENTS_WINDOW_DAYS,
+  date?: string,
+): Promise<ParkEventData[]> {
   const supabase = createPublicClient();
   const today = date ?? todayKey();
   const rows = await readAvailabilityRows(
-    (from, to) => supabase
-      .from("events")
-      .select("*", { count: "exact" })
-      .eq("published", true)
-      .gte("date", today)
-      .lte("date", addDays(today, windowDays - 1))
-      .order("date")
-      .order("start_time")
-      .order("id")
-      .range(from, to),
+    (from, to) =>
+      supabase
+        .from("events")
+        .select("*", { count: "exact" })
+        .eq("published", true)
+        .gte("date", today)
+        .lte("date", addDays(today, windowDays - 1))
+        .order("date")
+        .order("start_time")
+        .order("id")
+        .range(from, to),
     "Events",
   );
 
@@ -250,7 +390,10 @@ async function loadParkEvents(windowDays = EVENTS_WINDOW_DAYS, date?: string): P
       e.category === "pirtis" && e.capacity !== null
         ? { label: "Pirkti bilietą", href: saunaSessionHref(e.id) }
         : e.category === "keturratis" && e.capacity !== null
-          ? { label: "Registruotis į žygį", href: "/rezervacija?veikla=keturraciai" }
+          ? {
+              label: "Registruotis į žygį",
+              href: "/rezervacija?veikla=keturraciai",
+            }
           : { label: "Registruotis" },
   }));
 }
@@ -264,17 +407,30 @@ export async function getCelebrationSchedule(): Promise<CelebrationScheduleData>
   const supabase = createPublicClient();
   const [events, dates] = await Promise.all([
     getParkEvents(CELEBRATION_WINDOW_DAYS, today),
-    supabase.rpc("private_event_dates", { p_from: today, p_to: addDays(today, CELEBRATION_WINDOW_DAYS - 1) }),
+    supabase.rpc("private_event_dates", {
+      p_from: today,
+      p_to: addDays(today, CELEBRATION_WINDOW_DAYS - 1),
+    }),
   ]);
   // Until the calendar migration is applied the published event schedule can still render.
-  const privateDates = dates.error?.code === "PGRST202" ? [] : must(dates, "Private event dates").map(({ event_date }) => event_date);
+  const privateDates =
+    dates.error?.code === "PGRST202"
+      ? []
+      : must(dates, "Private event dates").map(({ event_date }) => event_date);
   return { today, events, privateDates };
 }
 
 /** Active coupon products for /kuponai (RLS limits anon to active rows). */
 async function loadCouponProducts(): Promise<CouponProduct[]> {
   const supabase = createPublicClient();
-  return must(await supabase.from("coupon_products").select("*").eq("active", true).order("sort_order"), "Coupon products").map(toCouponProduct);
+  return must(
+    await supabase
+      .from("coupon_products")
+      .select("*")
+      .eq("active", true)
+      .order("sort_order"),
+    "Coupon products",
+  ).map(toCouponProduct);
 }
 
 /** Memoised per request, so pages and readers that share it query Supabase once. */
@@ -287,9 +443,13 @@ export const getOnlinePlans = cache(async () => {
 
 /** WAKE offers: coupon rides, plus the bracelet plans sold online (season passes). Plans need `online_plans()`; without it only coupons show. */
 async function loadWakeOffers(): Promise<WakeOffer[]> {
-  const [products, plans] = await Promise.all([getCouponProducts(), getOnlinePlans()]);
+  const [products, plans] = await Promise.all([
+    getCouponProducts(),
+    getOnlinePlans(),
+  ]);
   // A missing function (migration not applied yet) is expected and quiet; any other failure must leave a trace.
-  if (plans.error && plans.error.code !== "PGRST202") console.error("Public data: online_plans failed", plans.error.message);
+  if (plans.error && plans.error.code !== "PGRST202")
+    console.error("Public data: online_plans failed", plans.error.message);
   const planOffers: WakeOffer[] = (plans.data ?? []).map((plan) => ({
     id: plan.id,
     kind: "paslauga",
@@ -301,7 +461,10 @@ async function loadWakeOffers(): Promise<WakeOffer[]> {
     planId: plan.id,
     planCategory: plan.category,
   }));
-  return [...products.filter(({ service }) => service === "kabelis"), ...planOffers];
+  return [
+    ...products.filter(({ service }) => service === "kabelis"),
+    ...planOffers,
+  ];
 }
 
 export const getWakeOffers = cache(loadWakeOffers);
@@ -309,41 +472,68 @@ export const getWakeOffers = cache(loadWakeOffers);
 /** Days of guided tours the quad page lists. */
 const TOUR_DAYS = 60;
 
-
 /** Fleet, opening hours, hourly availability and upcoming tours for /keturraciai. */
-export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): Promise<QuadPageData> {
+export async function getQuadPageData(
+  availabilityWindow?: AvailabilityWindow,
+): Promise<QuadPageData> {
   const supabase = createPublicClient();
   const now = availabilityWindow?.now ?? new Date();
   const today = todayKey(now);
-  const last = addDays(today, availabilityWindow ? availabilityWindow.days - 1 : QUAD_DAYS);
+  const last = addDays(
+    today,
+    availabilityWindow ? availabilityWindow.days - 1 : QUAD_DAYS,
+  );
 
-  const [types, settings, taken, tours, routes, accessories] = await Promise.all([
-    supabase.from("quad_types").select("*").eq("active", true).order("sort_order"),
-    supabase.from("quad_settings").select("*").single(),
-    readAvailabilityRows(
-      (from, to) => supabase
-        .rpc("quad_taken", { p_from: today, p_to: last }, { count: "exact" })
-        .order("day").order("hour").order("quad_type_id")
-        .range(from, to),
-      "Quad availability",
-    ),
-    supabase
-      .from("events")
-      .select("*")
-      .eq("category", "keturratis")
-      .not("capacity", "is", null)
-      .is("tour_route_id", null)
-      .gte("date", today)
-      .lte("date", addDays(today, TOUR_DAYS - 1))
-      .order("date")
-      .order("start_time"),
-    // RLS limits anon to active rows.
-    supabase.from("quad_tour_routes").select("*").eq("active", true).order("sort_order").order("id"),
-    supabase.from("quad_tour_accessories").select("*").eq("active", true).order("sort_order").order("id"),
-  ]);
+  const [types, settings, taken, tours, routes, accessories] =
+    await Promise.all([
+      supabase
+        .from("quad_types")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order"),
+      supabase.from("quad_settings").select("*").single(),
+      readAvailabilityRows(
+        (from, to) =>
+          supabase
+            .rpc(
+              "quad_taken",
+              { p_from: today, p_to: last },
+              { count: "exact" },
+            )
+            .order("day")
+            .order("hour")
+            .order("quad_type_id")
+            .range(from, to),
+        "Quad availability",
+      ),
+      supabase
+        .from("events")
+        .select("*")
+        .eq("category", "keturratis")
+        .not("capacity", "is", null)
+        .is("tour_route_id", null)
+        .gte("date", today)
+        .lte("date", addDays(today, TOUR_DAYS - 1))
+        .order("date")
+        .order("start_time"),
+      // RLS limits anon to active rows.
+      supabase
+        .from("quad_tour_routes")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order")
+        .order("id"),
+      supabase
+        .from("quad_tour_accessories")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order")
+        .order("id"),
+    ]);
 
   const takenMap: QuadTaken = {};
-  for (const row of taken) ((takenMap[row.day] ??= {})[row.quad_type_id] ??= {})[row.hour] = row.taken;
+  for (const row of taken)
+    ((takenMap[row.day] ??= {})[row.quad_type_id] ??= {})[row.hour] = row.taken;
 
   return {
     today,
@@ -352,7 +542,9 @@ export async function getQuadPageData(availabilityWindow?: AvailabilityWindow): 
     settings: toQuadSettings(must(settings, "Quad settings")),
     taken: takenMap,
     tourRoutes: must(routes, "Quad tour routes").map(toQuadTourRoute),
-    tourAccessories: must(accessories, "Quad tour accessories").map(toQuadTourAccessory),
+    tourAccessories: must(accessories, "Quad tour accessories").map(
+      toQuadTourAccessory,
+    ),
     tours: must(tours, "Quad tours").map((e) => ({
       key: e.id,
       title: e.title,

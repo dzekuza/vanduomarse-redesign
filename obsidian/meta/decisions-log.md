@@ -10,6 +10,15 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0126 — Cabin prices can change by date range (seasons); summer is bookable 350 days ahead
+
+- **Status:** Accepted.
+- **Date:** 2026-11-24
+- **Context:** the owner wants different cabin prices from a given date (e.g. from 1 July: 20 € for 1 night, 10 € per night for 2, X for 3+), and the booking calendar stopped at 60 days (21 in the embed), so summer could not be booked at all. The database already accepts a check-in up to 365 days ahead.
+- **Decision:** table `stay_type_seasons` (type, `starts_on`, `ends_on` inclusive, the three prices; an exclusion constraint forbids overlapping ranges of one type; public read, owner write). `stay_types` keeps the base prices, used for every night outside a season. Each night is priced from the season it falls in; the 1 / 2 / 3+ tier still comes from the whole stay's length (ADR-0123). One rule in two places: `stayPrice()` in `lib/cabin.ts` (now takes the check-in date) and `private.stay_price()` / `stay_night_rate()` in the database; `create_stay_booking_with_units` and `accept_inquiry_stays` were re-created from their live definition to call it. The cabin check-in window is `STAY_BOOKING_DAYS` = 350 (`stay_occupancy()` reads at most 370 days; the cabin read asks for 364: 350 check-in days plus `MAX_STAY_NIGHTS`); sauna and quads keep `RESERVATION_DAYS` = 60 because their availability is not loaded further.
+- **Consequences:** a season is a fixed date range, not yearly: next summer needs a new range (a yearly repeat can be added later). A stay crossing a season boundary is priced night by night. Ranges are entered in the type dialog and saved with the type (one atomic RPC `save_stay_type` replaces the type and its seasons together, migration `20261124130000_save_stay_type.sql`). A new stay-pricing path must call `stayPrice(…, checkIn)` / `private.stay_price()`. Cabin availability is now ~380 days of rows per request, paged by `readAvailabilityRows`.
+
+---
 ## ADR-0125 — Calculator event types live in the database
 
 **Context:** "Renginio tipas" in the price calculator was a fixed `PRESETS` list in `lib/event-pricing.ts`; the owner could not change or add types.

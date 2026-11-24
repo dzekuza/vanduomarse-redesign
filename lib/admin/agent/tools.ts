@@ -374,7 +374,7 @@ export async function executeAgentTool(
         nights = Number(args.nights) || 1;
         const stayType = pickStayType(adminData.stayTypes, kind === "namelis" ? "namelis" : "kemperis", guests);
         if (!stayType) return { ok: false, summary: "Nerasta tinkama nakvynės rūšis šiam svečių skaičiui." };
-        total = stayPrice(stayType, nights);
+        total = stayPrice(stayType, nights, 1, date);
       }
       if (total <= 0) return { ok: false, summary: "Nepavyko apskaičiuoti kainos pagal kainoraštį, todėl rezervacija nesukurta. Sukurkite ją per „Nauja rezervacija“." };
 

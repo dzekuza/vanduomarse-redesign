@@ -1,3 +1,17 @@
+## 2026-11-24 — Review fixes on PR #154 (seasonal prices)
+
+- **Asked:** (automated) address the review comments on PR #154.
+- **Changed:** the public stay-type loader now reads `stay_type_seasons` (it did not, so the site ignored seasons); `saveStayType` is one atomic RPC `save_stay_type` (migration `20261124130000`, applied; a season id of another type fails); the month calendar's browse cap follows the booking window (the last cabin month was unreachable); a cabin date beyond 60 days clears sauna / quad picks; add-season button stops at 24; seasonal prices capped at 10 000 € in the form; ADR and database notes corrected.
+- **Verified:** tsc, eslint, tests; RPC with rolled-back SQL (save, overlap leaves the type unchanged, foreign season id refused). Not browser-rechecked after the loader fix.
+- **Next:** merge PR #154; owner adds the summer season.
+
+## 2026-11-24 — Summer cabin booking and seasonal prices (ADR-0126)
+
+- **Asked:** let the nameliai booking page book summer (the calendar stopped short), and let the admin set different prices from a month, e.g. from July 20 € for 1 night, 10 € per night for 2, X for 3+.
+- **Changed:** cabin check-in window `STAY_BOOKING_DAYS` = 350 (`lib/cabin.ts`; was 60 on `/rezervacija` and the service page, 21 in the embed / home dialog), cabin availability loaded for it (`getCabinPageData`), the flow uses it only on the Nakvynė tab and resets the date when switching to sauna / quads, the `/nakvyne` availability calendar takes `dayCount`. New table `stay_type_seasons` (migration applied) with `private.stay_night_rate` / `stay_price`; `create_stay_booking_with_units` and `accept_inquiry_stays` re-created to price each night by its season. `StayType.seasons`, `stayPrice(type, nights, units, checkIn)`, season editor in the `/admin/namukai` dialog (`StaySeasonsFields`, `stay-type-schema.ts`), seasons listed on the type card.
+- **Verified:** tsc, eslint, 214 tests (+5); SQL with a rolled-back season (1 / 2 / 4 nights, a stay crossing the season end, overlap blocked); `/nakvyne` in the browser: both calendars 350 days, July 2027 selectable, 4–6 Jul priced 140 €. Not checked: the admin dialog and a booking inside a real season (login).
+- **Next:** PR, merge; owner adds the summer season; a season is a fixed date range, so next year needs a new one.
+
 ## 2026-11-19 — Date range on space bookings
 
 - **Asked:** when adding an erdvė, choose a from–to date range.

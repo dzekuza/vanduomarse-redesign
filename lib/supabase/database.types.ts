@@ -2592,6 +2592,47 @@ export type Database = {
         }
         Relationships: []
       }
+      stay_type_seasons: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
+          starts_on: string
+          stay_type_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
+          starts_on: string
+          stay_type_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          price_per_night?: number
+          price_per_night_2?: number
+          price_per_night_3?: number
+          starts_on?: string
+          stay_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stay_type_seasons_stay_type_id_fkey"
+            columns: ["stay_type_id"]
+            isOneToOne: false
+            referencedRelation: "stay_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stay_types: {
         Row: {
           active: boolean
@@ -2642,6 +2683,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      save_stay_type: {
+        Args: { p_seasons: Json; p_type: Json }
+        Returns: undefined
+      }
       payment_requests: {
         Args: { p_payment_id: string }
         Returns: {
