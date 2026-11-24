@@ -1,9 +1,9 @@
 ---
 tags: [meta, status]
-updated: 2026-11-18
+updated: 2026-11-24
 ---
 
-**Space bookings with a date range (2026-11-19, ADR-0124): on branch `feat/space-booking-date-range`. Migration `end_date` applied. Not browser-checked (login). Next: PR, merge, try a multi-day hire.**
+**Cabin summer booking + seasonal prices (2026-11-24, ADR-0126): on branch `feat/cabin-seasonal-prices` (not committed). Cabin pickers now open 350 days ahead (was 60 / 21), so summer 2027 can be booked; owner can add date-range seasons with their own 1 / 2 / 3+ night prices in the `/admin/namukai` type dialog. Migration `20261124120000_stay_type_seasons.sql` APPLIED to the live DB before the code is merged (no season exists yet, so prices are unchanged). Public `/nakvyne` browser-checked (July 2027 selectable, 4–6 Jul = 140 €); the admin dialog is not (login). Next: PR, merge, owner adds the summer season and tries a booking in it. Date-bound, not yearly: next summer needs a new range. The space-booking date range (ADR-0124) is merged (PR #153).**
 
 **Event types editable (2026-11-19, ADR-0125): PR #151 (`feat/admin-gemini-agent`). Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
 

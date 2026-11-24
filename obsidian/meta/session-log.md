@@ -1,3 +1,10 @@
+## 2026-11-24 — Summer cabin booking and seasonal prices (ADR-0126)
+
+- **Asked:** let the nameliai booking page book summer (the calendar stopped short), and let the admin set different prices from a month, e.g. from July 20 € for 1 night, 10 € per night for 2, X for 3+.
+- **Changed:** cabin check-in window `STAY_BOOKING_DAYS` = 350 (`lib/cabin.ts`; was 60 on `/rezervacija` and the service page, 21 in the embed / home dialog), cabin availability loaded for it (`getCabinPageData`), the flow uses it only on the Nakvynė tab and resets the date when switching to sauna / quads, the `/nakvyne` availability calendar takes `dayCount`. New table `stay_type_seasons` (migration applied) with `private.stay_night_rate` / `stay_price`; `create_stay_booking_with_units` and `accept_inquiry_stays` re-created to price each night by its season. `StayType.seasons`, `stayPrice(type, nights, units, checkIn)`, season editor in the `/admin/namukai` dialog (`StaySeasonsFields`, `stay-type-schema.ts`), seasons listed on the type card.
+- **Verified:** tsc, eslint, 214 tests (+5); SQL with a rolled-back season (1 / 2 / 4 nights, a stay crossing the season end, overlap blocked); `/nakvyne` in the browser: both calendars 350 days, July 2027 selectable, 4–6 Jul priced 140 €. Not checked: the admin dialog and a booking inside a real season (login).
+- **Next:** PR, merge; owner adds the summer season; a season is a fixed date range, so next year needs a new one.
+
 ## 2026-11-19 — Date range on space bookings
 
 - **Asked:** when adding an erdvė, choose a from–to date range.

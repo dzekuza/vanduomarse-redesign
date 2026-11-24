@@ -1,5 +1,5 @@
 import { isPermissionId } from "@/lib/admin/permissions";
-import type { StayType } from "@/lib/cabin";
+import type { StaySeason, StayType } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
 import { PASS_STATUS, type PassStatus } from "@/lib/plan-pass";
@@ -375,7 +375,18 @@ export function toQuadType(r: Tables<"quad_types">): QuadType {
   return { id: r.id, name: r.name, description: r.description, seats: r.seats, units: r.units, pricePerHour: r.price_per_hour, active: r.active };
 }
 
-export function toStayType(r: Tables<"stay_types">): StayType {
+export function toStaySeason(r: Tables<"stay_type_seasons">): StaySeason {
+  return {
+    id: r.id,
+    startsOn: r.starts_on,
+    endsOn: r.ends_on,
+    pricePerNight: Number(r.price_per_night),
+    pricePerNight2: Number(r.price_per_night_2),
+    pricePerNight3: Number(r.price_per_night_3),
+  };
+}
+
+export function toStayType(r: Tables<"stay_types"> & { stay_type_seasons?: Tables<"stay_type_seasons">[] }): StayType {
   return {
     id: r.id,
     kind: r.kind === "kemperis" ? "kemperis" : "namelis",
@@ -385,6 +396,7 @@ export function toStayType(r: Tables<"stay_types">): StayType {
     pricePerNight: Number(r.price_per_night),
     pricePerNight2: Number(r.price_per_night_2),
     pricePerNight3: Number(r.price_per_night_3),
+    seasons: (r.stay_type_seasons ?? []).map(toStaySeason).toSorted((a, b) => a.startsOn.localeCompare(b.startsOn)),
     units: r.units,
     active: r.active,
     sortOrder: r.sort_order,

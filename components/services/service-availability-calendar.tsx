@@ -11,6 +11,8 @@ const DATE_LABEL = new Intl.DateTimeFormat("lt-LT", { year: "numeric", month: "l
 
 interface ServiceAvailabilityCalendarProps {
   today: string;
+  /** How many days from today the calendar offers; defaults to the shared reservation window. */
+  dayCount?: number;
   day?: string;
   onDayChange?: (day: string) => void;
   description: string;
@@ -24,10 +26,10 @@ interface ServiceAvailabilityCalendarProps {
 }
 
 export function ServiceAvailabilityCalendar({
-  today, day, onDayChange, description, title, cardLabel, countLabel,
+  today, dayCount = RESERVATION_DAYS, day, onDayChange, description, title, cardLabel, countLabel,
   emptyLabel = "Vietų nėra", datePrefix, getCount, renderDetails,
 }: ServiceAvailabilityCalendarProps) {
-  const days = useMemo(() => nextDays(today, RESERVATION_DAYS), [today]);
+  const days = useMemo(() => nextDays(today, dayCount), [today, dayCount]);
   const [openedDate, setOpenedDate] = useState<Date>();
   const [open, setOpen] = useState(false);
   const calendar = useRef<HTMLDivElement>(null);

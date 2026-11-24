@@ -207,7 +207,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("sauna_programs").select("*").order("sort_order"),
     supabase.from("coupons").select("*, coupon_redemptions(id, amount, note, created_at)").order("created_at", { ascending: false }),
     supabase.from("coupon_products").select("*").order("sort_order"),
-    supabase.from("stay_types").select("*").order("sort_order"),
+    supabase.from("stay_types").select("*, stay_type_seasons(*)").order("sort_order"),
     supabase.from("quad_types").select("*").order("sort_order"),
     supabase.from("quad_settings").select("*").single(),
     readQuadRentals(supabase),

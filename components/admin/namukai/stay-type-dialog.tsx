@@ -3,30 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 import { useAdmin } from "../admin-store";
+import { StaySeasonsFields } from "./stay-seasons-fields";
+import { seasonToValues, stayTypeSchema, toNumber, valuesToSeason, type StayTypeValues } from "./stay-type-schema";
 import { STAY_KIND_LABEL, newStayTypeId, type StayKind, type StayType } from "@/lib/cabin";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
-const priceField = z.string().trim().regex(/^\d+([.,]\d{1,2})?$/, "Įveskite kainą, pvz. 50.");
-
-const schema = z.object({
-  label: z.string().trim().min(2, "Įveskite pavadinimą.").max(60),
-  note: z.string().trim().max(120),
-  maxGuests: z.string().trim().regex(/^\d+$/, "Sveikas skaičius.").refine((v) => Number(v) >= 1 && Number(v) <= 30, "Nuo 1 iki 30."),
-  units: z.string().trim().refine((v) => v === "" || (/^\d+$/.test(v) && Number(v) >= 1 && Number(v) <= 500), "Nuo 1 iki 500."),
-  price: priceField,
-  price2: priceField,
-  price3: priceField,
-  active: z.boolean(),
-});
-type Values = z.infer<typeof schema>;
-
-const toNumber = (v: string) => Number(v.replace(",", "."));
 
 const PRICE_TIERS = [
   { name: "price", id: "st-price", label: "1 naktis" },
@@ -43,8 +28,8 @@ interface StayTypeDialogProps {
 /** Create or edit a cabin size or camper pitch; remounted per type (key) so defaults reset. */
 export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogProps) {
   const { stayTypes, saveStayType } = useAdmin();
-  const { register, control, handleSubmit, setError, formState } = useForm<Values>({
-    resolver: zodResolver(schema),
+  const { register, control, handleSubmit, setError, formState } = useForm<StayTypeValues>({
+    resolver: zodResolver(stayTypeSchema),
     defaultValues: {
       label: stayType?.label ?? "",
       note: stayType?.note ?? "",
@@ -53,6 +38,7 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
       price: stayType ? String(stayType.pricePerNight) : "",
       price2: stayType ? String(stayType.pricePerNight2) : "",
       price3: stayType ? String(stayType.pricePerNight3) : "",
+      seasons: stayType?.seasons.map(seasonToValues) ?? [],
       active: stayType?.active ?? true,
     },
   });
@@ -70,6 +56,7 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
       pricePerNight: toNumber(v.price),
       pricePerNight2: toNumber(v.price2),
       pricePerNight3: toNumber(v.price3),
+      seasons: v.seasons.map(valuesToSeason),
       units: v.units === "" ? null : Number(v.units),
       active: v.active,
       sortOrder: stayType?.sortOrder ?? Math.max(-1, ...stayTypes.map((t) => t.sortOrder)) + 1,
@@ -80,7 +67,7 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{stayType ? `Redaguoti: ${stayType.label}` : `Naujas tipas: ${STAY_KIND_LABEL[kind].toLowerCase()}`}</DialogTitle>
           <DialogDescription>Rodomas /rezervacija nakvynės žingsnyje ir kainų sąraše. Kaina su PVM, už vieną vienetą per naktį.</DialogDescription>
@@ -117,6 +104,7 @@ export function StayTypeDialog({ kind, stayType, onOpenChange }: StayTypeDialogP
             </div>
             <p className="text-xs text-muted-foreground">Visoms nakvynės naktims taikoma jos ilgio kaina, pvz. 100 / 80 / 60: 4 naktys = 4 × 60 €.</p>
           </fieldset>
+          <StaySeasonsFields control={control} register={register} errors={err} />
           {err.maxGuests || err.units || err.price || err.price2 || err.price3 ? (
             <p className="text-xs text-destructive">{err.maxGuests?.message ?? err.units?.message ?? err.price?.message ?? err.price2?.message ?? err.price3?.message}</p>
           ) : null}

@@ -46,7 +46,7 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
   const soldOut = !type || free(type) === 0;
   const maxGuests = type?.maxGuests ?? 1;
   const shownGuests = Math.min(guests, maxGuests);
-  const subtotal = type ? stayPrice(type, nights) : 0;
+  const subtotal = type ? stayPrice(type, nights, 1, checkIn) : 0;
   const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
   const total = subtotal - discount;
 

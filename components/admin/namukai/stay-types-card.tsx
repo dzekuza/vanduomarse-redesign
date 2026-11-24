@@ -47,6 +47,11 @@ export function StayTypesCard({ kind, title, description, onCreate }: StayTypesC
               <p className="truncate text-xs text-muted-foreground">
                 {[t.units === null ? "neribota" : `${t.units} vnt.`, guestsLabel(t.maxGuests), t.note].filter(Boolean).join(" · ")}
               </p>
+              {t.seasons.map((s) => (
+                <p key={s.id} className="truncate text-xs text-muted-foreground tabular-nums">
+                  {s.startsOn} – {s.endsOn}: {stayTiersLabel(s)}
+                </p>
+              ))}
             </div>
             <p className="shrink-0 font-display text-sm font-bold tabular-nums">{stayTiersLabel(t)} /n.</p>
             <Switch

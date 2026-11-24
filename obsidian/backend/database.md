@@ -88,6 +88,7 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
+| `stay_type_seasons` | date ranges (ADR-0126) | summer prices for a stay type; nights outside every range use `stay_types` prices | public read; owner write; no overlapping ranges per type |
 | `external_calendars` | `ExternalCalendar` | One Sirvoy room feed (14 seeded): `label` = Sirvoy room number, `stay_type_id` (`namelis-2` x8: rooms 1-4, 11-14; `namelis-4` x6: rooms 5-10), `active` (set when a URL is stored), `last_synced_at`, `last_error`. ADR-0102. Applied 2026-11-16 | staff (`rezervacijos` / `uzimtumas` / `apzvalga`) read; written only through the functions below |
 | `external_calendar_feeds` | — | The secret Sirvoy iCal export URL per room (`secured.sirvoy.com/ical/…` only). RLS on, **no policies**: reachable only through `set_external_feed` (owner) and `external_sync_feeds` (service role). Never sent to the browser | nobody directly |
 | `external_blocks` | `ExternalBlock` | One reservation or closure from a room's feed: `starts_on`, `nights` (check-out day free), unique (`calendar_id`, `uid`). Replaced wholesale by the sync. The sync never fails on a clash (a Sirvoy overbooking is shown, not rejected) | staff read as above; written only by `sync_external_blocks` |
@@ -156,7 +157,7 @@ deliberate, so a page never opens onto silently empty data.
 | `apyrankes` | ride_plans, riders, rider_cards, purchases (read/insert), rider_comments, rider_documents, rider_waivers (read, ADR-0043) | — |
 | `klientai` (ADR-0042) | riders, rider_comments, rider_documents, rider_waivers (read, ADR-0043) | purchases, bookings, quad_rentals, event_tickets, coupons |
 | `instruktorius` (ADR-0045) | rider_sessions (read/insert/update, no delete — audit log) | riders, ride_plans, rider_cards |
-| owner only | staff, staff_roles, stay_types | everything |
+| owner only | staff, staff_roles, stay_types, stay_type_seasons | everything |
 
 Public reads (anon) are unchanged. The capacity and `sold` triggers are
 `security definer` so every role gets the same checks whatever rows it can see.
