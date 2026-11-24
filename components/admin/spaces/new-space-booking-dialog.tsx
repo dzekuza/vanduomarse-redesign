@@ -17,7 +17,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { FormPhoneInput } from "@/components/ui/phone-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 const SPACE_IDS = SPACES.map((s) => s.id) as [SpaceId, ...SpaceId[]];
@@ -36,7 +35,6 @@ const schema = z
     email: z.union([z.literal(""), z.email("Neteisingas el. paštas.")]),
     guests: z.string().trim().regex(/^\d+$/, "Įveskite žmonių skaičių.").refine((v) => Number(v) >= 1, "Bent 1 žmogus."),
     price: z.string().trim().refine((v) => v === "" || /^\d+([.,]\d{1,2})?$/.test(v), "Suma arba tuščia."),
-    status: z.enum(["patvirtinta", "laukia"]),
     note: z.string().trim().max(500),
   })
   .refine((v) => v.endDate >= v.date, { message: "Pabaiga negali būti prieš pradžią.", path: ["endDate"] })
@@ -54,7 +52,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
   const { spaceBookings, createSpaceBooking } = useAdmin();
   const { register, control, handleSubmit, setError, setValue, getValues, formState } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { date: date || todayKey(), endDate: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", status: "patvirtinta", note: "" },
+    defaultValues: { date: date || todayKey(), endDate: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", note: "" },
   });
   const err = formState.errors;
   const [day, endDay, startTime, endTime, spaces, guests, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "guests", "price"] });
@@ -82,7 +80,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
       customer: { name: v.name, surname: v.surname, phone: v.phone, email: v.email },
       guests: Number(v.guests),
       price: total,
-      status: v.status,
+      status: "patvirtinta",
       note: v.note,
     });
     if ("error" in result) return setError("spaces", { message: result.error.message });
@@ -148,23 +146,6 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
           </FormField>
           <FormField id="sb-price" label="Kaina, €" error={err.price?.message} hint={`Pagal kainoraštį: ${formatEur(suggested)}. Palikite tuščią arba įveskite sutartą kainą.`}>
             <Input id="sb-price" inputMode="decimal" placeholder={String(suggested)} aria-invalid={!!err.price} className="min-h-11" {...register("price")} />
-          </FormField>
-          <FormField id="sb-status" label="Būsena">
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="sb-status" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="patvirtinta">Patvirtinta</SelectItem>
-                    <SelectItem value="laukia">Laukia</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
           </FormField>
           <FormField id="sb-note" label="Pastaba" className="sm:col-span-2">
             <Textarea id="sb-note" rows={2} {...register("note")} />

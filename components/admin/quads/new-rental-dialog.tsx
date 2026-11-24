@@ -31,7 +31,6 @@ const schema = z
     name: z.string().trim().min(2, "Įveskite vardą.").max(80),
     phone: z.string().trim().max(30),
     email: z.union([z.literal(""), z.email("Neteisingas el. paštas.")]),
-    status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     note: z.string().trim().max(300),
     ...paymentFormShape,
@@ -55,7 +54,6 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
       name: "",
       phone: "",
       email: "",
-      status: "patvirtinta",
       source: "telefonu",
       note: "",
       ...paymentFormDefaults,
@@ -83,7 +81,7 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
       units: Number(v.units),
       riders: Number(v.riders),
       customer: { name: v.name, phone: v.phone, email: v.email },
-      status: v.status,
+      status: "patvirtinta",
       source: v.source,
       note: v.note,
       payment: paymentInput(v),
@@ -94,7 +92,7 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
     onOpenChange(false);
   });
 
-  const select = (name: "quadTypeId" | "startHour" | "status" | "source", id: string, items: { value: string; label: string }[]) => (
+  const select = (name: "quadTypeId" | "startHour" | "source", id: string, items: { value: string; label: string }[]) => (
     <Controller
       control={control}
       name={name}
@@ -160,10 +158,6 @@ export function NewRentalDialog({ onOpenChange, date = "" }: { onOpenChange: (op
           <div className="space-y-1.5">
             <Label htmlFor="nr-email">{unpaid ? "El. paštas (apmokėjimo nuorodai)" : "El. paštas"}</Label>
             <Input id="nr-email" type="email" aria-invalid={!!err.email} className="min-h-11" {...register("email")} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="nr-status">Būsena</Label>
-            {select("status", "nr-status", [{ value: "patvirtinta", label: "Patvirtinta" }, { value: "laukia", label: "Laukia" }])}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nr-source">Šaltinis</Label>
