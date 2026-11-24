@@ -1,11 +1,11 @@
 "use client";
 
-import { PlusIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, PlusIcon } from "@phosphor-icons/react";
+import { Tabs as TabsPrimitive } from "radix-ui";
 import { useState } from "react";
 import { StepFrame } from "@/components/booking/stepped";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { cn } from "@/lib/utils";
 import { CALCULATOR_SECTIONS, PartySection, WhenSection } from "./calculator-sections";
 import { CampActivities } from "./camp-activities";
 import { CampMeals } from "./camp-meals";
@@ -50,39 +50,84 @@ const CAMP_GROUPS: Group[] = [
   { id: "stovykla-maistas", title: "Maitinimas", sections: ["camp-meals"] },
 ];
 
+/** The sections of one group, with a small label above each when the group holds several. */
+function GroupSectionsView({ group, calc }: { group: Group; calc: EventCalculatorState }) {
+  return (
+    <StepFrame>
+      {group.sections.map((sectionId) => {
+        const section = GROUP_SECTIONS.find((s) => s.id === sectionId);
+        if (!section) return null;
+        const { Section, label } = section;
+        return (
+          <div key={sectionId}>
+            {/* The date and guest controls arrange their own headings. */}
+            {group.sections.length > 1 && !["guests", "party", "when"].includes(sectionId) ? <OptionGroupLabel>{label}</OptionGroupLabel> : null}
+            <Section calc={calc} />
+          </div>
+        );
+      })}
+    </StepFrame>
+  );
+}
+
+/** Underlined tabs: a hairline under the whole row, an ink bar under the active tab. */
+const TAB =
+  "-mb-px min-h-11 border-b-2 border-transparent px-1 pb-1 text-sm font-bold text-copy transition-[color,border-color] duration-150 ease-out-strong hover:text-ink data-[state=active]:border-ink data-[state=active]:text-ink";
+
+/** The page's questions as tabs (one group at a time) with a "Toliau" button at the end of each. */
+function TabbedGroups({ calc, groups }: { calc: EventCalculatorState; groups: Group[] }) {
+  const [tab, setTab] = useState(groups[0].id);
+  const current = groups.some((g) => g.id === tab) ? tab : groups[0].id;
+  const index = groups.findIndex((g) => g.id === current);
+  const next = groups[index + 1];
+
+  return (
+    <TabsPrimitive.Root value={current} onValueChange={setTab}>
+      <TabsPrimitive.List aria-label="Skaičiuoklės dalys" className="flex flex-wrap gap-x-6 border-b border-line">
+        {groups.map((group, i) => (
+          <TabsPrimitive.Trigger key={group.id} value={group.id} className={TAB}>
+            <span className="mr-2 text-xs text-rust">{String(i + 1).padStart(2, "0")}</span>
+            {group.title}
+          </TabsPrimitive.Trigger>
+        ))}
+      </TabsPrimitive.List>
+      {groups.map((group) => (
+        <TabsPrimitive.Content key={group.id} value={group.id} id={`calc-group-${group.id}`} className="mt-6 space-y-8 outline-none">
+          <GroupSectionsView group={group} calc={calc} />
+          {next ? (
+            <div className="flex justify-end border-t border-line pt-4">
+              <button type="button" onClick={() => setTab(next.id)} className="inline-flex min-h-11 items-center gap-2 border border-ink px-4 text-xs font-bold transition-colors duration-150 hover:bg-ink hover:text-dust">
+                Toliau: {next.title}
+                <ArrowRightIcon aria-hidden className="size-4" />
+              </button>
+            </div>
+          ) : null}
+        </TabsPrimitive.Content>
+      ))}
+    </TabsPrimitive.Root>
+  );
+}
+
 /**
- * Four numbered accordion chapters holding the calculator sections, the first open by default.
- * They open and close independently (`multiple`): a single-open accordion collapses the chapter
- * above while the new one expands, which shifts the page under the cursor and made it jump.
+ * The calculator's questions in topic groups. The page shows them as tabs (`TabbedGroups`); the compact panel keeps numberless
+ * accordion chapters that open and close independently (`multiple`): a single-open accordion collapses the chapter above
+ * while the new one expands, which shifts the page under the cursor and made it jump.
  */
 export function CalculatorGroups({ calc, compact }: { calc: EventCalculatorState; compact?: boolean }) {
-  const [open, setOpen] = useState<string[]>(compact ? [GROUPS[0].id, CAMP_GROUPS[0].id] : [...GROUPS, ...CAMP_GROUPS].map((g) => g.id));
+  const [open, setOpen] = useState<string[]>([GROUPS[0].id, CAMP_GROUPS[0].id]);
   const groups = calc.input.preset === "stovykla" ? CAMP_GROUPS : GROUPS;
+  if (!compact) return <TabbedGroups calc={calc} groups={groups} />;
 
   return (
     <Accordion type="multiple" value={open} onValueChange={setOpen} className="border-b border-line">
-      {groups.map((group, i) => (
-        <AccordionItem key={group.id} id={`calc-group-${group.id}`} value={group.id} className={cn("border-b-0 border-t border-line", compact && "first:border-t-0")}>
-          <AccordionTrigger className={cn("min-h-11 items-center", compact ? "gap-2 py-3" : "gap-4 py-6")}>
-            {compact ? null : <span className="shrink-0 text-micro font-normal tracking-normal">{String(i + 1).padStart(2, "0")}</span>}
-            <span className={cn("font-display font-bold", compact ? "text-item" : "text-tile uppercase")}>{group.title}</span>
+      {groups.map((group) => (
+        <AccordionItem key={group.id} id={`calc-group-${group.id}`} value={group.id} className="border-b-0 border-t border-line first:border-t-0">
+          <AccordionTrigger className="min-h-11 items-center gap-2 py-3">
+            <span className="font-display text-item font-bold">{group.title}</span>
             <PlusIcon aria-hidden className="ml-auto size-6 shrink-0 motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out-strong group-data-[state=open]/trigger:rotate-45" />
           </AccordionTrigger>
-          <AccordionContent className={compact ? "space-y-5 pb-5" : "space-y-10 pb-8"}>
-            <StepFrame>
-              {group.sections.map((sectionId) => {
-                const section = GROUP_SECTIONS.find((s) => s.id === sectionId);
-                if (!section) return null;
-                const { Section, label } = section;
-                return (
-                  <div key={sectionId}>
-                    {/* The date and guest controls arrange their own headings. */}
-                    {group.sections.length > 1 && !["guests", "party", "when"].includes(sectionId) ? <OptionGroupLabel>{label}</OptionGroupLabel> : null}
-                    <Section calc={calc} />
-                  </div>
-                );
-              })}
-            </StepFrame>
+          <AccordionContent className="space-y-5 pb-5">
+            <GroupSectionsView group={group} calc={calc} />
           </AccordionContent>
         </AccordionItem>
       ))}

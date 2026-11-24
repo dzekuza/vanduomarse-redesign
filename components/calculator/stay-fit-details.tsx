@@ -14,7 +14,8 @@ function dayKey(date: Date): string {
 }
 
 /**
- * Whether the cabins that are free on every night of the stay can house the whole group, for the calendar's day cells.
+ * Free cabins out of the stock on every night of the stay (green when they can house the whole group, amber when some are free
+ * but not enough, red when none), for the calendar's day cells.
  * Undefined when the nights are not loaded or the cabins are not limited, so the cell stays plain.
  */
 export function stayFitDetails(types: readonly StayType[], stay: StayAvailability, date: Date, nights: number, guests: number): ReservationDayDetails | undefined {
@@ -25,6 +26,8 @@ export function stayFitDetails(types: readonly StayType[], stay: StayAvailabilit
 
   const free = cabins.map((type) => ({ type, free: freeStayUnits(stay.availability, date, nights, type) }));
   const housed = free.reduce((sum, { type, free: units }) => sum + units * type.maxGuests, 0);
+  const freeCabins = free.reduce((sum, { free: units }) => sum + units, 0);
+  const stock = cabins.reduce((sum, type) => sum + (type.units ?? 0), 0);
   const fits = housed >= guests;
   let remaining = guests;
   let cabinsNeeded = 0;
@@ -34,11 +37,11 @@ export function stayFitDetails(types: readonly StayType[], stay: StayAvailabilit
     cabinsNeeded += take;
   }
   return {
-    label: fits ? `Nakvynė ${guests} asm.: laisva, ${cabinsNeeded} nam.` : `Nakvynė ${guests} asm.: užimta, laisvų namelių tilptų ${housed} asm.`,
+    label: `Laisvų namelių: ${freeCabins} iš ${stock}. ${fits ? `${guests} asm. grupei pakanka (${cabinsNeeded} nam.)` : `${guests} asm. grupei nepakanka, tilptų ${housed} asm.`}`,
     available: fits,
     indicator: (
       <span className="@container block">
-        <span className={cn("block text-calendar-status font-bold", fits ? "text-availability-open!" : "text-rust-ink!")}>{fits ? "Laisva" : "Užimta"}</span>
+        <span className={cn("block text-calendar-status font-bold tabular-nums", fits ? "text-availability-open!" : freeCabins > 0 ? "text-availability-low-ink!" : "text-rust-ink!")}>{freeCabins}/{stock}</span>
       </span>
     ),
   };

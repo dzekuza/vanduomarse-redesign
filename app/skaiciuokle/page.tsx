@@ -29,8 +29,7 @@ export default async function SkaiciuoklePage() {
           header={
             <BookingHeader
               crumb="Skaičiuoklė"
-              title={["Suskaičiuok", "savo šventę."]}
-              intro="Pasirink renginio tipą, svečių skaičių ir erdvę. Preliminarią kainą matysi iškart. Atsiųsk užklausą, kad komanda parengtų pasiūlymą."
+              title={["Skaičiuoklė"]}
             />
           }
         />

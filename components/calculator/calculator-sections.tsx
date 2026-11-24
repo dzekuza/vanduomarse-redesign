@@ -26,11 +26,11 @@ function TypeSection({ calc: { input, set, applyPreset } }: SectionProps) {
   );
 }
 
-function DateTimeFields({ calc: { input, set, chooseDate, chooseTime, today, stayDetails, guests }, alwaysOpen }: SectionProps & { alwaysOpen?: boolean }) {
+function DateTimeFields({ calc: { input, chooseDate, chooseEnd, chooseTime, today, stayDetails, guests }, alwaysOpen }: SectionProps & { alwaysOpen?: boolean }) {
   return (
     <div className="space-y-3">
-      <EventDatePicker today={today} value={input.date} onChange={chooseDate} alwaysOpen={alwaysOpen} dayDetails={stayDetails} />
-      {stayDetails ? <p className="text-xs text-copy">Po kiekviena diena rodome, ar tą naktį yra laisvų namelių {guests} asm. grupei.</p> : null}
+      <EventDatePicker today={today} value={input.date} end={input.endDate} onChange={chooseDate} onEnd={chooseEnd} alwaysOpen={alwaysOpen} stayDetails={stayDetails} />
+      {stayDetails ? <p className="text-xs text-copy">Po kiekviena diena rodome laisvus namelius iš visų (žalia, kai jų pakanka {guests} asm. grupei; pasirinkus pabaigos datą, skaičiuojamos visos naktys).</p> : null}
       {input.date ? (
         <fieldset>
           <legend className="mb-2 text-micro uppercase">Renginio laikas</legend>
@@ -40,7 +40,7 @@ function DateTimeFields({ calc: { input, set, chooseDate, chooseTime, today, sta
           </div>
         </fieldset>
       ) : null}
-      {input.preset === "stovykla" ? <Stepper label="Stovyklos trukmė, dienų" value={input.campDays} onChange={(v) => set("campDays", v)} min={1} max={7} editable /> : null}
+      {input.preset === "stovykla" && input.endDate ? <p className="text-xs text-copy">Stovykla trunka {input.campDays} d. ({input.campDays - 1} n.).</p> : null}
     </div>
   );
 }

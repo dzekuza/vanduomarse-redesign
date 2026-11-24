@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type PresetId, type SaunaPick } from "@/lib/event-pricing";
-import { stayTypesOf } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, stayTypesOf } from "@/lib/cabin";
 import { todayKey } from "@/lib/sauna";
 import { stayFitDetails, type StayAvailability } from "./stay-fit-details";
 
@@ -54,9 +54,23 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
     });
   }
 
+  /** Days between two yyyy-mm-dd dates. */
+  const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+
+  /** The last day of a multi-day event: a camp lasts nights + 1 days and the cabins are wanted for the nights. */
+  function chooseEnd(end: string | null) {
+    setInput((s) => {
+      if (!s.date || !end || end <= s.date) return { ...s, endDate: null, campDays: 1 };
+      const nights = daysBetween(s.date, end);
+      return { ...s, endDate: end, campDays: nights + 1, cabinNights: Math.max(1, Math.min(MAX_STAY_NIGHTS, nights)) };
+    });
+  }
+
   function chooseDate(date: string) {
     setInput((s) => ({
       ...s,
+      endDate: null,
+      campDays: 1,
       date: date || null,
       eventTime: date ? s.eventTime : null,
       day: date && s.eventTime ? dayTypeOf(date, s.eventTime) : null,
@@ -68,9 +82,9 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
   }
 
   /** Calendar mark: can the cabins that are free house the whole group for the chosen nights. */
-  const stayDetails = stay ? (date: Date) => stayFitDetails(catalog.stayTypes, stay, date, input.cabinNights, guests) : undefined;
+  const stayDetails = stay ? (arrival: Date, nights: number) => stayFitDetails(catalog.stayTypes, stay, arrival, nights, guests) : undefined;
 
-  return { stayDetails, input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, guestLimit, sleepingPlaces, spaces, spaceLabel, extraHour, preset, applyPreset, chooseDate, chooseTime, today };
+  return { stayDetails, input, set, setCabinUnits, setSauna, catalog, stayTypes: catalog.stayTypes, result, guests, guestLimit, sleepingPlaces, spaces, spaceLabel, extraHour, preset, applyPreset, chooseDate, chooseEnd, chooseTime, today };
 }
 
 export type EventCalculatorState = ReturnType<typeof useEventCalculator>;

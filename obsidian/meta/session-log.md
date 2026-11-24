@@ -1,3 +1,33 @@
+## 2026-11-24 — Underlined calculator tabs
+
+- **Changed:** `calculator-groups.tsx` (tab and tab-list classes). Docs: changelog. Dev server restarted (it is stopped by the app after a few idle hours).
+- **Status:** tsc/eslint clean; browser-checked 1280 px. Uncommitted (with the reservation-style redesign, range calendar and free-cabin counts).
+- **Next:** owner view; commit.
+
+## 2026-11-23 — Free cabin count in the calendar
+
+- **Changed:** `stay-fit-details.tsx` (count `free/stock`, three colours), hint text in `calculator-sections.tsx`. Docs: changelog, catalog.
+- **Status:** tsc/eslint clean; browser-checked 1280 px. Uncommitted (with the redesign, tabs and range calendar).
+- **Next:** owner view; commit.
+
+## 2026-11-23 — Calculator date range
+
+- **Changed:** `event-date-picker.tsx` (range calendar), `lib/event-pricing.ts` (`endDate`), `use-event-calculator.ts` (`chooseEnd`, `stayDetails(arrival, nights)`), `calculator-sections.tsx` (no days stepper), `inquiry-form.tsx` (end date in the message). Docs: changelog.
+- **Status:** tsc/eslint/tests clean; browser-checked 1280 and 375 px. Uncommitted (with the reservation-style redesign and tabs).
+- **Next:** owner view; commit; priespirtis and camp prices.
+
+## 2026-11-23 — Calculator tabs
+
+- **Changed:** `calculator-groups.tsx` (`TabbedGroups`, `GroupSectionsView`; accordion only when compact). Docs: changelog, catalog.
+- **Status:** tsc/eslint/tests clean; browser-checked 1280 and 375 px. Uncommitted (with the reservation-style redesign).
+- **Next:** owner's view of the tabs; commit; priespirtis and camp prices.
+
+## 2026-11-23 — Calculator page in the reservation style
+
+- **Changed:** `calculator-page.tsx` (card + `BookingPanel`), `estimate-summary.tsx` (`bare`), `calculator-groups.tsx` (lighter headings, no outer border), `app/skaiciuokle/page.tsx` (title only). Docs: changelog, routing, catalog.
+- **Status:** tsc/eslint/tests clean; browser-checked 1280 and 375 px. Uncommitted (the redesign is after commit `88f1bc667`).
+- **Next:** owner feedback on the look; priespirtis and camp prices; push when wanted.
+
 ## 2026-11-23 — Cabin bed rule site-wide
 
 - **Changed:** `lib/cabin.ts` (`BED_NOTICE`, `hasUpperFloor`), `bed-notice.tsx` (new), `stay-service-booking.tsx`, `stay-options.tsx`, `cabin-booking.tsx`, `stay-type-dialog.tsx`, `activity-details.tsx`, `cabin-confirmation.tsx`, `stay-section.tsx`, `service-content.ts`, `celebration-content.ts`, `landing/content.ts`, `public/llms.txt`. Docs: changelog, status, catalog.

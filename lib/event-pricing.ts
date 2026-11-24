@@ -322,6 +322,8 @@ export interface EstimateInput {
   preset: PresetId | null;
   /** yyyy-mm-dd of the event, null until chosen. */
   date: string | null;
+  /** yyyy-mm-dd of the last day of a multi-day event; null for a single day. Camp days and cabin nights follow it. */
+  endDate: string | null;
   /** Spaces hired together (empty until the visitor picks): rents add up, the minimum bill is the highest one and one service fee applies. */
   spaces: SpaceId[];
   day: DayType | null;
@@ -358,6 +360,7 @@ export interface EstimateInput {
 export const DEFAULT_INPUT: EstimateInput = {
   preset: null,
   date: null,
+  endDate: null,
   spaces: [],
   day: null,
   adults: 20,
