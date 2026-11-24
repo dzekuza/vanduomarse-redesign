@@ -1,3 +1,10 @@
+## 2026-11-24 — Būsena removed from the other admin creation forms
+
+- **Asked:** remove Būsena from the quad rental form too, then from all of them (quads, nameliai, pirtis, etc.).
+- **Changed:** `NewRentalDialog`, `NewTourDialog`, `NewSpaceBookingDialog` lose the field and `status` in their schemas; each sends "patvirtinta". Unused `Select` import dropped. Status columns / filters and the inquiry and sauna "Būsena" are different things and stay.
+- **Verified:** tsc, eslint, 217 tests. Not checked in a browser (admin login).
+- **Next:** push, PR.
+
 ## 2026-11-24 — Būsena removed from "Nauja rezervacija"
 
 - **Asked:** remove the Būsena (Patvirtinta / Laukia) field from the admin new-booking form.

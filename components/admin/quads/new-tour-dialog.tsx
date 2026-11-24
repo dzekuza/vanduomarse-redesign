@@ -31,7 +31,6 @@ const schema = z
     name: z.string().trim().min(2, "Įveskite vardą.").max(80),
     phone: z.string().trim().max(30),
     email: z.union([z.literal(""), z.email("Neteisingas el. paštas.")]),
-    status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     note: z.string().trim().max(300),
     ...paymentFormShape,
@@ -50,7 +49,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
   const [gear, setGear] = useState<Record<string, number>>({});
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { routeId, date, startHour: "", units: String(routes.find((r) => r.id === routeId)?.minUnits ?? 1), name: "", phone: "", email: "", status: "patvirtinta", source: "telefonu", note: "", ...paymentFormDefaults },
+    defaultValues: { routeId, date, startHour: "", units: String(routes.find((r) => r.id === routeId)?.minUnits ?? 1), name: "", phone: "", email: "", source: "telefonu", note: "", ...paymentFormDefaults },
   });
   const [chosenRoute, day, startHour, unitsText, paid] = useWatch({ control, name: ["routeId", "date", "startHour", "units", "paid"] });
   const unpaid = paid === "nesumoketa";
@@ -73,7 +72,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
       units,
       gear: gearItems.map((a) => ({ id: a.id, units: gear[a.id] })),
       customer: { name: v.name, phone: v.phone, email: v.email },
-      status: v.status,
+      status: "patvirtinta",
       source: v.source,
       note: v.note,
       payment: paymentInput(v),
@@ -144,8 +143,8 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
           <FormField id="nt-email" label={unpaid ? "El. paštas (apmokėjimo nuorodai)" : "El. paštas"} error={err.email?.message}>
             <Input id="nt-email" type="email" aria-invalid={!!err.email} className="min-h-11" {...register("email")} />
           </FormField>
-          {(["status", "source"] as const).map((name) => (
-            <FormField key={name} id={`nt-${name}`} label={name === "status" ? "Būsena" : "Kaip užsakė"}>
+          {(["source"] as const).map((name) => (
+            <FormField key={name} id={`nt-${name}`} label="Kaip užsakė">
               <Controller
                 control={control}
                 name={name}
@@ -153,7 +152,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id={`nt-${name}`} className="w-full"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {(name === "status" ? [["patvirtinta", "Patvirtinta"], ["laukia", "Laukia"]] : [["telefonu", "Telefonu"], ["vietoje", "Vietoje"]]).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+                      {[["telefonu", "Telefonu"], ["vietoje", "Vietoje"]].map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 )}
