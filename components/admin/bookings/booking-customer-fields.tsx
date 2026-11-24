@@ -22,19 +22,14 @@ interface BookingCustomerFieldsProps {
   emailRequired?: boolean;
 }
 
-const STATUS = [
-  { value: "patvirtinta", label: "Patvirtinta" },
-  { value: "laukia", label: "Laukia" },
-];
-
 const SOURCE = [
   { value: "telefonu", label: "Telefonu" },
   { value: "vietoje", label: "Vietoje" },
 ];
 
-/** Contact details (typing a name or phone suggests existing customers), status, channel and an internal note. */
+/** Contact details (typing a name or phone suggests existing customers), channel and an internal note. */
 export function BookingCustomerFields({ control, register, setValue, errors, showNote = true, emailRequired = false }: BookingCustomerFieldsProps) {
-  const select = (name: "status" | "source", id: string, options: { value: string; label: string }[]) => (
+  const select = (name: "source", id: string, options: { value: string; label: string }[]) => (
     <Controller
       control={control}
       name={name}
@@ -77,9 +72,6 @@ export function BookingCustomerFields({ control, register, setValue, errors, sho
       </FormField>
       <FormField id="nb-email" label="El. paštas" error={errors.email?.message} hint={emailRequired ? "Privaloma: čia siunčiama apmokėjimo nuoroda" : "Neprivaloma"}>
         <Input id="nb-email" type="email" aria-invalid={!!errors.email} {...register("email")} />
-      </FormField>
-      <FormField id="nb-status" label="Būsena">
-        {select("status", "nb-status", STATUS)}
       </FormField>
       <FormField id="nb-source" label="Kaip užsakė">
         {select("source", "nb-source", SOURCE)}

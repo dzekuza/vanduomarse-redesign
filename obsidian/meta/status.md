@@ -3,7 +3,7 @@ tags: [meta, status]
 updated: 2026-11-24
 ---
 
-**"Visa diena" in the admin sauna booking form (2026-11-24): on branch `feat/admin-full-day-sauna`, committed locally, not pushed. Trukmė in `Nauja rezervacija` ends with "Visa diena" (start to closing) when the whole run is free; price = longest priced length unless staff set "Kita kaina". Not browser-checked (login). Next: push, PR, try it on Malkinė pirtis. Cabin summer booking + seasonal prices (ADR-0126) is merged (PR #154); next there: owner adds the summer season and tries one booking.**
+**Būsena field removed from the admin "Nauja rezervacija" form (2026-11-24): on branch `feat/remove-status-field`, committed locally, not pushed. Bookings and tickets made there are always Patvirtinta. The quad rental dialog still has its own Būsena. Not browser-checked (login). Next: push, PR. "Visa diena" in the admin sauna form (PR #155) and cabin summer booking + seasonal prices (PR #154, ADR-0126) are merged; next there: owner adds the summer season and a full-day price, and tries one booking each.**
 
 **Event types editable (2026-11-19, ADR-0125): PR #151 (`feat/admin-gemini-agent`). Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
 

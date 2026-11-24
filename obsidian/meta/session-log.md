@@ -1,3 +1,10 @@
+## 2026-11-24 — Būsena removed from "Nauja rezervacija"
+
+- **Asked:** remove the Būsena (Patvirtinta / Laukia) field from the admin new-booking form.
+- **Changed:** field and `STATUS` list gone from `BookingCustomerFields`, `status` dropped from the form schema, the dialog sends "patvirtinta" for bookings and tickets. Quad rentals keep their own Būsena.
+- **Verified:** tsc, eslint, 217 tests. Not checked in a browser (admin login).
+- **Next:** push, PR; decide whether the quad rental and other dialogs should lose it too.
+
 ## 2026-11-24 — Full-day option in the admin sauna booking form
 
 - **Asked:** Trukmė in "Nauja rezervacija" only offered 3 / 4 val.; staff need a way to book the whole day.
