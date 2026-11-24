@@ -3,7 +3,7 @@ tags: [meta, status]
 updated: 2026-11-24
 ---
 
-**Cabin summer booking + seasonal prices (2026-11-24, ADR-0126): PR #154 (`feat/cabin-seasonal-prices`) open, review fixes pushed, not merged. Cabin pickers open 350 days ahead; date-range seasons with their own 1 / 2 / 3+ night prices in the `/admin/namukai` type dialog, saved atomically by RPC `save_stay_type`. Migrations `20261124120000_stay_type_seasons.sql` and `20261124130000_save_stay_type.sql` APPLIED to the live DB before the merge (no season exists yet, prices unchanged). Public `/nakvyne` browser-checked; the admin dialog and a booking inside a real season are not (login). Next: merge, owner adds the summer season and tries one booking. A season is a fixed date range, not yearly.**
+**"Visa diena" in the admin sauna booking form (2026-11-24): on branch `feat/admin-full-day-sauna`, committed locally, not pushed. Trukmė in `Nauja rezervacija` ends with "Visa diena" (start to closing) when the whole run is free; price = longest priced length unless staff set "Kita kaina". Not browser-checked (login). Next: push, PR, try it on Malkinė pirtis. Cabin summer booking + seasonal prices (ADR-0126) is merged (PR #154); next there: owner adds the summer season and tries one booking.**
 
 **Event types editable (2026-11-19, ADR-0125): PR #151 (`feat/admin-gemini-agent`). Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
 

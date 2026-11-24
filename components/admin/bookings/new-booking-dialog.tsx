@@ -18,11 +18,11 @@ import { BookingWhenFields } from "./booking-when-fields";
 import { newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { bookingOptionsOn } from "@/lib/admin/booking-options";
 import { formatDay, formatEur } from "@/lib/admin/format";
-import { freeHoursFrom, freeStartHours, fullStayNights, saunaSlice } from "@/lib/admin/occupancy";
+import { bookedHours, freeHoursToClose, freeStartHours, fullStayNights, pickableLengths, saunaSlice } from "@/lib/admin/occupancy";
 import { hasPermission } from "@/lib/admin/permissions";
 import { pickStayType, stayPrice, stayTiersLabel } from "@/lib/cabin";
 import { discountCovers, discountFor, type CheckedDiscount, type DiscountService } from "@/lib/discount-codes";
-import { DEFAULT_SAUNA_RATES, dateKey, sessionLengths, sessionPrice } from "@/lib/sauna";
+import { DEFAULT_SAUNA_RATES, dateKey, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -95,8 +95,9 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   }, [date, events, bookings, blocks, saunas, stayTypes, externalBlocks, me]);
 
   const starts = sauna && chosen && date ? freeStartHours(slice.bookings, slice.blocks, saunaRates, date) : [];
-  const run = sauna && chosen && startHour ? freeHoursFrom(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : 0;
-  const lengths = sessionLengths(saunaRates, date || undefined).filter((h) => h <= run);
+  const lengths = sauna && chosen && startHour ? pickableLengths(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : [];
+  /** What the picked length books: "Visa diena" runs from the start to closing. */
+  const sessionHours = hours ? bookedHours(saunaRates, Number(startHour), Number(hours)) : 0;
   // A stay uses the type staff picked in step 1; without one, the smallest active type that fits the party (the server picks the same).
   const stayType = stayKind ? (stayTypes.find((t) => t.id === stayTypeId && t.kind === stayKind && t.active) ?? pickStayType(stayTypes, stayKind, party)) : undefined;
   const placesLeft = chosenEvent && chosenEvent.capacity !== null ? Math.max(0, chosenEvent.capacity - chosenEvent.sold - chosenEvent.held) : null;
@@ -106,7 +107,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       ? (placesLeft ?? 500)
       : (stayType?.maxGuests ?? Math.max(0, ...stayTypes.filter((t) => t.kind === kind && t.active).map((t) => t.maxGuests)));
 
-  const extrasCtx = { partySize: party, hours: Number(hours) || 0 };
+  const extrasCtx = { partySize: party, hours: sessionHours };
     const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
   const computed = ticket
     ? (chosenEvent?.price ?? 0) * party
@@ -156,7 +157,8 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       reportCreated(created.data.ticket.reference, created.data);
       return onOpenChange(false);
     }
-    if (sauna && freeHoursFrom(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
+    const wanted = bookedHours(saunaRates, Number(v.startHour), Number(v.hours));
+    if (sauna && freeHoursToClose(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < wanted)
       return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
     if (!sauna) {
       if (!stayType) return setError("kind", { message: "Šio tipo nakvynės nėra – pridėkite ją skiltyje Namukai." });
@@ -168,7 +170,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       ...(sauna ? { saunaId: v.saunaId } : { stayTypeId: stayType?.id }),
       customer: { name: v.name, phone: v.phone, email: v.email },
       date: v.date,
-      ...(sauna ? { startHour: Number(v.startHour), hours: Number(v.hours) } : { nights: Number(v.nights) }),
+      ...(sauna ? { startHour: Number(v.startHour), hours: bookedHours(saunaRates, Number(v.startHour), Number(v.hours)) } : { nights: Number(v.nights) }),
       guests: party,
       extras: sauna ? extras : {},
       total,

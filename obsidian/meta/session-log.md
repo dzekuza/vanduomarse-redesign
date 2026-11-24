@@ -1,3 +1,10 @@
+## 2026-11-24 — Full-day option in the admin sauna booking form
+
+- **Asked:** Trukmė in "Nauja rezervacija" only offered 3 / 4 val.; staff need a way to book the whole day.
+- **Changed:** `pickableLengths` / `freeHoursToClose` / `bookedHours` in `lib/admin/occupancy.ts`; the dialog's length list ends with "Visa diena" (start to closing) when the run to closing is free, stores the real hours, prices from the table (longest length if no full-day price), extras use the real hours.
+- **Verified:** tsc, eslint, 217 tests (+3). Not checked in a browser (admin login).
+- **Next:** push, PR; owner may add a full-day price per sauna in `/admin/pirtis` rates.
+
 ## 2026-11-24 — Review fixes on PR #154 (seasonal prices)
 
 - **Asked:** (automated) address the review comments on PR #154.

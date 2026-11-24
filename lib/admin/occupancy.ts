@@ -2,7 +2,7 @@ import { parseDay } from "@/lib/admin/format";
 import type { Block, Booking, ExternalBlock, ManagedEvent } from "./types";
 import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { StayType } from "@/lib/cabin";
-import { dateKey, type SaunaRates } from "@/lib/sauna";
+import { FULL_DAY_HOURS, dateKey, sessionLengths, type SaunaRates } from "@/lib/sauna";
 
 const active = (b: Booking) => b.status !== "atsaukta";
 
@@ -76,6 +76,31 @@ export function freeHoursFrom(bookings: Booking[], blocks: Block[], rates: Sauna
   while (n < rates.maxHours && start + n < rates.closeHour && !saunaHourTaken(bookings, blocks, day, start + n)) n++;
   return n;
 }
+
+/** Longest free run from `start` to closing, without the max session length: what a whole-day hire needs. */
+export function freeHoursToClose(bookings: Booking[], blocks: Block[], rates: SaunaRates, day: string, start: number): number {
+  let n = 0;
+  while (start + n < rates.closeHour && !saunaHourTaken(bookings, blocks, day, start + n)) n++;
+  return n;
+}
+
+/**
+ * Lengths staff can pick from `start`: the price table's hourly lengths that fit, plus "Visa diena" (FULL_DAY_HOURS)
+ * when everything from the start to closing is free and that is longer than any hourly length. It is offered even
+ * when the sauna has no full-day price: staff set the price themselves.
+ */
+export function pickableLengths(bookings: Booking[], blocks: Block[], rates: SaunaRates, day: string, start: number): number[] {
+  const hourly = sessionLengths(rates, day).filter((h) => h < FULL_DAY_HOURS);
+  const run = freeHoursFrom(bookings, blocks, rates, day, start);
+  const toClose = rates.closeHour - start;
+  const wholeDay = toClose > Math.max(0, ...hourly) && freeHoursToClose(bookings, blocks, rates, day, start) >= toClose;
+  const fits = hourly.filter((h) => h <= run);
+  return wholeDay ? [...fits, FULL_DAY_HOURS] : fits;
+}
+
+/** Hours a picked length books: "Visa diena" runs from the start to closing, every other length is what it says. */
+export const bookedHours = (rates: SaunaRates, start: number, length: number): number =>
+  length === FULL_DAY_HOURS ? rates.closeHour - start : length;
 
 /** Start hours on `day` where at least the minimum session fits. */
 export function freeStartHours(bookings: Booking[], blocks: Block[], rates: SaunaRates, day: string): number[] {
