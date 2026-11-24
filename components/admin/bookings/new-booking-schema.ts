@@ -25,7 +25,6 @@ export const newBookingSchema = z
     name: z.string().trim().min(2, "Įveskite vardą."),
     phone: z.string().trim().regex(/^\+?[\d\s()-]{6,}$/, "Įveskite telefono numerį."),
     email: z.union([z.literal(""), z.email("Neteisingas el. paštas.")]),
-    status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     /** How it was paid at entry (used when `paid`), and whether it was; unpaid ones get a payment link by e-mail. */
     ...paymentFormShape,
