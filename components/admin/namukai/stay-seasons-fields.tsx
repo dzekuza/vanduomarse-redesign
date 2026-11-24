@@ -20,6 +20,8 @@ const SEASON_TIERS = [
   { name: "price3", label: "3 ir daugiau" },
 ] as const;
 
+const MAX_SEASONS = 24;
+
 interface StaySeasonsFieldsProps {
   control: Control<StayTypeValues>;
   register: UseFormRegister<StayTypeValues>;
@@ -119,6 +121,7 @@ export function StaySeasonsFields({
       <Button
         type="button"
         variant="outline"
+        disabled={fields.length >= MAX_SEASONS}
         onClick={() =>
           append({
             id: crypto.randomUUID(),

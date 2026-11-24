@@ -1,3 +1,10 @@
+## 2026-11-24 — Review fixes on PR #154 (seasonal prices)
+
+- **Asked:** (automated) address the review comments on PR #154.
+- **Changed:** the public stay-type loader now reads `stay_type_seasons` (it did not, so the site ignored seasons); `saveStayType` is one atomic RPC `save_stay_type` (migration `20261124130000`, applied; a season id of another type fails); the month calendar's browse cap follows the booking window (the last cabin month was unreachable); a cabin date beyond 60 days clears sauna / quad picks; add-season button stops at 24; seasonal prices capped at 10 000 € in the form; ADR and database notes corrected.
+- **Verified:** tsc, eslint, tests; RPC with rolled-back SQL (save, overlap leaves the type unchanged, foreign season id refused). Not browser-rechecked after the loader fix.
+- **Next:** merge PR #154; owner adds the summer season.
+
 ## 2026-11-24 — Summer cabin booking and seasonal prices (ADR-0126)
 
 - **Asked:** let the nameliai booking page book summer (the calendar stopped short), and let the admin set different prices from a month, e.g. from July 20 € for 1 night, 10 € per night for 2, X for 3+.

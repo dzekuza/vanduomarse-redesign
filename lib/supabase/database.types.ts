@@ -2683,6 +2683,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      save_stay_type: {
+        Args: { p_seasons: Json; p_type: Json }
+        Returns: undefined
+      }
       payment_requests: {
         Args: { p_payment_id: string }
         Returns: {

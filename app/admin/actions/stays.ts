@@ -47,39 +47,32 @@ export async function saveStayType(type: StayType): Promise<ActionResult> {
   const t = parsed.data;
   // Cabins are always counted; only camper pitches may be unlimited.
   if (t.kind === "namelis" && t.units === null) return fail("Namelių skaičius privalomas.", "invalid");
-  const { error } = await ctx.supabase.from("stay_types").upsert({
-    id: t.id,
-    kind: t.kind,
-    label: t.label,
-    note: t.note,
-    max_guests: t.maxGuests,
-    price_per_night: t.pricePerNight,
-    price_per_night_2: t.pricePerNight2,
-    price_per_night_3: t.pricePerNight3,
-    units: t.units,
-    active: t.active,
-    sort_order: t.sortOrder,
-  });
-  if (error) return dbError(error);
-
-  // Seasons: drop the ones the owner removed, then upsert the rest. The table refuses overlapping ranges.
-  const kept = t.seasons.map((x) => x.id);
-  const stale = ctx.supabase.from("stay_type_seasons").delete().eq("stay_type_id", t.id);
-  const removed = await (kept.length > 0 ? stale.not("id", "in", `(${kept.join(",")})`) : stale);
-  if (removed.error) return dbError(removed.error);
-  if (t.seasons.length > 0) {
-    const saved = await ctx.supabase.from("stay_type_seasons").upsert(t.seasons.map((x) => ({
+  // One database call: the type and its seasons are saved together or not at all.
+  const { error } = await ctx.supabase.rpc("save_stay_type", {
+    p_type: {
+      id: t.id,
+      kind: t.kind,
+      label: t.label,
+      note: t.note,
+      max_guests: t.maxGuests,
+      price_per_night: t.pricePerNight,
+      price_per_night_2: t.pricePerNight2,
+      price_per_night_3: t.pricePerNight3,
+      units: t.units,
+      active: t.active,
+      sort_order: t.sortOrder,
+    },
+    p_seasons: t.seasons.map((x) => ({
       id: x.id,
-      stay_type_id: t.id,
       starts_on: x.startsOn,
       ends_on: x.endsOn,
       price_per_night: x.pricePerNight,
       price_per_night_2: x.pricePerNight2,
       price_per_night_3: x.pricePerNight3,
-    })));
-    if (saved.error?.code === "23P01") return fail("Sezonų datos persidengia.", "invalid");
-    if (saved.error) return dbError(saved.error);
-  }
+    })),
+  });
+  if (error?.code === "23P01") return fail("Sezonų datos persidengia.", "invalid");
+  if (error) return dbError(error);
   revalidateStays();
   return done(null);
 }

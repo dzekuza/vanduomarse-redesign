@@ -236,7 +236,7 @@ async function loadStayTypes(): Promise<StayType[]> {
   return must(
     await supabase
       .from("stay_types")
-      .select("*")
+      .select("*, stay_type_seasons(*)")
       .eq("active", true)
       .order("sort_order"),
     "Stay types",

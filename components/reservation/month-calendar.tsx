@@ -46,7 +46,9 @@ export function MonthCalendar({ days, selected, onSelect, icons, dayDetails, all
   const firstDay = days[0];
   const first = monthStart(firstDay ?? selected ?? month);
   const bookingEnd = days.at(-1);
-  const last = new Date(first.getFullYear(), first.getMonth() + BROWSE_MONTHS - 1, 1);
+  const browseEnd = new Date(first.getFullYear(), first.getMonth() + BROWSE_MONTHS - 1, 1);
+  // A longer booking window (cabins: almost a year) has to stay reachable.
+  const last = bookingEnd && monthStart(bookingEnd) > browseEnd ? monthStart(bookingEnd) : browseEnd;
   const bookable = new Set(days.map(dateKey));
   const selectedKey = selected && dateKey(selected);
   const today = firstDay ? dateKey(firstDay) : null;

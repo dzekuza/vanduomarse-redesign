@@ -4,7 +4,8 @@ import type { StaySeason } from "@/lib/cabin";
 const priceField = z
   .string()
   .trim()
-  .regex(/^\d+([.,]\d{1,2})?$/, "Įveskite kainą, pvz. 50.");
+  .regex(/^\d+([.,]\d{1,2})?$/, "Įveskite kainą, pvz. 50.")
+  .refine((v) => Number(v.replace(",", ".")) <= 10000, "Kaina negali viršyti 10 000 €.");
 const dateField = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite sezono datas.");
@@ -44,7 +45,7 @@ export const stayTypeSchema = z.object({
   price3: priceField,
   seasons: z
     .array(seasonSchema)
-    .max(24)
+    .max(24, "Daugiausia 24 sezonai.")
     .superRefine((seasons, ctx) => {
       const sorted = seasons.toSorted((a, b) =>
         a.startsOn.localeCompare(b.startsOn),

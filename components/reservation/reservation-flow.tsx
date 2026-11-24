@@ -254,6 +254,16 @@ export function ReservationFlow({
     if (busy) return;
     setStep(0);
     const key = dateKey(next);
+    // Sauna and quad availability is only loaded for RESERVATION_DAYS: a cabin date beyond it cannot carry them.
+    if (key > dateKey(nextDays(today, RESERVATION_DAYS).at(-1) ?? next)) {
+      setTourPick(null);
+      setPicks((current) => {
+        const rest = { ...current };
+        delete rest.pirtis;
+        delete rest.keturraciai;
+        return rest;
+      });
+    }
     if (stayDatePhase !== "selectingEnd" || key <= day) {
       if (key !== day) setTourPick(null);
       setDate(next);
