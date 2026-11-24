@@ -3,7 +3,7 @@ tags: [meta, status]
 updated: 2026-11-24
 ---
 
-**Būsena removed from all admin creation forms (2026-11-24): the booking form is merged (PR #156); quad rental, quad tour and event-space dialogs are on `feat/remove-rental-status`, committed locally, not pushed. Everything staff create is Patvirtinta. Not browser-checked (login). Next: push, PR. "Visa diena" in the admin sauna form (PR #155) and cabin summer booking + seasonal prices (PR #154, ADR-0126) are merged; next there: owner adds the summer season and a full-day price, and tries one booking each.**
+**Current state (2026-11-24): everything below from today is merged to `main` and deploying, nothing in progress. PR #154 cabin summer booking (350 days) + seasonal stay prices (ADR-0126; migrations `20261124120000_stay_type_seasons.sql`, `20261124130000_save_stay_type.sql` applied). PR #155 "Visa diena" in the admin sauna booking form. PR #156 and #157 Būsena removed from every admin creation form (booking, quad rental, quad tour, event space); all create Patvirtinta. None of the admin changes is browser-checked (login); public `/nakvyne` summer dates were. Next: the owner adds the summer season at `/admin/namukai` (a fixed date range, not yearly) and a full-day price per sauna at `/admin/pirtis`, then tries one booking of each.**
 
 **Event types editable (2026-11-19, ADR-0125): PR #151 (`feat/admin-gemini-agent`). Migration `event_presets` applied (seeded with the 8 old types). `/admin/kainos` → "Renginio tipai". Public calculator browser-checked after a dev-server restart (all 8 types listed, picking one works); the admin card is not (login). Next: try the card, commit.**
 
