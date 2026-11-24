@@ -1,3 +1,9 @@
+## 2026-11-24 — Status brought up to date
+
+- **Asked:** update status.md for the merged PRs.
+- **Changed:** `status.md` now says #154, #155, #156 and #157 are merged and nothing is in progress.
+- **Next:** owner adds the summer season and a full-day price, tries one booking of each.
+
 ## 2026-11-24 — Būsena removed from the other admin creation forms
 
 - **Asked:** remove Būsena from the quad rental form too, then from all of them (quads, nameliai, pirtis, etc.).
