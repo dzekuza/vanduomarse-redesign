@@ -167,6 +167,8 @@ export interface ManagedEvent {
   calendarPrivate?: boolean;
   /** Sauna program this session belongs to (its price then follows the program). */
   programId?: string;
+  /** Sauna master (pirtininkas, `sauna_masters.id`) leading a public sauna session; unset = "Be pirtininko". */
+  saunaMasterId?: string;
   /** Set for a dated departure of a quad tour product (`quad_tour_routes`); capacity is then in quads. */
   tourRouteId?: string;
 }

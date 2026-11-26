@@ -6,12 +6,14 @@ import type { ManagedEvent } from "@/lib/admin/types";
 
 /** Upcoming public sauna sessions (pirties seansai). The card header creates them; the parent owns the dialog. */
 export function SaunaSessionsList({ onEdit, onDuplicate }: { onEdit: (event: ManagedEvent) => void; onDuplicate: (event: ManagedEvent) => void }) {
-  const { programs } = useAdmin();
+  const { programs, saunaMasters } = useAdmin();
   return (
     <CategoryEventsList
       category="pirtis"
       emptyText="Būsimų seansų nėra."
-      extra={(e) => programs.find((p) => p.id === e.programId)?.name ?? "Be programos"}
+      extra={(e) =>
+        [programs.find((p) => p.id === e.programId)?.name ?? "Be programos", saunaMasters.find((m) => m.id === e.saunaMasterId)?.name ?? "Be pirtininko"].join(" · ")
+      }
       onEdit={onEdit}
       onDuplicate={onDuplicate}
     />

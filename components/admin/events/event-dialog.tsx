@@ -47,6 +47,7 @@ function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?:
     blurb: e?.blurb ?? "",
     visibility: e?.calendarPrivate ? "private" : e?.published ? "public" : "draft",
     programId: e?.programId ?? "",
+    saunaMasterId: e?.saunaMasterId ?? "",
   };
 }
 
@@ -58,7 +59,7 @@ const KIND_COPY: Partial<Record<EventCategory, { nom: string; acc: string; creat
 /** Create or edit an event. Remounted per event (key) so defaults reset. */
 export function EventDialog({ open, onOpenChange, event, template, presetCategory, presetDate }: EventDialogProps) {
   const source = event ?? template;
-  const { saveEvent, programs, saunas } = useAdmin();
+  const { saveEvent, programs, saunas, saunaMasters } = useAdmin();
   const sessionDialog = presetCategory === "pirtis";
   const saunaNames = saunas.map((s) => s.name);
   const { register, control, handleSubmit, setError, formState } = useForm<EventFormValues>({
@@ -71,6 +72,9 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
   const programId = useWatch({ control, name: "programId" });
   const sessionPrograms = programs.filter((p) => p.kind === "session");
   const program = sessionPrograms.find((p) => p.id === programId);
+  const saunaMasterId = useWatch({ control, name: "saunaMasterId" });
+  // Active masters, plus the session's own one if it has since been switched off, so editing never drops it silently.
+  const masterChoices = saunaMasters.filter((m) => m.active || m.id === saunaMasterId);
   const err = formState.errors;
 
   const submit = handleSubmit(async (v) => {
@@ -81,7 +85,8 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
       date: v.date,
       time: v.time,
       durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : source?.durationMinutes,
-      place: sessionDialog ? `${v.place}${attendantSuffix(source?.place)}` : v.place,
+      // A chosen master replaces the old "Pirtis · name" text suffix, which the public page reads as the host.
+      place: sessionDialog ? `${v.place}${v.saunaMasterId ? "" : attendantSuffix(source?.place)}` : v.place,
       blurb: v.blurb,
       price: program ? program.price : v.salePrice !== "" ? Number(v.salePrice) : v.price === "" ? null : Number(v.price),
       regularPrice: !program && v.salePrice !== "" ? Number(v.price) : undefined,
@@ -91,6 +96,7 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
       published: v.visibility === "public",
       calendarPrivate: v.visibility === "private" || source?.calendarPrivate ? v.visibility === "private" : undefined,
       programId: v.category === "pirtis" && program ? program.id : undefined,
+      saunaMasterId: v.category === "pirtis" && v.saunaMasterId ? v.saunaMasterId : undefined,
     });
     if ("error" in result) {
       setError("root", { message: result.error.message });
@@ -165,6 +171,32 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
                     </Select>
                   )}
                 />,
+              )
+            : null}
+          {category === "pirtis"
+            ? field(
+                "saunaMasterId",
+                "Pirtininkas",
+                <Controller
+                  control={control}
+                  name="saunaMasterId"
+                  render={({ field: f }) => (
+                    <Select value={f.value || "none"} onValueChange={(v) => f.onChange(v === "none" ? "" : v)}>
+                      <SelectTrigger id="saunaMasterId" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Be pirtininko</SelectItem>
+                        {masterChoices.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.active ? m.name : `${m.name} (išjungtas)`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />,
+                masterChoices.length ? undefined : "Pirtininkų dar nėra: pridėkite juos Pirtis → Pirtininkai.",
               )
             : null}
           {sessionDialog

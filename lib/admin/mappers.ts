@@ -162,6 +162,7 @@ export function toManagedEvent(r: Tables<"events">): ManagedEvent {
     published: r.published,
     calendarPrivate: r.calendar_private ?? false,
     programId: r.program_id ?? undefined,
+    saunaMasterId: r.sauna_master_id ?? undefined,
     tourRouteId: r.tour_route_id ?? undefined,
   };
 }
