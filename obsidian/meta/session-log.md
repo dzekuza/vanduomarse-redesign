@@ -1,3 +1,9 @@
+## 2026-11-26 — PR #159 merged and live
+
+- **Changed:** merged PR #159 into `main` (owner's go-ahead); local `main` fast-forwarded. Docs: status, session log, changelog.
+- **Status:** Vercel production deploy succeeded; live `/skaiciuokle` and `/nakvyne` checked. Applying the camp row failed: the Supabase MCP is read-only and a service-key script was refused by the permission system, so the owner adds the type in /admin/kainos.
+- **Next:** camp type in /admin/kainos, check the camp flow live, triage cubic's review comments.
+
 ## 2026-11-26 — Merge with main and PR #159
 
 - **Changed:** merged `origin/main` (63 commits) into `feat/calculator-camps`: event types come from `event_presets` (the camp keyed to the `stovykla` row, new migration), cabin data uses the 350-day stay window and `stayRateLabel`, a space-booking test follows the renamed outdoor terrace, my ADRs renumbered to 0127-0130. Dependencies reinstalled with pnpm 11.17 (via npx; pnpm is not installed globally).
