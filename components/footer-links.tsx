@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CookieSettingsLink } from "@/components/consent/cookie-settings-link";
 import type { ServiceId } from "@/components/landing/content";
 import { SERVICE_PAGES } from "@/components/services/service-content";
+import { getHiddenServiceSlugs } from "@/lib/data/page-content";
+import { isHiddenHref } from "@/lib/hidden-pages";
 
 const LINK = "inline-flex min-h-11 items-center text-xs lg:min-h-6 transition-colors duration-150 ease-out-strong hover:text-rust";
 
@@ -30,11 +32,13 @@ const LINK_GROUPS = [
   ] },
 ];
 
-/** Service and information links grouped by what the visitor is looking for. */
-export function FooterLinks() {
+/** Service and information links grouped by what the visitor is looking for; hidden service pages are left out. */
+export async function FooterLinks() {
+  const hidden = await getHiddenServiceSlugs();
+  const groups = LINK_GROUPS.map((group) => ({ ...group, links: group.links.filter(({ href }) => !isHiddenHref(href, hidden)) })).filter(({ links, title }) => links.length > 0 || title === "Informacija");
   return (
     <nav aria-label="Veiklos ir informacija" className="mt-10 mb-6 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-line pt-6 lg:grid-cols-4">
-      {LINK_GROUPS.map(({ title, links }) => (
+      {groups.map(({ title, links }) => (
         <div key={title}>
           <p className="mb-1 text-xs font-bold">{title}</p>
           <ul>

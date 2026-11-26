@@ -1,3 +1,9 @@
+## 2026-11-26 — Hide a service page (ADR-0137)
+
+- **Changed:** owners can switch a service page off at /admin/puslapiai (catalog: `PageVisibilityCard`, `lib/hidden-pages.ts`, `getHiddenServiceSlugs` in utils.md); it 404s and leaves the menu, home tiles, footer, /kainos and sitemap. Migration `20261126170000_page_content_hidden.sql` applied.
+- **Status:** tsc, eslint, 255 tests; browser-checked on and off with Keturračiai, left on. Uncommitted on `feat/owner-requests-2026-11-26`; build not run.
+- **Next:** commit to PR #160; owner hides the pages they want after it deploys.
+
 ## 2026-11-26 — Browser check of Erdvės renginiai
 
 - **Changed:** nothing in code; logged-in check of /admin/erdves at 1280 and 375 px.

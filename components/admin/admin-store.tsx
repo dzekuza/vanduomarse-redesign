@@ -65,6 +65,7 @@ type Action =
   | { type: "discountCode/delete"; id: string }
   | { type: "siteSettings/comingSoon"; enabled: boolean }
   | { type: "pageContent/set"; slug: string; content: PageContentOverride }
+  | { type: "pageContent/hidden"; slug: string; hidden: boolean }
   | { type: "notifications/read"; readAt: string }
   | { type: "notificationRecipient/active"; id: string; active: boolean }
   | { type: "notificationRecipient/delete"; id: string }
@@ -217,6 +218,10 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, discountCodes: state.discountCodes.filter((d) => d.id !== action.id) };
     case "siteSettings/comingSoon":
       return state.siteSettings ? { ...state, siteSettings: { ...state.siteSettings, comingSoon: action.enabled } } : state;
+    case "pageContent/hidden": {
+      const rest = state.hiddenPages.filter((slug) => slug !== action.slug);
+      return { ...state, hiddenPages: action.hidden ? [...rest, action.slug] : rest };
+    }
     case "pageContent/set": {
       const rest = Object.fromEntries(Object.entries(state.pageContent).filter(([slug]) => slug !== action.slug));
       return { ...state, pageContent: Object.keys(action.content).length ? { ...rest, [action.slug]: action.content } : rest };
@@ -519,6 +524,12 @@ function useAdminReducer(initial: AdminData) {
       savePageContent: async (slug: string, content: PageContentOverride) => {
         const result = await report(pageContentActions.savePageContent(slug, content));
         if ("data" in result) dispatch({ type: "pageContent/set", slug, content: result.data });
+        return result;
+      },
+      /** Not optimistic: switching a page off removes it for every visitor, so the switch moves once the database has it. */
+      setPageHidden: async (slug: string, hidden: boolean) => {
+        const result = await report(pageContentActions.setPageHidden(slug, hidden));
+        if ("data" in result) dispatch({ type: "pageContent/hidden", slug, hidden });
         return result;
       },
       uploadPagePhoto: (slug: string, form: FormData) => report(pageContentActions.uploadPagePhoto(slug, form)),

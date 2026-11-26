@@ -518,6 +518,8 @@ export interface AdminData {
   siteSettings: SiteSettings | null;
   /** Saved overrides of the public service pages by slug; owners only (empty for everyone else, or before the page_content migration). */
   pageContent: Record<string, PageContentOverride>;
+  /** Slugs of service pages the owner switched off (404, left out of every public link); owners only. */
+  hiddenPages: string[];
   ridePlans: RidePlan[];
   riders: Rider[];
   riderCards: RiderCard[];

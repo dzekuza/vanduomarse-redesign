@@ -89,20 +89,23 @@ async function readSiteSettings(supabase: ServerSupabase, me: StaffAccess): Prom
   return data ? { comingSoon: data.coming_soon } : null;
 }
 
-/** Saved service page overrides, owners only. An invalid row is left out (the public page falls back to its defaults). */
-async function readPageContent(supabase: ServerSupabase, me: StaffAccess): Promise<Record<string, PageContentOverride>> {
-  if (!me.isOwner) return {};
-  const { data, error } = await supabase.from("page_content").select("slug, content");
+/**
+ * Saved service page overrides and the pages switched off, owners only. An invalid row is left out (the public page
+ * falls back to its defaults); an empty override (a row kept only for `hidden`) is not reported as an edit.
+ */
+async function readPageContent(supabase: ServerSupabase, me: StaffAccess): Promise<{ pageContent: Record<string, PageContentOverride>; hiddenPages: string[] }> {
+  if (!me.isOwner) return { pageContent: {}, hiddenPages: [] };
+  const { data, error } = await supabase.from("page_content").select("slug, content, hidden");
   if (error) {
     console.error("Admin data: page content", error.message);
-    return {};
+    return { pageContent: {}, hiddenPages: [] };
   }
-  const out: Record<string, PageContentOverride> = {};
+  const pageContent: Record<string, PageContentOverride> = {};
   for (const row of data) {
     const parsed = pageContentSchema.safeParse(row.content);
-    if (parsed.success) out[row.slug] = parsed.data;
+    if (parsed.success && Object.keys(parsed.data).length) pageContent[row.slug] = parsed.data;
   }
-  return out;
+  return { pageContent, hiddenPages: data.filter((row) => row.hidden).map((row) => row.slug) };
 }
 
 /** Ids of customers who have a site account; empty without the Klientai / Apyrankės page or before the migration. */
@@ -302,7 +305,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     notificationRecipients: await readNotificationRecipients(supabase, me),
     ...(await readNotifications(supabase, me)),
     siteSettings: await readSiteSettings(supabase, me),
-    pageContent: await readPageContent(supabase, me),
+    ...(await readPageContent(supabase, me)),
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),
