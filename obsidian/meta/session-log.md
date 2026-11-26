@@ -2,7 +2,7 @@
 
 - **Changed:** owners can switch a service page off at /admin/puslapiai (catalog: `PageVisibilityCard`, `lib/hidden-pages.ts`, `getHiddenServiceSlugs` in utils.md); it 404s and leaves the menu, home tiles, footer, /kainos and sitemap. Migration `20261126170000_page_content_hidden.sql` applied.
 - **Status:** tsc, eslint, 255 tests; browser-checked on and off with Keturračiai, left on. Uncommitted on `feat/owner-requests-2026-11-26`; build not run.
-- **Next:** PR #160 was already merged (and #161 after it), so this commit went into a new PR #162; merge it when CI passes, then the owner hides the pages they want.
+- **Next:** PR #160 was already merged (and #161 after it), so this went into PR #162, now merged to main (`bb1e56b`). The owner hides the pages they want once the deploy is live.
 
 ## 2026-11-26 — Browser check of Erdvės renginiai
 
