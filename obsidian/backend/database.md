@@ -88,7 +88,10 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
-| `stay_type_seasons` | date ranges (ADR-0126) | summer prices for a stay type; nights outside every range use `stay_types` prices | public read; owner write; no overlapping ranges per type |
+| `stay_type_seasons` | date ranges (ADR-0126) | summer prices for a stay type; nights outside every range use `stay_types` prices | public read; owner write; live DB: no overlapping ranges per type (exclusion constraint). After `20261126110000` (PENDING): nested allowed, no identical ranges; the shortest season prices a night (ADR-0128) |
+| `spaces` | slug (ADR-0129) | event spaces staff hire out: label, blurb, max guests, weekday / weekend rent (null = not offered), whole park, active | read `rezervacijos` / `uzimtumas` / `apzvalga` / `kainos`; insert / update `rezervacijos` or `kainos`; no delete |
+| `stay_room_assignments` | booking + unit (ADR-0130) | which Sirvoy room each confirmed stay booking unit is exported to | RLS on, no policy: only `assign_stay_rooms()` writes it |
+| `external_calendar_exports` | calendar (ADR-0130) | secret token of each room's outbound iCal feed | RLS on, no policy: read through `stay_room_feed()` / `stay_room_export_links()` |
 | `external_calendars` | `ExternalCalendar` | One Sirvoy room feed (14 seeded): `label` = Sirvoy room number, `stay_type_id` (`namelis-2` x8: rooms 1-4, 11-14; `namelis-4` x6: rooms 5-10), `active` (set when a URL is stored), `last_synced_at`, `last_error`. ADR-0102. Applied 2026-11-16 | staff (`rezervacijos` / `uzimtumas` / `apzvalga`) read; written only through the functions below |
 | `external_calendar_feeds` | — | The secret Sirvoy iCal export URL per room (`secured.sirvoy.com/ical/…` only). RLS on, **no policies**: reachable only through `set_external_feed` (owner) and `external_sync_feeds` (service role). Never sent to the browser | nobody directly |
 | `external_blocks` | `ExternalBlock` | One reservation or closure from a room's feed: `starts_on`, `nights` (check-out day free), unique (`calendar_id`, `uid`). Replaced wholesale by the sync. The sync never fails on a clash (a Sirvoy overbooking is shown, not rejected) | staff read as above; written only by `sync_external_blocks` |
@@ -401,7 +404,7 @@ Migrations `20261119170000_points_spend.sql` and `20261119180000_my_spendable_po
 
 ## Space bookings (ADR-0124)
 
-Migration `20261119200000_space_bookings.sql`, APPLIED 2026-11-19. `space_bookings`: date, start/end time, `spaces text[]` (ids from `lib/event-pricing.ts`, checked by constraint), customer name / surname / phone / optional e-mail, guests, agreed price, status (`booking_status`), note. RLS: read for `rezervacijos` / `uzimtumas` / `apzvalga`, write for `rezervacijos`. Clashes are checked by `createSpaceBooking`, not by a constraint. `database.types.ts` was edited by hand.
+Migration `20261119200000_space_bookings.sql`, APPLIED 2026-11-19. `space_bookings`: date, start/end time, `spaces text[]` (ids of `public.spaces` since 2026-11-26, checked by trigger `space_bookings_spaces_known`; was a CHECK listing the sheet's ids), customer name / surname / phone / optional e-mail, guests, agreed price, status (`booking_status`), note. RLS: read for `rezervacijos` / `uzimtumas` / `apzvalga`, write for `rezervacijos`. Clashes are checked by `createSpaceBooking`, not by a constraint. `database.types.ts` was edited by hand.
 
 ## Event presets (ADR-0125)
 
@@ -413,3 +416,16 @@ Migration `20261119210000_event_presets.sql`, APPLIED 2026-11-19. `event_presets
 
 - `20261124120000_stay_type_seasons.sql` (APPLIED 2026-11-24): table `stay_type_seasons` (inclusive date ranges, exclusion constraint against overlap per type, public read, owner write), `private.stay_night_rate()` / `private.stay_price()`, and `create_stay_booking_with_units` / `accept_inquiry_stays` re-created to price per night by season. Requires extension `btree_gist`.
 - `20261124130000_save_stay_type.sql` (APPLIED 2026-11-24): RPC `save_stay_type(p_type jsonb, p_seasons jsonb)`, security invoker (owner RLS applies), upserts the type and replaces its seasons in one transaction; a season id already used by another type fails on the primary key.
+
+## Owner requests 2026-11-26 (ADR-0127 – ADR-0130)
+
+| Migration | State | What |
+|-----------|-------|------|
+| `20261126100000_stay_bookable_until.sql` | APPLIED 2026-11-26 | `stay_types.bookable_until` (exclusive) + trigger `bookings_stay_bookable_until` (website inserts only, hint `stay_closed`); `save_stay_type` keeps the stored date when the key is missing; `private.stay_night_rate()` picks the shortest season of a night. Both cabin types set to 2027-05-01. |
+| `20261126110000_stay_season_nesting.sql` | **PENDING, owner's go-ahead** | drops `stay_type_seasons_no_overlap`, adds `unique (stay_type_id, starts_on, ends_on)`. Until applied, a nested season fails with 23P01 and the admin says so. |
+| `20261126120000_sauna_session_master.sql` | APPLIED | `events.sauna_master_id text` → `sauna_masters` (on delete set null). |
+| `20261126130000_spaces.sql` | APPLIED | table `spaces` (seeded with the 8 sheet ids), trigger `space_bookings_spaces_known`, CHECK `space_bookings_spaces` dropped. |
+| `20261126140000_stay_room_export.sql` | APPLIED | `stay_room_assignments`, `external_calendar_exports` (tokens), `assign_stay_rooms()` (service role), `private.external_units_on()` ignores a room's Sirvoy blocks on nights that room holds one of our confirmed bookings (echo of our export). Checked in a rolled-back block: 3 bookings assigned, stock unchanged after simulated echoes, re-run stable. |
+| `20261126150000_stay_room_feed_functions.sql` | APPLIED | `stay_room_feed(token)` (service role, assigns then returns the room's events as jsonb, null for an unknown token), `stay_room_export_links()` (owner check inside). |
+
+`database.types.ts` regenerated from the live DB (it now also lists `coupon_refunds` / `request_refunds` and other objects applied from other branches); the `create_inquiry.p_date` nullable hand edit is kept.

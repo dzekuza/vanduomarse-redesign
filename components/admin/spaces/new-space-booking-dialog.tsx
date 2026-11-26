@@ -54,7 +54,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
     defaultValues: { date: date || todayKey(), endDate: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", note: "" },
   });
   const err = formState.errors;
-  const [day, endDay, startTime, endTime, spaces, guests, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "guests", "price"] });
+  const [day, endDay, startTime, endTime, spaces, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "price"] });
 
   const taken = useMemo(() => {
     const ids = new Set<string>();

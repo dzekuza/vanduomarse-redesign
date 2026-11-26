@@ -1,7 +1,9 @@
 ---
 tags: [meta, status]
-updated: 2026-11-24
+updated: 2026-11-26
 ---
+
+**Owner requests 2026-11-26 (ADR-0127 – ADR-0131): draft PR from `feat/owner-requests-2026-11-26`, not merged. All 8 items of `TASKS.md` built. Applied to the live DB: `20261126100000` (bookable until + shortest-season pricing), `20261126120000` (session pirtininkas), `20261126130000` (spaces), `20261126140000` + `20261126150000` (outbound Sirvoy room feeds); both cabin types now "Rezervuoti galima iki" 2027-05-01 (the deployed main build does not know it yet: website requests with a night from 1 May are refused by the database with a generic error until this PR deploys). NOT applied, owner must confirm: `20261126110000_stay_season_nesting.sql` (allows a Christmas season inside the winter season; until then the admin explains the refusal). Checked: tsc, eslint, vitest, build; feed route with curl (404 / 200 / valid iCal); /nakvyne and /rezervacija show 0 free cabins from 1 May. Not checked: every admin screen (no login), Sirvoy accepting the feed. Next: owner confirms the season migration, pastes the 14 room addresses into Sirvoy (/admin/namukai → "Svetainės rezervacijos į „Sirvoy“"), tries /admin/erdves, a session with a pirtininkas and a nested season; then merge.**
 
 **Current state (2026-11-24): everything below from today is merged to `main` and deploying, nothing in progress. PR #154 cabin summer booking (350 days) + seasonal stay prices (ADR-0126; migrations `20261124120000_stay_type_seasons.sql`, `20261124130000_save_stay_type.sql` applied). PR #155 "Visa diena" in the admin sauna booking form. PR #156 and #157 Būsena removed from every admin creation form (booking, quad rental, quad tour, event space); all create Patvirtinta. None of the admin changes is browser-checked (login); public `/nakvyne` summer dates were. Next: the owner adds the summer season at `/admin/namukai` (a fixed date range, not yearly) and a full-day price per sauna at `/admin/pirtis`, then tries one booking of each.**
 

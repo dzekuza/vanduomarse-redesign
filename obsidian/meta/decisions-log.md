@@ -1,12 +1,62 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-18
+updated: 2026-11-26
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0131 — Stay base prices stay required; they are the off-season price
+
+- **Status:** Accepted.
+- **Date:** 2026-11-26
+- **Context:** the owner left the three base "Kaina € už naktį" fields empty when adding a winter season (26 Nov – 1 May) and got "Įveskite kainą". Two options: make the base prices optional when seasons cover the whole booking window, or keep them required with a clearer meaning.
+- **Decision:** keep them required. The booking window moves every day and a season gap (or a night after the last season) must still have a price; `stay_types` price columns stay `not null`, and the database pricing (`private.stay_night_rate`) keeps its simple fallback. Instead the dialog calls them "Bazinė kaina € už naktį" with the hint "taikoma naktims, kurios nepatenka į jokį sezoną; jei sezonai dengia visą laikotarpį, įrašykite tą pačią kainą", the error reads "Bazinė kaina: įveskite kainą", and a new season starts pre-filled with the base prices.
+- **Consequences:** no migration. A type always has a price for any night, so a missing season can never make a night free or unbookable. Revisit only if the owner keeps finding it confusing.
+
+---
+
+## ADR-0130 — Our cabin bookings go out to Sirvoy as one iCal feed per room
+
+- **Status:** Accepted, built 2026-11-26; the owner still has to paste the 14 addresses into Sirvoy. Amends ADR-0102 ("no reverse feed").
+- **Date:** 2026-11-26
+- **Context:** "if a cabin is booked on our website, does Booking.com show it as taken?" No: ADR-0102 only reads Sirvoy's room feeds in. Sirvoy (the Booking.com channel manager) can import an iCal URL per room ("Enter iCal URL here", Pro plan), creates a "No Name" booking from each event and pushes the room's availability to Booking.com. Our bookings take "one unit of a type", Sirvoy imports per room.
+- **Decision:** `GET /api/ical/room/<token>.ics` (64-hex secret per room, `external_calendar_exports`) lists our confirmed (`patvirtinta`, `ivykdyta`) stay bookings that were given that room, one all-day event per unit (UID `vm-<booking>-<unit>@vanduomarse.lt`, summary = booking reference only). `assign_stay_rooms()` gives each unit a room of its type that has no Sirvoy block and no other of our bookings on those nights, in booking-creation order, and keeps it there (Sirvoy cancels an imported booking whose room changes); a moved, cancelled or unconfirmed booking loses its room, a unit with no free room is left out. Echo: Sirvoy's export of room X then contains our booking too, so `private.external_units_on()` ignores a room's blocks on nights that room holds one of our bookings (counted once, through the booking). Blocks read in from Sirvoy are never exported. The route reads only through `stay_room_feed(token)` (service role); the owner sees the addresses at /admin/namukai → "Svetainės rezervacijos į „Sirvoy“" via `stay_room_export_links()` (owner check inside). Migrations `20261126140000_stay_room_export.sql`, `20261126150000_stay_room_feed_functions.sql` (applied).
+- **Consequences:** pending (`laukia`) website requests are not exported until staff confirm them (they already hold our stock). Sirvoy polls about hourly, so a short double-booking window remains. If Sirvoy rejects the feed format ("Incompatible iCal formats will generate an error message"), nothing breaks here; the owner reports the message. A real Sirvoy booking that lands in a room after we assigned it but before Sirvoy imported ours is hidden from stock on those nights (an overbooking that exists anyway).
+
+---
+
+## ADR-0129 — Event spaces live in the database for staff hires
+
+- **Status:** Accepted.
+- **Date:** 2026-11-26
+- **Context:** the owner wants "Erdvės" under Paslaugos with every space and its price, to add a hire and see it in the calendar. The spaces were the hardcoded `SPACES` in `lib/event-pricing.ts`, and `space_bookings.spaces` had a CHECK listing their eight ids.
+- **Decision:** table `spaces` (id slug, label, blurb, max guests, `price_weekday`, `price_weekend` (null = not offered), `whole_park`, active, sort order), seeded with the same eight ids and the sheet's rent. RLS: read for `rezervacijos` / `uzimtumas` / `apzvalga` / `kainos`, insert / update for `rezervacijos` or `kainos`, no delete (switch off instead). The CHECK on `space_bookings.spaces` is replaced by trigger `space_bookings_spaces_known` (every id must exist in `spaces`). The staff hire dialog, the clash rule (`whole_park` instead of a hardcoded pair), the suggested price and the calendar read the table (`AdminData.spaces`, `lib/space-booking.ts` takes the list). Suggested rent: Mon–Thu hires starting before 17:00 use the weekday price, everything else the weekend price (the sheet's `dayTypeOf` rule; before, every hire was priced as an evening). The public price calculator keeps the sheet (`SPACES`, ranges, minimum spend) for now. Page `/admin/erdves` (permission `rezervacijos`, page guard also lets `kainos` in). Migration `20261126130000_spaces.sql` (applied).
+- **Consequences:** a new space needs no migration. Changing a space's price in /admin/erdves does not change the calculator; merge the two when the calculator moves to the table.
+
+---
+
+## ADR-0128 — Stay seasons may nest; the shortest season prices a night
+
+- **Status:** Accepted; the database half is PENDING the owner's go-ahead.
+- **Date:** 2026-11-26
+- **Context:** the owner wants a higher Christmas price (24–26 Dec) inside a winter season (26 Nov – 1 May); both the form and the exclusion constraint `stay_type_seasons_no_overlap` refused it ("Sezonų datos persidengia").
+- **Decision:** seasons may overlap only by nesting (one wholly inside another); identical ranges and ranges that cross are refused (`seasonsProblem()` in `lib/cabin.ts`, used by the form and the server action). A night takes the shortest season containing it, a tie goes to the later start: `seasonOn()` in `lib/cabin.ts` and `private.stay_night_rate()` (re-created in `20261126100000_stay_bookable_until.sql`, applied; identical results while overlaps are impossible). `20261126110000_stay_season_nesting.sql` drops the exclusion constraint and adds `unique (stay_type_id, starts_on, ends_on)`: NOT applied, waiting for the owner. Until then the database still rejects a nested season with 23P01 and `/admin/namukai` says so and suggests splitting the long season around the short one.
+- **Consequences:** nothing else changes for non-overlapping seasons. Rolling back after nested seasons exist needs the overlapping rows removed first.
+
+---
+
+## ADR-0127 — Stay types have a "bookable until" date for the website
+
+- **Status:** Accepted.
+- **Date:** 2026-11-26
+- **Context:** "from now until May people may book, from 1 May not at all" (cabins). PR #154 opened check-in 350 days ahead with no closing date.
+- **Decision:** `stay_types.bookable_until date` (exclusive: no night on or after it; check-out on it is fine; null = no limit), edited as "Rezervuoti galima iki" in the stay type dialog. Public availability treats later nights as 0 free (`stayBookable()` inside `freeStayUnits()`), and the stay day list stops at the latest date when every type has one (`stayBookingDays()`); the server action `createStayBooking` refuses with a clear message (hint `stay_closed`), and trigger `bookings_stay_bookable_until` refuses website (`source = 'svetaine'`) inserts in the database too. Staff bookings are not limited. `save_stay_type` keeps the stored date when an older client does not send the key. Migration `20261126100000_stay_bookable_until.sql` (applied); both cabin types set to 2027-05-01 on 2026-11-26.
+- **Consequences:** camper pitches have no date, so the /rezervacija Nakvynė strip still runs 350 days (cabins show 0 free after 30 Apr). To reopen summer, the owner clears or moves the date.
 
 ---
 

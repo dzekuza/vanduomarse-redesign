@@ -5,7 +5,7 @@ updated: 2026-11-16
 
 # Booking.com / Sirvoy calendar sync
 
-**Status: built 2026-11-16, waiting for the owner to enter the 14 feed addresses.** Decision record: ADR-0102 in [[decisions-log]]. Where things are: migration `20261116144757_external_calendars` (applied), `lib/ical.ts`, `lib/external-sync.ts`, `app/api/cron/sirvoy-sync/route.ts` + `vercel.json`, `app/admin/actions/external-calendars.ts`, `components/admin/namukai/sirvoy-*.tsx`, stock in `lib/admin/occupancy.ts`, calendar entries in `lib/admin/calendar-entries.ts`.
+**Status: inbound built 2026-11-16 and live (14 feeds read). Outbound built 2026-11-26 (ADR-0130): the owner pastes 14 addresses into Sirvoy, see "Outbound" below.** Decision record: ADR-0102 in [[decisions-log]]. Where things are: migration `20261116144757_external_calendars` (applied), `lib/ical.ts`, `lib/external-sync.ts`, `app/api/cron/sirvoy-sync/route.ts` + `vercel.json`, `app/admin/actions/external-calendars.ts`, `components/admin/namukai/sirvoy-*.tsx`, stock in `lib/admin/occupancy.ts`, calendar entries in `lib/admin/calendar-entries.ts`.
 
 **Turning it on:** (1) add `CRON_SECRET` in Vercel (and `.env.local` to test); the 15-minute schedule needs Vercel Pro; (2) in Sirvoy generate the 14 export URLs (Settings → Channels → iCal); (3) paste each into its room row at /admin/namukai and press Išsaugoti, which reads it at once; (4) check a known booking appears on Kalendorius and its nights are sold out on /rezervacija.
 
@@ -13,8 +13,8 @@ updated: 2026-11-16
 
 Apartments listed on Booking.com show their Booking.com reservations on the admin
 calendar, and a night that Booking.com has sold can no longer be booked on
-/rezervacija. **One way only: Booking.com → our app.** We never publish our own
-bookings back (the reverse iCal feed was declined).
+/rezervacija. Since 2026-11-26 also the other way (ADR-0130): our confirmed cabin bookings
+are published per Sirvoy room so Booking.com stops selling them (see "Outbound").
 
 ## Source: Sirvoy, not Booking.com (found 2026-11-16)
 
@@ -118,3 +118,14 @@ number, stay type from the map above) so the owner only pastes URLs.
 - Booking.com's refresh delay (15–60 min) allows a short double-booking window. Accepted; staff see the clash in the calendar and resolve it by phone.
 - A feed URL leak lets anyone read reservation dates; keep it out of the client bundle and logs.
 - Booking.com may rotate a feed URL when sync is re-enabled; the screen shows `last_error` so a dead feed is noticed.
+
+## Outbound: our bookings → Sirvoy (ADR-0130, 2026-11-26)
+
+**Before 2026-11-26 a cabin booked on the website was NOT blocked on Booking.com** (inbound only). Now:
+
+- `GET /api/ical/room/<token>.ics` (`app/api/ical/room/[token]/route.ts`, `lib/ical-export.ts`): one feed per Sirvoy room, 64-hex secret token per room (`external_calendar_exports`), 404 for anything else, `no-store`, `noindex`. Content: our `patvirtinta` / `ivykdyta` stay bookings assigned to that room, one all-day VEVENT per unit (DTEND = check-out), summary "Vanduo Marse MM-1234" only. Blocks read from Sirvoy are never in it.
+- Room choice: `assign_stay_rooms()` (runs on every feed read) gives each unit a room of its type free of Sirvoy blocks and of our other bookings, in creation order, and keeps it. A unit with no free room is not exported (staff already see the overbooking).
+- Echo: once Sirvoy imports our event, its export of that room contains it; `private.external_units_on()` ignores that room's blocks on nights it holds our booking, so stock counts it once.
+- Pending (`laukia`) requests are not exported until confirmed.
+
+**What the owner does (once):** /admin/namukai → "Svetainės rezervacijos į „Sirvoy“" → "Rodyti adresus". In Sirvoy: Settings → Channels → iCal → Connect property → for each room, paste that room's address into "Enter iCal URL here", choose the room type (Double for rooms 1–4, 11–14; Quadruple for 5–10), "Add import URL". Room N's address goes to Sirvoy room N. Addresses look like `https://www.vanduomarse.lt/api/ical/room/<64 hex>.ics`. If Sirvoy answers "Incompatible iCal format", report the exact message.
