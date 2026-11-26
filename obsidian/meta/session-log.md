@@ -1,3 +1,9 @@
+## 2026-11-26 — Merge with main and PR #159
+
+- **Changed:** merged `origin/main` (63 commits) into `feat/calculator-camps`: event types come from `event_presets` (the camp keyed to the `stovykla` row, new migration), cabin data uses the 350-day stay window and `stayRateLabel`, a space-booking test follows the renamed outdoor terrace, my ADRs renumbered to 0127-0130. Dependencies reinstalled with pnpm 11.17 (via npx; pnpm is not installed globally).
+- **Status:** tsc, eslint, 231 tests, `next build` pass; `/skaiciuokle` browser-checked after the merge. PR #159 open, CI running. Migration not applied.
+- **Next:** apply the migration with the owner's OK, check the camp flow, merge.
+
 ## 2026-11-24 — Reservation date picker in the calculator
 
 - **Changed:** `event-date-picker.tsx` (DatePicker strip by default), `calculator-sections.tsx` (no `alwaysOpen`). Wording: Svečių -> Asmenų. Docs: changelog.
