@@ -657,6 +657,7 @@ export type Database = {
           regular_price: number | null
           sauna_master_id: string | null
           sold: number
+          space_id: string | null
           start_time: string
           template_id: string | null
           title: string
@@ -680,6 +681,7 @@ export type Database = {
           regular_price?: number | null
           sauna_master_id?: string | null
           sold?: number
+          space_id?: string | null
           start_time: string
           template_id?: string | null
           title: string
@@ -703,6 +705,7 @@ export type Database = {
           regular_price?: number | null
           sauna_master_id?: string | null
           sold?: number
+          space_id?: string | null
           start_time?: string
           template_id?: string | null
           title?: string
@@ -722,6 +725,13 @@ export type Database = {
             columns: ["sauna_master_id"]
             isOneToOne: false
             referencedRelation: "sauna_masters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
             referencedColumns: ["id"]
           },
           {

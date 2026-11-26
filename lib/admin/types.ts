@@ -174,6 +174,8 @@ export interface ManagedEvent {
   saunaMasterId?: string;
   /** Set for a dated departure of a quad tour product (`quad_tour_routes`); capacity is then in quads. */
   tourRouteId?: string;
+  /** Event space (`spaces.id`) this event books for its duration (ADR-0136); unset = no space. */
+  spaceId?: string;
 }
 
 export type PriceGroup = "Erdvės" | "Maitinimas" | "Paslaugos" | "Pramogos" | "Nakvynė";

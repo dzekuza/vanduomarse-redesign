@@ -9,7 +9,7 @@ import { useAdmin } from "../admin-store";
 import { FormField } from "../form-field";
 import { SpacePicker } from "./space-picker";
 import { formatEur } from "@/lib/admin/format";
-import { anySpaceClash, spaceLabels, suggestedSpacePrice, windowsOverlap } from "@/lib/space-booking";
+import { spaceLabels, spaceTakenBy, suggestedSpacePrice } from "@/lib/space-booking";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -47,7 +47,7 @@ interface NewSpaceBookingDialogProps {
 
 /** Hires one or several event spaces for a day and time window to a customer, for the agreed price. */
 export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBookingDialogProps) {
-  const { spaceBookings, spaces: catalog, createSpaceBooking } = useAdmin();
+  const { spaceBookings, events, spaces: catalog, createSpaceBooking } = useAdmin();
   const offered = useMemo(() => catalog.filter((s) => s.active), [catalog]);
   const { register, control, handleSubmit, setError, setValue, getValues, formState } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -60,10 +60,10 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
     const ids = new Set<string>();
     const wanted = { date: day, endDate: endDay, startTime, endTime };
     if (!day || !endDay || `${endDay} ${endTime}` <= `${day} ${startTime}`) return ids;
-    const clashing = spaceBookings.filter((b) => b.status !== "atsaukta" && windowsOverlap(wanted, b));
-    for (const s of offered) if (anySpaceClash([s.id], clashing.flatMap((b) => b.spaces), catalog)) ids.add(s.id);
+    // Hires and events held in a space both take it (ADR-0136).
+    for (const s of offered) if (spaceTakenBy([s.id], wanted, spaceBookings, events, catalog)) ids.add(s.id);
     return ids;
-  }, [spaceBookings, offered, catalog, day, endDay, startTime, endTime]);
+  }, [spaceBookings, events, offered, catalog, day, endDay, startTime, endTime]);
 
   const suggested = suggestedSpacePrice(spaces, day, catalog, startTime);
   const total = price === "" ? suggested : Number(price.replace(",", "."));
