@@ -191,6 +191,8 @@ export async function getSaunaPageData(
     };
   });
 
+  const masterNames = new Map(must(masters, "Sauna masters").map((m) => [m.id, m.name]));
+
   return {
     today,
     nowHour: vilniusHour(now),
@@ -202,7 +204,9 @@ export async function getSaunaPageData(
     takenBySauna,
     events: events.map((e) => {
       const [venue, attendant] = e.place.split(" · ");
-      const host = attendant?.trim();
+      // The chosen master (events.sauna_master_id) wins; older sessions carry the name as a "Pirtis · name" suffix.
+      const master = e.sauna_master_id ? masterNames.get(e.sauna_master_id) : undefined;
+      const host = master ?? attendant?.trim();
       return {
         key: e.id,
         title: e.title,

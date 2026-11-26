@@ -25,6 +25,8 @@ export const eventSchema = z.object({
   visibility: z.enum(["draft", "public", "private"]),
   /** Sauna program id, or "" for none. */
   programId: z.string(),
+  /** Sauna master id for a sauna session, or "" for "Be pirtininko". */
+  saunaMasterId: z.string(),
 }).refine(
   ({ category, durationMinutes }) => category !== "pirtis" || durationMinutes === "" ||
     (/^\d+$/.test(durationMinutes) && eventDurationMinutes.safeParse(Number(durationMinutes)).success),

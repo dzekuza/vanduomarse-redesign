@@ -1,14 +1,15 @@
 import { z } from "zod";
-import type { StaySeason } from "@/lib/cabin";
+import { seasonsProblem, type StaySeason } from "@/lib/cabin";
 
 const priceField = z
   .string()
   .trim()
-  .regex(/^\d+([.,]\d{1,2})?$/, "Įveskite kainą, pvz. 50.")
+  .min(1, "Įveskite kainą, pvz. 50.")
+  .regex(/^\d+([.,]\d{1,2})?$/, "Kaina – skaičius, pvz. 50 arba 49,50.")
   .refine((v) => Number(v.replace(",", ".")) <= 10000, "Kaina negali viršyti 10 000 €.");
 const dateField = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite sezono datas.");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite datą.");
 
 const seasonSchema = z
   .object({
@@ -47,13 +48,12 @@ export const stayTypeSchema = z.object({
     .array(seasonSchema)
     .max(24, "Daugiausia 24 sezonai.")
     .superRefine((seasons, ctx) => {
-      const sorted = seasons.toSorted((a, b) =>
-        a.startsOn.localeCompare(b.startsOn),
-      );
-      if (sorted.some((s, i) => i > 0 && s.startsOn <= sorted[i - 1].endsOn)) {
-        ctx.addIssue({ code: "custom", message: "Sezonų datos persidengia." });
-      }
+      // Only complete rows; a row missing a date already shows its own error.
+      const problem = seasonsProblem(seasons.filter((s) => s.startsOn && s.endsOn));
+      if (problem) ctx.addIssue({ code: "custom", message: problem });
     }),
+  /** "Rezervuoti galima iki" (exclusive), or "" for no limit. */
+  bookableUntil: z.union([z.literal(""), dateField]),
   active: z.boolean(),
 });
 

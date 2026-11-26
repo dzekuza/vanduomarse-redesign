@@ -3,7 +3,8 @@ import type { DiscountCode } from "@/lib/discount-codes";
 import type { NotificationTopic } from "@/lib/notification-topics";
 import type { CouponKind, CouponProduct, CouponService, CouponStatus } from "@/lib/coupons";
 import type { EventCategory } from "@/lib/park-events";
-import type { EventPreset, SpaceId } from "@/lib/event-pricing";
+import type { EventPreset } from "@/lib/event-pricing";
+import type { ManagedSpace } from "@/lib/space-booking";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
 import type { PassStatus } from "@/lib/plan-pass";
 import type { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
@@ -103,8 +104,10 @@ export interface SpaceBooking {
   startTime: string;
   /** HH:MM on the last day. */
   endTime: string;
-  /** Space ids from lib/event-pricing.ts, one or several hired together. */
-  spaces: SpaceId[];
+  /** Ids of `public.spaces` (AdminData.spaces), one or several hired together. */
+  spaces: string[];
+  /** When the hire was entered (for the sales list). */
+  createdAt: string;
   customer: Customer & { surname: string };
   guests: number;
   price: number;
@@ -167,6 +170,8 @@ export interface ManagedEvent {
   calendarPrivate?: boolean;
   /** Sauna program this session belongs to (its price then follows the program). */
   programId?: string;
+  /** Sauna master (pirtininkas, `sauna_masters.id`) leading a public sauna session; unset = "Be pirtininko". */
+  saunaMasterId?: string;
   /** Set for a dated departure of a quad tour product (`quad_tour_routes`); capacity is then in quads. */
   tourRouteId?: string;
 }
@@ -463,6 +468,8 @@ export interface AdminData {
   blocks: Block[];
   /** Event-space hires; empty before the space bookings migration or without calendar access. */
   spaceBookings: SpaceBooking[];
+  /** Event spaces (erdvės) incl. switched-off ones, in display order; empty without access. */
+  spaces: ManagedSpace[];
   inquiries: Inquiry[];
   events: ManagedEvent[];
   prices: PriceItem[];

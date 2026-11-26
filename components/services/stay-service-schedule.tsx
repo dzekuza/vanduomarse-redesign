@@ -1,6 +1,6 @@
 "use client";
 
-import { STAY_BOOKING_DAYS, freeStayUnits, freeStayUnitsOfKind, stayStock } from "@/lib/cabin";
+import { freeStayUnits, stayBookingDays, freeStayUnitsOfKind, stayStock } from "@/lib/cabin";
 import type { CabinPageData } from "@/lib/data/public-types";
 import { AvailabilityCount } from "./availability-count";
 import { ServiceAvailabilityCalendar } from "./service-availability-calendar";
@@ -12,7 +12,7 @@ export function StayServiceSchedule({ data }: { data: CabinPageData }) {
   return (
     <ServiceAvailabilityCalendar
       today={data.today}
-      dayCount={STAY_BOOKING_DAYS}
+      dayCount={stayBookingDays(stayTypes, data.today, "namelis")}
       title="Nakvynės užimtumas"
       cardLabel="Nameliai"
       description="Skaičiai rodo, kiek namelių laisva vienai nakčiai. Pasirink datą, kad pamatytum užimtumą pagal nakvynės tipą."

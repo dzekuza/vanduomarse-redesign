@@ -41,7 +41,7 @@ const STEP_LABEL: Record<View, string> = { menuo: "mėnuo", savaite: "savaitė",
 
 /** Events and bookings of every type, as a day, week or month. The selected day is the cursor all three share. */
 export function CalendarView() {
-  const { me, bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings } = useAdmin();
+  const { me, bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings, spaces } = useAdmin();
   const today = dateKey(new Date());
   const [view, setView] = useState<View>("menuo");
   const [selected, setSelected] = useState(today);
@@ -53,7 +53,7 @@ export function CalendarView() {
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
   const [ticketEventId, setTicketEventId] = useState<string | null>(null);
 
-  const all = useMemo(() => calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings }), [bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings]);
+  const all = useMemo(() => calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings, spaces }), [bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings, spaces]);
   const visible = useMemo(() => all.filter((e) => !hidden.has(e.kind)), [all, hidden]);
 
   const selectedEntries = entriesOn(visible, selected);

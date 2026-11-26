@@ -5,6 +5,7 @@ import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin
 import { syncExternalCalendars } from "@/lib/external-sync";
 import { SIRVOY_FEED_URL } from "@/lib/ical";
 import { MissingServiceKeyError } from "@/lib/supabase/admin";
+import { SITE_URL } from "@/lib/site";
 
 const calendarIdSchema = z.string().uuid();
 /** An empty address clears the room's feed. */
@@ -47,4 +48,25 @@ export async function syncExternalNow(): Promise<ActionResult<{ synced: number; 
     console.error("External sync failed", e);
     return fail("Nepavyko sinchronizuoti. Bandykite dar kartą.", "sync");
   }
+}
+
+export interface RoomExportLink {
+  calendarId: string;
+  label: string;
+  stayTypeId: string;
+  url: string;
+}
+
+/**
+ * Owner-only (ADR-0134): the secret address of each room's calendar of OUR bookings, to paste into Sirvoy
+ * (Settings → Channels → iCal → the room → "Enter iCal URL here"). Read on request, never with the admin data.
+ */
+export async function roomExportLinks(): Promise<ActionResult<RoomExportLink[]>> {
+  const ctx = await staffClient("owner");
+  if (!ctx.ok) return ctx.error;
+  const { data, error } = await ctx.supabase.rpc("stay_room_export_links");
+  if (error) return dbError(error);
+  return {
+    data: data.map((r) => ({ calendarId: r.calendar_id, label: r.label, stayTypeId: r.stay_type_id, url: `${SITE_URL}/api/ical/room/${r.token}.ics` })),
+  };
 }

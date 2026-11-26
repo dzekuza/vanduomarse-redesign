@@ -9,6 +9,7 @@ import { EventSheet } from "../calendar/event-sheet";
 import { CouponSheet } from "../coupons/coupon-sheet";
 import { EventDialog } from "../events/event-dialog";
 import { RentalSheet } from "../quads/rental-sheet";
+import { SpaceBookingSheet } from "../spaces/space-booking-sheet";
 import type { Sale } from "@/lib/admin/sales";
 import type { ManagedEvent } from "@/lib/admin/types";
 
@@ -18,7 +19,7 @@ import type { ManagedEvent } from "@/lib/admin/types";
  * table and the customer's Pirkimai tab.
  */
 export function useSaleDetails(): { openSale: (target: Sale["target"]) => void; sheets: ReactNode } {
-  const { bookings, quadRentals, coupons, events } = useAdmin();
+  const { bookings, quadRentals, coupons, events, spaceBookings } = useAdmin();
   const router = useRouter();
   const [open, setOpen] = useState<Extract<Sale["target"], { id: string }> | null>(null);
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
@@ -47,6 +48,7 @@ export function useSaleDetails(): { openSale: (target: Sale["target"]) => void; 
       {ticketEventId ? (
         <NewBookingDialog initial={{ eventId: ticketEventId }} onOpenChange={(o) => !o && setTicketEventId(null)} onCreated={() => setTicketEventId(null)} />
       ) : null}
+      <SpaceBookingSheet booking={open?.kind === "space" ? (spaceBookings.find((s) => s.id === open.id) ?? null) : null} onOpenChange={close} />
       <CouponSheet coupon={open?.kind === "coupon" ? (coupons.find((c) => c.id === open.id) ?? null) : null} onOpenChange={close} />
     </>
   );

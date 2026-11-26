@@ -10,7 +10,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 
 /**
  * The 14 Sirvoy rooms, each with its iCal export address. A reservation Sirvoy holds for a room (Booking.com or the
- * front desk) takes one cabin of that room's type on those nights, here and on /rezervacija. One way only.
+ * front desk) takes one cabin of that room's type on those nights, here and on /rezervacija. The other direction is SirvoyExportCard.
  */
 export function SirvoyCalendarsCard() {
   const { externalCalendars, stayTypes, syncExternalNow } = useAdmin();
@@ -33,7 +33,7 @@ export function SirvoyCalendarsCard() {
         <CardTitle>Booking.com rezervacijos („Sirvoy“)</CardTitle>
         <CardDescription>
           „Sirvoy“ → Settings → Channels → iCal → kambario „Availability (Export)“ adresas. Užimti kambariai atsiranda kalendoriuje ir užblokuoja tas naktis
-          rezervacijos puslapyje. Duomenys atnaujinami kas 15 min.; į „Sirvoy“ nieko nesiunčiama. Prijungta: {connected} iš {externalCalendars.length}.
+          rezervacijos puslapyje. Duomenys atnaujinami kas 15 min. Kita kryptis – kortelėje žemiau. Prijungta: {connected} iš {externalCalendars.length}.
         </CardDescription>
         <CardAction>
           <Button variant="outline" onClick={sync} disabled={syncing || connected === 0} className="min-h-11">
