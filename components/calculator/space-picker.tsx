@@ -1,6 +1,8 @@
 "use client";
 
+import { BuildingsIcon } from "@phosphor-icons/react";
 import { ChoiceTile } from "@/components/booking/choice-tile";
+import { FieldHeading } from "@/components/booking/field-heading";
 import { SPACES, VENUES, WHOLE_PARK, type DayType, type SpaceId, type Venue } from "@/lib/event-pricing";
 import { VenueCard } from "./venue-card";
 
@@ -54,7 +56,7 @@ export function SpacePicker({ selected, day, guests, camp, onChange }: SpacePick
       </div>
       {variantVenues.map((venue) => (
         <fieldset key={venue.id}>
-          <legend className="mb-2 text-micro uppercase">{venue.label}</legend>
+          <FieldHeading as="legend" icon={BuildingsIcon} className="mb-2">{venue.label}</FieldHeading>
           <div className="grid grid-cols-2 gap-2">
             {venue.spaces.map((id) => (
               <ChoiceTile key={id} primary={VARIANT_LABEL[id] ?? spaceOf(id).label} secondary={spaceOf(id).includedTime} active={active(venue) === id} onClick={() => switchVariant(venue, id)} />

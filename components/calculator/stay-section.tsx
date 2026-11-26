@@ -1,9 +1,10 @@
 "use client";
 
 import { BedNotice } from "@/components/booking/bed-notice";
+import { HouseIcon } from "@phosphor-icons/react";
 import { StepLabel } from "@/components/booking/step-label";
 import { CompactStepper } from "@/components/booking/stepper";
-import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { FieldHeading } from "@/components/booking/field-heading";
 import { guestsLabel, stayTypesOf } from "@/lib/cabin";
 import { PRICES } from "@/lib/event-pricing";
 import { nextDays } from "@/lib/sauna";
@@ -52,7 +53,7 @@ function CabinOptions({ calc: { input, set, setCabinUnits, stayTypes } }: { calc
         </div>
       </div>
       <div>
-        <OptionGroupLabel>Namelio tipas</OptionGroupLabel>
+        <FieldHeading icon={HouseIcon}>Namelio tipas</FieldHeading>
         <BedNotice className="mb-3" />
         <div className="grid gap-3 lg:grid-cols-2">
           {stayTypesOf(stayTypes, "namelis").map(({ id, label, maxGuests, pricePerNight, units }) => (

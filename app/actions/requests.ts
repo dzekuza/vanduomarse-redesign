@@ -65,7 +65,7 @@ const BY_HINT: Record<string, string> = {
   program_unavailable: "Ši programa šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   event_people: "Netinkamas žmonių skaičius.",
   event_full: "Renginyje nebeliko tiek vietų.",
-  inquiry_guests: "Netinkamas svečių skaičius.",
+  inquiry_guests: "Netinkamas asmenų skaičius.",
   inquiry_input: "Per daug duomenų užklausoje.",
   contact_invalid: "Nurodykite teisingą el. paštą arba telefoną (bent 8 skaitmenys).",
   too_many_pending: "Jau turite kelias nepatvirtintas užklausas. Palaukite patvirtinimo arba skambinkite.",

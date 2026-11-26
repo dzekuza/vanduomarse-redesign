@@ -435,7 +435,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
   if (spaces.length > 0 && !input.day) warnings.push("Pasirink renginio datą ir laiką, kad matytum tikslią erdvės kainą.");
   spaces.forEach((space, i) => {
     const rent = rents[i];
-    if (guests > space.maxGuests) warnings.push(`${space.label}: daugiausia ${space.maxGuests} svečių.`);
+    if (guests > space.maxGuests) warnings.push(`${space.label}: daugiausia ${space.maxGuests} asmenų.`);
     if (input.day && rent === null && guests <= space.maxGuests)
       warnings.push(space.id === "kupolas-seminaras" ? "Seminarams kupolas nuomojamas tik darbo dienomis." : `${space.label}: šiai datai netaikoma.`);
     const campRate = camp && space.campRent !== undefined;

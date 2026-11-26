@@ -31,7 +31,7 @@ function EstimateTotal({ estimate, guests, typical }: Pick<EstimateSummaryProps,
       <p className="font-display mt-1 text-total font-bold">{formatMoney(estimate.total)}</p>
       {estimate.perGuest ? (
         <p className="mt-1 text-sm text-copy">
-          ≈ {formatMoney(estimate.perGuest)} vienam svečiui · {guests} asm.
+          ≈ {formatMoney(estimate.perGuest)} vienam asmeniui · {guests} asm.
         </p>
       ) : null}
       {typical?.perGuest ? (
@@ -54,7 +54,7 @@ export function EstimateSummary(props: EstimateSummaryProps) {
           amount={formatMoney(estimate.total)}
           note={
             <>
-              {estimate.perGuest ? <p>≈ {formatMoney(estimate.perGuest)} vienam svečiui · {guests} asm.</p> : null}
+              {estimate.perGuest ? <p>≈ {formatMoney(estimate.perGuest)} vienam asmeniui · {guests} asm.</p> : null}
               {typical?.perGuest ? <p className="mt-1">{typical.label}: įprastai {formatMoney(typical.perGuest)} / asm.</p> : null}
             </>
           }

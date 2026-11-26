@@ -1,8 +1,9 @@
 "use client";
 
+import { BellSimpleIcon, ForkKnifeIcon, WineIcon } from "@phosphor-icons/react";
 import { useId } from "react";
 import { Stepper } from "@/components/booking/stepper";
-import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { FieldHeading } from "@/components/booking/field-heading";
 import { BUFFET_OPTIONS, CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney } from "@/lib/event-pricing";
 import { cn } from "@/lib/utils";
 import { CampMeals } from "./camp-meals";
@@ -29,7 +30,7 @@ export function CateringSection({ calc }: FoodSectionProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2 border border-line p-4">
-        <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam svečiui</label>
+        <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam asmeniui</label>
         <input
           id={sliderId}
           type="range"
@@ -97,17 +98,17 @@ export function HospitalitySection({ calc: { input, set } }: FoodSectionProps) {
 }
 
 const FOOD_SECTIONS = [
-  { id: "maitinimas", label: "Maitinimas", Section: CateringSection },
-  { id: "gerimai", label: "Gėrimai", Section: DrinksSection },
-  { id: "aptarnavimas", label: "Aptarnavimas", Section: HospitalitySection },
+  { id: "maitinimas", label: "Maitinimas", icon: ForkKnifeIcon, Section: CateringSection },
+  { id: "gerimai", label: "Gėrimai", icon: WineIcon, Section: DrinksSection },
+  { id: "aptarnavimas", label: "Aptarnavimas", icon: BellSimpleIcon, Section: HospitalitySection },
 ] as const;
 
 export function FoodSection({ calc }: FoodSectionProps) {
   return (
     <div className="space-y-8">
-      {FOOD_SECTIONS.map(({ id, label, Section }) => (
+      {FOOD_SECTIONS.map(({ id, label, icon, Section }) => (
         <section key={id} aria-label={label}>
-          <OptionGroupLabel>{label}</OptionGroupLabel>
+          <FieldHeading icon={icon}>{label}</FieldHeading>
           <Section calc={calc} />
         </section>
       ))}

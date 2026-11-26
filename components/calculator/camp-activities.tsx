@@ -1,7 +1,8 @@
 "use client";
 
+import { CalendarBlankIcon, FireIcon, SparkleIcon } from "@phosphor-icons/react";
 import { ChoiceTile } from "@/components/booking/choice-tile";
-import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { FieldHeading } from "@/components/booking/field-heading";
 import { CAMP_ACTIVITIES, CAMP_DAY_LABEL, type CampActivityId, type CampDay } from "@/lib/event-pricing";
 import { OptionToggle } from "./option-toggle";
 import { SaunaAndQuadCards } from "./stay-section";
@@ -18,7 +19,7 @@ export function CampActivities({ calc }: { calc: EventCalculatorState }) {
   return (
     <div className="space-y-8">
       <div>
-        <OptionGroupLabel>Veiklos (kaina aptariama)</OptionGroupLabel>
+        <FieldHeading icon={SparkleIcon}>Veiklos (kaina aptariama)</FieldHeading>
         <div className="grid gap-2 lg:grid-cols-2">
           {CAMP_ACTIVITIES.map((activity) => (
             <OptionToggle
@@ -32,13 +33,13 @@ export function CampActivities({ calc }: { calc: EventCalculatorState }) {
         </div>
       </div>
       <div>
-        <OptionGroupLabel>Pirtis ir keturračiai</OptionGroupLabel>
+        <FieldHeading icon={FireIcon}>Pirtis ir keturračiai</FieldHeading>
         <div className="grid gap-3 lg:grid-cols-2">
           <SaunaAndQuadCards calc={calc} />
         </div>
         {saunaChosen ? (
           <fieldset className="mt-4">
-            <legend className="mb-2 text-micro uppercase">Pirties dienos (gali rinktis abi)</legend>
+            <FieldHeading as="legend" icon={CalendarBlankIcon} className="mb-2">Pirties dienos (gali rinktis abi)</FieldHeading>
             <div className="grid grid-cols-2 gap-2">
               {DAYS.map((day) => (
                 <ChoiceTile

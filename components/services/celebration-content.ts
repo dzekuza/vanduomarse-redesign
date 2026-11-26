@@ -46,7 +46,7 @@ export const CELEBRATION_PAGES = {
     ],
     questions: [
       { title: "Ar galime sujungti seminarą ir pramogas?", body: "Taip. Užklausoje aprašyk dienos planą ir norimas veiklas, kad komanda galėtų patikrinti jų užimtumą." },
-      { title: "Kaip gauti pasiūlymą įmonei?", body: "Skaičiuoklėje pasirink renginio tipą, datą ir svečių skaičių, tada atsiųsk užklausą." },
+      { title: "Kaip gauti pasiūlymą įmonei?", body: "Skaičiuoklėje pasirink renginio tipą, datą ir asmenų skaičių, tada atsiųsk užklausą." },
     ],
   },
   gimtadieniai: {

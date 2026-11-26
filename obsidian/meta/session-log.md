@@ -1,3 +1,33 @@
+## 2026-11-24 — Reservation date picker in the calculator
+
+- **Changed:** `event-date-picker.tsx` (DatePicker strip by default), `calculator-sections.tsx` (no `alwaysOpen`). Wording: Svečių -> Asmenų. Docs: changelog.
+- **Status:** tsc/eslint/tests clean; browser-checked 1280 and 375 px. Uncommitted.
+- **Next:** owner view; commit.
+
+## 2026-11-24 — Calculator headings in the site style
+
+- **Changed:** `field-heading.tsx` (new), `calculator-groups.tsx`, `calculator-sections.tsx`, `food-section.tsx`, `camp-activities.tsx`, `stay-section.tsx`, `space-picker.tsx`. Docs: changelog, catalog.
+- **Status:** tsc/eslint/tests clean; first tab browser-checked at 1280 px. Uncommitted.
+- **Next:** look at the other tabs and 375 px; commit.
+
+## 2026-11-24 — Tab bar above the card
+
+- **Changed:** `calculator-groups.tsx` (card inside `TabbedGroups`), `calculator-page.tsx` (no card wrapper). Docs: changelog.
+- **Status:** tsc/eslint clean; browser-checked 1280 px. Uncommitted.
+- **Next:** check 375 px; commit.
+
+## 2026-11-24 — Segmented tabs shown at once
+
+- **Changed:** `calculator-groups.tsx` (`TabbedGroups`: segmented tab style, tabs always visible, tabs 2+ disabled until a type is chosen, equal widths). Docs: changelog.
+- **Status:** tsc/eslint clean; browser-checked 1280 and 375 px. Uncommitted.
+- **Next:** owner view; "other event" type?; commit.
+
+## 2026-11-24 — Type first, rest after
+
+- **Changed:** `calculator-groups.tsx` (`TabbedGroups` shows only the type chips until a type is chosen). Docs: changelog. Dev server now runs in the user's terminal tab (c1) so it survives between turns.
+- **Status:** tsc/eslint clean; browser-checked 1280 px. Uncommitted.
+- **Next:** owner view; consider an "other event" type; commit.
+
 ## 2026-11-24 — Underlined calculator tabs
 
 - **Changed:** `calculator-groups.tsx` (tab and tab-list classes). Docs: changelog. Dev server restarted (it is stopped by the app after a few idle hours).

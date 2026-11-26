@@ -45,7 +45,7 @@ describe("estimate with several spaces", () => {
   it("is unavailable when one chosen space does not take the group", () => {
     const result = estimate(input(["kupolas-svente", "restoranas"], { adults: 80 }));
     expect(result.available).toBe(false);
-    expect(result.warnings.join(" ")).toContain("Restoranas + terasa: daugiausia 45 svečių.");
+    expect(result.warnings.join(" ")).toContain("Restoranas + terasa: daugiausia 45 asmenų.");
   });
 
   it("warns that the seminar dome is for weekdays only", () => {

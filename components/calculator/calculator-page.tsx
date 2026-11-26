@@ -11,7 +11,7 @@ import { EstimateSummary } from "./estimate-summary";
 import type { StayAvailability } from "./stay-fit-details";
 import { useEventCalculator } from "./use-event-calculator";
 
-/** Standalone calculator page, laid out like the reservation page: the choices in a card on the left, the photo and live estimate in a sticky side card on the right. */
+/** Standalone calculator page, laid out like the reservation page: the tabs under the title and the choices in a card on the left, the photo and live estimate in a sticky side card on the right. */
 export function CalculatorPage({ header, today, catalog, stay }: { header: ReactNode; today: string; catalog: CalculatorCatalog; stay: StayAvailability }) {
   const calc = useEventCalculator(today, catalog, stay);
   const { result, input, guests, spaceLabel, preset } = calc;
@@ -20,9 +20,7 @@ export function CalculatorPage({ header, today, catalog, stay }: { header: React
     <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
       <div className="min-w-0 space-y-8 lg:col-span-2">
         {header}
-        <div className="border border-line bg-foam p-4 sm:p-6">
-          <CalculatorGroups calc={calc} />
-        </div>
+        <CalculatorGroups calc={calc} />
       </div>
 
       <div id="samata" className="min-w-0 scroll-mt-28">
