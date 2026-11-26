@@ -15,7 +15,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Switch } from "@/components/ui/switch";
 
 interface CategoryEventsListProps {
-  category: EventCategory;
+  category?: EventCategory;
+  /** Which events to list instead of a whole category, e.g. those booked into an event space. */
+  match?: (event: ManagedEvent) => boolean;
   emptyText: string;
   /** Extra detail after the price, e.g. the sauna program. */
   extra?: (event: ManagedEvent) => string | undefined;
@@ -25,12 +27,12 @@ interface CategoryEventsListProps {
 }
 
 /** Upcoming events of one category (sauna sessions, quad tours) with publish switch, edit and delete. The parent owns the create/edit dialog. */
-export function CategoryEventsList({ category, emptyText, extra, onEdit, onDuplicate }: CategoryEventsListProps) {
+export function CategoryEventsList({ category, match, emptyText, extra, onEdit, onDuplicate }: CategoryEventsListProps) {
   const { events, setEventPublished } = useAdmin();
   const [deleting, setDeleting] = useState<ManagedEvent | null>(null);
   const today = dateKey(new Date());
   const list = events
-    .filter((e) => e.category === category && e.date >= today)
+    .filter((e) => (match ? match(e) : e.category === category) && e.date >= today)
     .toSorted((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
 
   async function togglePublished(e: ManagedEvent) {

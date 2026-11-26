@@ -67,3 +67,43 @@ export function suggestedSpacePrice(ids: readonly string[], date: string, spaces
 /** "Kupolas: šventė, „Corona“ su baseinu"; an id with no row (should not happen) shows as itself. */
 export const spaceLabels = (ids: readonly string[], spaces: readonly Pick<ManagedSpace, "id" | "label">[]) =>
   ids.map((id) => spaces.find((s) => s.id === id)?.label ?? id).join(", ");
+
+/** The window an event in a space takes: from its start for `minutes` (may run past midnight). */
+export function eventWindow(date: string, time: string, minutes: number): HireWindow {
+  const end = new Date(new Date(`${date}T${time}:00Z`).getTime() + minutes * 60_000).toISOString();
+  return { date, startTime: time, endDate: end.slice(0, 10), endTime: end.slice(11, 16) };
+}
+
+interface HireLike extends HireWindow {
+  spaces: readonly string[];
+  status: string;
+}
+
+interface SpaceEventLike {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  durationMinutes?: number;
+  spaceId?: string;
+}
+
+/**
+ * What already takes `spaceIds` in `window`: a live hire or another event in a space ("nuoma …" / "renginys „…“"),
+ * or null when free. Same rule as the database triggers (ADR-0136); `ignoreEventId` skips the event being edited.
+ */
+export function spaceTakenBy(
+  spaceIds: readonly string[],
+  window: HireWindow,
+  hires: readonly HireLike[],
+  events: readonly SpaceEventLike[],
+  spaces: readonly SpaceRef[],
+  ignoreEventId?: string,
+): string | null {
+  const hire = hires.find((b) => b.status !== "atsaukta" && windowsOverlap(window, b) && anySpaceClash(spaceIds, b.spaces, spaces));
+  if (hire) return `nuoma ${hire.date} ${hire.startTime}–${hire.endTime}`;
+  const event = events.find(
+    (e) => e.spaceId && e.durationMinutes && e.id !== ignoreEventId && windowsOverlap(window, eventWindow(e.date, e.time, e.durationMinutes)) && anySpaceClash(spaceIds, [e.spaceId], spaces),
+  );
+  return event ? `renginys „${event.title}“ ${event.date} ${event.time}` : null;
+}

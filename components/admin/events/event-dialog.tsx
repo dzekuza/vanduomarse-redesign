@@ -5,8 +5,10 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { eventSchema, type EventFormValues } from "./event-schema";
+import { EventSpaceSelect } from "./event-space-select";
 import { EVENT_CATEGORIES, type EventCategory } from "@/lib/park-events";
 import type { ManagedEvent } from "@/lib/admin/types";
+import { eventWindow, spaceTakenBy } from "@/lib/space-booking";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,19 +28,21 @@ interface EventDialogProps {
   presetCategory?: EventCategory;
   /** When creating, start on this day (yyyy-mm-dd), e.g. from a calendar cell. */
   presetDate?: string;
+  /** When creating, start in this event space (from the Erdvės page). */
+  presetSpaceId?: string;
 }
 
 /** A sauna session's place is "Sauna" or "Sauna · attendant"; the form edits the sauna, the attendant suffix is kept. */
 const venueOf = (place: string) => place.split(" · ")[0];
 const attendantSuffix = (place?: string) => (place?.includes(" · ") ? ` · ${place.split(" · ").slice(1).join(" · ")}` : "");
 
-function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?: string, defaultPlace = "Skoniai Marse"): EventFormValues {
+function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?: string, defaultPlace = "Skoniai Marse", presetSpaceId = ""): EventFormValues {
   return {
     title: e?.title ?? "",
     category: e?.category ?? presetCategory ?? "vakarai",
     date: e?.date ?? presetDate ?? "",
     time: e?.time ?? "19:00",
-    durationMinutes: e?.durationMinutes == null ? "" : String(e.durationMinutes),
+    durationMinutes: e?.durationMinutes == null ? (!e && presetSpaceId ? "180" : "") : String(e.durationMinutes),
     place: e ? (presetCategory === "pirtis" ? venueOf(e.place) : e.place) : defaultPlace,
     // While a sale runs the form shows the regular price in "Kaina" and the charged price in "Akcijos kaina".
     price: e?.regularPrice != null ? String(e.regularPrice) : e?.price == null ? "" : String(e.price),
@@ -48,6 +52,7 @@ function toValues(e?: ManagedEvent, presetCategory?: EventCategory, presetDate?:
     visibility: e?.calendarPrivate ? "private" : e?.published ? "public" : "draft",
     programId: e?.programId ?? "",
     saunaMasterId: e?.saunaMasterId ?? "",
+    spaceId: e ? (e.spaceId ?? "") : presetSpaceId,
   };
 }
 
@@ -57,14 +62,16 @@ const KIND_COPY: Partial<Record<EventCategory, { nom: string; acc: string; creat
 };
 
 /** Create or edit an event. Remounted per event (key) so defaults reset. */
-export function EventDialog({ open, onOpenChange, event, template, presetCategory, presetDate }: EventDialogProps) {
+export function EventDialog({ open, onOpenChange, event, template, presetCategory, presetDate, presetSpaceId }: EventDialogProps) {
   const source = event ?? template;
-  const { saveEvent, programs, saunas, saunaMasters } = useAdmin();
+  const { saveEvent, programs, saunas, saunaMasters, spaces, spaceBookings, events } = useAdmin();
   const sessionDialog = presetCategory === "pirtis";
   const saunaNames = saunas.map((s) => s.name);
-  const { register, control, handleSubmit, setError, formState } = useForm<EventFormValues>({
+  const presetSpace = spaces.find((s) => s.id === presetSpaceId);
+  const defaultPlace = sessionDialog ? ((saunas.find((s) => s.active) ?? saunas[0])?.name ?? "Pirtis Marse") : presetSpace?.label;
+  const { register, control, handleSubmit, setError, setValue, formState } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues: toValues(source, presetCategory, presetDate, sessionDialog ? ((saunas.find((s) => s.active) ?? saunas[0])?.name ?? "Pirtis Marse") : undefined),
+    defaultValues: toValues(source, presetCategory, presetDate, defaultPlace, presetSpaceId),
   });
   const lockCategory = !!presetCategory;
   const copy = presetCategory ? KIND_COPY[presetCategory] : undefined;
@@ -75,16 +82,25 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
   const saunaMasterId = useWatch({ control, name: "saunaMasterId" });
   // Active masters, plus the session's own one if it has since been switched off, so editing never drops it silently.
   const masterChoices = saunaMasters.filter((m) => m.active || m.id === saunaMasterId);
+  const spaceId = useWatch({ control, name: "spaceId" });
+  // Active spaces, plus the event's own one if it has since been switched off.
+  const spaceChoices = spaces.filter((s) => s.active || s.id === spaceId);
+  const inSpace = category !== "pirtis" && spaceId !== "";
   const err = formState.errors;
 
   const submit = handleSubmit(async (v) => {
+    const space = v.category !== "pirtis" && v.spaceId ? v.spaceId : undefined;
+    if (space) {
+      const taken = spaceTakenBy([space], eventWindow(v.date, v.time, Number(v.durationMinutes)), spaceBookings, events, spaces, event?.id);
+      if (taken) return setError("spaceId", { message: `Erdvė šiuo laiku užimta: ${taken}.` });
+    }
     const result = await saveEvent({
       id: event?.id ?? crypto.randomUUID(),
       title: v.title,
       category: v.category as EventCategory,
       date: v.date,
       time: v.time,
-      durationMinutes: v.category === "pirtis" ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : source?.durationMinutes,
+      durationMinutes: v.category === "pirtis" || space ? (v.durationMinutes ? Number(v.durationMinutes) : undefined) : source?.durationMinutes,
       // A chosen master replaces the old "Pirtis · name" text suffix, which the public page reads as the host.
       place: sessionDialog ? `${v.place}${v.saunaMasterId ? "" : attendantSuffix(source?.place)}` : v.place,
       blurb: v.blurb,
@@ -97,6 +113,7 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
       calendarPrivate: v.visibility === "private" || source?.calendarPrivate ? v.visibility === "private" : undefined,
       programId: v.category === "pirtis" && program ? program.id : undefined,
       saunaMasterId: v.category === "pirtis" && v.saunaMasterId ? v.saunaMasterId : undefined,
+      spaceId: space,
     });
     if ("error" in result) {
       setError("root", { message: result.error.message });
@@ -199,6 +216,29 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
                 masterChoices.length ? undefined : "Pirtininkų dar nėra: pridėkite juos Pirtis → Pirtininkai.",
               )
             : null}
+          {category !== "pirtis" && spaceChoices.length
+            ? field(
+                "spaceId",
+                "Erdvė",
+                <Controller
+                  control={control}
+                  name="spaceId"
+                  render={({ field: f }) => (
+                    <EventSpaceSelect
+                      id="spaceId"
+                      value={f.value}
+                      spaces={spaceChoices}
+                      invalid={!!err.spaceId}
+                      onChange={(next, space) => {
+                        f.onChange(next);
+                        if (space) setValue("place", space.label, { shouldValidate: true });
+                      }}
+                    />
+                  )}
+                />,
+                "Pasirinkta erdvė renginio metu užimama: jos nebus galima išnuomoti.",
+              )
+            : null}
           {sessionDialog
             ? field(
                 "place",
@@ -230,6 +270,11 @@ export function EventDialog({ open, onOpenChange, event, template, presetCategor
             "Trukmė (min.)",
             <Input id="durationMinutes" inputMode="numeric" placeholder={String(program?.durationMinutes ?? 60)} aria-describedby="durationMinutes-hint" aria-invalid={!!err.durationMinutes} {...register("durationMinutes")} />,
             program ? `Palikus tuščią, taikoma programos trukmė (${program.durationMinutes} min.).` : "Palikus tuščią, taikoma 60 min. trukmė.",
+          ) : inSpace ? field(
+            "durationMinutes",
+            "Trukmė (min.)",
+            <Input id="durationMinutes" inputMode="numeric" placeholder="180" aria-describedby="durationMinutes-hint" aria-invalid={!!err.durationMinutes} {...register("durationMinutes")} />,
+            "Tiek laiko erdvė bus užimta.",
           ) : null}
           {field("price", "Kaina, €", <Input id="price" inputMode="decimal" placeholder={program ? `Pagal programą: ${program.price} €` : "Nemokamai"} disabled={!!program} aria-invalid={!!err.price} {...register("price")} />)}
           {program

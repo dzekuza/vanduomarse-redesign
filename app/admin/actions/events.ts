@@ -28,7 +28,10 @@ const eventInput = z.object({
   calendarPrivate: z.boolean().optional(),
   programId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
   saunaMasterId: z.string().min(1).max(60).optional(),
+  spaceId: z.string().regex(/^[a-z0-9-]+$/).max(60).optional(),
 })
+  // An event in a space books it until it ends, so it needs a length (the database checks the same).
+  .refine((event) => event.spaceId === undefined || event.durationMinutes !== undefined)
   .refine((event) => !(event.published && event.calendarPrivate))
   // A sale needs a (lower) price to charge; the database checks the same (events_regular_price_above_price).
   .refine((event) => event.regularPrice === undefined || (event.price !== null && event.regularPrice > event.price));
@@ -59,6 +62,8 @@ export async function saveEvent(event: ManagedEvent): Promise<ActionResult> {
     program_id: e.programId ?? null,
     // Only a sauna session has a master; any other category clears it.
     sauna_master_id: e.category === "pirtis" ? (e.saunaMasterId ?? null) : null,
+    // The database refuses a space already hired or used by another event then (23P01 space_taken).
+    space_id: e.spaceId ?? null,
   });
   return error ? dbError(error) : done(null);
 }

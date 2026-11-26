@@ -10,6 +10,14 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0136 — An event can be held in an event space and books it while it runs
+
+- **Date:** 2026-11-26
+- **Status:** accepted
+- **Context:** the owner wants Erdvės to work like Pirtis: a pirtis has its seansai, an erdvė should have its renginiai. Create a renginys, pick the erdvė, and the space is booked for it. Until now an event only had a free-text `place`, and nothing stopped a hire in the same space at the same time.
+- **Decision:** nullable `events.space_id` (FK `spaces`, on delete restrict; spaces are never deleted anyway). An event in a space needs `duration_minutes` (CHECK `events_space_needs_duration`); its window is start to start + duration. Two triggers (security definer, so they see every row whatever the staff member's own permissions): `events_space_free` refuses an event whose space is taken by a live hire or another space event, `space_bookings_events_free` refuses a hire that overlaps a space event. Same clash rule as hires: same space, or either side whole park; touching ends do not clash. Error 23P01, hint `space_taken`. The client checks the same rule on submit (`spaceTakenBy`, `eventWindow` in `lib/space-booking.ts`) and the hire dialog greys out spaces taken by events. `renginiai` staff may now read `spaces` (they pick one). No separate booking row is created for the event: the event itself occupies the space, so moving or deleting it frees the space with no second record to keep in step. /admin/erdves is laid out like /admin/pirtis: a card with tabs Renginiai (events with a space, "Naujas renginys" preselects the first active space) and Nuomos (hires, "Nauja nuoma"), and the spaces card on the side. The general event dialog also offers "Erdvė" for every non-sauna category. Migration `20261126160000_event_space.sql` (applied).
+- **Consequences:** the calendar and Užimtumas still show space events as events, not as space occupancy. Tickets for a space event are sold as for any event (Nauja rezervacija → the event). An event without a space behaves exactly as before.
+
 ## ADR-0135 — Stay base prices stay required; they are the off-season price
 
 - **Status:** Accepted.

@@ -1,3 +1,9 @@
+## 2026-11-26 — Renginiai in Erdvės (ADR-0136)
+
+- **Changed:** an event can be held in an event space and books it for its duration (DB triggers both ways, migration `20261126160000_event_space.sql` applied). /admin/erdves has Renginiai / Nuomos tabs like Pirtis's Seansai.
+- **Status:** tsc, eslint, 252 tests, build pass; trigger checked with rolled-back SQL. Admin page not browser-checked (login). Uncommitted on `feat/owner-requests-2026-11-26`.
+- **Next:** owner tries /admin/erdves → Naujas renginys; commit to the PR.
+
 ## 2026-11-26 — Merge with main and PR #159
 
 - **Changed:** merged `origin/main` (63 commits) into `feat/calculator-camps`: event types come from `event_presets` (the camp keyed to the `stovykla` row, new migration), cabin data uses the 350-day stay window and `stayRateLabel`, a space-booking test follows the renamed outdoor terrace, my ADRs renumbered to 0127-0130. Dependencies reinstalled with pnpm 11.17 (via npx; pnpm is not installed globally).
