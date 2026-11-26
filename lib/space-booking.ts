@@ -1,7 +1,7 @@
 import { dayTypeOf } from "@/lib/event-pricing";
 
 /**
- * An event space staff hire out: a row of `public.spaces` (ADR-0129), edited at /admin/erdves. The ids of the first
+ * An event space staff hire out: a row of `public.spaces` (ADR-0133), edited at /admin/erdves. The ids of the first
  * eight match the price sheet's `SpaceId` in lib/event-pricing.ts, which the public calculator still uses.
  */
 export interface ManagedSpace {

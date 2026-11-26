@@ -58,7 +58,7 @@ export interface RoomExportLink {
 }
 
 /**
- * Owner-only (ADR-0130): the secret address of each room's calendar of OUR bookings, to paste into Sirvoy
+ * Owner-only (ADR-0134): the secret address of each room's calendar of OUR bookings, to paste into Sirvoy
  * (Settings → Channels → iCal → the room → "Enter iCal URL here"). Read on request, never with the admin data.
  */
 export async function roomExportLinks(): Promise<ActionResult<RoomExportLink[]>> {

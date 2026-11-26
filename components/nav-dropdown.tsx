@@ -7,7 +7,7 @@ import type { NavLink } from "@/components/nav-links";
 import { cn } from "@/lib/utils";
 
 const LINK_UNDERLINE =
-  "relative inline-flex min-h-11 items-center after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100";
+  "relative inline-flex min-h-11 items-center whitespace-nowrap after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100";
 
 /**
  * Desktop header link with a dropdown of deep links. The link itself still goes to its page; the list
@@ -48,7 +48,7 @@ export function NavDropdown({ link }: { link: NavLink & { children: NonNullable<
           aria-expanded={open}
           aria-controls={listId}
           onClick={() => setOpen((current) => !current)}
-          className="grid size-8 place-items-center"
+          className="grid h-11 w-5 place-items-center justify-items-end"
         >
           <CaretDownIcon aria-hidden size={12} weight="bold" className={cn("motion-safe:transition-transform motion-safe:duration-200", open && "rotate-180")} />
         </button>

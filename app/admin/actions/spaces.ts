@@ -7,7 +7,7 @@ import { anySpaceClash, spaceLabels, windowsOverlap, type ManagedSpace } from "@
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 import { slugify } from "@/lib/sauna";
 
-/* ---------------- event spaces (ADR-0124, ADR-0129) ---------------- */
+/* ---------------- event spaces (ADR-0124, ADR-0133) ---------------- */
 
 const spaceId = z.string().regex(/^[a-z0-9-]+$/).max(60);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Netinkamas laikas.");

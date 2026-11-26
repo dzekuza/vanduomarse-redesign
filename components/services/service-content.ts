@@ -66,9 +66,10 @@ export const SERVICE_PAGES = {
     metaDescription: "Namelių nuoma prie ežero Kauno rajone: nakvynė Žemaitkiemyje, 20 min. nuo Kauno. Pasirink namelį ar vietą kemperiui ir pasitikrink laisvas datas.",
     summary: "Nameliai prie ežero Vanduo Marse parke. Pasitikrink laisvas datas nakvynei po šventės ar savaitgaliui gamtoje.",
     description: "Rinkis namelį pagal svečių skaičių. Jei atvyksti savo kemperiu, yra vietų su elektros įvadu. Nakvynę galima užsakyti kelioms naktims.",
-    facts: [],
+    facts: [{ label: "Lovos", value: "Dvigulės, jų negalima išskirti į dvi atskiras. Antras aukštas tik keturviečiuose nameliuose." }],
     questions: [
       { title: "Kaip patikrinti namelių užimtumą?", body: "Pasirink nakvynės tipą, atvykimo ir išvykimo datas. Galėsi pasirinkti tiek namelių, kiek jų laisva visai viešnagei." },
+      { title: "Ar lovas galima išskirti į dvi atskiras?", body: "Ne. Visos lovos namelių viduje yra dvigulės ir jų atskirti į dvi vienvietes negalima nė viename namelyje. Dvigulės lovos yra pirmame aukšte, o antras aukštas (kopėčiomis užlipus) yra tik keturviečiuose nameliuose." },
       { title: "Ar galima užsakyti kelis namelius?", body: "Taip. Pasirink norimo tipo namelių kiekį pagal užimtumą. Dėl skirtingų tipų vienai grupei susisiek su Miegas Marse komanda." },
       { title: "Kiek kainuoja nakvynė namelyje?", body: "Kaina priklauso nuo namelio tipo ir naktų skaičiaus. Ją pamatysi pasirinkęs tipą ir datas rezervacijos skiltyje." },
       { title: "Ar galima apsistoti su kemperiu?", body: "Taip. Yra vietų su elektros įvadu. Jas rasi tarp nakvynės tipų, kai pasirenki datas." },

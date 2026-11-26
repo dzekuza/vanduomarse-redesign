@@ -76,7 +76,7 @@ export async function saveStayType(type: StayType): Promise<ActionResult> {
       price_per_night_3: x.pricePerNight3,
     })),
   });
-  // Until migration 20261126110000 is applied the database still refuses any overlap, nested seasons included (ADR-0128).
+  // Until migration 20261126110000 is applied the database still refuses any overlap, nested seasons included (ADR-0132).
   if (error?.code === "23P01") {
     return fail("Sezonas kito sezono viduje dar neišsaugomas: duomenų bazė kol kas leidžia tik nepersidengiančius sezonus. Kol tai bus įjungta, padalinkite ilgąjį sezoną į dalis prieš ir po trumpojo.", "season_overlap");
   }

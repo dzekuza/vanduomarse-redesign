@@ -11,7 +11,7 @@ import { UpcomingHiresCard } from "./upcoming-hires-card";
 import type { ManagedSpace } from "@/lib/space-booking";
 import { Button } from "@/components/ui/button";
 
-/** Erdvės: the event spaces staff hire out, their rent, and a shortcut to a new hire (ADR-0129). */
+/** Erdvės: the event spaces staff hire out, their rent, and a shortcut to a new hire (ADR-0133). */
 export function SpacesView() {
   const { spaces } = useAdmin();
   const [editing, setEditing] = useState<ManagedSpace | "new" | null>(null);

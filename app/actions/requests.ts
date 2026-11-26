@@ -67,7 +67,7 @@ const BY_HINT: Record<string, string> = {
   program_unavailable: "Ši programa šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   event_people: "Netinkamas žmonių skaičius.",
   event_full: "Renginyje nebeliko tiek vietų.",
-  inquiry_guests: "Netinkamas svečių skaičius.",
+  inquiry_guests: "Netinkamas asmenų skaičius.",
   inquiry_input: "Per daug duomenų užklausoje.",
   contact_invalid: "Nurodykite teisingą el. paštą arba telefoną (bent 8 skaitmenys).",
   too_many_pending: "Jau turite kelias nepatvirtintas užklausas. Palaukite patvirtinimo arba skambinkite.",
@@ -178,7 +178,7 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   const { supabase, phone, email, notifyEmail } = who;
   if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
 
-  // "Rezervuoti galima iki" (ADR-0127): the database trigger refuses it too; checked here first for a clear message.
+  // "Rezervuoti galima iki" (ADR-0131): the database trigger refuses it too; checked here first for a clear message.
   const { data: type } = await supabase.from("stay_types").select("bookable_until").eq("id", v.stayTypeId).maybeSingle();
   if (type?.bookable_until && !stayBookable({ bookableUntil: type.bookable_until }, v.date, v.nights)) return fail(BY_HINT.stay_closed, "stay_closed");
 

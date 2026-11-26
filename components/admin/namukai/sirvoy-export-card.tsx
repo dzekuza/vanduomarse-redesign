@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
- * The other direction (ADR-0130): each Sirvoy room's calendar of our own confirmed cabin bookings, to paste into Sirvoy
+ * The other direction (ADR-0134): each Sirvoy room's calendar of our own confirmed cabin bookings, to paste into Sirvoy
  * so Booking.com stops selling a cabin sold here. The addresses are secret, so they load only on request.
  */
 export function SirvoyExportCard() {

@@ -17,7 +17,7 @@ import { DRAWER_PANEL, MODAL_CLOSE, MODAL_OVERLAY } from "./dialog-motion";
 function CalculatorPanel() {
   const [catalog, setCatalog] = useState<CalculatorCatalog>(EMPTY_CATALOG);
   const calc = useEventCalculator(undefined, catalog);
-  const { result, input, guests, space, preset } = calc;
+  const { result, input, guests, spaceLabel, preset } = calc;
 
   useEffect(() => {
     // The home page is static, so the live cabin and sauna prices load when the drawer opens.
@@ -34,7 +34,7 @@ function CalculatorPanel() {
           estimate={result}
           input={input}
           guests={guests}
-          spaceLabel={space?.label ?? ""}
+          spaceLabel={spaceLabel}
           typical={preset ? { label: preset.label, perGuest: preset.perGuest } : null}
         />
       ),

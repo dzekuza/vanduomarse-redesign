@@ -635,7 +635,7 @@ function useAdminReducer(initial: AdminData) {
       /** Owner: store or clear a room's Sirvoy feed address. Not optimistic: the address never comes back to the browser. */
       saveExternalFeed: (calendarId: string, url: string) => report(actions.saveExternalFeed(calendarId, url)),
       syncExternalNow: () => report(actions.syncExternalNow()),
-      /** Owner: the secret outbound room calendar addresses (ADR-0130), read only when asked for. */
+      /** Owner: the secret outbound room calendar addresses (ADR-0134), read only when asked for. */
       roomExportLinks: () => report(actions.roomExportLinks()),
       deleteStayType: (id: string) => {
         dispatch({ type: "stayType/delete", id });

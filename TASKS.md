@@ -4,7 +4,7 @@ Status: BUILT on `feat/owner-requests-2026-11-26` (draft PR), not merged; waitin
 
 ## 1. Cottages: booking window until 1 May
 
-**Status: DONE (code + live DB).** `stay_types.bookable_until` (ADR-0127); both cabin types = 2027-05-01 in the live DB. Browser-checked: /rezervacija and /nakvyne show 0 free cabins from 1 May. Admin field not browser-checked (login).
+**Status: DONE (code + live DB).** `stay_types.bookable_until` (ADR-0131); both cabin types = 2027-05-01 in the live DB. Browser-checked: /rezervacija and /nakvyne show 0 free cabins from 1 May. Admin field not browser-checked (login).
 
 Ask: "nuo dabar iki gegužės galima bookintis, o nuo gegužės 1d. išvis nebūtų galima".
 
@@ -14,7 +14,7 @@ Ask: "nuo dabar iki gegužės galima bookintis, o nuo gegužės 1d. išvis nebū
 
 ## 2. Cottages: Christmas price inside the base season
 
-**Status: CODE DONE, DB constraint PENDING.** Pricing (`seasonOn`, `private.stay_night_rate`) applied. `supabase/migrations/20261126110000_stay_season_nesting.sql` NOT applied: owner must confirm. Until then saving a nested season shows a clear message (ADR-0128).
+**Status: DONE (constraint migration applied 2026-11-26).** Pricing (`seasonOn`, `private.stay_night_rate`) applied. `supabase/migrations/20261126110000_stay_season_nesting.sql` NOT applied: owner must confirm. Until then saving a nested season shows a clear message (ADR-0132).
 
 Ask: "kalėdiniu laikotarpiu kaina būtų didesnė"; screenshots show the error "Sezonų datos persidengia" (26 Nov–1 May base + 24–26 Dec).
 
@@ -24,7 +24,7 @@ Ask: "kalėdiniu laikotarpiu kaina būtų didesnė"; screenshots show the error 
 
 ## 3. Cottages: base price required
 
-**Status: DONE (decision ADR-0131).** Kept required, renamed "Bazinė kaina" with an off-season hint; new seasons start with the base prices.
+**Status: DONE (decision ADR-0135).** Kept required, renamed "Bazinė kaina" with an off-season hint; new seasons start with the base prices.
 
 Ask: in the screenshot the base "Kaina € už naktį" fields are red ("Įveskite kainą") because he left them empty.
 
@@ -51,7 +51,7 @@ Ask: "Reiktų galimybės priskirti pirtininką arba be pirtininko" (the "Naujas 
 
 ## 6. "Erdvės" as a service
 
-**Status: DONE.** Table `spaces` (applied, same 8 ids), `/admin/erdves` under Paslaugos, staff hire flow and calendar read it; CHECK replaced by a trigger (ADR-0129). Public calculator still uses the price sheet. Not browser-checked (admin login).
+**Status: DONE.** Table `spaces` (applied, same 8 ids), `/admin/erdves` under Paslaugos, staff hire flow and calendar read it; CHECK replaced by a trigger (ADR-0133). Public calculator still uses the price sheet. Not browser-checked (admin login).
 
 Ask: "prie paslaugų, kad atsirastų Erdvės ir ten būtų sudėtos visos erdvės su kainomis, admin galėtų pridėti erdvės nuomą ir ji atsirastų kalendoriuje".
 
@@ -70,7 +70,7 @@ Ask: "jeigu užbookina erdvę, tarkim kupolą už 800 €, irgi matytųsi pajamo
 
 ## 8. Check: website cottage booking → Booking.com
 
-**Status: ANSWERED + BUILT.** Answer: no, before today website bookings were not sent anywhere (inbound only). Built `/api/ical/room/<token>.ics` per Sirvoy room (ADR-0130, applied). Owner must paste the 14 addresses into Sirvoy (shown at /admin/namukai → "Svetainės rezervacijos į „Sirvoy“").
+**Status: ANSWERED + BUILT.** Answer: no, before today website bookings were not sent anywhere (inbound only). Built `/api/ical/room/<token>.ics` per Sirvoy room (ADR-0134, applied). Owner must paste the 14 addresses into Sirvoy (shown at /admin/namukai → "Svetainės rezervacijos į „Sirvoy“").
 
 Ask: "ar iš Marso web'o užbookinus namelį jį rodo kaip užbookintą bookinge?"
 

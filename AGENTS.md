@@ -20,14 +20,14 @@ architectural choices).
    `obsidian/frontend/components/` before writing a component. Extract past
    ~150 lines or on the second repetition.
 3. **Mobile-first, touch-sized.** Every tap target ≥ 44 px (`min-h-11` /
-   `size-11`). Two-column layouts and the inline nav start at `lg`. Choice
+   `size-11`). Two-column layouts start at `lg`; the public header's inline nav at `xl`. Choice
    chips wrap; only date strips scroll sideways. Check 375 / 768 / 1024 px.
 4. **Lithuanian UI copy**, no i18n library yet. Prices include 21% PVM.
 5. **Prices come from one place.** Sauna rates and extras: Supabase
    (`sauna_settings`, `sauna_upsells`), priced with `lib/sauna.ts` +
    `lib/sauna-upsells.ts`. Cabins and camper pitches: Supabase `stay_types` (owner edits them at `/admin/namukai`), read through `lib/data/public.ts`, helpers in `lib/cabin.ts`. Events/spaces:
    `lib/event-pricing.ts` (the 2026–27 sheet for the public calculator; ranges stay ranges);
-   staff space hires read Supabase `spaces` (`/admin/erdves`, ADR-0129). Never
+   staff space hires read Supabase `spaces` (`/admin/erdves`, ADR-0133). Never
    hard-code a price in a component.
 6. **Data lives in Supabase** (ADR-0007). Admin screens read and write only
    through `useAdmin()` (`components/admin/admin-store.tsx` → server actions in

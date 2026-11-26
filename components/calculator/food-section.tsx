@@ -1,10 +1,12 @@
 "use client";
 
+import { BellSimpleIcon, ForkKnifeIcon, WineIcon } from "@phosphor-icons/react";
 import { useId } from "react";
 import { Stepper } from "@/components/booking/stepper";
-import { OptionGroupLabel } from "@/components/reservation/option-card";
+import { FieldHeading } from "@/components/booking/field-heading";
 import { BUFFET_OPTIONS, CATERING, COFFEE_BREAK, DRINKS, PRICES, formatMoney } from "@/lib/event-pricing";
 import { cn } from "@/lib/utils";
+import { CampMeals } from "./camp-meals";
 import { OptionToggle } from "./option-toggle";
 import type { EventCalculatorState } from "./use-event-calculator";
 
@@ -14,17 +16,21 @@ interface FoodSectionProps {
 
 const MEAL_OPTIONS = [...CATERING].sort((a, b) => a.perAdult - b.perAdult);
 
-export function CateringSection({ calc: { input, set } }: FoodSectionProps) {
+export function CateringSection({ calc }: FoodSectionProps) {
+  const { input, set } = calc;
   const sliderId = useId();
   const index = Math.max(0, MEAL_OPTIONS.findIndex(({ id }) => id === input.catering));
   const meal = MEAL_OPTIONS[index];
   const buffet = BUFFET_OPTIONS.find(({ id }) => id === meal.id);
   const description = buffet ? `${buffet.hotDishes} karštieji patiekalai` : meal.hint.split(" · ")[0];
 
+  // A camp is fed by the meal, not by the buffet price.
+  if (input.preset === "stovykla") return <CampMeals calc={calc} />;
+
   return (
     <div className="space-y-4">
       <div className="space-y-2 border border-line p-4">
-        <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam svečiui</label>
+        <label htmlFor={sliderId} className="text-micro uppercase">Kaina vienam asmeniui</label>
         <input
           id={sliderId}
           type="range"
@@ -92,17 +98,17 @@ export function HospitalitySection({ calc: { input, set } }: FoodSectionProps) {
 }
 
 const FOOD_SECTIONS = [
-  { id: "maitinimas", label: "Maitinimas", Section: CateringSection },
-  { id: "gerimai", label: "Gėrimai", Section: DrinksSection },
-  { id: "aptarnavimas", label: "Aptarnavimas", Section: HospitalitySection },
+  { id: "maitinimas", label: "Maitinimas", icon: ForkKnifeIcon, Section: CateringSection },
+  { id: "gerimai", label: "Gėrimai", icon: WineIcon, Section: DrinksSection },
+  { id: "aptarnavimas", label: "Aptarnavimas", icon: BellSimpleIcon, Section: HospitalitySection },
 ] as const;
 
 export function FoodSection({ calc }: FoodSectionProps) {
   return (
     <div className="space-y-8">
-      {FOOD_SECTIONS.map(({ id, label, Section }) => (
+      {FOOD_SECTIONS.map(({ id, label, icon, Section }) => (
         <section key={id} aria-label={label}>
-          <OptionGroupLabel>{label}</OptionGroupLabel>
+          <FieldHeading icon={icon}>{label}</FieldHeading>
           <Section calc={calc} />
         </section>
       ))}

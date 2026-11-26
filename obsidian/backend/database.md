@@ -88,10 +88,10 @@ repo). After connecting, the database is the source of truth for prices.
 | `sauna_settings` | — | **Superseded** by `saunas` (20261030100000); no longer read by the app | public read; staff update |
 | `sauna_upsells` | `Upsell` | Slug id (`pirtininkas`, `vantos`, …) | anon reads `active`; staff all |
 | `stay_types` | `CABIN_SIZES` + camper | `namelis-2` (8 units), `namelis-4` (6), `kemperis` (units null = unlimited) | public read; staff write |
-| `stay_type_seasons` | date ranges (ADR-0126) | summer prices for a stay type; nights outside every range use `stay_types` prices | public read; owner write; live DB: no overlapping ranges per type (exclusion constraint). After `20261126110000` (PENDING): nested allowed, no identical ranges; the shortest season prices a night (ADR-0128) |
-| `spaces` | slug (ADR-0129) | event spaces staff hire out: label, blurb, max guests, weekday / weekend rent (null = not offered), whole park, active | read `rezervacijos` / `uzimtumas` / `apzvalga` / `kainos`; insert / update `rezervacijos` or `kainos`; no delete |
-| `stay_room_assignments` | booking + unit (ADR-0130) | which Sirvoy room each confirmed stay booking unit is exported to | RLS on, no policy: only `assign_stay_rooms()` writes it |
-| `external_calendar_exports` | calendar (ADR-0130) | secret token of each room's outbound iCal feed | RLS on, no policy: read through `stay_room_feed()` / `stay_room_export_links()` |
+| `stay_type_seasons` | date ranges (ADR-0126) | summer prices for a stay type; nights outside every range use `stay_types` prices | public read; owner write; live DB: no overlapping ranges per type (exclusion constraint). After `20261126110000` (PENDING): nested allowed, no identical ranges; the shortest season prices a night (ADR-0132) |
+| `spaces` | slug (ADR-0133) | event spaces staff hire out: label, blurb, max guests, weekday / weekend rent (null = not offered), whole park, active | read `rezervacijos` / `uzimtumas` / `apzvalga` / `kainos`; insert / update `rezervacijos` or `kainos`; no delete |
+| `stay_room_assignments` | booking + unit (ADR-0134) | which Sirvoy room each confirmed stay booking unit is exported to | RLS on, no policy: only `assign_stay_rooms()` writes it |
+| `external_calendar_exports` | calendar (ADR-0134) | secret token of each room's outbound iCal feed | RLS on, no policy: read through `stay_room_feed()` / `stay_room_export_links()` |
 | `external_calendars` | `ExternalCalendar` | One Sirvoy room feed (14 seeded): `label` = Sirvoy room number, `stay_type_id` (`namelis-2` x8: rooms 1-4, 11-14; `namelis-4` x6: rooms 5-10), `active` (set when a URL is stored), `last_synced_at`, `last_error`. ADR-0102. Applied 2026-11-16 | staff (`rezervacijos` / `uzimtumas` / `apzvalga`) read; written only through the functions below |
 | `external_calendar_feeds` | — | The secret Sirvoy iCal export URL per room (`secured.sirvoy.com/ical/…` only). RLS on, **no policies**: reachable only through `set_external_feed` (owner) and `external_sync_feeds` (service role). Never sent to the browser | nobody directly |
 | `external_blocks` | `ExternalBlock` | One reservation or closure from a room's feed: `starts_on`, `nights` (check-out day free), unique (`calendar_id`, `uid`). Replaced wholesale by the sync. The sync never fails on a clash (a Sirvoy overbooking is shown, not rejected) | staff read as above; written only by `sync_external_blocks` |
@@ -417,7 +417,7 @@ Migration `20261119210000_event_presets.sql`, APPLIED 2026-11-19. `event_presets
 - `20261124120000_stay_type_seasons.sql` (APPLIED 2026-11-24): table `stay_type_seasons` (inclusive date ranges, exclusion constraint against overlap per type, public read, owner write), `private.stay_night_rate()` / `private.stay_price()`, and `create_stay_booking_with_units` / `accept_inquiry_stays` re-created to price per night by season. Requires extension `btree_gist`.
 - `20261124130000_save_stay_type.sql` (APPLIED 2026-11-24): RPC `save_stay_type(p_type jsonb, p_seasons jsonb)`, security invoker (owner RLS applies), upserts the type and replaces its seasons in one transaction; a season id already used by another type fails on the primary key.
 
-## Owner requests 2026-11-26 (ADR-0127 – ADR-0130)
+## Owner requests 2026-11-26 (ADR-0131 – ADR-0134)
 
 | Migration | State | What |
 |-----------|-------|------|

@@ -1,4 +1,4 @@
--- !!! NOT APPLIED TO THE LIVE DATABASE. Needs the owner's go-ahead (PR description, ADR-0128). !!!
+-- Applied to the live database on 2026-11-26 with the owner's go-ahead (ADR-0132).
 --
 -- Nested seasons (ADR-0128): replaces the "no overlapping seasons" exclusion constraint with "no two seasons of one
 -- type with the very same dates". Pricing already takes the shortest season of a night (20261126100000), and the app

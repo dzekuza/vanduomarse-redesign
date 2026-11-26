@@ -1,5 +1,6 @@
 "use client";
 
+import { BedNotice } from "./bed-notice";
 import { Receipt } from "./receipt";
 import { VENUE } from "@/lib/calendar";
 import { longDateLabel } from "@/lib/sauna";
@@ -21,6 +22,7 @@ export function CabinConfirmation({ reference, checkIn, nights, guests, label, t
   checkOut.setDate(checkOut.getDate() + nights);
 
   return (
+    <>
     <Receipt
       title="Miegas Marse"
       reference={reference}
@@ -43,5 +45,7 @@ export function CabinConfirmation({ reference, checkIn, nights, guests, label, t
       resetLabel="Rezervuoti kitą nakvynę"
       onReset={onReset}
     />
+    <BedNotice className="mt-4" />
+    </>
   );
 }

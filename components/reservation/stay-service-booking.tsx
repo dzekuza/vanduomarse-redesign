@@ -2,6 +2,7 @@
 
 import { HouseIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { BedNotice } from "@/components/booking/bed-notice";
 import { FilterChip } from "@/components/events/filter-chip";
 import type { CabinPageData } from "@/lib/data/public-types";
 import { freeStayUnits, MAX_STAY_NIGHTS, stayRateLabel } from "@/lib/cabin";
@@ -60,6 +61,7 @@ export function StayServiceBooking({ data, days, date, end, phase, plan, busy, o
           ))}
         </div>
       </fieldset>
+      {data.stayTypes.some((t) => t.kind === "namelis") ? <BedNotice /> : null}
       <DateField
         days={days}
         date={arrival}

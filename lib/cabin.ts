@@ -211,3 +211,11 @@ export function nightsLabel(n: number): string {
   if (ones === 0) return `${n} naktų`;
   return `${n} naktys`;
 }
+/** What guests must know about the cabin beds: they are double beds that cannot be split into two single ones. */
+export const BED_NOTICE = {
+  lead: "Lovos dvigulės ir jų negalima išskirti į dvi atskiras.",
+  detail: "Dvigulės lovos yra pirmame aukšte ir antrame, kopėčiomis užlipus. Antras aukštas yra tik keturviečiuose nameliuose. Nė viename namelyje lovų atskirti negalima.",
+} as const;
+
+/** Cabins for four or more guests have the upper floor with the second double bed. */
+export const hasUpperFloor = (type: Pick<StayType, "kind" | "maxGuests">): boolean => type.kind === "namelis" && type.maxGuests >= 4;

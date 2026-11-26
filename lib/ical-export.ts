@@ -1,5 +1,5 @@
 /**
- * Builds the outbound iCal feed of one Sirvoy room (ADR-0130): our confirmed cabin bookings that were given that room,
+ * Builds the outbound iCal feed of one Sirvoy room (ADR-0134): our confirmed cabin bookings that were given that room,
  * one all-day VEVENT per booking unit, DTEND = check-out day (exclusive). Sirvoy imports it ("Enter iCal URL here" per
  * room) and shows each event as a "No Name" booking, so Booking.com stops selling those nights. Only a booking
  * reference goes out: no guest name, phone or price.

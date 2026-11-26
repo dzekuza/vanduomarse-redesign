@@ -21,7 +21,7 @@ const feedSchema = z.object({
 });
 
 /**
- * One Sirvoy room's calendar of OUR confirmed cabin bookings (ADR-0130), for Sirvoy's per-room iCal import, so a cabin
+ * One Sirvoy room's calendar of OUR confirmed cabin bookings (ADR-0134), for Sirvoy's per-room iCal import, so a cabin
  * sold on the website or by staff is blocked on Booking.com. The address is secret (a 64-hex token per room, shown to
  * the owner at /admin/namukai); an unknown token answers 404. Blocks read in from Sirvoy are never part of it.
  */
