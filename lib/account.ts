@@ -1,5 +1,17 @@
 import type { CouponService } from "@/lib/coupons";
+import type { PointsEntry } from "@/lib/points";
 import type { CancelState } from "@/lib/request-cancel";
+/** One customer (rider) the account owns and the points they hold (ADR-0121); a family on one phone number has several. */
+export interface MyPoints {
+  riderId: string;
+  name: string;
+  balance: number;
+  /** Latest movements, newest first. Empty when `logHidden`. */
+  entries: PointsEntry[];
+  /** Matched only through a second phone number: the balance is shown but not the log (same rule as `my_riders`). */
+  logHidden: boolean;
+}
+
 export type RequestKind = "pirtis" | "nakvyne" | "keturraciai" | "renginys";
 
 /** What the account page shows about one of the customer's requests (a sauna, stay, quad or event reservation). */

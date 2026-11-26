@@ -34,7 +34,7 @@ export function FooterBar({ topHref }: { topHref: string }) {
         <a href={`mailto:${MAIN_CONTACT.email}`} className={LINK}>
           {MAIN_CONTACT.email}
         </a>
-        <Link href="/kuponai" className={LINK}>
+        <Link prefetch={false} href="/kuponai" className={LINK}>
           Dovanoti Marsą
         </Link>
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className={LINK}>

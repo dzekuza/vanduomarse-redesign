@@ -10,16 +10,19 @@ import { BookingCustomerFields } from "./booking-customer-fields";
 import { BookingExtrasFields } from "./booking-extras-fields";
 import { BookingPaymentFields } from "./booking-payment-fields";
 import { isPaymentFailure, paymentFormDefaults, paymentInput, reportCreated } from "./payment-form";
+import { DiscountCodeField } from "./discount-code-field";
 import { NewRentalDialog } from "../quads/new-rental-dialog";
 import { NewTourDialog } from "../quads/new-tour-dialog";
+import { NewSpaceBookingDialog } from "../spaces/new-space-booking-dialog";
 import { BookingWhenFields } from "./booking-when-fields";
 import { newBookingSchema, type NewBookingValues } from "./new-booking-schema";
 import { bookingOptionsOn } from "@/lib/admin/booking-options";
 import { formatDay, formatEur } from "@/lib/admin/format";
-import { freeHoursFrom, freeStartHours, fullStayNights, saunaSlice } from "@/lib/admin/occupancy";
+import { bookedHours, freeHoursToClose, freeStartHours, fullStayNights, pickableLengths, saunaSlice } from "@/lib/admin/occupancy";
 import { hasPermission } from "@/lib/admin/permissions";
-import { pickStayType } from "@/lib/cabin";
-import { DEFAULT_SAUNA_RATES, dateKey, sessionLengths, sessionPrice } from "@/lib/sauna";
+import { pickStayType, stayPrice, stayTiersLabel } from "@/lib/cabin";
+import { discountCovers, discountFor, type CheckedDiscount, type DiscountService } from "@/lib/discount-codes";
+import { DEFAULT_SAUNA_RATES, dateKey, sessionPrice } from "@/lib/sauna";
 import { upsellTotal } from "@/lib/sauna-upsells";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,8 +32,8 @@ interface NewBookingDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Called with the new booking's id so the list can open it. */
   onCreated: (id: string) => void;
-  /** Prefills the form, e.g. when opened from a free cell on the Užimtumas grid. A sauna or start time skips the first step; a date alone does not. */
-  initial?: { saunaId?: string; date?: string; startHour?: number };
+  /** Prefills the form, e.g. when opened from a free cell on the Užimtumas grid or an event's sheet. A sauna, start time or event skips the first step; a date alone does not. */
+  initial?: { saunaId?: string; date?: string; startHour?: number; eventId?: string };
 }
 
 /**
@@ -40,17 +43,21 @@ interface NewBookingDialogProps {
  */
 export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookingDialogProps) {
   const { me, bookings, blocks, externalBlocks, saunas, events, upsells: catalogue, stayTypes, quadTypes, quadTourRoutes, createBooking, createEventTicket } = useAdmin();
+  const initialEvent = initial?.eventId ? events.find((e) => e.id === initial.eventId) : undefined;
   const [extras, setExtras] = useState<Record<string, number>>({});
+  const [discount, setDiscount] = useState<CheckedDiscount | null>(null);
+  const [discountPending, setDiscountPending] = useState(false);
   const [quad, setQuad] = useState<{ kind: "rental" } | { kind: "tour"; routeId: string } | null>(null);
-  const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId ? "form" : "choose");
+  const [spacesOpen, setSpacesOpen] = useState(false);
+  const [step, setStep] = useState<"choose" | "form">(initial?.startHour != null || initial?.saunaId || initialEvent ? "form" : "choose");
   const { register, control, handleSubmit, setValue, setError, formState } = useForm<NewBookingValues>({
     resolver: zodResolver(newBookingSchema),
     defaultValues: {
-      kind: "pirtis",
+      kind: initialEvent ? "renginys" : "pirtis",
       saunaId: initial?.saunaId ?? (saunas.find((s) => s.active) ?? saunas[0])?.id ?? "",
       stayTypeId: "",
-      eventId: "",
-      date: initial?.date && initial.date >= dateKey(new Date()) ? initial.date : dateKey(new Date()),
+      eventId: initialEvent?.id ?? "",
+      date: initialEvent ? initialEvent.date : (initial?.date ?? dateKey(new Date())),
       startHour: initial?.startHour != null ? String(initial.startHour) : "",
       hours: "",
       nights: "1",
@@ -58,16 +65,16 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       name: "",
       phone: "",
       email: "",
-      status: "patvirtinta",
       source: "telefonu",
       ...paymentFormDefaults,
       priceOverride: "",
+      discountCode: "",
       note: "",
     },
   });
-  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride, stayTypeId, eventId, paid] = useWatch({
+  const [kind, saunaId, date, startHour, hours, nights, guests, priceOverride, discountCode, stayTypeId, eventId, paid] = useWatch({
     control,
-    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride", "stayTypeId", "eventId", "paid"],
+    name: ["kind", "saunaId", "date", "startHour", "hours", "nights", "guests", "priceOverride", "discountCode", "stayTypeId", "eventId", "paid"],
   });
   const unpaid = paid === "nesumoketa";
   const err = formState.errors;
@@ -87,8 +94,9 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
   }, [date, events, bookings, blocks, saunas, stayTypes, externalBlocks, me]);
 
   const starts = sauna && chosen && date ? freeStartHours(slice.bookings, slice.blocks, saunaRates, date) : [];
-  const run = sauna && chosen && startHour ? freeHoursFrom(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : 0;
-  const lengths = sessionLengths(saunaRates, date || undefined).filter((h) => h <= run);
+  const lengths = sauna && chosen && startHour ? pickableLengths(slice.bookings, slice.blocks, saunaRates, date, Number(startHour)) : [];
+  /** What the picked length books: "Visa diena" runs from the start to closing. */
+  const sessionHours = hours ? bookedHours(saunaRates, Number(startHour), Number(hours)) : 0;
   // A stay uses the type staff picked in step 1; without one, the smallest active type that fits the party (the server picks the same).
   const stayType = stayKind ? (stayTypes.find((t) => t.id === stayTypeId && t.kind === stayKind && t.active) ?? pickStayType(stayTypes, stayKind, party)) : undefined;
   const placesLeft = chosenEvent && chosenEvent.capacity !== null ? Math.max(0, chosenEvent.capacity - chosenEvent.sold - chosenEvent.held) : null;
@@ -98,15 +106,18 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       ? (placesLeft ?? 500)
       : (stayType?.maxGuests ?? Math.max(0, ...stayTypes.filter((t) => t.kind === kind && t.active).map((t) => t.maxGuests)));
 
-  const extrasCtx = { partySize: party, hours: Number(hours) || 0 };
-  const stayRate = stayType?.pricePerNight ?? 0;
-  const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
+  const extrasCtx = { partySize: party, hours: sessionHours };
+    const extrasPrice = upsells.reduce((sum, u) => sum + (u.active ? upsellTotal(u, extras[u.id] ?? 0, extrasCtx) : 0), 0);
   const computed = ticket
     ? (chosenEvent?.price ?? 0) * party
     : sauna
       ? (hours ? sessionPrice(Number(hours), party, saunaRates, date || undefined) : 0) + extrasPrice
-      : stayRate * (Number(nights) || 0);
-  const total = priceOverride && !ticket ? Number(priceOverride) : computed;
+      : stayType ? stayPrice(stayType, Number(nights) || 0, 1, date || undefined) : 0;
+  const baseTotal = priceOverride ? Number(priceOverride) : computed;
+  // Event tickets and private sauna hires both count as "pirtis" for a code's services, like the public RPCs treat them.
+  const discountService: DiscountService = stayKind ? "nakvyne" : "pirtis";
+  const discountAmount = discount && discountCovers(discount, discountService) ? discountFor(discount, discountService, baseTotal) : 0;
+  const total = Math.max(0, baseTotal - discountAmount);
 
   const resetSlot = () => {
     setValue("startHour", "");
@@ -118,7 +129,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     ? { title: chosenEvent?.title ?? "Renginys", detail: chosenEvent ? `${formatDay(chosenEvent.date)} · ${chosenEvent.time} · ${chosenEvent.place}` : "" }
     : sauna
       ? { title: chosen?.name ?? "Pirtis", detail: "Privati pirtis" }
-      : { title: stayType?.label ?? "Apgyvendinimas", detail: stayType ? `Iki ${stayType.maxGuests} žm. · ${formatEur(stayType.pricePerNight)} / naktį` : "" };
+      : { title: stayType?.label ?? "Apgyvendinimas", detail: stayType ? `Iki ${stayType.maxGuests} žm. · ${stayTiersLabel(stayType)} / naktį` : "" };
 
   const submit = handleSubmit(async (v) => {
     if (party > maxGuests) return setError("guests", { message: ticket ? `Liko vietų: ${maxGuests}` : `Daugiausia ${maxGuests} žm.` });
@@ -128,18 +139,25 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
         eventId: chosenEvent.id,
         customer: { name: v.name, phone: v.phone, email: v.email },
         people: party,
-        status: v.status,
+        status: "patvirtinta",
         source: v.source,
         payment: paymentInput(v),
+        price: v.priceOverride ? Number(v.priceOverride) : undefined,
+        discountCode: v.discountCode,
       });
       if ("error" in created) {
         if (isPaymentFailure(created.error)) return;
+        if (created.error.code === "discount_code") {
+          setDiscount(null);
+          return setError("discountCode", { message: created.error.message });
+        }
         return setError(created.error.code === "email_required" ? "email" : "guests", { message: created.error.message });
       }
       reportCreated(created.data.ticket.reference, created.data);
       return onOpenChange(false);
     }
-    if (sauna && freeHoursFrom(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < Number(v.hours))
+    const wanted = bookedHours(saunaRates, Number(v.startHour), Number(v.hours));
+    if (sauna && freeHoursToClose(slice.bookings, slice.blocks, saunaRates, v.date, Number(v.startHour)) < wanted)
       return setError("startHour", { message: "Šis laikas jau užimtas – pasirinkite kitą." });
     if (!sauna) {
       if (!stayType) return setError("kind", { message: "Šio tipo nakvynės nėra – pridėkite ją skiltyje Namukai." });
@@ -151,18 +169,24 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
       ...(sauna ? { saunaId: v.saunaId } : { stayTypeId: stayType?.id }),
       customer: { name: v.name, phone: v.phone, email: v.email },
       date: v.date,
-      ...(sauna ? { startHour: Number(v.startHour), hours: Number(v.hours) } : { nights: Number(v.nights) }),
+      ...(sauna ? { startHour: Number(v.startHour), hours: bookedHours(saunaRates, Number(v.startHour), Number(v.hours)) } : { nights: Number(v.nights) }),
       guests: party,
       extras: sauna ? extras : {},
       total,
-      status: v.status,
+      status: "patvirtinta",
       source: v.source,
       note: v.note,
       payment: paymentInput(v),
+      discountCode: v.discountCode,
+      discountAmount,
     });
     // The database has the final say on conflicts (another booking may have landed meanwhile).
     if ("error" in result) {
       if (isPaymentFailure(result.error)) return;
+      if (result.error.code === "discount_code") {
+        setDiscount(null);
+        return setError("discountCode", { message: result.error.message });
+      }
       if (result.error.code === "email_required") return setError("email", { message: result.error.message });
       return setError(sauna ? "startHour" : "nights", { message: result.error.message });
     }
@@ -179,10 +203,13 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
     if (patch.date) setValue("date", patch.date);
     resetSlot();
     setExtras({});
+    setValue("discountCode", "");
+    setDiscount(null);
     setStep("form");
   };
 
   // Quads have their own forms (fleet, hours, riders; or a tour with its route, gear and minimum quads); they open on the chosen date.
+  if (spacesOpen) return <NewSpaceBookingDialog date={date} onOpenChange={onOpenChange} />;
   if (quad?.kind === "rental") return <NewRentalDialog date={date} onOpenChange={onOpenChange} />;
   if (quad?.kind === "tour") return <NewTourDialog date={date} routeId={quad.routeId} onOpenChange={onOpenChange} />;
 
@@ -203,6 +230,7 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
             quads={hasPermission(me, "keturraciai") ? { routes: quadTourRoutes.filter((r) => r.active), types: quadTypes } : null}
             onPickTour={(route) => setQuad({ kind: "tour", routeId: route.id })}
             onPickRental={() => setQuad({ kind: "rental" })}
+            onPickSpaces={hasPermission(me, "rezervacijos") ? () => setSpacesOpen(true) : null}
             onPickEvent={(e) => choose({ kind: "renginys", eventId: e.id, date: e.date })}
             onPickSauna={(sa) => choose({ kind: "pirtis", saunaId: sa.id })}
             onPickStay={(t) => choose({ kind: t.kind, stayTypeId: t.id })}
@@ -252,30 +280,45 @@ export function NewBookingDialog({ onOpenChange, onCreated, initial }: NewBookin
             ) : null}
 
             <BookingCustomerFields control={control} register={register} setValue={setValue} errors={err} showNote={!ticket} emailRequired={unpaid} />
-            {ticket ? null : (
-              <FormField
-                id="nb-price"
-                label="Kita kaina, €"
-                error={err.priceOverride?.message}
-                hint={`Apskaičiuota: ${formatEur(computed)}. Palikite tuščią.`}
-                className="sm:col-span-2"
-              >
-                <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
-              </FormField>
-            )}
+            <FormField
+              id="nb-price"
+              label="Kita kaina, €"
+              error={err.priceOverride?.message}
+              hint={`Apskaičiuota: ${formatEur(computed)}. Palikite tuščią.`}
+              className="sm:col-span-2"
+            >
+              <Input id="nb-price" inputMode="decimal" placeholder={String(computed)} aria-invalid={!!err.priceOverride} {...register("priceOverride")} />
+            </FormField>
+            <DiscountCodeField
+              id="nb-discount"
+              value={discountCode}
+              onChange={(v) => setValue("discountCode", v)}
+              service={discountService}
+              subtotal={baseTotal}
+              error={err.discountCode?.message}
+              onChecked={setDiscount}
+              onPendingChange={setDiscountPending}
+            />
             <BookingPaymentFields control={control} unpaid={unpaid} />
           </form>
         )}
 
         <DialogFooter className="items-center justify-between *:flex-none">
-          {step === "form" ? <p className="font-display text-total font-bold">{formatEur(total)}</p> : <span />}
+          {step === "form" ? (
+            <div>
+              {discountAmount > 0 ? <p className="text-xs text-muted-foreground">Nuolaida: -{formatEur(discountAmount)}</p> : null}
+              <p className="font-display text-total font-bold">{formatEur(total)}</p>
+            </div>
+          ) : (
+            <span />
+          )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Atšaukti
             </Button>
             {step === "form" ? (
-              <Button type="submit" form="new-booking" disabled={formState.isSubmitting}>
-                {formState.isSubmitting ? "Kuriama…" : "Sukurti"}
+              <Button type="submit" form="new-booking" disabled={formState.isSubmitting || discountPending}>
+                {formState.isSubmitting ? "Kuriama…" : discountPending ? "Tikrinamas kodas…" : "Sukurti"}
               </Button>
             ) : null}
           </div>

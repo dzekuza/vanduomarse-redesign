@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DEFAULT_INPUT, EMPTY_CATALOG, PRESETS, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type PresetId, type SaunaPick } from "@/lib/event-pricing";
+import { DEFAULT_INPUT, EMPTY_CATALOG, SPACES, dayTypeOf, estimate, type CalculatorCatalog, type EstimateInput, type EventTime, type SaunaPick } from "@/lib/event-pricing";
 import { MAX_STAY_NIGHTS, stayTypesOf } from "@/lib/cabin";
 import { todayKey } from "@/lib/sauna";
 import { stayFitDetails, type StayAvailability } from "./stay-fit-details";
@@ -36,15 +36,16 @@ export function useEventCalculator(today = todayKey(), catalog: CalculatorCatalo
   const spaces = SPACES.filter((s) => input.spaces.includes(s.id));
   const spaceLabel = spaces.map((s) => s.label).join(" + ");
   const extraHour = spaces.find((s) => s.extraHour)?.extraHour ?? null;
-  const preset = PRESETS.find((p) => p.id === input.preset) ?? null;
+  const preset = catalog.presets.find((p) => p.id === input.preset) ?? null;
   // A camp sleeps in the cabins, so its group cannot be larger than the beds (camper pitches are not counted: they are not used for camps).
   const sleepingPlaces = stayTypesOf(catalog.stayTypes, "namelis").filter((t) => t.active && t.units !== null).reduce((sum, t) => sum + (t.units ?? 0) * t.maxGuests, 0);
   const guestLimit = input.preset === "stovykla" && sleepingPlaces > 0 ? sleepingPlaces : MAX_GUESTS;
 
-  function applyPreset(id: PresetId) {
-    const p = PRESETS.find((x) => x.id === id)!;
+  function applyPreset(id: string) {
+    const p = catalog.presets.find((x) => x.id === id);
+    if (!p) return;
     // The type only suggests a group size (and drives the typical price per guest); nothing else is chosen for the visitor.
-    const suggestedGuests = (p.apply.adults ?? DEFAULT_INPUT.adults) + (p.apply.kids ?? DEFAULT_INPUT.kids);
+    const suggestedGuests = p.adults + p.kids;
     // A group size the visitor already chose (the standalone page asks for it first) is never overwritten.
     // A camp almost always uses the dome, so it starts chosen (the visitor can switch it off).
     const limit = id === "stovykla" && sleepingPlaces > 0 ? sleepingPlaces : MAX_GUESTS;

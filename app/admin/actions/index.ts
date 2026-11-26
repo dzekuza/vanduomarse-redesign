@@ -6,11 +6,14 @@
 export { signIn, sendStaffCode, confirmStaffCode, signOut, changeOwnPassword } from "./auth";
 export * from "./bookings";
 export * from "./events";
+export * from "./spaces";
+export * from "./event-presets";
 export * from "./sauna";
 export * from "./coupons";
 export * from "./stays";
 export * from "./external-calendars";
 export * from "./quads";
 export * from "./riders";
+export * from "./points";
 export * from "./staff-payments";
 export type { ActionResult } from "@/lib/admin/action-helpers";

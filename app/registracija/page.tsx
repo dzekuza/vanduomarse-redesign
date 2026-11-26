@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { RegistrationPageContent, type RegistrationParams } from "@/components/registration/registration-page-content";
 
 export const metadata: Metadata = {
-  title: "Registracija - Vanduo Marse",
+  title: "Registracija",
   description: "Užsiregistruok internetu — kontaktai, nuotrauka ir taisyklių sutikimas — ir darbuotojas kasoje iškart priskirs tau apyrankę.",
   // A personal form with ?abonementas= variants: not for search results.
   alternates: { canonical: "/registracija" },

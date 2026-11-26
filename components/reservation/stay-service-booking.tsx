@@ -5,8 +5,7 @@ import { useState } from "react";
 import { BedNotice } from "@/components/booking/bed-notice";
 import { FilterChip } from "@/components/events/filter-chip";
 import type { CabinPageData } from "@/lib/data/public-types";
-import { formatEuro } from "@/lib/coupons";
-import { freeStayUnits, MAX_STAY_NIGHTS } from "@/lib/cabin";
+import { freeStayUnits, MAX_STAY_NIGHTS, stayRateLabel } from "@/lib/cabin";
 import type { StayPick, StayPlan } from "@/lib/reservation";
 import { dateKey, longDateLabel, nextDays } from "@/lib/sauna";
 import { DateField } from "./date-field";
@@ -54,10 +53,10 @@ export function StayServiceBooking({ data, days, date, end, phase, plan, busy, o
       <fieldset disabled={busy} className="min-w-0">
         <legend className="mb-2 flex items-center gap-2 text-sm font-bold"><HouseIcon size={18} aria-hidden /> Tipas</legend>
         <div className="grid grid-cols-3 gap-2">
-          {data.stayTypes.map(({ id, label, pricePerNight }) => (
-            <FilterChip key={id} active={id === typeId} onClick={() => selectType(id)} className="min-w-0 flex-col items-start justify-center gap-1 px-2 py-2 text-left leading-tight">
-              <span className="font-bold wrap-anywhere">{label}</span>
-              <span>{formatEuro(pricePerNight)} / naktį</span>
+          {data.stayTypes.map((type) => (
+            <FilterChip key={type.id} active={type.id === typeId} onClick={() => selectType(type.id)} className="min-w-0 flex-col items-start justify-center gap-1 px-2 py-2 text-left leading-tight">
+              <span className="font-bold wrap-anywhere">{type.label}</span>
+              <span>{stayRateLabel(type)}</span>
             </FilterChip>
           ))}
         </div>

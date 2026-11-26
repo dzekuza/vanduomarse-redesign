@@ -4,6 +4,7 @@ import { InfoIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
+import { EventPresetsCard } from "./event-presets-card";
 import { PriceGroupForm } from "./price-group-form";
 import type { PriceGroup } from "@/lib/admin/types";
 
@@ -31,6 +32,7 @@ export function PricingView() {
         {GROUPS.map((g) => (
           <PriceGroupForm key={g} group={g} items={prices.filter((p) => p.group === g)} />
         ))}
+        <EventPresetsCard />
       </div>
     </AdminPage>
   );

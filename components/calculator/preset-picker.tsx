@@ -1,17 +1,18 @@
 "use client";
 
-import { PRESETS, type PresetId } from "@/lib/event-pricing";
+import type { EventPreset } from "@/lib/event-pricing";
 
 interface PresetPickerProps {
-  selected: PresetId | null;
-  onSelect: (id: PresetId) => void;
+  presets: readonly EventPreset[];
+  selected: string | null;
+  onSelect: (id: string) => void;
 }
 
-/** Event types from the price sheet; picking one pre-fills a typical setup. */
-export function PresetPicker({ selected, onSelect }: PresetPickerProps) {
+/** Event types (editable in /admin/kainos); picking one pre-fills a typical setup. */
+export function PresetPicker({ presets, selected, onSelect }: PresetPickerProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {PRESETS.map((p) => {
+      {presets.map((p) => {
         const active = p.id === selected;
         return (
           <button

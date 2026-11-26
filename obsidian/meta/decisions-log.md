@@ -1,6 +1,6 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-23
+updated: 2026-11-26
 ---
 
 # Decisions Log (ADRs)
@@ -10,17 +10,17 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0118 — Camps are an event type of the same calculator, priced by day and by meal
+## ADR-0130 — Camps are an event type of the same calculator, priced by day and by meal
 
 - **Status:** Accepted (rules from the owner, 2026-11-23; to be refined with real orders).
 - **Date:** 2026-11-23
 - **Context:** the park takes camps (not only for children): a stay of one or more days, with meals per person (Friday dinner 18 €, Saturday breakfast 15 € with drinks, lunch 15 €, dinner 18 €, Sunday breakfast 15 €) and the dome at about 100 € a day. The event calculator priced one-off events only.
-- **Decision:** "Stovykla" is a preset of the existing calculator, not a separate tool. `EstimateInput.campDays` and `campMeals` (counts of breakfasts, lunches and dinners over the stay) apply only while `preset === "stovykla"`. A space may define `campRent` (per day; the dome, both variants); other spaces keep their event price. Meals are `CAMP_MEALS` x count x guests, counted toward the space's minimum bill. The meal section swaps the buffet slider for `CampMeals`. Cabins and nights, sauna, WAKE and quads reuse the existing sections.
+- **Decision:** "Stovykla" is a preset of the existing calculator, not a separate tool. Since ADR-0125 the types live in `public.event_presets`; the camp is the row with id `stovykla` (migration `20261126120000_event_preset_stovykla.sql`, typical price 0-0, which the page hides) and the code keys the camp flow to that id. `EstimateInput.campDays` and `campMeals` (counts of breakfasts, lunches and dinners over the stay) apply only while `preset === "stovykla"`. A space may define `campRent` (per day; the dome, both variants); other spaces keep their event price. Meals are `CAMP_MEALS` x count x guests, counted toward the space's minimum bill. The meal section swaps the buffet slider for `CampMeals`. Cabins and nights, sauna, WAKE and quads reuse the existing sections.
 - **Consequences:** prices stay in `lib/event-pricing.ts` (one place). Meals are counts, not dates, so a menu planned per calendar day is not modelled. Other spaces for camps (the "priespirtis", terraces, restaurant) still need their camp prices from the owner. Typical price per guest is absent for camps, so `EventPreset.perGuest` became nullable.
 
 ---
 
-## ADR-0117 — The calculator quotes several spaces at once: rents add up, one minimum bill, one service fee
+## ADR-0129 — The calculator quotes several spaces at once: rents add up, one minimum bill, one service fee
 
 - **Status:** Accepted (owner agreed to the proposed rules, 2026-11-23).
 - **Date:** 2026-11-23
@@ -30,7 +30,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0116 — The price calculator is a standalone page again, built on the shared calculator state
+## ADR-0128 — The price calculator is a standalone page again, built on the shared calculator state
 
 - **Status:** Accepted.
 - **Date:** 2026-11-23
@@ -40,13 +40,110 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0115 — The public header's inline nav starts at `xl`, not `lg`
+## ADR-0127 — The public header's inline nav starts at `xl`, not `lg`
 
 - **Status:** Accepted.
 - **Date:** 2026-11-23
 - **Context:** the header now carries five links (one a dropdown with a caret), a user-icon account button, the "Rezervuok" CTA and the burger. At 1024 px that overflowed by about 157 px and cut the CTA off. Trimming gaps would have saved ~60 px at most.
 - **Decision:** the inline nav starts at `xl` (1280 px); below it the burger menu carries every link (`NAV_LINKS` plus `ACCOUNT_LINK`). Two-column page layouts still start at `lg`. AGENTS.md rule 3 and the design brief say so.
 - **Consequences:** tablets and small laptops (768-1279 px) use the burger menu. The account icon shows from `md` and the menu repeats it as an item. Adding a sixth nav link or a longer label needs a new width check at 1280 px.
+## ADR-0126 — Cabin prices can change by date range (seasons); summer is bookable 350 days ahead
+
+- **Status:** Accepted.
+- **Date:** 2026-11-24
+- **Context:** the owner wants different cabin prices from a given date (e.g. from 1 July: 20 € for 1 night, 10 € per night for 2, X for 3+), and the booking calendar stopped at 60 days (21 in the embed), so summer could not be booked at all. The database already accepts a check-in up to 365 days ahead.
+- **Decision:** table `stay_type_seasons` (type, `starts_on`, `ends_on` inclusive, the three prices; an exclusion constraint forbids overlapping ranges of one type; public read, owner write). `stay_types` keeps the base prices, used for every night outside a season. Each night is priced from the season it falls in; the 1 / 2 / 3+ tier still comes from the whole stay's length (ADR-0123). One rule in two places: `stayPrice()` in `lib/cabin.ts` (now takes the check-in date) and `private.stay_price()` / `stay_night_rate()` in the database; `create_stay_booking_with_units` and `accept_inquiry_stays` were re-created from their live definition to call it. The cabin check-in window is `STAY_BOOKING_DAYS` = 350 (`stay_occupancy()` reads at most 370 days; the cabin read asks for 364: 350 check-in days plus `MAX_STAY_NIGHTS`); sauna and quads keep `RESERVATION_DAYS` = 60 because their availability is not loaded further.
+- **Consequences:** a season is a fixed date range, not yearly: next summer needs a new range (a yearly repeat can be added later). A stay crossing a season boundary is priced night by night. Ranges are entered in the type dialog and saved with the type (one atomic RPC `save_stay_type` replaces the type and its seasons together, migration `20261124130000_save_stay_type.sql`). A new stay-pricing path must call `stayPrice(…, checkIn)` / `private.stay_price()`. Cabin availability is now ~380 days of rows per request, paged by `readAvailabilityRows`.
+
+---
+## ADR-0125 — Calculator event types live in the database
+
+**Context:** "Renginio tipas" in the price calculator was a fixed `PRESETS` list in `lib/event-pricing.ts`; the owner could not change or add types.
+**Decision:** table `event_presets` (id slug, label, per-guest price range, adults, kids, sort order, active), public read, write for the `kainos` permission, seeded with the old eight. The calculator gets them via `CalculatorCatalog.presets`; the static list is removed so prices have one source. Saving revalidates the public layout because the service pages are ISR.
+**Consequences:** the type id is generated from the label on creation and never changes; `input.preset` is a plain string.
+
+## ADR-0124 — Event spaces are booked through their own table, several at once
+
+**Context:** the calendar could sell sauna, cabins, quads and event tickets, but the event spaces (erdvės, `lib/event-pricing.ts`) only existed as a price sheet and calculator quotes.
+**Decision:** a staff-only `space_bookings` row is one hire: date, time window, `spaces text[]` (ids from the sheet), customer name / surname / phone, agreed price, status. Clash rule in `lib/space-booking.ts`: the same space, or either being the whole park, on overlapping times; checked by the action (no DB constraint, to keep the array rule in one place). The sheet price is only a suggestion; the agreed price is stored.
+**Consequences:** no payment link or customer e-mail flow yet; shown in the calendar as a Renginiai entry. A DB exclusion constraint can be added if two staff racing becomes real.
+
+## ADR-0123 — Cabins and camper pitches are priced by length of stay (1 / 2 / 3+ nights)
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** the owner wants a cheaper nightly rate for longer stays (e.g. 100 € for 1 night, 80 € per night for 2, 60 € per night for 3 or more). `stay_types` had one `price_per_night`.
+- **Decision:** `stay_types` gets `price_per_night_2` and `price_per_night_3` (not null, backfilled with the old price); `price_per_night` stays the 1-night rate. The rate of the whole stay's length applies to every night (4 nights at 60 = 240 €), not a stepped rate. One rule in two places: `stayNightRate()` / `stayPrice()` in `lib/cabin.ts` and `private.stay_night_price()` in the database. `create_stay_booking_with_units` and `accept_inquiry_stays` (the only server-side stay pricing) were re-created from their live definition to call it. The `/admin/namukai` dialog has three price fields; public pages show "nuo 60 € / naktį" when tiers differ.
+- **Consequences:** existing prices are unchanged until the owner edits a type. A new stay-pricing path must use `stayPrice()` / `private.stay_night_price()`, never `price_per_night * nights`. Staff bookings priced in the browser (`NewBookingDialog`, the AI agent's `create_booking`) use the same helper.
+
+---
+## ADR-0122 — Points are spent as a discount on a reservation payment; `payments.amount` stays the cash
+
+- **Status:** Accepted (reservations; plan orders still pay in cash only).
+- **Date:** 2026-11-19
+- **Context:** phase 1 (ADR-0121) let customers earn points but not use them. Spending touches money: the Stripe amount, the amount check in `complete_payment`, refunds and the 0.50 EUR minimum charge.
+- **Decision:** the customer ticks "Naudoti taškus" in the checkout dialog; the form sends only a boolean. After `start_payment` groups the requests, `redeem_points_on_payment` (not a change to `start_payment`) turns as many points as fit into euros off, lowers `payments.amount`, records points and rider on the payment and holds the points. Stripe gets the gross lines plus a one-off `amount_off` coupon ("Taškai"), so its total equals `payments.amount` and every later check keeps working. Expiry gives points back, a late payment takes them again, and a refund of cash returns the same share of points; a request's refund is capped at its cash share (`begin_request_refund`, `cashShare` in `lib/points.ts` for the admin and customer buttons). Earning is on cash, so spending points earns nothing back on the points part.
+- **Consequences:** a failed redeem call only means the customer pays in cash. Plan orders and anonymous purchases (plan passes, gift coupons) do not accept points yet. With several customer records on one contact, the one holding the most points is used. The customer cancelling a paid request is refunded its cash share and gets its points share back through the refund trigger.
+
+## ADR-0121 — Points / kreditai: a ledger per customer record, earned by trigger, granted by staff
+
+- **Status:** Accepted (phase 1; spending is phase 2).
+- **Date:** 2026-11-19
+- **Context:** customers should collect points from paid purchases and plans, staff should be able to grant or remove them, and later spend them as a discount. There is no customer table: an account (Supabase Auth) is matched to `riders` (Klientai) by confirmed contact at read time.
+- **Decision:** the balance lives on `riders` (`points_balance`) with an append-only `points_ledger`; one function (`private.apply_points`) changes both under a per-rider lock, so balances cannot go negative or double-credit (unique source key). Earning is a trigger on `payments` and `rider_plan_orders` (so the large `complete_payment` / `complete_plan_order_payment` functions stay untouched), only for real online payments that need no manual review. Staff adjust through `adjust_rider_points` with the `klientai` permission and a required reason; the owner sets the earn rate and point value in `loyalty_settings`. Customers read through `my_points()` (all riders matching the account's confirmed contact). Plan passes and gift coupons are anonymous and earn nothing.
+- **Consequences:** a family sharing one phone number sees one balance per rider. A payment flagged `needs_review` earns nothing, even if staff later clear it (they can add points by hand). Refunds take earned points back by trigger (pro rata for a partial refund, all of a cancelled plan order, capped at what the customer still holds; migration `20261119140000_points_integrity.sql`), and `points_balance` cannot be written outside `apply_points`. Known limit: a partial refund of a plan order keeps its points, because `refund_plan_order_payment` only cancels an order on a full refund (the plan stays active and no refunded amount is stored); a pro-rata clawback would need a `refunded` column and a change to that money function, left for when partial plan refunds become common. Phase 2 will add spending at checkout (`payments.points_spent`, a Stripe `amount_off` coupon, cash-share refund caps) and the return of spent points on refunds.
+
+## ADR-0120 — Pixel events say what was viewed, started and bought (sauna, session, stay, quad, event)
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** the Pixel was built for WAKE plans (ViewContent on the landing page, InitiateCheckout, Purchase). Saunas, sauna sessions and events had only a `Lead` on some forms, and every `/rezervacija` checkout and payment was reported as the same `reservation` category, so ad reports could not tell a sauna from a session or a stay.
+- **Decision:** a visit to each service page, `/renginiai`, `/rezervacija` and a session's own link sends `ViewContent` (through `TrackViewItem`, consent-gated per tracker). `lib/analytics-kind.ts` derives the kind and item name from the chosen plans (single activity keeps its kind; a mix is `reservation`) and from a paid payment's requests, used by the reservation form's `Lead` / `InitiateCheckout` and by the paid return page's `Purchase`. The webhook's server `Purchase` computes the same category from the rows paid by the payment. Event ids and consent rules are unchanged.
+- **Consequences:** sauna session tickets paid online read `event_registration` on `Purchase` (the payment view cannot tell a session ticket from another event ticket) while their checkout reads `sauna_session`. No new Meta event types or custom conversions were created; Events Manager configuration is separate.
+
+## ADR-0119 — Admin Gemini AI Assistant integrated as a collapsible 3rd column with tool calling
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** staff navigating `/admin` need a fast way to query availability, look up customers or reservations, toggle sauna maintenance blocks, and create bookings on the fly without clicking through multiple menus or leaving the current screen.
+- **Decision:** integrated Google Gemini (`@google/genai`, default model `gemini-2.5-flash`) as an embedded admin assistant. It is triggered by a `<Sparkle>` icon in `AdminHeader` or keyboard shortcut `Cmd+J`. Closed by default. On desktop (`xl`+ screens), it docks side-by-side as a ~380-420px 3rd column next to `<main>`, allowing staff to view the dashboard/calendar while chatting. On smaller screens (`< xl`), it opens as a full-height `Sheet`. Backend endpoint `/api/admin/agent/chat` enforces staff authentication (`currentStaff(supabase)`), and exposes scoped tools: `search_admin_data`, `get_availability`, `create_booking`, `update_booking_status`, `toggle_sauna_block`, `get_daily_summary`. Actions respect the staff member's permissions (`hasPermission(access, ...)`).
+- **Consequences:** requires `GEMINI_API_KEY` in `.env.local` locally and as a server-side environment variable in the deployment (Vercel), or the chat route answers 500 (added to `.env.example`). Destructive/sensitive mutations use validated server actions (`createBooking`, `setBookingStatus`, `toggleBlock`). Supabase Realtime updates automatically refresh admin views when the agent creates or mutates records.
+- **Approval gate (security review):** the chat route never runs `create_booking`, `update_booking_status` or `toggle_sauna_block` itself, because tool results carry customer-entered text that could steer the model. It returns them as `pendingActions`; the panel shows each with Patvirtinti / Atmesti, and only an approval executes it, with the staff member's own access. Each proposal is signed by the server (`lib/admin/agent/approval.ts`: staff id, tool, exact arguments, 15-minute expiry) and the approve request sends only that token, so the browser cannot approve edited or foreign actions; a token runs once per server instance (best effort). The route also caps the history (30 messages, 4000 characters each) and rate-limits to 20 calls a minute per staff member (best effort per instance). The transcript lives in memory only. The system prompt also tells the model to treat data as data.
+
+---
+
+## ADR-0118 — Public service pages are cached (ISR) and load live availability in the browser
+
+- **Status:** Accepted.
+- **Date:** 2026-11-19
+- **Context:** an external speed audit found 16 of 18 public pages rendered per request (`private, no-store`, TTFB 0.3–1.2 s) with the function in `iad1`. The cause was `connection()` inside every loader in `lib/data/public.ts` and `lib/data/page-content.ts`, plus `searchParams` and `getCustomer()` (cookies) read in `app/[service]/page.tsx`.
+- **Decision:** loaders no longer call `connection()`. `app/[service]/page.tsx` and `app/page.tsx` are ISR (`revalidate = 300`, `generateStaticParams` over `SERVICE_PAGES`). Live availability, the signed-in customer and `?seansas=` are read in the browser: `GET /api/availability?activity=pirtis|nakvyne|keturraciai` (`no-store`) feeds `LiveActivityProvider` / `LiveBooking` / `LiveSchedule` (`components/services/live-activity.tsx`), which start from the cached snapshot and swap in fresh data on load and when the tab regains focus. `ReservationFlow` adopts a customer that arrives after first render. `/renginiai` and `/kainos` call `connection()` themselves and stay per-request. Also: `vercel.json` `regions: ["fra1"]`; image quality 75 only, `images.minimumCacheTTL` 30 days, one-week `Cache-Control` on `/landing`, `/brand`, `/quads`, `/og`; `prefetch={false}` on nav/footer/CTA links; the doubled "| Vanduo Marse" removed from page titles.
+- **Consequences:** copy and price edits made in `/admin` reach the public pages within 5 minutes (not instantly); the cached HTML can show a calendar up to 5 minutes old for an instant before the live fetch replaces it, and the booking form renders client-side behind a skeleton. Booking submit still re-validates conflicts on the server. Not done: the proxy's site-gate lookup (`siteGateOn`, 5 s in-memory TTL) still runs per request; `/renginiai` stays dynamic; the Supabase region should be confirmed to match `fra1`.
+
+## ADR-0117 — Staff payment links text the customer too; an empty month-calendar day opens "Nauja rezervacija" on click
+
+- **Status:** Accepted.
+- **Date:** 2026-11-18
+- **Context:** a staff-entered booking, rental or ticket left "Nesumokėta" e-mailed the Stripe Checkout link (ADR-0112) but never texted it, even though the same customer almost always has a phone number on file and every other outcome in this codebase (received, confirmed, cancelled, paid) goes out by SMS as well as e-mail. Separately, the admin month calendar's day cells only ever called `onSelect` on a plain click; the quick actions (new booking, seansas, renginys) only existed behind a right-click/long-press context menu, which is not discoverable and does not work as a tap on touch devices.
+- **Decision:** `requestStaffPayment` (`lib/staff-payment.ts`) now also calls a new `notifyPaymentRequest` (`lib/sms/notify.ts`) with the reference, amount and Checkout URL, in parallel with the e-mail; it is skipped silently like every other `sendSms` call when there is no phone, Twilio is not configured, or the destination is not an allowed prefix. `StaffPaymentOutcome` and every `Created*` return type gained `smsSent`, and `reportCreated`'s toast now says "el. paštu ir SMS" when both went out. In `MonthGrid`, a day with zero entries now opens `NewBookingDialog` for that date on a plain click (`onCreate("booking", day)`) instead of just selecting it — there is nothing to select on an empty day; a day that already has entries keeps the old `onSelect` behaviour (the phone agenda, or just to re-view a day already full of cards). The right-click menu is unchanged and still offers seansas/renginys on any day, including a non-empty one. Fixed in the same pass: `NewBookingDialog`'s `initial.date` had a stale `>= dateKey(new Date())` guard from before ADR-0114 that silently fell back to today for any past date passed in this way — invisible until this change made the month grid actually pass one.
+- **Consequences:** `WeekView`'s day-label button is unchanged (its entries are already shown inline, so a click there still means "select/navigate", not "nothing to see, so create"), and `DayView` has no day-cell click at all (inline entries; the right-click menu is its only create path); only `MonthGrid`, where entries are hidden below `md`, gets this. The "Siųsti nuorodą" resend action (`getPaymentLink`, ADR-0113) still only re-sends by e-mail — out of scope here, a reasonable follow-up.
+## ADR-0116 — Staff can enter a discount code or a custom price for any "Nauja rezervacija" booking
+
+- **Status:** Accepted.
+- **Date:** 2026-11-18
+- **Context:** staff taking a phone or walk-in booking sometimes need to honour a promotion (a discount code a customer quotes) or simply charge a one-off price (a manual arrangement, a goodwill gesture). "Kita kaina, €" already let staff override the total for a private sauna hire or a stay, but not for an event/seansas ticket, whose total was 100% server-computed (`event.price * people`, ADR-0112). Discount codes (ADR-0036) existed only on the public checkout — a staff session has no grant on `private.apply_discount_code` (revoked from `authenticated`), so the admin flow could not price one itself.
+- **Decision:** `new-booking-dialog.tsx` now shows "Kita kaina, €" for a ticket too, and a new "Nuolaidos kodas" field (`DiscountCodeField`) for every kind. The field checks the code live via the same `checkDiscountCode` the public checkout preview uses, and prices it client-side with the same pure `discountFor()` — a preview only, exactly like ADR-0036 says. On submit, the server re-validates and re-prices the code itself through a new `lib/admin/discount-code.ts` (`applyStaffDiscountCode`): since staff cannot call `private.apply_discount_code`, it reads `discount_codes` directly with the service-role client (active, covers the service, within its date range, under `max_uses` — counted the same way `private.discount_code_uses()` does, by querying `bookings`/`quad_rentals`/`event_tickets` directly) and reprices off `total + discountAmount` (the client's own numbers reconstruct the pre-discount subtotal). An invalid or expired code fails the whole booking rather than silently dropping the discount. `createBooking` and `createEventTicket` both gained `discountCode` (and `createEventTicket` a `price` override); both insert `discount_code_id` / `discount_code` / `discount_amount`, the same columns the public booking RPCs use, so a staff-applied code counts toward the same `max_uses` a public customer would see. Private sauna hires and event tickets both count as service `"pirtis"` for a code's `services` list, matching what `create_program_ticket` already does for public tickets.
+- **Consequences:** the final `total` for a sauna/stay booking is still entirely client-trusted (unchanged from ADR-0100) — only the discount piece on top of it is server-verified, a deliberate middle ground rather than rebuilding the admin flow on the public booking RPCs. No admin UI shows a booking's or ticket's stored discount yet (not surfaced in `BookingSheet` or the event sheet's ticket rows) — a reasonable follow-up once staff actually use this. Quad rental/tour dialogs (`new-rental-dialog.tsx`, `new-tour-dialog.tsx`) do not get a discount-code or ticket-style price field yet; out of scope here.
+
+---
+
+## ADR-0115 — "Pridėti rezervaciją" on an event's sheet, skipping straight to its ticket form
+
+- **Status:** Accepted.
+- **Date:** 2026-11-18
+- **Context:** ADR-0114 let staff pick a past date in "Nauja rezervacija" to add an unpaid ticket to a seansas that already happened, but getting there still meant opening step 1, re-picking the same date, and finding the same event again — all information staff already had open in that event's own `EventSheet`.
+- **Decision:** `EventSheet` gets a required `onAddTicket(event)` prop and a "Pridėti rezervaciją" button next to "Redaguoti renginį" (hidden for a quad tour departure, which is sold as a rental, not a ticket). `NewBookingDialog`'s `initial` grows an `eventId`: when set, the dialog looks the event up from the store, skips step 1, and opens step 2 already on kind `"renginys"` with that event and its date preselected — the same ticket form "Nauja rezervacija" already had, just entered from the other side. All five places that render `EventSheet` (`EventsView`, `CalendarView`, `BookingsView`, `BookingCalendarTab`, `useSaleDetails`) wire `onAddTicket` to a local `ticketEventId` state and a conditionally-rendered `NewBookingDialog`, kept separate from each view's own "new booking" / "new from a day cell" state so the two flows don't collide.
+- **Consequences:** one more required prop on `EventSheet`, so any future caller must supply `onAddTicket` too. The button appears (and works) for a past event exactly because of ADR-0114 — no extra past-date handling needed here. `useSaleDetails` (Apžvalga's sales table) gets the button too, for consistency, even though adding a ticket from a historical sale's details is a less common path than from the live `/admin/renginiai` or `/admin/rezervacijos` lists.
 
 ---
 
@@ -311,6 +408,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** the admin keeps `makeCustomerLookup` (same order) as a fallback. Customers that are already duplicates are not merged (the owner's e-mail still matches several; the registered one wins the link). Phone and e-mail are not verified at purchase, so a typo or a shared number links an order to the wrong customer; and a public registration with someone else's phone/e-mail can fill that customer's blank fields and, if they have no photo yet, attach its photo (accepted: fill-only, first writer wins). **Superseded for registration by ADR-0106:** that path was an account-takeover route and is closed.
 
 ---
+
 ## ADR-0083 — Owners edit public service pages through DB overrides on top of the code defaults
 
 - **Context:** the service pages (Pirtis, Vandenlentės, Keturračiai, Nakvynė, Restoranas, Šventės and the celebration pages) keep their texts, info boxes and FAQ in `components/services/service-content.ts` and their photos in `public/landing`; changing a word needed a deploy.
@@ -325,6 +423,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** Realtime filters events with the subscriber's RLS, so only staff with a SELECT policy on a table receive its changes (anon has none on these, except `events`, which is public). A refresh replaces optimistic local state with server data; open dialogs and their form drafts keep their own state. Config tables (prices, plans, roles, settings) are not published: a change there still needs a reload by the other staff. No new-booking toast yet.
 
 ---
+
 ## ADR-0081 — Cancelling a paid request can refund its share through Stripe
 
 - **Date:** 2026-11-13. **Status:** code done; migration `20261112164137_request_refunds.sql` APPLIED to the live project 2026-11-13 and verified (RLS on, the three functions executable by `service_role` only, 0 rows).
@@ -333,7 +432,9 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** same permission as the cancel (rezervacijos / keturraciai / renginiai), not owner-only. Coupons, bracelet-plan orders and other flows are not refunded by this (a full Dashboard refund still cancels them through the webhook). The customer still gets the normal "atšaukta" message, which does not mention the refund.
 
 - **Hardening (security review + Stripe docs, 2026-11-13):** (1) a request is found by `(kind, id)`, never by a reference searched across tables: `request_refunds` is unique on `(kind, request_id)`. (2) Per Stripe (error-low-level, idempotent_requests): a `5xx`, timeout or connection error is an unknown outcome and Stripe replays a saved error for the same idempotency key, so the reservation is only released on a definite refusal (a 4xx other than 409/429, or a refund that came back `failed`/`canceled`). Otherwise it stays pending and the server reconciles: list the payment intent's refunds and match `metadata.reference`; a pending row is handed back (`resumed`) on the next attempt and reconciled before any new call; no new Stripe call after 24 h (key window), staff are told to check Stripe. The old silent deletion of pending rows older than two minutes is gone, and the `finish_request_refund` result is checked. Migration `20261112165835_request_refunds_by_kind.sql` APPLIED to the live project 2026-11-13 and verified (new `begin_request_refund(kind, id, staff)` service-role only, unique on `(kind, request_id)`, 0 rows).
+
 ---
+
 ## ADR-0080 — WAKE season passes are bracelet plans bought online, not coupons (supersedes the season-pass part of ADR-0069)
 
 - **Date:** 2026-11-13. **Status:** code done; migrations `20261112151712_rider_plan_orders.sql`, `…161000_my_riders_registered.sql` and `…170000_my_riders_registration_details.sql` APPLIED to the live project 2026-11-13 and verified (2 online plans, coupon passes inactive, RLS on, order RPCs executable by `service_role` only, `online_plans()` by anon).
@@ -342,7 +443,9 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** swim plans (category Plaukimas) are sold the same way: migration `20261112154106_sell_swim_plans_online.sql` flags all but "Papildoma valanda" (applied 2026-11-13). Staff switch plans on or off with the "Internetu" toggle in /admin/apyrankes → Planai. The coupon ride dialog only serves leftover `kabelis` coupon products. A visitor who cancels Checkout must register again (a second rider row; staff merge duplicates). A full refund cancels the order but leaves the rider's plan for staff to change. The admin plan price is the online price.
 
 - **Security review follow-up (applied 2026-11-13, verified):** `my_riders()` matches a rider by e-mail, `phone` or `phone2`, and `phone2` is staff-entered, so it can be someone else's number. `20261112153707_my_riders_primary_match.sql` adds `primary_match` (confirmed account e-mail = `riders.email`, or confirmed account phone = `riders.phone`). A `phone2`-only match still returns name, plan, bracelets and purchases (ADR-0062) but every registration field (e-mail, phones, birth date, photo path, waiver date) is null, no photo URL is signed, and it does not count as the customer's registration. An explicit owner link (`riders.user_id`) would be cleaner but needs a backfill: not done.
+
 ---
+
 ## ADR-0079 — A paid reservation is confirmed automatically and the customer gets what was booked (revises ADR-0026)
 
 - **Decision:** `complete_payment` now sets the payment's requests (`bookings`, `quad_rentals`, `event_tickets`) from `laukia` to `patvirtinta` itself, and returns `confirmed`. A payment that needs a look (`needs_review`: odd amount, or slots not restorable after a late payment) is not confirmed and stays for staff. The webhook then sends the SMS and email built from `paid_request_details` (what, date, time) instead of "we will confirm shortly".
@@ -405,6 +508,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 - **Consequences:** new admin actions go into the matching domain file. Tests sit next to the code they cover. There is still no browser end-to-end test: the booking flow writes to the live database, so it stays a manual check until there is a test project.
 
 ---
+
 ## ADR-0090 — Staff can hold places on a limited event with `events.held`
 
 - **Context:** the owner wanted to take some places of a sauna session (family, friends) without creating fake bookings.
@@ -562,6 +666,7 @@ Recipients in `notification_recipients` have an optional phone and an optional e
 - **Consequences:** One font family, no Google Fonts request, no warning. The coming-soon wordmark changed look and needs a visual check.
 
 - **Registration details follow-up (ADR-0080):** the function now also returns the customer's own registration fields, but only for `primary_match` rows (the confirmed e-mail or `phone`, never `phone2`); see ADR-0080.
+
 ---
 
 ## ADR-0056 — Staff SMS recipients are an owner-managed list with topics, not one env var
@@ -577,7 +682,7 @@ Recipients in `notification_recipients` have an optional phone and an optional e
 ## ADR-0055 — Quad tours are sold on dated departures (events pointing at a tour type)
 
 - **Status:** Accepted 2026-11-10. Migration `20261110120000_quad_tour_departures.sql` tested inside a rolled-back transaction on the live project (booking 3 quads = 177 EUR and sold = 3; a second booking beyond capacity is refused; cancelling resets sold), then applied to the live database by the owner. Verified afterwards: both columns, the constraint, the trigger, the three `keturraciai` policies and the function exist; the function is executable by anon/authenticated and the trigger function is not; `database.types.ts` regenerated (with the known `create_inquiry.p_date` edit). `tsc`/`eslint` clean; /keturraciu-nuoma and /rezervacija return 200; the booking flow itself is not browser-checked.
-- **Context:** Tour products (Mini / Midi / Maxi, `quad_tour_routes`, ADR-0053) were booked on any date with free fleet. The owner wanted tour *types* with *dated events* under each, like sauna programs and their sessions.
+- **Context:** Tour products (Mini / Midi / Maxi, `quad_tour_routes`, ADR-0053) were booked on any date with free fleet. The owner wanted tour _types_ with _dated events_ under each, like sauna programs and their sessions.
 - **Decision:** A departure is an `events` row of category keturratis with `tour_route_id`; its `capacity` is the number of quads that can join and `sold` the quads booked (trigger from `quad_rentals.tour_event_id`). The public quad page and the /rezervacija tour cards offer only published departures (`QuadPageData.departures`, `quadTourDepartureSlots`: capacity left capped by the free fleet for the whole route); a booking names the event and `create_quad_tour_departure_rental` takes date and start from it, locks the departure, checks capacity and delegates pricing, gear, discount and fleet allocation to the unchanged `create_quad_tour_rental`. Admin: the Turai tab holds the types (`TourRoutesCard`), the dated departures (`CategoryEventsList` + `TourDepartureDialog`, name/price/length come from the type) and the registrations (event tickets plus tour rentals); the calendar shows a departure as an event with its bookings inside and no longer lists those rentals separately. Staff with `keturraciai` may manage keturratis events (new RLS policies; `saveEvent` accepts `renginiai` or `keturraciai`).
 - **Hardening (same day, follow-up migration `20261110130000_quad_tour_departures_hardening.sql`, tested in a rolled-back transaction, then applied by the owner and verified: anon/authenticated can no longer execute `create_quad_tour_rental`, the departure wrapper stays callable, the trigger exists and its function is not executable by anon):** a security review found that `create_quad_tour_rental` stayed callable by anon/authenticated (a tour on any date, skipping the departure and its capacity) and that per-person `create_tour_ticket` accepted a departure (its `events.sold` sync would overwrite the quad count). The migration revokes direct execute on `create_quad_tour_rental` (the definer wrapper keeps working) and adds trigger `event_tickets_no_departures` rejecting tickets for events with `tour_route_id`.
 - **Consequences:** Until the owner adds departures, the storefront offers no tour dates. Departures start on whole hours (the booking uses the hour of `start_time`). The legacy per-person tour tickets (`create_tour_ticket`, events without `tour_route_id`) stay and are excluded from the departure list. Two departures of one type at the same hour would share a Laikas value only by event id, which is unique, so they work, but the admin does not warn about duplicates.
@@ -655,7 +760,7 @@ Recipients in `notification_recipients` have an optional phone and an optional e
 ## ADR-0046 — Pirtis/Namukai/Keturračiai become expandable sidebar domains (superseded 2026-11-10: flattened back to plain links, see changelog) (Kalendorius + Valdymas)
 
 - **Status:** Accepted 2026-11-08/09. Code only, no migration. `tsc --noEmit`, `eslint` and `next build` clean. Not yet browser-checked (`localhost:3001` still 431s, see `status.md`).
-- **Context:** Right after ADR-0044 flattened the admin IA, the owner said it still felt hard to navigate and sketched a sitemap grouping Pirtis, Namukai and Keturračiai each with their own Kalendorius (booking calendar) and Valdymas (management/settings) rows, plus where to find that resource's customers. Clarified via `/plan`: a nested/expandable sidebar (not per-page tabs, not a flat relabel); keep the single shared Rezervacijos calendar from ADR-0044 rather than splitting it back apart; Valdymas is each resource's *existing* settings page, not a rebuild.
+- **Context:** Right after ADR-0044 flattened the admin IA, the owner said it still felt hard to navigate and sketched a sitemap grouping Pirtis, Namukai and Keturračiai each with their own Kalendorius (booking calendar) and Valdymas (management/settings) rows, plus where to find that resource's customers. Clarified via `/plan`: a nested/expandable sidebar (not per-page tabs, not a flat relabel); keep the single shared Rezervacijos calendar from ADR-0044 rather than splitting it back apart; Valdymas is each resource's _existing_ settings page, not a rebuild.
 - **Decision:** `admin-nav.ts`'s `ADMIN_NAV` is now `(AdminNavItem | AdminNavDomain)[]` — a domain (`{ id, label, icon, group, children: AdminNavItem[] }`) is visible if at least one child's permission allows it; `visibleNav` filters a domain's children down to what the role can open (dropping the domain if none remain), `flattenNav` (new) splices every domain's children back into one flat list for the mobile bottom nav and "Daugiau" sheet, which have no room for a tree. `activeNavItem` now returns `{ item, domainId }` so the sidebar can auto-expand the domain holding the current route, and a new `isActiveHref(pathname, href)` compares on the path only — a child's href can carry a `?view=`/`?tab=` query that `usePathname()` never includes (e.g. Pirtis's Kalendorius is literally `/admin/rezervacijos?view=kalendorius`). Three domains: **Pirtis** (Kalendorius → the shared Rezervacijos calendar; Valdymas → `/admin/pirtis`), **Namukai** (same shared Kalendorius; Valdymas → `/admin/kainos`, reusing `PricingView`'s "Nakvynė" group — there's no separate cabin settings page, and `PricingView` already cross-links sauna pricing back to `/admin/pirtis` with the same "it lives over there" convention), **Keturračiai** (Nuoma/Žygiai → `/admin/keturraciai`; Valdymas → `/admin/keturraciai?tab=parkas`, `QuadsView`'s existing "Parkas" tab, which now reads `?tab=` the same way `ApyrankesView` already did). `AppSidebar` renders a domain as `Collapsible` + `SidebarMenuSub`/`SidebarMenuSubItem`/`SidebarMenuSubButton` (already defined in `components/ui/sidebar.tsx`, unused until now) — needed the shadcn `collapsible` primitive, added by hand (`components/ui/collapsible.tsx`, matching the project's existing hand-added `context-menu.tsx`) since there's no network-dependent CLI step in this environment. A domain's badge is the sum of its children's counts, shown on the domain's own collapsed row (the shared `SidebarMenuBadge` only positions against a `peer/menu-button`, which `SidebarMenuSubButton` doesn't set — so no badge is attempted on individual sub-rows). The sketch's "Klientai" box per domain became `KlientaiView`'s existing activity chip filters synced to a `?activity=` URL param (new) instead of a literal nav child, plus a small "Žr. klientus →" link on each domain's own Valdymas page (`SaunaView`, `QuadsView`'s Parkas tab, `PricingView`) — there's no sauna-specific activity chip today, so Pirtis's link goes to plain `/admin/klientai`.
 - **Consequences:** `admin-nav.ts`, `lib/admin/permissions.ts` and `lib/supabase/database.types.ts` were being edited concurrently in this same session by other work (ADR-0045's Instruktorius) — re-read all three fresh immediately before editing, confirmed no collision (ADR numbering bumped to 0046 to avoid clashing with the already-claimed 0045). Pirtis's permission-driven flat sidebar row (previously grouped under "Nustatymai") moved into "Pardavimai" as a domain, alongside Namukai and Keturračiai, to match the sketch's grouping — a navigation-location change only, the `pirtis` permission id and its data access are untouched. In icon-collapsed desktop mode a domain row has no flyout submenu (its `SidebarMenuSub` just hides, same as the sidebar's existing collapse behavior) — clicking it expands nothing until the sidebar is un-collapsed; flagged as the one open UX call in the plan, not yet validated in a browser.
 
@@ -1088,6 +1193,7 @@ The owner wants to add staff who open only the pages they allow, and adding
 staff meant creating a user in the Supabase dashboard by hand.
 
 **Decision.**
+
 - Roles live in `staff_roles` (a built-in Owner plus custom roles), each a
   check-constrained array of page keys; a staff row points at one role. Every
   staff policy calls `private.has_permission(key)` (or `has_any_permission` for
@@ -1122,6 +1228,7 @@ guided tours with seats. Public booking forms elsewhere still don't save, and
 `stay_types`, per-kind triggers).
 
 **Decision.**
+
 - Hourly rental gets its own tables (`quad_types`, `quad_settings`,
   `quad_rentals`) instead of a new `bookings.kind`, so the sauna and cabin rules
   are untouched. A trigger caps each type at its `units` in every hour (advisory
@@ -1151,6 +1258,7 @@ account, but the project deliberately does not use the service-role key
 (ADR-0007) and anon has no table access. Payment is not integrated yet.
 
 **Decision.**
+
 - Anon gets exactly two `security definer` functions: `create_coupon_order`
   (price taken from the product row, never from the caller; a 100-orders-per-hour
   brake against form spam) and `check_coupon` (balance and scope only, nothing
@@ -1202,6 +1310,7 @@ mock data and keep the same screens on real data, with a staff login for
 `/admin`.
 
 **Decision.**
+
 - **Admin.** `proxy.ts` refreshes the Supabase session on `/admin/*` and sends
   signed-out visitors to `/admin/prisijungti`. `app/admin/(panel)/layout.tsx`
   checks `public.staff`, loads everything with `loadAdminData()` as that user

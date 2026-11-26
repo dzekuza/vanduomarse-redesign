@@ -14,6 +14,7 @@ const rider = (over: Partial<Rider>): Rider => ({
   planId: null,
   createdAt: "2026-01-01T00:00:00Z",
   selfRegistered: false,
+  pointsBalance: 0,
   ...over,
 });
 

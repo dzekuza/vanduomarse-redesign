@@ -16,7 +16,7 @@ import { DayPicker, type DayNote } from "./day-picker";
 import { RoomTypePicker } from "./room-type-picker";
 import { StepLabel } from "./step-label";
 import { Stepper } from "./stepper";
-import { freeStayUnits, freeStayUnitsOfKind, stayTypesOf, type StayKind, type StayType } from "@/lib/cabin";
+import { freeStayUnits, freeStayUnitsOfKind, stayPrice, stayTypesOf, type StayKind, type StayType } from "@/lib/cabin";
 import { couponDiscount, type CheckedCoupon } from "@/lib/coupons";
 import type { CabinPageData } from "@/lib/data/public-types";
 import { contactSchema, type ContactInput } from "@/lib/request-schema";
@@ -47,7 +47,7 @@ export function CabinBooking({ data, days: dayCount }: { data: CabinPageData; da
   const soldOut = !type || free(type) === 0;
   const maxGuests = type?.maxGuests ?? 1;
   const shownGuests = Math.min(guests, maxGuests);
-  const subtotal = (type?.pricePerNight ?? 0) * nights;
+  const subtotal = type ? stayPrice(type, nights, 1, checkIn) : 0;
   const discount = couponDiscount(subtotal, coupon?.balance ?? 0);
   const total = subtotal - discount;
 

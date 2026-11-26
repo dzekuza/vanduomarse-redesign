@@ -25,11 +25,12 @@ export const newBookingSchema = z
     name: z.string().trim().min(2, "Įveskite vardą."),
     phone: z.string().trim().regex(/^\+?[\d\s()-]{6,}$/, "Įveskite telefono numerį."),
     email: z.union([z.literal(""), z.email("Neteisingas el. paštas.")]),
-    status: z.enum(["patvirtinta", "laukia"]),
     source: z.enum(["telefonu", "vietoje"]),
     /** How it was paid at entry (used when `paid`), and whether it was; unpaid ones get a payment link by e-mail. */
     ...paymentFormShape,
     priceOverride: z.string().trim().refine((v) => v === "" || /^\d+(\.\d{1,2})?$/.test(v), "Suma arba tuščia."),
+    /** Normalised on submit; the server re-checks and prices it (ADR-0036), never trusting this string alone. */
+    discountCode: z.string().trim().max(200), // raw input, before normalizeDiscountCode() strips punctuation/spaces; the real 3-30 bound is the DB's own code format
     note: z.string().trim().max(300),
   })
   .superRefine((v, ctx) => {

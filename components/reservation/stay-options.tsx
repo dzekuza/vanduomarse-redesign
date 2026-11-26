@@ -5,7 +5,7 @@ import { useState } from "react";
 import { BedNotice } from "@/components/booking/bed-notice";
 import { CompactStepper } from "@/components/booking/stepper";
 import { TextCtaArrow, ctaClass } from "@/components/cta";
-import { MAX_STAY_UNITS, type StayType } from "@/lib/cabin";
+import { MAX_STAY_UNITS, stayRateLabel, type StayType } from "@/lib/cabin";
 import type { StayPick, StayPlan } from "@/lib/reservation";
 import { BookingDetailCard } from "./booking-detail-card";
 import { StayTypeDialog } from "./stay-type-dialog";
@@ -66,7 +66,7 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
   onChange: (units: number) => void;
   onRemove: () => void;
 }) {
-  const { label: title, pricePerNight: price } = type;
+  const { label: title } = type;
   const [draft, setDraft] = useState(1);
   const max = free === null ? 0 : Math.min(MAX_STAY_UNITS, free);
   const count = selected ? units : Math.min(draft, max);
@@ -75,7 +75,7 @@ function StayUnitCard({ type, free, selected, units, onChange, onRemove }: {
       eyebrow={free === null ? "Nakvynė" : free === 0 ? "Užimta" : Number.isFinite(free) ? `Liko: ${free}` : "Nakvynė"}
       title={title}
       description={type.note}
-      price={`${price} € / naktį`}
+      price={stayRateLabel(type)}
       selected={selected}
       details={free !== null ? <StayTypeDialog type={type} /> : undefined}
     >

@@ -5,6 +5,8 @@ import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminLiveUpdates } from "@/components/admin/admin-live-updates";
 import { AdminStoreProvider } from "@/components/admin/admin-store";
 import { AdminThemeProvider } from "@/components/admin/admin-theme";
+import { AdminAgentPanel } from "@/components/admin/agent/admin-agent-panel";
+import { AdminAgentProvider } from "@/components/admin/agent/admin-agent-context";
 import { AppSidebar } from "@/components/admin/app-sidebar";
 import { NoAccess } from "@/components/admin/auth/no-access";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -31,14 +33,19 @@ export default async function AdminPanelLayout({ children }: { children: React.R
       <AdminLiveUpdates />
       <AdminThemeProvider initial={theme}>
         <TooltipProvider>
-          <SidebarProvider className="flex-1 bg-background">
-            <AppSidebar staffName={staff.display_name} />
-            <SidebarInset className="min-w-0 bg-background">
-              <AdminHeader />
-              <main className="flex-1 pb-32 lg:pb-0">{children}</main>
-            </SidebarInset>
-            <AdminBottomNav />
-          </SidebarProvider>
+          <AdminAgentProvider>
+            <SidebarProvider className="flex-1 bg-background">
+              <AppSidebar staffName={staff.display_name} />
+              <SidebarInset className="min-w-0 bg-background flex flex-col">
+                <AdminHeader />
+                <div className="flex flex-1 min-h-0 relative">
+                  <main className="flex-1 min-w-0 pb-32 lg:pb-0">{children}</main>
+                  <AdminAgentPanel />
+                </div>
+              </SidebarInset>
+              <AdminBottomNav />
+            </SidebarProvider>
+          </AdminAgentProvider>
         </TooltipProvider>
       </AdminThemeProvider>
     </AdminStoreProvider>

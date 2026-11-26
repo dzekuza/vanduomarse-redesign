@@ -1,11 +1,11 @@
 "use client";
 
-import { DownloadSimpleIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowsDownUpIcon, ArrowUpIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useSaleDetails } from "./sale-details";
 import { formatDay, formatEur } from "@/lib/admin/format";
 import { exportFileName } from "@/lib/admin/export";
-import { filterSales, SALE_CATEGORIES, SALE_STATE_LABEL, salesRevenue, salesToCsv, type Sale, type SaleFilters } from "@/lib/admin/sales";
+import { DEFAULT_SALE_SORT, filterSales, SALE_CATEGORIES, SALE_STATE_LABEL, salesRevenue, salesToCsv, sortSales, type Sale, type SaleFilters, type SaleSort, type SaleSortKey } from "@/lib/admin/sales";
 import { downloadText } from "@/lib/download";
 import { todayKey } from "@/lib/sauna";
 import { SaleOriginBadge } from "./sale-origin-badge";
@@ -26,11 +26,35 @@ interface SalesTableProps {
   filters: SaleFilters;
 }
 
+/** A column header that sorts the table: first click ascending, second descending. */
+function SortHead({ label, field, sort, onSort, className, align }: { label: string; field: SaleSortKey; sort: SaleSort; onSort: (key: SaleSortKey) => void; className?: string; align?: "right" }) {
+  const active = sort.key === field;
+  const Icon = !active ? ArrowsDownUpIcon : sort.dir === "asc" ? ArrowUpIcon : ArrowDownIcon;
+  return (
+    <TableHead className={className} aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className={`inline-flex min-h-11 items-center gap-1 whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring ${align === "right" ? "ml-auto" : ""} ${active ? "text-foreground" : ""}`}
+      >
+        {label}
+        <Icon size={14} aria-hidden className={active ? "" : "opacity-50"} />
+      </button>
+    </TableHead>
+  );
+}
+
 export function SalesTable({ all, filters }: SalesTableProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const { openSale, sheets } = useSaleDetails();
 
-  const rows = useMemo(() => filterSales(all, filters), [all, filters]);
+  const [sort, setSort] = useState<SaleSort>(DEFAULT_SALE_SORT);
+  const onSort = (key: SaleSortKey) => {
+    setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: key === "soldAt" || key === "total" ? "desc" : "asc" }));
+    setShown(PAGE_SIZE);
+  };
+
+  const rows = useMemo(() => sortSales(filterSales(all, filters), sort), [all, filters, sort]);
   const withCoupons = filters.category === "kuponai";
   const revenue = salesRevenue(rows, withCoupons);
 
@@ -58,14 +82,14 @@ export function SalesTable({ all, filters }: SalesTableProps) {
           <Table>
             <TableHeader className="[&_th]:px-3">
               <TableRow>
-                <TableHead className="whitespace-nowrap">Parduota</TableHead>
-                <TableHead>Prekė</TableHead>
-                <TableHead className="hidden xl:table-cell">Kategorija</TableHead>
-                <TableHead className="hidden xl:table-cell">Paslaugos laikas</TableHead>
-                <TableHead className="hidden sm:table-cell">Klientas</TableHead>
-                <TableHead className="text-right">Suma</TableHead>
-                <TableHead className="hidden sm:table-cell">Būsena</TableHead>
-                <TableHead className="hidden xl:table-cell">Šaltinis</TableHead>
+                <SortHead label="Parduota" field="soldAt" sort={sort} onSort={onSort} />
+                <SortHead label="Prekė" field="item" sort={sort} onSort={onSort} />
+                <SortHead label="Kategorija" field="category" sort={sort} onSort={onSort} className="hidden xl:table-cell" />
+                <SortHead label="Paslaugos laikas" field="when" sort={sort} onSort={onSort} className="hidden xl:table-cell" />
+                <SortHead label="Klientas" field="customer" sort={sort} onSort={onSort} className="hidden sm:table-cell" />
+                <SortHead label="Suma" field="total" sort={sort} onSort={onSort} className="text-right" align="right" />
+                <SortHead label="Būsena" field="state" sort={sort} onSort={onSort} className="hidden sm:table-cell" />
+                <SortHead label="Šaltinis" field="source" sort={sort} onSort={onSort} className="hidden xl:table-cell" />
               </TableRow>
             </TableHeader>
             <TableBody className="[&_td]:px-3 [&_td]:py-3">

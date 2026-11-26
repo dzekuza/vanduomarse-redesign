@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { externalUnitsOn, freeStartHours, fullStayNights, saunaBookingAt, saunaHourTaken, stayUnitsOn } from "@/lib/admin/occupancy";
+import { bookedHours, externalUnitsOn, freeStartHours, pickableLengths, fullStayNights, saunaBookingAt, saunaHourTaken, stayUnitsOn } from "@/lib/admin/occupancy";
 import type { Block, Booking, ExternalBlock } from "@/lib/admin/types";
 import type { StayType } from "@/lib/cabin";
-import { DEFAULT_SAUNA_RATES as RATES } from "@/lib/sauna";
+import { DEFAULT_SAUNA_RATES as RATES, FULL_DAY_HOURS } from "@/lib/sauna";
 
 const booking = (over: Partial<Booking>): Booking => ({
   id: "b",
@@ -18,7 +18,7 @@ const booking = (over: Partial<Booking>): Booking => ({
   ...over,
 });
 
-const cabin: StayType = { id: "namelis-2", kind: "namelis", label: "Namelis", note: "", maxGuests: 2, pricePerNight: 80, units: 2, active: true, sortOrder: 0 };
+const cabin: StayType = { id: "namelis-2", kind: "namelis", label: "Namelis", note: "", maxGuests: 2, pricePerNight: 80, pricePerNight2: 80, pricePerNight3: 80, seasons: [], units: 2, active: true, sortOrder: 0 };
 
 describe("sauna occupancy", () => {
   const sauna = booking({ startHour: 14, hours: 3, saunaId: "s1" });
@@ -102,5 +102,27 @@ describe("Sirvoy blocks", () => {
     const blocks = [block({ startsOn: "2026-11-16", nights: 2 })];
     expect(fullStayNights([stay], "2026-11-16", 3, { ...cabin, units: 2 }, blocks)).toEqual(["2026-11-16"]);
     expect(fullStayNights([stay], "2026-11-16", 3, { ...cabin, units: 1 }, blocks)).toEqual(["2026-11-16", "2026-11-17"]);
+  });
+});
+
+describe("whole-day sauna hire", () => {
+  const day = "2026-11-16";
+  const hourly = Object.keys(RATES.weekdayPrices).map(Number).filter((h) => h < FULL_DAY_HOURS);
+
+  it("offers Visa diena from a start when everything to closing is free", () => {
+    const lengths = pickableLengths([], [], RATES, day, RATES.openHour);
+    expect(lengths.at(-1)).toBe(FULL_DAY_HOURS);
+    expect(lengths.slice(0, -1)).toEqual(hourly.filter((h) => h <= RATES.maxHours));
+  });
+
+  it("does not offer it when a later hour is taken", () => {
+    const taken: Block = { id: "x", saunaId: "s1", date: day, hour: RATES.closeHour - 1 } as Block;
+    expect(pickableLengths([], [taken], RATES, day, RATES.openHour)).not.toContain(FULL_DAY_HOURS);
+  });
+
+  it("books from the start to closing", () => {
+    expect(bookedHours(RATES, RATES.openHour, FULL_DAY_HOURS)).toBe(RATES.closeHour - RATES.openHour);
+    expect(bookedHours(RATES, 14, FULL_DAY_HOURS)).toBe(RATES.closeHour - 14);
+    expect(bookedHours(RATES, 14, 3)).toBe(3);
   });
 });

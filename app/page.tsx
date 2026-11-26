@@ -24,6 +24,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/",
 });
 
+/** The home page is cached; the Black Friday plans it shows refresh every 5 minutes. */
+export const revalidate = 300;
+
 export default function Home() {
   return (
     <LandingProvider>

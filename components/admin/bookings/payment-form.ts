@@ -25,12 +25,12 @@ export async function copyPaymentLink(url: string) {
   }
 }
 
-/** The toast after saving; an unpaid one says whether the payment link went out, and offers the link when the e-mail did not. */
-export function reportCreated(label: string, outcome: { emailSent?: boolean; paymentUrl?: string }) {
+/** The toast after saving; an unpaid one says whether the payment link went out (by e-mail, and by SMS when there was a phone), and offers the link when the e-mail did not. */
+export function reportCreated(label: string, outcome: { emailSent?: boolean; smsSent?: boolean; paymentUrl?: string }) {
   if (outcome.emailSent === undefined) return void toast.success(`${label} sukurta`);
-  if (outcome.emailSent) return void toast.success(`${label} sukurta, apmokėjimo nuoroda išsiųsta`);
+  if (outcome.emailSent) return void toast.success(`${label} sukurta, apmokėjimo nuoroda išsiųsta ${outcome.smsSent ? "el. paštu ir SMS" : "el. paštu"}`);
   const url = outcome.paymentUrl;
-  toast.warning(`${label} sukurta, bet laiško išsiųsti nepavyko`, {
+  toast.warning(`${label} sukurta, bet laiško išsiųsti nepavyko${outcome.smsSent ? " (nuoroda išsiųsta SMS)" : ""}`, {
     duration: Number.POSITIVE_INFINITY,
     closeButton: true,
     action: url ? { label: "Kopijuoti nuorodą", onClick: () => void copyPaymentLink(url) } : undefined,

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { EventSheet } from "../calendar/event-sheet";
+import { NewBookingDialog } from "../bookings/new-booking-dialog";
 import { DeleteEventDialog } from "./delete-event-dialog";
 import { DeleteEventsDialog } from "./delete-events-dialog";
 import { EventDialog } from "./event-dialog";
@@ -34,6 +35,7 @@ export function EventsView() {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [ticketEventId, setTicketEventId] = useState<string | null>(null);
   const today = dateKey(new Date());
   const upcoming = events.filter((e) => e.date >= today);
 
@@ -174,7 +176,14 @@ export function EventsView() {
           setOpenId(null);
           setEditing({ mode: "edit", event });
         }}
+        onAddTicket={(event) => {
+          setOpenId(null);
+          setTicketEventId(event.id);
+        }}
       />
+      {ticketEventId ? (
+        <NewBookingDialog initial={{ eventId: ticketEventId }} onOpenChange={(o) => !o && setTicketEventId(null)} onCreated={() => setTicketEventId(null)} />
+      ) : null}
       {editing ? (
         <EventDialog
           key={editing.mode === "edit" ? editing.event.id : "new"}

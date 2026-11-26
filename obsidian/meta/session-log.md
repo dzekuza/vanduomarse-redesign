@@ -76,7 +76,7 @@
 - **Status:** tests, tsc, eslint clean; browser-checked 1280 and 375 px. Uncommitted. Not checked: sauna days chooser, submitting an inquiry.
 - **Next:** owner: priespirtis price and capacity, camp prices of other spaces, activity prices; commit.
 
-## 2026-11-23 — Camp (Stovykla) in the calculator (ADR-0118)
+## 2026-11-23 — Camp (Stovykla) in the calculator (ADR-0130)
 
 - **Changed:** `lib/event-pricing.ts` (preset, `campRent`, `campDays`, `campMeals`, `CAMP_MEALS`), `camp-meals.tsx` (new), `food-section.tsx`, `calculator-sections.tsx`, `calculator-groups.tsx` (type first), `venue-card.tsx` / `space-picker.tsx` (camp rate on the card), `estimate-summary.tsx` (nullable typical price). Docs: ADR-0118, changelog, status.
 - **Status:** tsc/eslint clean, tests; browser-checked 1280 and 375 px. Uncommitted.
@@ -112,7 +112,7 @@
 - **Status:** tests, tsc, eslint clean; browser-checked: Kupolas alone 800–1 050 €, Kupolas + lauko terasa 3 500–3 750 €. Uncommitted.
 - **Next:** owner confirms the summed combinations; taken spaces per date; commit.
 
-## 2026-11-23 — Multi-select venues in the calculator (ADR-0117)
+## 2026-11-23 — Multi-select venues in the calculator (ADR-0129)
 
 - **Changed:** `lib/event-pricing.ts` (`spaces[]`, `VENUES`, `WHOLE_PARK`, corona label), `lib/event-pricing.test.ts` (new, 7 tests), `use-event-calculator.ts` (`spaces`, `spaceLabel`, `extraHour`), `space-picker.tsx` (rewritten), `venue-card.tsx` (new), `calculator-sections.tsx`, `estimate-summary.tsx`, the three consumers of `space`. Docs: ADR-0117, changelog, status, utils and components catalogs.
 - **Status:** tsc/eslint clean, 181 tests; browser-checked 1280 and 375 px; `/sventes` and `/vestuves` still render. Uncommitted. The home-page drawer and the `/sventes` panel use the same picker; not clicked through.
@@ -144,7 +144,7 @@
 
 ## 2026-11-23 — New /skaiciuokle calculator page
 
-- **Changed:** `components/calculator/calculator-page.tsx` (new), `app/skaiciuokle/page.tsx` (new), `calculator-groups.tsx` (all groups open when not `compact`), `next.config.ts` (redirect removed), `app/sitemap.ts`, `public/llms.txt`, `nav-links.ts` (link to `/skaiciuokle`). Docs: routing, folder-structure, components/common, design-system, changelog, ADR-0116.
+- **Changed:** `components/calculator/calculator-page.tsx` (new), `app/skaiciuokle/page.tsx` (new), `calculator-groups.tsx` (all groups open when not `compact`), `next.config.ts` (redirect removed), `app/sitemap.ts`, `public/llms.txt`, `nav-links.ts` (link to `/skaiciuokle`). Docs: routing, folder-structure, components/common, design-system, changelog, ADR-0128.
 - **Status:** tsc/eslint clean; browser-checked at 1280 px (two columns, sticky price, live update) and 375 px (no overflow, total bar). Uncommitted, with the earlier nav tweaks.
 - **Next:** iterate on the design; check 768/1024 px; commit; decide whether `/sventes` keeps its own panel.
 
@@ -154,6 +154,109 @@
 - **Status:** tsc and eslint clean; browser-checked at 1280/1299 and 375 px (no horizontal overflow, nav order, dropdown items and hrefs, mobile menu lists all items). Header rework committed (`171045ef5`); the Black Friday reorder and caret fix are uncommitted. Nothing pushed.
 - **Next:** commit the two tweaks; check the 1024 px burger header with the user; decide on pushing.
 - **Note:** `pnpm` is not installed on this machine, so the stock `dev` launch config fails; `dev-next` (node + next directly) was added to the uncommitted `.claude/launch.json`. The pane's synthetic mouse does not trigger the dropdown's hover-open.
+## 2026-11-24 — Status brought up to date
+
+- **Asked:** update status.md for the merged PRs.
+- **Changed:** `status.md` now says #154, #155, #156 and #157 are merged and nothing is in progress.
+- **Next:** owner adds the summer season and a full-day price, tries one booking of each.
+
+## 2026-11-24 — Būsena removed from the other admin creation forms
+
+- **Asked:** remove Būsena from the quad rental form too, then from all of them (quads, nameliai, pirtis, etc.).
+- **Changed:** `NewRentalDialog`, `NewTourDialog`, `NewSpaceBookingDialog` lose the field and `status` in their schemas; each sends "patvirtinta". Unused `Select` import dropped. Status columns / filters and the inquiry and sauna "Būsena" are different things and stay.
+- **Verified:** tsc, eslint, 217 tests. Not checked in a browser (admin login).
+- **Next:** push, PR.
+
+## 2026-11-24 — Būsena removed from "Nauja rezervacija"
+
+- **Asked:** remove the Būsena (Patvirtinta / Laukia) field from the admin new-booking form.
+- **Changed:** field and `STATUS` list gone from `BookingCustomerFields`, `status` dropped from the form schema, the dialog sends "patvirtinta" for bookings and tickets. Quad rentals keep their own Būsena.
+- **Verified:** tsc, eslint, 217 tests. Not checked in a browser (admin login).
+- **Next:** push, PR; decide whether the quad rental and other dialogs should lose it too.
+
+## 2026-11-24 — Full-day option in the admin sauna booking form
+
+- **Asked:** Trukmė in "Nauja rezervacija" only offered 3 / 4 val.; staff need a way to book the whole day.
+- **Changed:** `pickableLengths` / `freeHoursToClose` / `bookedHours` in `lib/admin/occupancy.ts`; the dialog's length list ends with "Visa diena" (start to closing) when the run to closing is free, stores the real hours, prices from the table (longest length if no full-day price), extras use the real hours.
+- **Verified:** tsc, eslint, 217 tests (+3). Not checked in a browser (admin login).
+- **Next:** push, PR; owner may add a full-day price per sauna in `/admin/pirtis` rates.
+
+## 2026-11-24 — Review fixes on PR #154 (seasonal prices)
+
+- **Asked:** (automated) address the review comments on PR #154.
+- **Changed:** the public stay-type loader now reads `stay_type_seasons` (it did not, so the site ignored seasons); `saveStayType` is one atomic RPC `save_stay_type` (migration `20261124130000`, applied; a season id of another type fails); the month calendar's browse cap follows the booking window (the last cabin month was unreachable); a cabin date beyond 60 days clears sauna / quad picks; add-season button stops at 24; seasonal prices capped at 10 000 € in the form; ADR and database notes corrected.
+- **Verified:** tsc, eslint, tests; RPC with rolled-back SQL (save, overlap leaves the type unchanged, foreign season id refused). Not browser-rechecked after the loader fix.
+- **Next:** merge PR #154; owner adds the summer season.
+
+## 2026-11-24 — Summer cabin booking and seasonal prices (ADR-0126)
+
+- **Asked:** let the nameliai booking page book summer (the calendar stopped short), and let the admin set different prices from a month, e.g. from July 20 € for 1 night, 10 € per night for 2, X for 3+.
+- **Changed:** cabin check-in window `STAY_BOOKING_DAYS` = 350 (`lib/cabin.ts`; was 60 on `/rezervacija` and the service page, 21 in the embed / home dialog), cabin availability loaded for it (`getCabinPageData`), the flow uses it only on the Nakvynė tab and resets the date when switching to sauna / quads, the `/nakvyne` availability calendar takes `dayCount`. New table `stay_type_seasons` (migration applied) with `private.stay_night_rate` / `stay_price`; `create_stay_booking_with_units` and `accept_inquiry_stays` re-created to price each night by its season. `StayType.seasons`, `stayPrice(type, nights, units, checkIn)`, season editor in the `/admin/namukai` dialog (`StaySeasonsFields`, `stay-type-schema.ts`), seasons listed on the type card.
+- **Verified:** tsc, eslint, 214 tests (+5); SQL with a rolled-back season (1 / 2 / 4 nights, a stay crossing the season end, overlap blocked); `/nakvyne` in the browser: both calendars 350 days, July 2027 selectable, 4–6 Jul priced 140 €. Not checked: the admin dialog and a booking inside a real season (login).
+- **Next:** PR, merge; owner adds the summer season; a season is a fixed date range, so next year needs a new one.
+
+## 2026-11-19 — Date range on space bookings
+
+- **Asked:** when adding an erdvė, choose a from–to date range.
+- **Changed:** migration `end_date` (applied), `SpaceBooking.endDate`, `windowsOverlap` + test, `createSpaceBooking` clash by window, dialog "Nuo/Iki datos", calendar entry spans days, sheet shows both ends.
+- **Verified:** tsc, eslint, 209 tests. Not checked in a browser (login).
+- **Next:** PR, merge, try a multi-day hire. Price is still the sheet's one-off suggestion, not per day.
+
+## 2026-11-19 — Editable event types in /admin/kainos (ADR-0125)
+
+- **Asked:** manage (edit / add) the calculator's "Renginio tipas" choices from `/admin/kainos`.
+- **Changed:** migration `event_presets` (applied, seeded), `EventPreset` now data not code, `CalculatorCatalog.presets`, `getEventPresets`, `saveEventPreset` / `deleteEventPreset`, `EventPresetsCard` + `EventPresetDialog`, `PresetPicker` takes `presets`.
+- **Verified:** tsc, eslint, 208 tests. Not checked in a browser: stale ISR cache on the :3000 dev server returned 500 on `/sventes` (old catalog without `presets`); admin needs login.
+- **Next:** restart the dev server, check `/sventes` and the new card; commit.
+
+## 2026-11-19 — Event-space bookings in the calendar (ADR-0124)
+
+- **Asked:** from the admin calendar, add a booking for the erdvės, select several, and enter customer name, surname, phone and price.
+- **Changed:** migration `space_bookings` (applied to project-3), types/mapper/repository, `createSpaceBooking` / `setSpaceBookingStatus`, store, `lib/space-booking.ts` + test, `components/admin/spaces/*`, chooser section, calendar entries + sheet.
+- **Verified:** tsc, eslint, 208 tests. Not checked in the browser (admin login needed); `database.types.ts` was edited by hand for the new table.
+- **Next:** try it at `/admin/kalendorius` → "Nauja rezervacija" → Erdvės; commit. Not built: payment link, editing a hire, a DB-level clash constraint (the action checks).
+
+## 2026-11-19 — Cabin prices by length of stay (ADR-0123)
+
+- **Asked:** 3 price fields when adding a home at `/admin/namukai` (1 night 100, 2 nights 80/night, 3+ nights 60/night).
+- **Changed:** migration `20261119100000_stay_night_tiers` (applied to project-3), `lib/cabin.ts` helpers + `lib/cabin.test.ts`, mapper/action/types, admin dialog + list, public price labels, calculator, `NewBookingDialog`, agent `create_booking`, `planStay`.
+- **Verified:** tsc, eslint, 194 tests, both server functions rewritten (checked in DB), `/nakvyne` renders. Not checked: the admin dialog in the browser (needs login).
+- **Next:** owner sets real tier prices in `/admin/namukai`; not committed.
+
+## 2026-11-19 — Public page speed (ADR-0118)
+
+- **Cause:** `connection()` in every public loader plus `searchParams`/cookies on `app/[service]/page.tsx` made the pages per-request; function ran in iad1; q90 hero images; link prefetch; doubled title suffix.
+- **Changed:** ISR for service pages + home, `/api/availability` + `live-activity.tsx`, `fra1`, image quality/cache, `prefetch={false}`, titles; vault docs. tsc (only PageProps typegen noise), lint, 186 tests, build OK, prod server checked (cache HIT, deep link, no console errors).
+- **Next:** commit + PR from `perf/public-pages-isr`; confirm Supabase region; verify on Vercel.
+
+## 2026-11-18 — Sales table order + column sorting
+
+- **Cause:** `buildSales` sorted by `soldOn` (a day) then `id`, so same-day sales ordered by id prefix, not time (Rūta's ticket `e-` above Agnė's later booking `b-`).
+- **Changed:** `Sale.soldAt` + `whenKey`, `sortSales` / `DEFAULT_SALE_SORT` / `SaleSort` in `lib/admin/sales.ts`; `SalesTable` sortable headers (`SortHead`). tsc (only generated-type noise), 49 lib/admin tests pass.
+- **Next:** browser-check on `/admin`; PR.
+
+## 2026-11-18 — SMS on staff payment links + empty-day quick-create (ADR-0117)
+
+- **Changed:** `requestStaffPayment` now also sends `notifyPaymentRequest` (new, `lib/sms/notify.ts`) alongside the e-mail for any unpaid staff-entered booking/rental/ticket; `StaffPaymentOutcome` and every `Created*` type gained `smsSent`, `reportCreated`'s toast says "el. paštu ir SMS" when both went out. `MonthGrid`'s day cells: an empty day opens `NewBookingDialog` for that date on a plain click instead of just selecting it; a day with entries is unchanged (`WeekView`/`DayView` untouched — their entries are always shown inline, so a click there still means select/navigate). Found and fixed along the way: `NewBookingDialog`'s `initial.date` had a stale pre-ADR-0114 `>= dateKey(new Date())` guard that silently reset a past date back to today — invisible until clicking an empty past day in the month grid actually exercised it.
+- **Status:** tsc, eslint, 174 tests; browser-checked on `/admin/kalendorius`: clicking an empty Nov 11 cell opened "Nauja rezervacija" already on "2026 m. lapkr. 11 d." (confirming the date-guard fix); clicking the day number on a day with entries (30 Spalio) still just selected it, no dialog, cards still clickable for their own `EventSheet`. SMS itself not verified against a real phone (no Twilio keys locally; `sendSms` is a no-op without them, same as every other notify call). Not committed.
+- **Next:** commit, push. "Siųsti nuorodą" (resend, ADR-0113) still only re-sends by e-mail, not SMS — a reasonable follow-up, out of scope here.
+## 2026-11-18 — PR #141 review fixes (automated review)
+
+- **Changed:** `discountCodeUses` in `lib/admin/discount-code.ts` now counts all six tables `private.discount_code_uses` does (bookings, quad_rentals, event_tickets, coupons, rider_plan_orders, plan_passes — it had grown since the admin check was first written) and fails closed on a count error instead of defaulting to 0. `createEventTicket` fetches the event's `category` and maps it to a discount service ("pirtis"/"keturratis" only; every other category refuses a code rather than discounting at the wrong rate). `DiscountCodeField` clears its discount on every edit (not just blur), ignores a check's result if the field moved on to a different code before it resolved, and reports "pending" up so the dialog disables submit while checking; the dialog now renders the server's own `discount_code` rejection on the field and clears the stale discount when it happens. Relaxed the raw `discountCode` length cap from 30 to 200 (the 30-char bound is the normalised code's, not the raw typed one — a code with spaces could exceed it before normalising). Pinned the date-range test to a fixed future date instead of "tomorrow" (flaky around Vilnius midnight, since `toISOString()` is UTC). Docs: escaped a stray `|` in `utils.md`'s table, corrected `common.md`'s "every kind" overstatement, trimmed the `status.md` entry.
+- **Status:** tsc, eslint, 183 tests (2 more than before: full six-table counting and the fail-closed path are now covered). Not committed.
+- **Next:** commit, push to PR #141. Left as a known limitation, not fixed: the `max_uses` check has no row lock across the read-then-insert, so two near-simultaneous requests could both claim a code's last use — low-volume staff traffic, documented in the function's own comment rather than adding a dedicated locking RPC for it.
+
+## 2026-11-18 — Discount code / custom price on "Nauja rezervacija" (ADR-0116)
+
+- **Changed:** "Kita kaina, €" now shows for event tickets too (was sauna/stay only); new "Nuolaidos kodas" field (`DiscountCodeField`) on every kind, checking the code live with the same `checkDiscountCode` the public checkout preview uses and pricing it with the pure `discountFor()`. New `lib/admin/discount-code.ts` (`applyStaffDiscountCode`) re-validates and re-prices the code server-side with the service-role client (staff have no grant on `private.apply_discount_code`), storing `discount_code_id`/`discount_code`/`discount_amount` on the booking or ticket, counted toward the code's `max_uses` the same way the public RPCs do. `createBooking` gained `discountCode`/`discountAmount`; `createEventTicket` gained `price` (override) and `discountCode`. Private sauna hires and tickets both count as service `"pirtis"` for a code's coverage.
+- **Status:** tsc, eslint, 181 tests (7 new in `lib/admin/discount-code.test.ts`); browser-checked on `/admin/rezervacijos?nauja=1`: a "999" code (97 % off, Visos paslaugos) on a 50 € custom-priced "Šeštadienį pradėk neskubėdama." ticket showed "Taikoma: 97 % · -48,50 €" and the footer "Nuolaida: -48,50 € / 1,50 €"; switching to "WAKEBLACKFRIDAY2026" (Abonementai only) correctly showed "Šis kodas negalioja šiai paslaugai." and reverted to the 50 € custom price — cancelled without submitting. Committed (`69e7dcd`) on `feat/booking-discount-price` and pushed; opened as [PR #141](https://github.com/dzekuza/vanduomarse-redesign/pull/141), Auto-fix watching CI.
+- **Next:** wait for PR #141 CI and merge. Not built: showing a booking's/ticket's stored discount anywhere in the admin UI (`BookingSheet`, the event sheet's ticket rows); quad rental/tour dialogs (`new-rental-dialog.tsx`, `new-tour-dialog.tsx`) don't get this yet.
+
+## 2026-11-18 — "Pridėti rezervaciją" on an event's sheet (ADR-0115)
+
+- **Changed:** `EventSheet` gets a required `onAddTicket(event)` prop and a "Pridėti rezervaciją" button (hidden for a quad tour departure). `NewBookingDialog`'s `initial` grows `eventId`: when set, it looks the event up, skips step 1, and opens step 2 on kind `"renginys"` with that event and its date preselected. Wired `onAddTicket` at all five `EventSheet` call sites (`events-view.tsx`, `calendar-view.tsx`, `bookings-view.tsx`, `booking-calendar-tab.tsx`, `sale-details.tsx`), each with its own `ticketEventId` state kept separate from that view's existing "new booking" state.
+- **Status:** tsc, eslint, 174 tests; browser-checked on `/admin/rezervacijos`: opened the sheet for a past "Vakarinė pirties kelionė su Viliumi" seansas, clicked "Pridėti rezervaciją", landed directly on its ticket form (Žmonių / Vardas / payment fields, no date or event re-picking) — cancelled without submitting. Not committed.
+- **Next:** commit, push.
 
 ## 2026-11-18 — Past-date "Nauja rezervacija" (ADR-0114)
 
@@ -443,6 +546,7 @@
 - **Changed:** `app/admin/actions.ts` → `app/admin/actions/*.ts` + barrel; Vitest + 5 test files (40 tests); `settle()` logging; `.gitignore`; docs (ADR-0091).
 - **Status:** tsc, eslint, `pnpm test`, `pnpm build` pass. Admin screens not clicked through (login needed), only the login route compiled and answered. The WIP from earlier today (emails, tabs, footer, plan lines) is still uncommitted on the working tree.
 - **Next:** click through /admin once to confirm the barrel works at runtime; then the real-booking test from the earlier entries.
+
 ## 2026-11-13 — Held spots on sessions
 
 - **Changed:** `events.held` + capacity trigger, `setEventHeld` action, store `event/held`, `HeldSpots` stepper in `EventSheet`, public `spotsLeft`, labels count held.
@@ -695,11 +799,13 @@
 - **Found:** the only code touching the soft keyboard is the scanner's hidden input (`showSoftInputOnFocus={false}`, `autoFocus`), mounted for as long as its tab screen stays mounted.
 - **Changed:** `usb-scan-target.tsx` (active = enabled && focused; input only mounted while active).
 - **Status:** tsc + iOS export pass; not tested on a device. If it still fails, note which screen's input and whether the Skenavimas tab was visited first.
+
 ## 2026-11-13 — Mobile sheet overlay animation
 
 - **Found:** `SheetModal` put the backdrop inside a slide-animated `Modal`, so the overlay slid up with the sheet.
 - **Changed:** `mobile/src/components/primitives.tsx` (fade backdrop + sliding sheet, tap backdrop to close).
 - **Status:** tsc + iOS export pass; not seen on a device.
+
 ## 2026-11-13 — Mobile sign-in "undefined is not a function"
 
 - **Found:** the alert is the message of an exception thrown while loading admin data after sign-in (`loadForSession`), in shared website code. `toSorted` is called there and Hermes may lack it.
@@ -712,6 +818,7 @@
 - **Done:** direct upgrade (expo-upgrade skill) in worktree branch `feat/mobile-expo-sdk-58`, stacked on `feat/mobile-admin-app`; two code fixes; doctor/typecheck/iOS export pass.
 - **Not done / watch:** not run on a device; `expo-notifications` push needs a check on a real iPhone; Expo recommends one SDK at a time, this was a direct jump.
 - **Next:** `cd mobile && npx expo start -c`, open in Expo Go; the mobile ADR is now ADR-0084.
+
 ## 2026-11-13 — Link orders and registration to one customer per contact
 
 - **Found:** PR-1021 and every order since 7 Nov had no `rider_id`; registration always created a new rider. A first draft of the backfill would have created 2 customers (test e-mail, one coupon buyer): changed to link-only. A first draft ranked the OLDEST customer first, which would have attached PR-1021 to the imported record: now a registered customer first.
@@ -754,6 +861,7 @@
 - **Changed:** migration `20261112171854_realtime_admin_tables.sql` (applied and verified), `lib/supabase/client.ts`, `components/admin/admin-live-updates.tsx`, mounted in `app/admin/(panel)/layout.tsx`.
 - **Status:** tsc/eslint clean; not tested with a live event.
 - **Next:** open two admin windows, make a booking / pay with a test card and watch the calendar and the payment badge change.
+
 ## 2026-11-13 — OTP blocks per channel
 
 - **Found:** the code field always drew 8 blocks, but an SMS code has 6 (e-mail has 8).
@@ -843,6 +951,7 @@
 - **Changed:** `FOOTER_CONTACTS` rewritten and used by `SiteFooter`; hero phone from `MAIN_CONTACT`; stay stepper labels by kind.
 - **Status:** tsc/eslint clean; NOT browser-checked; pushed to `main`.
 - **Next:** decide whether `/kontaktai` and `RESERVATION_PHONE` should follow the new numbers.
+
 ## 2026-11-13 — Hero phone number
 
 - **Changed:** `components/landing/landing-hero.tsx` uses `MAIN_CONTACT.phone`.
@@ -1055,7 +1164,6 @@
 - **Also:** panel reordered to the mockup (Trukmė, Pirtininkas, Asmenų skaičius before Data); "Visa diena" (12 h) added as a length; staff set its price in /admin/pirtis, until then it is not offered.
 - **Next:** decide whether to switch off the fixed private programs (they still show on /rezervacija and in Kainos); check a Friday–Sunday date.
 
-
 ## 2026-11-12 — Pirtininkai block and picker
 
 - **Why:** user asked for a pirtininkai block before Priedai in /admin/pirtis (add pirtininkai, set prices) shown on programs; answers: price added on top, and the generic hourly extra replaced by named pirtininkai.
@@ -1070,14 +1178,12 @@
 - **Status:** `tsc` and eslint clean. Migration applied to the live database via MCP (user asked) and verified. Not browser-checked, no test booking placed.
 - **Next:** check /pirtis, /rezervacija and /admin/pirtis at 375 / 768 / 1024 px and place one test booking (weekday 3 h, weekend, with pirtininkas, 12 guests).
 
-
 ## 2026-11-12 — Deleted vakarai / akademija / sventes events
 
 - **Why:** user asked to remove those categories from the events list.
 - **Changed:** live `events` rows only (4, no tickets or quad rentals attached); changelog.
 - **Status:** done and verified by re-query; remaining events are all category `pirtis`.
 - **Next:** none.
-
 
 ## 2026-11-12 — Drop tickets section from admin Renginiai
 
@@ -1086,7 +1192,6 @@
 - **Status:** `tsc`/eslint clean; not browser-checked. The earlier request to delete all events except 2x Pirties ritualas was NOT run: no live data was deleted; the keep-which question was left open.
 - **Next:** confirm which two Pirties ritualas to keep before any live delete.
 
-
 ## 2026-11-12 — Bulk delete on admin Renginiai
 
 - **Why:** user asked for a bulk select option to remove selected events.
@@ -1094,14 +1199,12 @@
 - **Status:** `tsc`/eslint clean; not browser-checked (needs staff login). Deletes call the existing per-event action in parallel.
 - **Next:** check in the browser; consider a server-side bulk action if lists grow.
 
-
 ## 2026-11-12 — Rename admin "Parkas" tab to "Inventorius"
 
 - **Why:** user asked (screenshot of /admin/keturraciai) to rename Parkas to Inventorius.
 - **Changed:** `quads-view.tsx` (tab label, id `inventorius`, `?tab=inventorius`), `quad-types-card.tsx` title; routing, components/common and changelog notes.
 - **Status:** `tsc` clean; not browser-checked. No ADR (label rename).
 - **Next:** none.
-
 
 ## 2026-11-12 — Composition and load pass on public pages
 
@@ -2033,15 +2136,15 @@
 - **Found:** Even after the upload bug above was fixed and a registration (`info@gvozdovic.com`) was confirmed present in the database with its photo uploaded, the owner still couldn't find that rider anywhere in `/admin/apyrankes` → Naudotojai or `/admin/klientai`, even after refreshing.
 - **Root cause:** `loadAdminData`'s `riders` query (`lib/admin/repository.ts:97`) was `supabase.from("riders").select("*").order("created_at")` — ascending, no `.limit()`/`.range()`. Supabase's hosted REST API (PostgREST) caps every response at 1000 rows **regardless of table size**, with no error or warning — it just silently truncates. `riders` is 8,957 rows (ADR-0041's Grabby import pushed it well past that threshold back in early November). Confirmed directly against the live API with the service-role key: `order=created_at.asc&limit=3` returns rows from 2022, and a `Prefer: count=exact` request returns `Content-Range: 0-999/8957`. So the admin dashboard has been silently loading only the **oldest** 1000 riders since the Grabby import — every rider created after that point, staff-created or self-registered, was never in the dataset at all. Not a caching, refresh, permission, or search-term problem; the row simply never left the database query.
 - **Fixed:** Flipped the query to `.order("created_at", { ascending: false })` (newest-first), so a brand-new rider is always inside the loaded window. One-line code change, no migration needed.
-- **Known limitation, flagged not fixed:** This is a stopgap. The admin UI bulk-loads the *entire* `riders` table into the client store on every admin page load (`AdminStoreProvider`/`useAdmin()`), and that doesn't scale past ~1000 rows in either direction — old, never-revisited imported contacts past row 1000 will now silently drop out instead. The real fix is server-side search/pagination (query per keystroke/page) for Klientai and Apyrankės's Naudotojai tab, not one bulk load at page open. Noted as its own follow-up, not attempted here.
+- **Known limitation, flagged not fixed:** This is a stopgap. The admin UI bulk-loads the _entire_ `riders` table into the client store on every admin page load (`AdminStoreProvider`/`useAdmin()`), and that doesn't scale past ~1000 rows in either direction — old, never-revisited imported contacts past row 1000 will now silently drop out instead. The real fix is server-side search/pagination (query per keystroke/page) for Klientai and Apyrankės's Naudotojai tab, not one bulk load at page open. Noted as its own follow-up, not attempted here.
 - **Status:** `tsc --noEmit` and `eslint` clean on the changed file. Not yet re-verified in the browser that the self-registered rider now actually appears.
 - **Next:** Staff browser check — open Apyrankės → Naudotojai or Klientai and confirm the `info@gvozdovic.com` registration (and any other recent rider) is now visible and searchable.
 - **Docs:** `decisions-log.md` (ADR-0041 addendum), `changelog.md`, this entry, `status.md`.
 
 ## 2026-11-07 — /registracija: the real upload bug was a missing table grant, not just the column collision
 
-- **Found:** After the previous fix, the owner reported the same symptom — asked whether it might be a localhost issue, or a "record already exists" conflict. Checked the live project directly: the three newest self-registered riders (created *after* `20261107211034` was applied) still had `avatar_path` **and** `signature_path` both null, and `storage.objects` had zero rows for any of them — not a duplicate/conflict, a clean rejection on every attempt.
-- **Root cause:** Ran the photo-policy's own check as the `anon` role (`set local role anon; select exists (select 1 from public.riders r where r.id = ... )`) and got `ERROR 42501: permission denied for table riders` — a table-privilege error, not an RLS one. `anon` has never had a `SELECT` grant on `riders` or `rider_waivers` at all (by design — "Anon has no grants on any of the three tables" per the original Apyrankės ADR). So *any* subquery against those tables evaluated as `anon` — including inside a Storage policy's `EXISTS` clause — fails outright, regardless of how it's written. This had been silently breaking **both** the photo and the signature upload since the feature shipped; the previous fix's column-collision bug was real but secondary, and happened to be in the one policy (photo) that got attention first.
+- **Found:** After the previous fix, the owner reported the same symptom — asked whether it might be a localhost issue, or a "record already exists" conflict. Checked the live project directly: the three newest self-registered riders (created _after_ `20261107211034` was applied) still had `avatar_path` **and** `signature_path` both null, and `storage.objects` had zero rows for any of them — not a duplicate/conflict, a clean rejection on every attempt.
+- **Root cause:** Ran the photo-policy's own check as the `anon` role (`set local role anon; select exists (select 1 from public.riders r where r.id = ... )`) and got `ERROR 42501: permission denied for table riders` — a table-privilege error, not an RLS one. `anon` has never had a `SELECT` grant on `riders` or `rider_waivers` at all (by design — "Anon has no grants on any of the three tables" per the original Apyrankės ADR). So _any_ subquery against those tables evaluated as `anon` — including inside a Storage policy's `EXISTS` clause — fails outright, regardless of how it's written. This had been silently breaking **both** the photo and the signature upload since the feature shipped; the previous fix's column-collision bug was real but secondary, and happened to be in the one policy (photo) that got attention first.
 - **Fixed:** Migration `20261107212126_fix_rider_upload_privileges.sql`, applied directly to the live "Vanduo" project via the Supabase MCP (owner's go-ahead, asked again since this is a distinct write): two new `public` `security definer` functions, `rider_awaiting_photo(uuid)` and `rider_waiver_awaiting_signature(uuid)` — same pattern as the existing `private.has_permission` (owned by the table owner, so they run with its privileges and bypass both the grant and RLS checks). Put in `public`, not `private`, since `anon` has no `USAGE` on the `private` schema either. Both Storage policies now call the matching function instead of querying the table directly. Verified by calling both functions `set local role anon` against a real pending rider and getting `true` for each (previously the direct-query version errored before even reaching a true/false answer).
 - **Trade-off accepted:** These two new functions are themselves `anon`-callable RPCs (same WARN category as every other public RPC in this app, confirmed via `get_advisors`) and answer a narrow boolean — "is this specific rider id still waiting for a file" — to anyone who can guess or already knows a UUID. No PII in the response. Same trust level as the rest of ADR-0043.
 - **Status:** Regenerated `database.types.ts` (reapplied the `create_inquiry.p_date` hand-edit again). `tsc --noEmit` clean. **Not yet re-exercised end to end through the actual UI** — only verified at the SQL level that the policies now resolve correctly for `anon`.
@@ -2159,152 +2262,182 @@
 - **Docs:** `database.md` (schema rows, migrations list, permission table), `api-architecture.md` (new actions), `routing.md` (new route, sidebar grouping), `hooks.md` (`useCardScanner`), `utils.md` (`RIDE_PLAN_CATEGORIES`, new mappers, `CardScanner`, `formatPlanPrice`), `changelog.md` (one line per change), `decisions-log.md` (ADR-0038, ADR-0039, ADR-0040), this status and session-log entry.
 
 ## 2026-11-05 — Favicon from the badge
+
 - **Changed:** `app/favicon.ico` (RGBA 16/32/48), `app/icon.png` (512), `app/apple-icon.png` (180) cropped from the owner's badge PNG. `76c2c78` pushed earlier; the gate is live on production.
 - **Status:** icons linked and served on the dev server (also while gated); local `pnpm build` fails on a pre-existing Google font resolve error, same on HEAD without the icons. Uncommitted.
 - **Next:** commit and push the icons; check the tab icon on production.
 
 ## 2026-11-05 — /apie-marsa removed, coming-soon gate
+
 - **Changed:** deleted `app/apie-marsa` + `components/about/`; nav and sitemap entries gone. New `lib/site-gate.ts`, `lib/site-gate-schema.ts`, `app/actions/site-gate.ts`, `components/coming-soon.tsx`, `components/gate-code-form.tsx`, `app/netrukus/page.tsx`; proxy matcher widened; `.env.example` (`SITE_GATE`, `SITE_GATE_CODE`); `dev-gate` launch config (dummy local code). ADR-0037.
 - **Status:** `tsc` and eslint clean; gate, bypass code and gate-off behaviour checked in the browser; uncommitted.
 - **Next:** owner sets `SITE_GATE=1` + `SITE_GATE_CODE` in Vercel, commit, redeploy; then Supabase Auth URLs.
 - **Docs:** routing (`/netrukus` row, `/apie-marsa` row removed), `components/common.md` (`ComingSoon`, `GateCodeForm`; `TeamSection` removed), `utils.md` (site-gate helpers), `seo-metadata.md`, ADR-0037, changelog, status "Next up".
 
 ## 2026-11-05 — Domain env + webhook confirmed
+
 - **Changed:** owner set `SITE_URL` to the www host and moved the Stripe webhook; confirmed via the Stripe API (one app endpoint on `www.vanduomarse.lt`, five events, enabled) and `.env.local`.
 - **Status:** robots/sitemap/metadataBase still uncommitted; Vercel env not checked from here.
 - **Next:** Supabase Auth URLs, deploy, Search Console sitemap.
 
 ## 2026-11-05 — Custom domain check
+
 - **Changed:** checked `vanduomarse.lt` (apex → 308 → `www.vanduomarse.lt`, Vercel); added `lib/site.ts`, `metadataBase`, `app/robots.ts`, `app/sitemap.ts`; `.env.example` SITE_URL note.
 - **Status:** `tsc` and eslint clean; robots and sitemap render locally; uncommitted.
 - **Next:** SITE_URL to the www host in Vercel and `.env.local`, Stripe webhook on the www host, Supabase Auth URLs, Search Console sitemap.
 
 ## 2026-11-05 — PR #13 merged
+
 - **Changed:** PR #13 (discount codes) merged into `main`; Vercel preview build had passed, no open review threads.
 - **Status:** migrations already applied; production redeploys from `main`.
 - **Next:** staff sign-in to check `/admin/nuolaidos`; one checkout with a code.
 
 ## 2026-11-05 — PR #13 review fixes
+
 - **Changed:** per-activity discount code in both checkout paths, submit blocked while a code check runs, 0 € plans filed unpaid, delete refused for used codes, non-optimistic admin toggle/delete, integer-cent preview, schema limits shared with the form, FK relationships in the types, a11y fixes; docs wording.
 - **Status:** `tsc` and eslint clean; replies posted on the review threads.
 - **Next:** staff sign-in to check `/admin/nuolaidos` and an applied code.
 
 ## 2026-11-05 — Discount code migrations applied
+
 - **Changed:** applied `20261104190000`, `20261104191000` and `20261105150000_discount_codes` to `mwngljhcvqkvncwbmgeo` (owner approved); grants and advisors checked; security review findings recorded in ADR-0036.
 - **Status:** live code check works at the checkout; admin screen not yet checked (needs staff sign-in).
 - **Next:** test code in `/admin/nuolaidos`, applied-code summary, 375 / 768 / 1024 px, delete the test code.
 
 ## 2026-11-05 — Discount codes
+
 - **Changed:** migration `20261105150000_discount_codes` (table, `nuolaidos` permission, RLS, `check_discount_code`, `discount_code_usage`, booking RPCs with `p_discount_code`); `lib/discount-codes.ts`, `lib/discount-code-schema.ts`, `app/actions/discount-codes.ts`, `app/admin/discount-actions.ts`; checkout `DiscountCodeField` + discount in `PlanSummary`; `/admin/nuolaidos` (`components/admin/discounts/`); types merged by hand. ADR-0036.
 - **Status:** PR #13 open (commit 4bc0776). Migration tested in a rolled-back transaction on `mwngljhcvqkvncwbmgeo`, not applied; approval asked. Checkout field checked at 375 px (error path); `/admin/nuolaidos` needs a staff sign-in in the browser pane.
 - **Next:** apply `20261104190000`, `20261104191000`, then `20261105150000`; check the applied code, the summary and `/admin/nuolaidos` at 375 / 768 / 1024 px; one checkout with a code.
 
 ## 2026-11-05 — Twilio sender name check
+
 - **Checked:** Twilio account, Messaging Services and senders, last messages (read-only API); `.env.local` and Vercel Twilio vars; production deploy after the change.
 - **Status:** setup correct; last real attempt failed 21212 (From set to the `AI…` sender SID). No SMS sent by me.
 - **Next:** confirm Supabase phone provider uses `MGd815…`; one test SMS and one sign-in code to a real number.
 
 ## 2026-11-05 — PR #12 merged
+
 - **Changed:** PR #12 (email notifications, confirmed-email lookup, marketing copy, review fixes) merged into `main` as 9699683; Vercel preview build had passed.
 - **Status:** migration `20261105120000` already applied; production redeploys from `main`.
 - **Next:** check the production deploy picked up the Stripe and email env vars; one test booking and checkout.
 
 ## 2026-11-05 — Marketing copy of booking emails
+
 - **Changed:** `STAFF_BOOKING_COPY` (marketingas@vanduomarse.lt) in `lib/contacts.ts`, added once to every new-request and paid staff email in `lib/email/notify.ts` (not double-charge). Needed because `STAFF_NOTIFY_EMAIL` is only the fallback for services without an inbox.
 - **Status:** `tsc`/eslint clean; not sent for real.
 - **Next:** redeploy production; one test booking.
 
 ## 2026-11-05 — Stripe configured
+
 - **Checked:** Vercel now has `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SITE_URL`; status note rewritten so no paragraph still asks to register the webhook (it is registered).
 - **Next:** redeploy production; checkout test (live charge + refund, or sandbox).
 
 ## 2026-11-05 — Stripe recheck
+
 - **Checked:** `.env.local` key (clean `sk_live_`, API 200), webhook secret format, Vercel env names.
 - **Status:** local config OK; Vercel has `STRIPE_SECRET_KEY` only (no `STRIPE_WEBHOOK_SECRET`, `SITE_URL`). No checkout run.
 - **Next:** add the two Vercel vars (webhook secret from the vercel.app endpoint in Stripe) and redeploy; decide sandbox vs live test.
 
 ## 2026-11-05 — Stripe configuration check
+
 - **Checked:** `.env.local` Stripe vars (names/prefixes only), a read-only Stripe API call, webhook endpoints, Vercel env names.
 - **Status:** key value malformed (`secret - ` prefix) and live mode; Vercel lacks all Stripe vars; webhook endpoint registered with the right five events. No checkout run.
 - **Next:** fix the key line (sandbox key recommended for testing), add Stripe vars + `SITE_URL` in Vercel and redeploy, then run a checkout.
 
 ## 2026-11-05 — PR #12 second review
+
 - **Changed:** `accountEmailFor` logs lookup failures; `notify` comments in requests/quads say email goes only to an account-confirmed address; vault: migration consistently named as required (ADR, changelog, status), webhook RPC named correctly, database row narrowed, frontmatter dates bumped.
 - **Status:** `tsc`/eslint clean; pushed to PR #12.
 - **Next:** signed-in test bookings with `EMAIL_IN_DEV=1`; env vars in Vercel.
 
 ## 2026-11-05 — Confirmed-email lookup for notifications
+
 - **Changed:** migration `20261105120000_notify_account_email` (`account_notify_email`, `payment_notify_email`, service role only); webhook and admin outcome email only that address; types hand-added; `lib/supabase/admin.ts` doc.
 - **Status:** `tsc`/eslint clean; migration applied to `mwngljhcvqkvncwbmgeo` via MCP (ref checked against `.env.local`, ledger aligned, grants and null-for-unconfirmed verified); pushed to PR #12. Regenerated types not adopted (unrelated drift: `graphql_public`, `create_inquiry.p_date`).
 - **Next:** test bookings through `/rezervacija` signed in, with `EMAIL_IN_DEV=1`; look at the `create_inquiry.p_date` type drift.
 
 ## 2026-11-05 — PR #12 review fixes
+
 - **Changed:** `Requester.notifyEmail` (account email only) for customer emails; admin outcome emails need a `user_id`; webhook used `payment_state` (later replaced by `payment_notify_email`, next entry up); 8 s fetch timeouts (Resend, Twilio); dev email skip returns false; `formatEuro` in emails; no relative `/admin` link; vault notes corrected (audiences, signatures, routing).
 - **Status:** `tsc` and eslint clean; pushed to PR #12.
 - **Next:** one sauna and one stay booking through `/rezervacija` (signed in) with `EMAIL_IN_DEV=1`; env vars in Vercel.
 
 ## 2026-11-05 — Security review: inquiry email
+
 - **Changed:** `createInquiry` passes no customer email or phone to `notify` (the phone part was a pre-existing SMS-abuse path) (unverified form; would let anyone mail arbitrary addresses from our domain).
 - **Status:** committed on `feat/email-notifications` with the email work, new PR into `main` (PR #10 was already merged); `tsc` clean.
 - **Next:** test one sauna and one stay booking with `EMAIL_IN_DEV=1`; add the email env vars in Vercel.
 
 ## 2026-11-05 — Staff email per service
+
 - **Changed:** `STAFF_INBOX` + `serviceOfReference` in `lib/contacts.ts`; `notifyRequestFiled` takes a service; staff paid/duplicate emails routed by reference prefix.
 - **Status:** `tsc` and eslint clean; Resend keys added to `.env.local`, one direct test email accepted by Resend (HTTP 200). Booking emails through the app not tried yet.
 - **Next:** set `RESEND_API_KEY` + `NOTIFY_FROM_EMAIL`, test one sauna and one stay booking with `EMAIL_IN_DEV=1`.
 
 ## 2026-11-05 — Email notifications (Resend)
+
 - **Changed:** `lib/email/resend.ts` (shared sender, dev skip), `lib/email/notify.ts` (customer + staff email texts), `lib/notify.ts` (SMS + email per event); request, quad and admin status actions and the Stripe webhook call it (webhook reads `payments.customer_email` by `payment_id`); coupon email reuses the sender; `.env.example`, env note, utils catalog, api-architecture and ADR-0028 updated.
 - **Status:** `tsc` clean, eslint clean on changed files. Not sent for real: no booking filed in the browser (it would write to the live project), dev logs emails instead of sending.
 - **Next:** add `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, `STAFF_NOTIFY_EMAIL`, `SITE_URL` (local + Vercel), verify the sender domain in Resend, then one test booking with `EMAIL_IN_DEV=1`.
 
 ## 2026-11-04 — PR #10 and payment hardening
+
 - **Changed:** branch `feat/accounts-and-payments`, two commits and PR #10. After a security review: `checkoutUrl` only replaces a session Stripe reports expired (lookup errors fail instead of opening a second session), conditional `attach_payment_session` (loser's session is expired), webhook passes `p_payment_id` from metadata, `duplicate` payments are texted to staff; migration `20261104180000_payment_session_guards`.
 - **Status:** migration tested in a rolled-back transaction (stale attach refused, old session paid is found by id, repeat event not a duplicate, double charge flagged); `tsc`/eslint clean. Applied afterwards through the Supabase MCP on your instruction: ledger repaired, signatures and privileges verified live, regenerated types identical.
 - **Next:** restart dev with the Stripe keys, register the webhook, Stripe sandbox end-to-end test.
 
 ## 2026-11-04 — Mano rezervacijos rename and code-step buttons
+
 - **Changed:** `/paskyra` is titled and linked "Mano rezervacijos" (nav label, metadata, H1, reservations left and account right); code-step buttons restructured (confirm on its own row, secondary buttons wrap, `h-auto whitespace-normal`).
 - **Status:** `tsc`/eslint clean; signed-in page checked at 1024 px (shows PM-1068 and the profile); header nav wraps three labels at 1024 px (fits at 1280); button fix not yet seen live.
 - **Next:** restart the dev server for Stripe, cancel the PM-1068 test booking, verify the code-step buttons next time a code is sent.
 
 ## 2026-11-04 — Account page /paskyra and sign-in tests
+
 - **Changed:** `/paskyra` (`app/paskyra/page.tsx`, `components/account/*`, `lib/account*.ts`), `LoginForm` extracted from `AccountStep`, nav link, proxy matcher, migration `20261104170000_customer_own_requests` (applied via MCP, ledger repaired); added keys to the login views (fixes the uncontrolled-input warning on sign-out).
 - **Status:** new-account sign-in through checkout worked (Supabase `user_signedup`, one account for the phone, not staff); returning sign-in failed only because no code reached the phone (test-OTP override inactive, Twilio `30003`); policies tested in a rolled-back transaction; `tsc`/eslint clean; signed-out `/paskyra` checked at 1280 px; signed-in view not seen.
 - **Next:** make the test-OTP override take effect (check it is saved, format `37067312315=000000`), then sign in and check `/paskyra` and the checkout review/pay step; fix delivery (upgrade Twilio, alphanumeric or EU sender).
 
 ## 2026-11-04 — Applied the account and payment migrations
+
 - **Changed:** security review fix: `private.account_owns_contact` now needs every contact on the row (phone and email) to be the account's own. Applied `20261104150000_customer_accounts` and `20261104160000_stripe_payments` to project `mwngljhcvqkvncwbmgeo` through the Supabase MCP (verified the project ref first), repaired the migration ledger to the local file versions, regenerated `lib/supabase/database.types.ts` (kept `create_inquiry.p_date` nullable).
 - **Status:** objects verified live (payments table, 11 functions, `user_id`/`payment_id` columns, cron job, anon cannot call `start_payment`); `supabase db push --dry-run` says up to date; `tsc`/eslint clean.
 - **Next:** Supabase Auth setup (phone provider, email code template, custom SMTP), register the Stripe webhook, then test a real code and a real payment end to end.
 
 ## 2026-11-04 — Account login at checkout instead of the phone gate
+
 - **Changed:** ADR-0027. Removed `ReservationGate`; new `AccountStep` (phone or email one-time code via Supabase Auth, new account or sign-in), `app/actions/customer.ts`, `lib/customer.ts`, `lib/request-identity.ts` (`viaAccount` for the six booking actions); migration `20261104150000_customer_accounts` (`user_id`, trigger accepts the caller's confirmed phone or email); payments now matched by account; `proxy.ts` refreshes the session on `/rezervacija`.
 - **Status:** database rules verified in a rolled-back transaction (own phone/email allowed, foreign phone, unconfirmed account and anon blocked; payment lifecycle by account); `tsc`/eslint clean; browser: no gate, account step renders, unsupported prefix rejected. No real code sent yet (needs your phone/email and the Supabase dashboard settings); migrations not applied.
 - **Next:** apply both migrations in order, set up Supabase Auth (phone provider, email code template, custom SMTP), regenerate types, test real codes end to end.
 
 ## 2026-11-04 — Stripe payments on /rezervacija
+
 - **Changed:** pay-at-submit (full total, hosted Checkout) per ADR-0026: migration `20261104160000_stripe_payments` (payments table, `payment_id` links, service-role payment functions, cron, paid requests exempt from the 48 h expiry and the pending cap); server action `startReservationCheckout` + `resumeCheckout`; webhook route; return page `/rezervacija/mokejimas`; `awaitingPayment` flag holds back request SMS; admin Payment badge and refund note; review step copy and "Mokėti N €" button; vault notes, `.env.example`.
 - **Status:** `tsc` and eslint clean; migration logic verified in a rolled-back transaction (all cases pass); migration NOT applied (production push was refused in-session); no Stripe keys, so no Checkout round trip yet.
 - **Also:** removed the manual Checkout idempotency key (clashes with the changing expiry on retry; the SDK adds its own); confirmed with payments off `/rezervacija` still reaches the old review step and "Rezervuoti" button.
 - **Next:** apply the migration, regenerate types, add Stripe sandbox keys, register the webhook (`stripe listen` locally), run a test payment through paid / abandoned / refunded; consider an admin refund button.
 
 ## 2026-11-04 — Live database brought up to date with main
+
 - **Changed:** `supabase migration repair` for three already-applied migrations, then `db push --include-all` for `20261103213000_program_sessions_only_via_program_ticket`, `20261104130000_stay_booking_units`, `20261104140000_mixed_quad_rentals` on project `mwngljhcvqkvncwbmgeo`. Verified `bookings.stay_units`, `quad_rental_items`, `create_stay_booking_with_units`, `create_mixed_quad_rental` and the program guard exist. All feature branches were already in main and were deleted locally.
 - **Status:** `tsc` and eslint (app, components, lib, hooks) clean; `/rezervacija` checked at 1280 and 375 px (Pirtis, Nakvynė with live "Liko" counts, Keturračiai), no console errors, no overflow. Admin code on main already reads `stayUnits` and `quad_rental_items`; admin screens not seen logged in; no real submit tested.
 - **Next:** staff login to check admin Nakvynė/Keturračiai views with a mixed rental; test a real booking with a verified phone.
 
 ## 2026-11-04 — Page-by-page consistency sweep
+
 - **Changed:** ui Button/titles/tabs/table heads to font-bold; day-picker min-w so "Uždaryta" fits.
 - **Status:** `/`, `/renginiai`, `/kuponai`, `/skaiciuokle`, all 5 `/embed/*`, `/admin/prisijungti` measured in the browser (Termina only, 400/700, no overflow); logged-in admin screens not seen (needs staff login).
 - **Next:** log in and check admin pages; desktop width pass.
 
 ## 2026-11-04 — UI consistency audit and fixes
+
 - **Changed:** Termina for body (Work Sans dropped); new type roles `text-item/figure/heading/total` mapped across ~50 files; weights 400/700 only; hairlines on `border-line` tokens; ui Title bases use `text-item`.
 - **Status:** `tsc` + eslint clean; browser-checked /rezervacija (Pirtis flow through review, Nakvynė and Keturračiai tabs, extras popup) at phone width, no console errors; submit not exercised.
 - **Next:** eyeball reservation, calculator, booking at 375 / 1024 px.
 
 ---
+
 tags: [meta, session-log]
 updated: 2026-11-05
 ---
@@ -2331,105 +2464,124 @@ Entry format:
 ```
 
 ## 2026-11-04 06:20 — Calculator chapters, date, token cleanup
+
 - **Changed:** `calculator-groups.tsx` (new), `event-calculator.tsx`, `calculator-sections.tsx` (date picker, labels), `use-event-calculator.ts` (`chooseDate`, preset keeps date), `lib/event-pricing.ts` (`date`, `dayTypeOf`), `inquiry-form.tsx` (no own date), `step-label.tsx`, `stepper.tsx`, `choice-tile.tsx`, `booking-header.tsx`, `globals.css` (hack removed), border tokens across reservation and calculator components.
 - **Status:** verified on `/skaiciuokle`: three chapters with the first open, Saturday sets the evening/weekend tile, Monday the workday tile, preset keeps date, 24 px labels, hairline borders from the token; tsc and eslint clean. Other booking pages (/pirtis, /miegas, /keturraciai) and the home drawer not re-checked after the shared Stepper / ChoiceTile change.
 - **Next:** look at those pages; commit.
 
 ## 2026-11-04 05:40 — "Pasiliekem Marse" accordion in the calculator
+
 - **Changed:** `components/calculator/stay-section.tsx` (new), `calculator-sections.tsx` (section registered, controls moved out of extras).
 - **Status:** verified on `/skaiciuokle` at 1440 px (rows closed at start, chips and estimate update, no overflow at 375 px); tsc and eslint clean. The home drawer step was not opened.
 - **Next:** open the home drawer to check both new states; commit.
 
 ## 2026-11-04 05:10 — Calculator starts empty
+
 - **Changed:** `lib/event-pricing.ts` (nullable space/day/catering, guarded `estimate`), `use-event-calculator.ts`, `space-picker.tsx`, `estimate-summary.tsx` (empty state, gated inquiry), `event-calculator.tsx`, `calculator-drawer.tsx`, `calculator-sections.tsx`.
 - **Status:** verified on `/skaiciuokle`: nothing pressed at start, 0 €, no CTA until venue + day, presets still fill; tsc and eslint clean. The home calculator drawer was not opened in the browser.
 - **Next:** open the home drawer to check it; commit.
 
 ## 2026-11-04 04:40 — /skaiciuokle restyled
+
 - **Changed:** `components/booking/booking-header.tsx` (new, shared), `app/skaiciuokle/page.tsx`, `app/rezervacija/page.tsx` (uses the header), `components/calculator/*` (layout and styling), docs.
 - **Status:** checked at 1440 and 375 px: sticky estimate pins at 128 px, no overflow, reservation page unaffected; tsc and eslint clean. The home calculator drawer was not re-checked after the shared component restyle.
 - **Next:** check the home drawer; commit.
 
 ## 2026-11-04 04:10 — /rezervacija restyled to the reference design
+
 - **Changed:** `app/globals.css` (`.theme-reservation`), `app/rezervacija/page.tsx` (header, scope wrapper; rewritten after an empty-file mishap), option/session/tab/day/calendar/panel components, `data-slot` on `ChoiceTile` and `Stepper`, `design-system.md`.
 - **Status:** checked at 1440 px next to the reference (palette tokens resolve to the reference values; layout, borders, type match); tsc and eslint clean. Dev server needed a content change to globals.css before it recompiled.
 - **Next:** unchanged (commit, real test bookings, menu link).
 
 ## 2026-11-04 03:30 — No sauna/quads overlap in the plan
+
 - **Changed:** `lib/reservation.ts` (`planHours`, `busy` through the plan functions, two-pass `planAll`, `SessionRow.blocked`), `quad-time-pickers.tsx`, `quad-options.tsx`, `sauna-options.tsx`, `session-list.tsx`, `activities-step.tsx`.
 - **Status:** verified: sauna 12:00–15:00 → quad tiles 12/13/14 disabled "Jūsų plane", 11:00 limited to 1 h; quads at 11:00 → 6 sauna rows blocked, selected row stays. tsc and eslint clean.
 - **Next:** unchanged.
 
 ## 2026-11-04 03:00 — Plan timeline and date picker with calendar view
+
 - **Changed:** `plan-panel.tsx` (timeline), `lib/reservation.ts` (`startMin`, sorted `describePlans`), new `day-cell.tsx`, `month-calendar.tsx`, `date-picker.tsx`; `when-step.tsx` uses `DatePicker`.
 - **Status:** verified at 1280 and 375 px: timeline order quads 11:00 → sauna 15:00 → stay; calendar toggle keeps the selected day, month arrows disabled inside a single-month window, no overflow. tsc and eslint clean.
 - **Next:** unchanged.
 
 ## 2026-11-04 02:20 — Upsell popup: once per activity, quad-aware sauna offer
+
 - **Changed:** `reservation-flow.tsx` (offers tracked per day and activity), `lib/reservation.ts` (`extraOfferText` takes what is in the plan).
 - **Status:** verified: quads only → popup offers Pirtis ("prieš keturračius ar po jų") and Nakvynė; declining once means no repeat on the same day. tsc and eslint clean.
 - **Next:** unchanged.
 
 ## 2026-11-04 02:00 — Upsell popup before the contact step
+
 - **Changed:** `components/reservation/extras-offer-dialog.tsx` (new), `reservation-flow.tsx` (`next()` opens it once per day), `lib/reservation.ts` (`extraOfferText`); also removed the step bar, the "Seansai" label, the selection heading, the "įtraukta į planą" line and the icon legend.
 - **Status:** verified in the browser (offers Nakvynė + Keturračiai after picking a private program; "Peržiūrėti" opens the quads tab; second Toliau goes to contacts); tsc and eslint clean.
 - **Next:** unchanged.
 
 ## 2026-11-04 01:10 — Pirtis tab: one seansai timetable
+
 - **Changed:** `lib/reservation.ts` (`SessionRow`, `sessionRows`, `rowSelected`, `pickForRow`), `lib/sauna-programs.ts` (`programRateLine`), `components/reservation/session-list.tsx` (new), `sauna-options.tsx`, `sauna-hourly-options.tsx` (duration + extras only), `program-options.tsx` deleted.
 - **Status:** checked at 1280 and 375 px (31 rows for a normal day, 8 shown first; hourly row opens duration); tsc and eslint clean.
 - **Next:** unchanged; staff still need to create program sessions in Renginiai for them to appear.
 
 ## 2026-11-04 00:40 — /rezervacija: two-column layout, plan overview sticky from the top
+
 - **Changed:** `app/rezervacija/page.tsx` (header node), `reservation-flow.tsx` (one grid, header inside the left column), `reservation-gate.tsx` (header + narrow card), `when-step.tsx` (stacked), `plan-panel.tsx` (`self-start` so sticky works).
 - **Status:** checked at 1280 px (panel starts at the title and pins at 128 px while scrolling) and 375 px (no overflow); tsc and eslint clean.
 - **Next:** unchanged.
 
 ## 2026-11-04 00:20 — /rezervacija: no "add" step, choices always visible
+
 - **Changed:** `activities-step.tsx` (previews the tab from `defaultPick`, remove link, notice only when included), `sauna-options`, `quad-options`, `stay-options` (`included` prop gates follow-up options), step heading copy.
 - **Status:** verified in the browser: Pirtis, Nakvynė and Keturračiai choices show before any click; cabin size appears only after picking a type; Toliau stays disabled until something is picked. tsc and eslint clean.
 - **Next:** unchanged.
 
 ## 2026-11-03 23:59 — /rezervacija: tabs and date above a 3-step form
+
 - **Changed:** `reservation-flow.tsx` (tabs, `WhenStep`, 3 steps), `activities-step.tsx` (takes `tab`), `when-step.tsx` (two-column section), `step-nav.tsx` (any number of steps), `day-picker.tsx` (`relative` buttons, fixes mobile overflow), `lib/reservation.ts` (`ACTIVITY_TAB_ORDER`).
 - **Status:** works at 1280 and 375 px (no overflow), reaches the review step; tsc and eslint clean. Real submits still untested.
 - **Next:** unchanged: staff create program sessions, real test bookings, menu link, embed route, sitemap.
 
 ## 2026-11-03 23:30 — Sauna programs: admin editor and /rezervacija cards
+
 - **Changed:** `lib/sauna-programs.ts`, admin types/mapper/repository/store/actions (`programs`, `saveProgram`, `deleteProgram`, `programId` on events), `components/admin/sauna/program-*.tsx`, event dialog picker, public data (`programs`, `programId` on sessions), `createProgramTicket` / `createProgramBooking` actions and schemas, `lib/reservation.ts` program modes, Pirtis tab components. `tsc` and eslint clean.
 - **Status:** program cards and the private-program start grid checked in the browser (200 € for 15:00). Not verified: admin screens (login), session path (no sessions yet), real submits.
 - **Next:** staff create a session per program in Renginiai; test real bookings (session adults/children, private, hourly) with a verified phone; menu link, embed route, sitemap.
 
 ## 2026-11-03 22:00 — Sauna programs migration applied via the Supabase MCP
+
 - **Changed:** applied `sauna_programs` to the live Vanduo project after the user authenticated the official Supabase plugin (it lists `mwngljhcvqkvncwbmgeo`); renamed the local file to `20261103180450_sauna_programs.sql`; regenerated `lib/supabase/database.types.ts` (kept `create_inquiry.p_date: string | null`).
 - **Status:** table, columns, RLS, both RPCs and the six seed programs verified live; `tsc` clean. No app code uses them yet.
 - **Next:** admin programs editor, program cards in `/rezervacija`, real test bookings. Repair the 30 Oct ledger entries before any `supabase db push`.
 
 ## 2026-11-03 21:30 — Sauna programs: migration written, apply blocked
+
 - **Changed:** `supabase/migrations/20261103190000_sauna_programs.sql`; vault (changelog, ADR-0022, database note). No app code yet.
 - **Status:** NOT applied. MCP slots point at other projects; CLI is linked to Vanduo but its history lacks the two 30 Oct migrations (objects exist), and the `migration repair` command was denied by the permission classifier.
 - **Next:** user runs `supabase migration repair --status applied 20261030100000 20261030120000` then `supabase db push` (or says how to proceed); then regenerate `database.types.ts`, build the admin programs editor and the program cards in `/rezervacija`.
 
 ## 2026-11-03 20:45 — Availability icons on the day strip
+
 - **Changed:** `DayPicker` optional `icons`; `dayAvailability` in `lib/reservation.ts`; `activity-icons.ts` shared with the tabs; `WhenStep`, `ReservationFlow`.
 - **Status:** verified at 1280 px (today shows quads dimmed after closing); tsc and eslint clean.
 - **Next:** unchanged: real test bookings, menu link, embed route.
 
 ## 2026-11-03 20:15 — /rezervacija: step 1 is date and guests only
+
 - **Changed:** `lib/reservation.ts` (start hour per pick, `When` = day + people, `openHours` removed), `when-step`, `sauna-options`, `quad-options`, `activities-step`, `reservation-flow`, `activity-tabs` (equal width).
 - **Status:** works at 1280 px (sauna start grid, duration, extras, total); tsc and eslint clean; real submit still untested.
 - **Next:** same as before: real test bookings, menu link, embed route.
 
 ## 2026-11-03 19:30 — /rezervacija restyled to the live-site layout
+
 - **Changed:** `components/reservation/` (new `StepNav`, `StepHeading`, `OptionCard`, `ActivityTabs`, `PlanPanel`, `ReviewStep`, `ReservationGate`; options rewritten with cards; flow has its own 4-step state), `app/rezervacija/page.tsx` (big title, no hero/gallery).
 - **Status:** checked at 375 and 1280 px, no overflow, no console errors; real submit still untested.
 - **Next:** real test bookings with a verified phone; menu/header link, embed route, sitemap.
 
 ## 2026-11-03 18:00 — Combined booking page /rezervacija
+
 - **Changed:** new `app/rezervacija/page.tsx`, `components/reservation/*`, `lib/reservation.ts`; vault: changelog, ADR-0021, routing, components catalog. No DB changes.
 - **Status:** works in the browser at 375 and 1280 px (steps 1-3, all three activities, totals, plan summary). Checked with a placeholder phone verification, so the real submit (SMS-verified phone, RPCs, partial-failure retry) is NOT yet exercised end to end.
 - **Next:** submit a real test booking for each combination with a verified phone; add menu/header link, `/embed/rezervacija` and sitemap entry; decide on coupons and a shared group id.
-
 
 ## 2026-11-03 — vault initialised
 

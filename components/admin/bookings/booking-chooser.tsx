@@ -5,7 +5,7 @@ import { FormField } from "../form-field";
 import type { DayOptions } from "@/lib/admin/booking-options";
 import { formatEur } from "@/lib/admin/format";
 import type { ManagedEvent } from "@/lib/admin/types";
-import type { StayType } from "@/lib/cabin";
+import { stayTiersLabel, type StayType } from "@/lib/cabin";
 import type { QuadTourRoute, QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -20,6 +20,8 @@ interface BookingChooserProps {
   quads: { routes: readonly QuadTourRoute[]; types: readonly QuadType[] } | null;
   onPickTour: (route: QuadTourRoute) => void;
   onPickRental: () => void;
+  /** Opens the multi-space hire form; null hides the section (needs Rezervacijos). */
+  onPickSpaces: (() => void) | null;
   onPickEvent: (event: ManagedEvent) => void;
   onPickSauna: (sauna: Sauna) => void;
   onPickStay: (type: StayType) => void;
@@ -55,7 +57,7 @@ const placesLabel = (left: number | null) => (left === null ? "Be limito" : left
  * First step of a staff booking: a date, then what can be booked that day. Nothing is preselected, so a reservation
  * is only ever made for something staff chose: an event or session, a cabin or camper type, or a private sauna.
  */
-export function BookingChooser({ date, onDateChange, options, canTickets, quads, onPickTour, onPickRental, onPickEvent, onPickSauna, onPickStay }: BookingChooserProps) {
+export function BookingChooser({ date, onDateChange, options, canTickets, quads, onPickTour, onPickRental, onPickSpaces, onPickEvent, onPickSauna, onPickStay }: BookingChooserProps) {
   return (
     <div className="space-y-5">
       <FormField id="nb-choose-date" label="Data">
@@ -77,12 +79,18 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
         </Section>
       ) : null}
 
+      {onPickSpaces ? (
+        <Section title="Erdvės">
+          <Choice title="Erdvių nuoma" detail="Terasa, kupolas, „Corona“, restoranas, visas parkas" meta="Galima pasirinkti kelias erdves" onPick={onPickSpaces} />
+        </Section>
+      ) : null}
+
       <Section title="Apgyvendinimas" empty={options.stays.length === 0 ? "Apgyvendinimo tipų nėra." : undefined}>
         {options.stays.map(({ type, free }) => (
           <Choice
             key={type.id}
             title={type.label}
-            detail={`Iki ${type.maxGuests} žm. · ${formatEur(type.pricePerNight)} / naktį`}
+            detail={`Iki ${type.maxGuests} žm. · ${stayTiersLabel(type)} / naktį`}
             meta={free === null ? "Be limito" : free === 0 ? "Visi užimti" : `Laisvų: ${free}`}
             disabled={free === 0}
             onPick={() => onPickStay(type)}

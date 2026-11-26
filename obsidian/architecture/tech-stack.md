@@ -1,6 +1,6 @@
 ---
 tags: [architecture, stable]
-updated: 2026-11-01
+updated: 2026-11-19
 ---
 
 # Tech Stack
@@ -38,6 +38,7 @@ added, removed, or majorly upgraded — and add a [[changelog]] entry.
 | stripe | ^23.1.0 | Server-side Stripe client (`lib/stripe.ts`): hosted Checkout Sessions and webhook signature check for `/rezervacija` payments (ADR-0026) |
 | @supabase/ssr | ^0.7.0 | Cookie-based auth session for Server Components, Server Actions and `proxy.ts` |
 | server-only | ^0.0.1 | Build error if a server data module (`lib/data/public.ts`, `lib/admin/repository.ts`, `lib/supabase/server.ts`) is imported by client code |
+| @google/genai | ^3.4.0 | Google Gen AI SDK for the /admin AI assistant agent (Gemini 2.5 Flash, tools/function calling for bookings and search) |
 
 Backend: Supabase (Postgres + Auth), see [[database]] and ADR-0007.
 

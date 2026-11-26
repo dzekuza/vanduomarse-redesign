@@ -4,7 +4,7 @@ import { trackCheckout, trackLead } from "@/lib/analytics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams } from "next/navigation";
 import { z } from "zod";
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { saveCustomerName } from "@/app/actions/customer";
 import { startReservationCheckout } from "@/app/actions/payments";
@@ -17,7 +17,10 @@ import type { WakeOffer } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
-import { MAX_STAY_NIGHTS } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, STAY_BOOKING_DAYS } from "@/lib/cabin";
+import { loadSpendablePoints } from "@/app/actions/points";
+import { trackingForPlans } from "@/lib/analytics-kind";
+import { spendPreview, type SpendablePoints } from "@/lib/points";
 import { customerNameSchema } from "@/lib/customer-schema";
 import type { Customer } from "@/lib/customer-types";
 import { discountFor, isDiscountService, type CheckedDiscount } from "@/lib/discount-codes";
@@ -96,7 +99,6 @@ export function ReservationFlow({
   initialCustomer: Customer | null;
 }) {
   const { today } = data.sauna;
-  const days = useMemo(() => nextDays(today, RESERVATION_DAYS), [today]);
   const [step, setStep] = useState(0);
   const [payOnSite, setPayOnSite] = useState(false);
   const selectionHeader = useRef<HTMLDivElement>(null);
@@ -110,6 +112,9 @@ export function ReservationFlow({
   const wake = activeTab === "wake" && wakeProducts;
   const wakeBooking = useWakeBooking(wakeProducts);
   const tab = activeTab === "wake" ? tabs[0] : activeTab;
+  /** Cabins can be booked almost a year ahead (summer); the sauna and quads only as far as their loaded availability. */
+  const stayTab = tab === "nakvyne";
+  const days = useMemo(() => nextDays(today, stayTab ? STAY_BOOKING_DAYS : RESERVATION_DAYS), [today, stayTab]);
   /** The sauna's two ways to book are separate chips on /rezervacija; session when there are any, otherwise private hire. */
   const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => initialSaunaMode === "private" ? "private" : sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
   const chipTypes: ReservationType[] = availableTabs.flatMap<ReservationType>((id) => id === "pirtis" ? [...(saunaHasSessions(data.sauna) ? ["session" as const] : []), "private"] : [id]);
@@ -126,10 +131,33 @@ export function ReservationFlow({
   /** Stripe accepted the payment: the browser is on its way to Checkout. */
   const [redirecting, setRedirecting] = useState(false);
   const [customer, setCustomer] = useState<Customer | null>(initialCustomer);
+  // Points the signed-in customer can spend (ADR-0122): looked up once per account, since the customer may sign in inside the dialog.
+  const [wallet, setWallet] = useState<{ customerId: string; points: SpendablePoints | null } | null>(null);
+  const [usePoints, setUsePoints] = useState(false);
+  const customerId = customer?.id;
+  useEffect(() => {
+    if (!customerId || !payments) return;
+    let current = true;
+    void loadSpendablePoints()
+      .catch(() => null)
+      .then((points) => {
+        if (current) setWallet({ customerId, points });
+      });
+    return () => {
+      current = false;
+    };
+  }, [customerId, payments]);
+  const points = wallet && wallet.customerId === customerId ? wallet.points : null;
   const form = useForm<AccountValues>({
     resolver: zodResolver(accountSchema),
     defaultValues: { customerName: initialCustomer?.name ?? "", discountCode: "" },
   });
+  // Cached service pages learn who is signed in after they load, so a customer can arrive later than the first render.
+  const [seenCustomer, setSeenCustomer] = useState(initialCustomer);
+  if (initialCustomer !== seenCustomer) {
+    setSeenCustomer(initialCustomer);
+    if (initialCustomer) setCustomer((current) => current ?? initialCustomer);
+  }
   const [appliedDiscount, setDiscount] = useState<CheckedDiscount | null>(null);
   const [checkingCode, setCheckingCode] = useState(false);
   const onCheckingCode = useCallback((checking: boolean) => setCheckingCode(checking), []);
@@ -145,6 +173,7 @@ export function ReservationFlow({
   const plans = planAll(picks, data, when);
   const quadTour = quadTourPlan(data.quads, when, tourPick, planHours(plans.pirtis));
   const lines = describePlans(plans, when);
+  const tracking = trackingForPlans(plans);
   if (quadTour) lines.unshift(quadTour.line);
   const total = totalOf(lines);
   const discount = appliedDiscount;
@@ -152,6 +181,9 @@ export function ReservationFlow({
   const discountAmount = discount
     ? Math.round(lines.reduce((sum, line) => sum + (isDiscountService(line.id) ? discountFor(discount, line.id, line.price) : 0), 0) * 100) / 100
     : 0;
+  // Points only pay an online payment, and never take the cash charge under the Stripe minimum.
+  const spend = payments && !payOnSite && usePoints ? spendPreview(points, total - discountAmount) : { points: 0, euros: 0 };
+  const cashTotal = Math.max(Math.round((total - discountAmount - spend.euros) * 100) / 100, 0);
   const tracksPeople = Boolean(plans.pirtis && plans.pirtis.mode !== "private");
   const dateLabel = longDateLabel(date);
   const checkoutLabel = showStayDates && stayEnd ? longDateLabel(stayEnd) : null;
@@ -222,6 +254,16 @@ export function ReservationFlow({
     if (busy) return;
     setStep(0);
     const key = dateKey(next);
+    // Sauna and quad availability is only loaded for RESERVATION_DAYS: a cabin date beyond it cannot carry them.
+    if (key > dateKey(nextDays(today, RESERVATION_DAYS).at(-1) ?? next)) {
+      setTourPick(null);
+      setPicks((current) => {
+        const rest = { ...current };
+        delete rest.pirtis;
+        delete rest.keturraciai;
+        return rest;
+      });
+    }
     if (stayDatePhase !== "selectingEnd" || key <= day) {
       if (key !== day) setTourPick(null);
       setDate(next);
@@ -328,13 +370,13 @@ export function ReservationFlow({
       const result = await submitReservation(plans, when, contact, outcome?.sent ?? {}, discount, tourPick);
       // The code stopped holding (used up, expired) part-way: drop it so "Bandyti dar kartą" files the rest without it.
       if (DISCOUNT_HINTS.has(result.error?.code ?? "")) setDiscount(null);
-      if (!result.error) trackLead("reservation", { value: Math.max(total - discountAmount, 0) });
+      if (!result.error) trackLead(tracking.kind, { itemName: tracking.itemName, value: Math.max(total - discountAmount, 0) });
       setOutcome(result);
       return;
     }
     // Pay at submit: the server files every request and opens Checkout, or files nothing.
     form.clearErrors("root");
-    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code }, requests: requestsFor(plans, when, tourPick) });
+    const result = await startReservationCheckout({ contact: { customerName, discountCode: discount?.code, usePoints: spend.points > 0 }, requests: requestsFor(plans, when, tourPick) });
     if ("error" in result) {
       if (DISCOUNT_HINTS.has(result.error.code ?? "")) {
         // The code stopped holding between the check and the payment (used up, expired): ask again.
@@ -349,7 +391,7 @@ export function ReservationFlow({
       }
       return;
     }
-    trackCheckout("reservation", { value: Math.max(total - discountAmount, 0) });
+    trackCheckout(tracking.kind, { itemName: tracking.itemName, value: cashTotal });
     setRedirecting(true);
     window.location.assign(result.data.url);
   });
@@ -415,6 +457,11 @@ export function ReservationFlow({
                   setTab("pirtis");
                 } else {
                   setTab(type);
+                }
+                // A summer cabin date has no sauna or quad availability loaded: start those from today.
+                if (type !== "nakvyne" && dateKey(date) > dateKey(nextDays(today, RESERVATION_DAYS).at(-1) ?? date)) {
+                  setDate(nextDays(today, 1)[0]);
+                  setStayDatePhase("idle");
                 }
                 // Keep the address in step with the chip, so the header dropdown and a reload land on the same type.
                 window.history.replaceState(null, "", reservationHref(type));
@@ -552,6 +599,9 @@ export function ReservationFlow({
         total={total}
         discount={discount}
         discountAmount={discountAmount}
+        points={points}
+        usePoints={usePoints}
+        onUsePoints={setUsePoints}
         onDiscount={(next) => {
           form.clearErrors("discountCode");
           setDiscount(next);

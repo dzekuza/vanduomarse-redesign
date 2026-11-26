@@ -5,7 +5,7 @@ import { HouseIcon } from "@phosphor-icons/react";
 import { StepLabel } from "@/components/booking/step-label";
 import { CompactStepper } from "@/components/booking/stepper";
 import { FieldHeading } from "@/components/booking/field-heading";
-import { guestsLabel, stayTypesOf } from "@/lib/cabin";
+import { guestsLabel, stayRateLabel, stayTypesOf } from "@/lib/cabin";
 import { PRICES } from "@/lib/event-pricing";
 import { nextDays } from "@/lib/sauna";
 import { CalculatorQuantityCard } from "./calculator-option-card";
@@ -56,16 +56,16 @@ function CabinOptions({ calc: { input, set, setCabinUnits, stayTypes } }: { calc
         <FieldHeading icon={HouseIcon}>Namelio tipas</FieldHeading>
         <BedNotice className="mb-3" />
         <div className="grid gap-3 lg:grid-cols-2">
-          {stayTypesOf(stayTypes, "namelis").map(({ id, label, maxGuests, pricePerNight, units }) => (
+          {stayTypesOf(stayTypes, "namelis").map((type) => (
             <CalculatorQuantityCard
-              key={id}
-              eyebrow={guestsLabel(maxGuests)}
-              title={label}
-              price={`${pricePerNight} € už namelį per naktį`}
+              key={type.id}
+              eyebrow={guestsLabel(type.maxGuests)}
+              title={type.label}
+              price={`${stayRateLabel(type)} už namelį`}
               label="Kiekis"
-              value={input.cabinUnits[id] ?? 0}
-              max={units ?? 20}
-              onChange={(count) => setCabinUnits(id, count)}
+              value={input.cabinUnits[type.id] ?? 0}
+              max={type.units ?? 20}
+              onChange={(count) => setCabinUnits(type.id, count)}
             />
           ))}
         </div>

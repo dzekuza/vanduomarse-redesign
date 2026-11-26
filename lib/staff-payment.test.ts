@@ -84,6 +84,7 @@ describe("requestStaffPayment", () => {
       paymentId: payment.payment_id,
       amount: 140,
       emailSent: true,
+      smsSent: false,
       url: "https://pay.test/cs_1",
     });
     const params = sessionsCreate.mock.calls[0][0] as {

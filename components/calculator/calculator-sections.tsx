@@ -18,11 +18,11 @@ interface SectionProps {
   calc: EventCalculatorState;
 }
 
-function TypeSection({ calc: { input, set, applyPreset } }: SectionProps) {
+function TypeSection({ calc: { input, set, applyPreset, catalog } }: SectionProps) {
   return (
     <section className="@container">
       <StepLabel step={1}>Renginio tipas</StepLabel>
-      <PresetPicker selected={input.preset} onSelect={(id) => (input.preset === id ? set("preset", null) : applyPreset(id))} />
+      <PresetPicker presets={catalog.presets} selected={input.preset} onSelect={(id) => (input.preset === id ? set("preset", null) : applyPreset(id))} />
       <p className="mt-3 text-xs text-copy">Pagal renginio tipą parenkame įprastą asmenų skaičių. Erdvę, datą ir kitus pasirinkimus gali keisti.</p>
     </section>
   );

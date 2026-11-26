@@ -1,4 +1,4 @@
-import { stayTypesOf, type StayType } from "./cabin";
+import { stayPrice, stayTypesOf, type StayType } from "./cabin";
 import { sessionPrice, type Sauna } from "./sauna";
 import { durationLabel, programTotal, type SaunaProgram } from "./sauna-programs";
 import { upsellTotal, type Upsell } from "./sauna-upsells";
@@ -259,37 +259,16 @@ export const CAMP_WEEKEND_MEALS: Record<CampMealId, number> = { breakfast: 2, lu
 
 /* ---------- Event presets (sheet section 3) ---------- */
 
-export type PresetId =
-  | "vestuves"
-  | "vestuves-kamerines"
-  | "krikstynos"
-  | "gimtadienis"
-  | "teambuilding"
-  | "imones-svente"
-  | "konferencija"
-  | "bernvakaris"
-  | "stovykla";
-
+/** An event type (renginio tipas) from `public.event_presets`, edited in /admin/kainos. */
 export interface EventPreset {
-  id: PresetId;
+  id: string;
   label: string;
-  /** Typical price per guest from the sheet; null when there is none (camps are priced by their parts). */
-  perGuest: Money | null;
+  /** Typical price per guest; 0-0 when there is none (a camp is priced by its parts), and then it is not shown. */
+  perGuest: Money;
   /** Only the typical group size: venue, day, catering and services are always the visitor's own choice. */
-  apply: Pick<Partial<EstimateInput>, "adults" | "kids">;
+  adults: number;
+  kids: number;
 }
-
-export const PRESETS: EventPreset[] = [
-  { id: "stovykla", label: "Stovykla", perGuest: null, apply: { adults: 30 } },
-  { id: "vestuves", label: "Vestuvės", perGuest: range(55, 95), apply: { adults: 120 } },
-  { id: "vestuves-kamerines", label: "Kamerinės vestuvės", perGuest: range(45, 70), apply: { adults: 30 } },
-  { id: "krikstynos", label: "Krikštynos", perGuest: range(25, 45), apply: { adults: 20, kids: 5 } },
-  { id: "gimtadienis", label: "Gimtadienis", perGuest: range(35, 65), apply: { adults: 25 } },
-  { id: "teambuilding", label: "Komandos diena", perGuest: range(45, 85), apply: { adults: 40 } },
-  { id: "imones-svente", label: "Įmonės šventė", perGuest: range(60, 120), apply: { adults: 300 } },
-  { id: "konferencija", label: "Konferencija", perGuest: range(15, 35), apply: { adults: 60 } },
-  { id: "bernvakaris", label: "Bernvakaris / mergvakaris", perGuest: range(153, 238), apply: { adults: 15 } },
-];
 
 /* ---------- Estimate ---------- */
 
@@ -314,12 +293,14 @@ export interface CalculatorCatalog {
   programs: readonly SaunaProgram[];
   /** Active extras; each sauna offers the ones in its `upsellIds`. */
   upsells: readonly Upsell[];
+  /** Active event types, in display order. */
+  presets: readonly EventPreset[];
 }
 
-export const EMPTY_CATALOG: CalculatorCatalog = { stayTypes: [], saunas: [], programs: [], upsells: [] };
+export const EMPTY_CATALOG: CalculatorCatalog = { stayTypes: [], saunas: [], programs: [], upsells: [], presets: [] };
 
 export interface EstimateInput {
-  preset: PresetId | null;
+  preset: string | null;
   /** yyyy-mm-dd of the event, null until chosen. */
   date: string | null;
   /** yyyy-mm-dd of the last day of a multi-day event; null for a single day. Camp days and cabin nights follow it. */
@@ -523,7 +504,7 @@ export function estimate(input: EstimateInput, { stayTypes, saunas, programs, up
   for (const cabin of stayTypesOf(stayTypes, "namelis")) {
     const units = input.cabinUnits[cabin.id] ?? 0;
     if (units > 0) {
-      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(cabin.pricePerNight * units * input.cabinNights));
+      push("Nakvynė", `${cabin.label} · ${units} vnt. × ${input.cabinNights} n.`, fixed(stayPrice(cabin, input.cabinNights, units, input.date ?? undefined)));
     }
   }
 

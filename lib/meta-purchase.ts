@@ -23,6 +23,8 @@ export interface VerifiedPurchase {
   value: number;
   /** Discount code on the order itself. */
   coupon?: string;
+  /** What was bought (sauna, stay, event_registration, quad_rental, or "reservation" for a mix), when it can be told; defaults to the payment kind. */
+  category?: string;
   user: Pick<CapiUser, "email" | "phone" | "firstName" | "lastName" | "externalId">;
 }
 
@@ -31,6 +33,25 @@ const PURCHASE_WINDOW_MS = 48 * 60 * 60 * 1000;
 const STRIPE_SESSION = /^cs_[A-Za-z0-9_]{10,200}$/;
 
 const recentlyPaid = (paidAt: string | null) => Boolean(paidAt) && Date.now() - new Date(paidAt as string).getTime() < PURCHASE_WINDOW_MS;
+
+/** What a reservation payment paid for, so sauna, stay, event and quad sales can be told apart in Meta; a mix or any failure reads "reservation". */
+async function reservationCategory(admin: ReturnType<typeof createAdminClient>, paymentId: string): Promise<string> {
+  try {
+    const [bookings, tickets, rentals] = await Promise.all([
+      admin.from("bookings").select("kind").eq("payment_id", paymentId),
+      admin.from("event_tickets").select("id").eq("payment_id", paymentId),
+      admin.from("quad_rentals").select("id").eq("payment_id", paymentId),
+    ]);
+    const kinds = new Set<string>([
+      ...(Array.isArray(bookings.data) ? bookings.data.map(({ kind }) => (kind === "pirtis" ? "sauna" : "stay")) : []),
+      ...(Array.isArray(tickets.data) && tickets.data.length ? ["event_registration"] : []),
+      ...(Array.isArray(rentals.data) && rentals.data.length ? ["quad_rental"] : []),
+    ]);
+    return kinds.size === 1 ? [...kinds][0] : "reservation";
+  } catch {
+    return "reservation";
+  }
+}
 
 /**
  * The paid row the proof (the reservation payment id, or the Stripe Checkout session id) points to, or null when it is unknown, not (or no longer) paid, or paid too long ago.
@@ -42,7 +63,7 @@ export async function verifyPurchase(kind: PurchaseKind, proof: string): Promise
     if (!z.uuid().safeParse(proof).success) return null;
     const { data } = await admin.from("payments").select("id, status, amount, paid_at, customer_email, customer_phone").eq("id", proof).maybeSingle();
     if (!data || data.status !== "apmoketa" || !recentlyPaid(data.paid_at)) return null;
-    return { transactionId: data.id, value: Number(data.amount), user: { email: data.customer_email, phone: data.customer_phone } };
+    return { transactionId: data.id, value: Number(data.amount), category: await reservationCategory(admin, data.id), user: { email: data.customer_email, phone: data.customer_phone } };
   }
   if (!STRIPE_SESSION.test(proof)) return null;
   if (kind === "coupon") {
@@ -120,7 +141,7 @@ export async function reportPurchaseFromWebhook(kind: PurchaseKind, proof: strin
       sourceUrl: `${SITE_URL}${SOURCE_PATH[kind]}`,
       time: Math.floor(Date.now() / 1000),
       user: { ip: tracking.ip, userAgent: tracking.userAgent, fbp: tracking.fbp, fbc: tracking.fbc, ...paid.user },
-      custom: { value: Math.round(paid.value * 100) / 100, currency: "EUR", content_category: kind, ...(paid.coupon ? { coupon: paid.coupon } : {}) },
+      custom: { value: Math.round(paid.value * 100) / 100, currency: "EUR", content_category: paid.category ?? kind, ...(paid.coupon ? { coupon: paid.coupon } : {}) },
     });
   } catch (e) {
     console.error(`Meta purchase report failed (${kind}):`, e instanceof Error ? e.message : e);

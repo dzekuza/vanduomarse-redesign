@@ -170,7 +170,7 @@ const staffRentalInput = z.object({
 });
 
 /** The new rental, and for an unpaid one whether the payment-link e-mail went out. */
-export type CreatedRental = { rental: QuadRental; emailSent?: boolean; paymentUrl?: string };
+export type CreatedRental = { rental: QuadRental; emailSent?: boolean; smsSent?: boolean; paymentUrl?: string };
 
 export type StaffRentalInput = z.infer<typeof staffRentalInput>;
 
@@ -222,10 +222,10 @@ export async function createRental(input: StaffRentalInput): Promise<ActionResul
   if (!unpaid) return done({ rental });
   // Not paid at entry: open a payment and e-mail the link; without it the rental would sit unpaid, so it is removed again.
   const summary = describeRequest(["Keturračiai", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${total} EUR`]);
-  const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+  const paymentRequest = await requestStaffPayment({ reference: row.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (!paymentRequest.ok) return removeFailedRequest(ctx.supabase, "quad_rentals", row.id, row.reference, paymentRequest);
-  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
-  return done({ rental, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
+  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, pointsDiscount: 0, needsReview: false };
+  return done({ rental, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }
 
 const staffTourInput = z.object({
@@ -301,11 +301,11 @@ export async function createQuadTour(input: StaffTourInput): Promise<ActionResul
   // Not paid at entry: open a payment and e-mail the link; without it the tour would sit unpaid, so it is removed again.
   const problem = staffPaymentProblem(v.customer.email, row.total);
   const summary = describeRequest(["Keturračių turas", v.date, `${String(v.startHour).padStart(2, "0")}:00`, `${row.total} EUR`]);
-  const paymentRequest = problem ? null : await requestStaffPayment({ reference: row.reference, email: v.customer.email, summary });
+  const paymentRequest = problem ? null : await requestStaffPayment({ reference: row.reference, email: v.customer.email, phone: v.customer.phone, summary });
   if (problem || !paymentRequest?.ok) {
     const failure = problem ?? (paymentRequest && !paymentRequest.ok ? paymentRequest : null);
     return removeFailedRequest(ctx.supabase, "quad_rentals", id, row.reference, { message: failure?.message ?? "Nepavyko sukurti apmokėjimo nuorodos.", code: failure?.code ?? "payment" });
   }
-  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, needsReview: false };
-  return done({ rental, emailSent: paymentRequest.emailSent, paymentUrl: paymentRequest.url });
+  rental.payment = { id: paymentRequest.paymentId, status: "laukia", amount: paymentRequest.amount, refunded: 0, pointsDiscount: 0, needsReview: false };
+  return done({ rental, emailSent: paymentRequest.emailSent, smsSent: paymentRequest.smsSent, paymentUrl: paymentRequest.url });
 }

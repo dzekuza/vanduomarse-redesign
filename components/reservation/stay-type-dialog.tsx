@@ -7,7 +7,7 @@ import { SERVICE_GALLERY } from "@/components/landing/content";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BedNotice } from "@/components/booking/bed-notice";
-import { MAX_STAY_NIGHTS, hasUpperFloor, type StayType } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, hasUpperFloor, stayRateLabel, type StayType } from "@/lib/cabin";
 
 interface StayTypeDialogProps {
   type: StayType;
@@ -16,7 +16,7 @@ interface StayTypeDialogProps {
 
 /** Details of one stay type (cabin size or camper pitch), opened from the info icon in the corner of its card. */
 export function StayTypeDialog({ type, className }: StayTypeDialogProps) {
-  const { label: title, pricePerNight: price, maxGuests: guests } = type;
+  const { label: title, maxGuests: guests } = type;
   const camper = type.kind === "kemperis";
   const photo = camper ? undefined : SERVICE_GALLERY.cabins[0];
 
@@ -49,7 +49,7 @@ export function StayTypeDialog({ type, className }: StayTypeDialogProps) {
             </div>
             <div className="space-y-2">
               <dt className="text-micro uppercase text-copy">Kaina</dt>
-              <dd className="text-sm font-bold">{price} € / naktį</dd>
+              <dd className="text-sm font-bold">{stayRateLabel(type)}</dd>
             </div>
             <div className="space-y-2">
               <dt className="text-micro uppercase text-copy">Naktų</dt>

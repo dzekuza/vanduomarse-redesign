@@ -2,6 +2,9 @@
   "name": "vanduomarse-redesign",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "pnpm build:wp-plugin && next build",
@@ -16,6 +19,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@google/genai": "^3.4.0",
     "@hookform/resolvers": "^5.9.2",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.7.0",

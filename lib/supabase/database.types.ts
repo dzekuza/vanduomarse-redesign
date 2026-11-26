@@ -455,6 +455,42 @@ export type Database = {
         }
         Relationships: []
       }
+      event_presets: {
+        Row: {
+          active: boolean
+          adults: number
+          id: string
+          kids: number
+          label: string
+          per_guest_max: number
+          per_guest_min: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          adults: number
+          id: string
+          kids?: number
+          label: string
+          per_guest_max: number
+          per_guest_min: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          adults?: number
+          id?: string
+          kids?: number
+          label?: string
+          per_guest_max?: number
+          per_guest_min?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_tickets: {
         Row: {
           children: number
@@ -964,6 +1000,9 @@ export type Database = {
           id: string
           needs_review: boolean
           paid_at: string | null
+          points_discount: number
+          points_rider_id: string | null
+          points_spent: number
           refunded: number
           staff_created: boolean
           status: string
@@ -981,6 +1020,9 @@ export type Database = {
           id?: string
           needs_review?: boolean
           paid_at?: string | null
+          points_discount?: number
+          points_rider_id?: string | null
+          points_spent?: number
           refunded?: number
           staff_created?: boolean
           status?: string
@@ -998,6 +1040,9 @@ export type Database = {
           id?: string
           needs_review?: boolean
           paid_at?: string | null
+          points_discount?: number
+          points_rider_id?: string | null
+          points_spent?: number
           refunded?: number
           staff_created?: boolean
           status?: string
@@ -1861,6 +1906,80 @@ export type Database = {
           },
         ]
       }
+      loyalty_settings: {
+        Row: {
+          earn_points_per_euro: number
+          enabled: boolean
+          id: boolean
+          point_value_eur: number
+          updated_at: string
+        }
+        Insert: {
+          earn_points_per_euro?: number
+          enabled?: boolean
+          id?: boolean
+          point_value_eur?: number
+          updated_at?: string
+        }
+        Update: {
+          earn_points_per_euro?: number
+          enabled?: boolean
+          id?: boolean
+          point_value_eur?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      points_ledger: {
+        Row: {
+          balance_after: number
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          kind: string
+          parent_source_id: string | null
+          reason: string
+          rider_id: string
+          source_id: string | null
+          source_kind: string | null
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          kind: string
+          parent_source_id?: string | null
+          reason?: string
+          rider_id: string
+          source_id?: string | null
+          source_kind?: string | null
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          kind?: string
+          parent_source_id?: string | null
+          reason?: string
+          rider_id?: string
+          source_id?: string | null
+          source_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_ledger_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       riders: {
         Row: {
           avatar_path: string | null
@@ -1875,6 +1994,7 @@ export type Database = {
           phone: string | null
           phone2: string | null
           plan_id: string | null
+          points_balance: number
           self_registered: boolean
           surname: string
           updated_at: string
@@ -1892,6 +2012,7 @@ export type Database = {
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
+          points_balance?: number
           self_registered?: boolean
           surname: string
           updated_at?: string
@@ -1909,6 +2030,7 @@ export type Database = {
           phone?: string | null
           phone2?: string | null
           plan_id?: string | null
+          points_balance?: number
           self_registered?: boolean
           surname?: string
           updated_at?: string
@@ -2410,6 +2532,107 @@ export type Database = {
         }
         Relationships: []
       }
+      space_bookings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          customer_surname: string
+          date: string
+          end_date: string
+          end_time: string
+          guests: number
+          id: string
+          note: string
+          price: number
+          spaces: string[]
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          customer_surname?: string
+          date: string
+          end_date: string
+          end_time: string
+          guests?: number
+          id?: string
+          note?: string
+          price?: number
+          spaces: string[]
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          customer_surname?: string
+          date?: string
+          end_date?: string
+          end_time?: string
+          guests?: number
+          id?: string
+          note?: string
+          price?: number
+          spaces?: string[]
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stay_type_seasons: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
+          starts_on: string
+          stay_type_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
+          starts_on: string
+          stay_type_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          price_per_night?: number
+          price_per_night_2?: number
+          price_per_night_3?: number
+          starts_on?: string
+          stay_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stay_type_seasons_stay_type_id_fkey"
+            columns: ["stay_type_id"]
+            isOneToOne: false
+            referencedRelation: "stay_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stay_types: {
         Row: {
           active: boolean
@@ -2419,6 +2642,8 @@ export type Database = {
           max_guests: number
           note: string
           price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
           sort_order: number
           units: number | null
           updated_at: string
@@ -2431,6 +2656,8 @@ export type Database = {
           max_guests: number
           note?: string
           price_per_night: number
+          price_per_night_2: number
+          price_per_night_3: number
           sort_order?: number
           units?: number | null
           updated_at?: string
@@ -2443,6 +2670,8 @@ export type Database = {
           max_guests?: number
           note?: string
           price_per_night?: number
+          price_per_night_2?: number
+          price_per_night_3?: number
           sort_order?: number
           units?: number | null
           updated_at?: string
@@ -2454,6 +2683,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      save_stay_type: {
+        Args: { p_seasons: Json; p_type: Json }
+        Returns: undefined
+      }
       payment_requests: {
         Args: { p_payment_id: string }
         Returns: {
@@ -2516,6 +2749,36 @@ export type Database = {
       auth_user_has_password: {
         Args: { p_user: string }
         Returns: boolean
+      }
+      adjust_rider_points: {
+        Args: { p_delta: number; p_reason: string; p_rider: string }
+        Returns: number
+      }
+      redeem_points_on_payment: {
+        Args: { p_payment_id: string; p_points: number; p_user: string }
+        Returns: {
+          amount: number
+          points_discount: number
+          points_spent: number
+        }[]
+      }
+      my_spendable_points: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance: number
+          enabled: boolean
+          point_value_eur: number
+        }[]
+      }
+      my_points: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance: number
+          entries: Json
+          primary_match: boolean
+          rider_id: string
+          rider_name: string
+        }[]
       }
       my_riders: {
         Args: Record<PropertyKey, never>

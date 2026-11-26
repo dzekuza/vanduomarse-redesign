@@ -41,7 +41,7 @@ export function NavDropdown({ link }: { link: NavLink & { children: NonNullable<
       onBlur={(event) => !event.currentTarget.contains(event.relatedTarget) && setOpen(false)}
     >
       <div className="flex items-center">
-        <Link href={link.href} className={LINK_UNDERLINE} onClick={() => setOpen(false)}>{link.label}</Link>
+        <Link prefetch={false} href={link.href} className={LINK_UNDERLINE} onClick={() => setOpen(false)}>{link.label}</Link>
         <button
           type="button"
           aria-label={`${link.label}: rodyti pasirinkimus`}
@@ -58,7 +58,7 @@ export function NavDropdown({ link }: { link: NavLink & { children: NonNullable<
         <ul className="min-w-56 border border-line-on-ink bg-ink py-2 text-dust shadow-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-150">
           {link.children.map((child) => (
             <li key={child.href}>
-              <Link href={child.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center px-4 text-xs font-bold hover:bg-ink-soft hover:text-rust focus-visible:bg-ink-soft focus-visible:text-rust">
+              <Link prefetch={false} href={child.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center px-4 text-xs font-bold hover:bg-ink-soft hover:text-rust focus-visible:bg-ink-soft focus-visible:text-rust">
                 {child.label}
               </Link>
             </li>

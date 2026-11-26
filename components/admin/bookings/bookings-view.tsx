@@ -40,6 +40,7 @@ export function BookingsView() {
   const [sort, setSort] = useState<SortState<SortKey> | null>(null);
   const [openEventId, setOpenEventId] = useState<string | null>(null);
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
+  const [ticketEventId, setTicketEventId] = useState<string | null>(null);
   const [filters, setFilters] = useState(INITIAL);
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -177,9 +178,17 @@ export function BookingsView() {
           </Card>
           <p className="text-sm text-muted-foreground">Rodoma: {list.length}</p>
           <BookingSheet booking={bookings.find((b) => b.id === openId) ?? null} onOpenChange={(o) => !o && setOpenId(null)} />
-          <EventSheet event={events.find((e) => e.id === openEventId) ?? null} onOpenChange={(o) => !o && setOpenEventId(null)} onEdit={(event) => { setOpenEventId(null); setEditingEvent(event); }} />
+          <EventSheet
+            event={events.find((e) => e.id === openEventId) ?? null}
+            onOpenChange={(o) => !o && setOpenEventId(null)}
+            onEdit={(event) => { setOpenEventId(null); setEditingEvent(event); }}
+            onAddTicket={(event) => { setOpenEventId(null); setTicketEventId(event.id); }}
+          />
           {editingEvent ? <EventDialog key={editingEvent.id} open event={editingEvent} onOpenChange={(o) => !o && setEditingEvent(null)} /> : null}
           {newOpen ? <NewBookingDialog onOpenChange={setNewOpen} onCreated={setOpenId} /> : null}
+          {ticketEventId ? (
+            <NewBookingDialog initial={{ eventId: ticketEventId }} onOpenChange={(o) => !o && setTicketEventId(null)} onCreated={() => setTicketEventId(null)} />
+          ) : null}
         </TabsContent>
         <TabsContent value="kalendorius" className="mt-6">
           <BookingCalendarTab />

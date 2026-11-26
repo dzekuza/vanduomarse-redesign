@@ -3,7 +3,7 @@ import { RegistrationPageContent, type RegistrationParams } from "@/components/r
 import { WAKE_BLACK_FRIDAY_PATH } from "@/lib/wake-black-friday";
 
 export const metadata: Metadata = {
-  title: "Black Friday WAKE sezono abonementas | Vanduo Marse",
+  title: "Black Friday WAKE sezono abonementas",
   alternates: { canonical: WAKE_BLACK_FRIDAY_PATH },
   robots: { index: false, follow: true },
 };

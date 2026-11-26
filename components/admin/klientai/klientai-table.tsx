@@ -46,6 +46,7 @@ export function KlientaiTable({ riders, riderCards, accountIds, lastActivity, on
             <TableHead className="hidden md:table-cell">Kontaktai</TableHead>
             <TableHead className="hidden sm:table-cell">Planas</TableHead>
             <TableHead className="hidden lg:table-cell">Apyrankė</TableHead>
+            <TableHead className="hidden text-right lg:table-cell">Taškai</TableHead>
             <TableHead className="hidden xl:table-cell">Paskutinė veikla</TableHead>
             <TableHead className="pr-4 text-right">
               <span className="sr-only">Veiksmai</span>
@@ -90,6 +91,7 @@ export function KlientaiTable({ riders, riderCards, accountIds, lastActivity, on
                 <TableCell className="hidden lg:table-cell">
                   {card ? <span className="font-mono text-xs">{card.cardNumber}</span> : <span className="text-xs text-muted-foreground">Nėra apyrankės</span>}
                 </TableCell>
+                <TableCell className="hidden text-right tabular-nums lg:table-cell">{r.pointsBalance > 0 ? r.pointsBalance : <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell className="hidden whitespace-nowrap text-muted-foreground xl:table-cell">{last ? formatDateTime(last) : "—"}</TableCell>
                 <TableCell className="pr-4 text-right">
                   <Button

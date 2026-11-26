@@ -5,7 +5,7 @@ import type { StayType } from "@/lib/cabin";
 
 const event = (over: Partial<ManagedEvent>) =>
   ({ id: "e", title: "Seansas", category: "pirtis", date: "2026-11-20", time: "18:00", place: "Pirtis", blurb: "", price: 10, capacity: 10, sold: 3, held: 2, published: true, ...over }) as ManagedEvent;
-const stay = (over: Partial<StayType>): StayType => ({ id: "namelis-2", kind: "namelis", label: "Namelis 2", note: "", maxGuests: 2, pricePerNight: 80, units: 3, active: true, sortOrder: 1, ...over });
+const stay = (over: Partial<StayType>): StayType => ({ id: "namelis-2", kind: "namelis", label: "Namelis 2", note: "", maxGuests: 2, pricePerNight: 80, pricePerNight2: 80, pricePerNight3: 80, seasons: [], units: 3, active: true, sortOrder: 1, ...over });
 const stayBooking = { id: "b", reference: "R", kind: "namelis", stayTypeId: "namelis-2", stayUnits: 2, nights: 2, date: "2026-11-19", status: "patvirtinta", customer: { name: "A", phone: "", email: "" }, guests: 2, extras: [], total: 0, createdAt: "" } as Booking;
 
 const base: BookingOptionsSource = { events: [], bookings: [], blocks: [], saunas: [], stayTypes: [], externalBlocks: [] };

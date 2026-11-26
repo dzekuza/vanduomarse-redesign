@@ -54,7 +54,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
         menuOpen && "text-ink",
       )}
     >
-      <Link href={logoHref} aria-label="Vanduo Marse, pradžia" className="w-29 shrink-0 md:w-35">
+      <Link prefetch={false} href={logoHref} aria-label="Vanduo Marse, pradžia" className="w-29 shrink-0 md:w-35">
         <Image src="/brand/logo-light.svg" alt="Vanduo Marse" width={121} height={46} loading="eager" fetchPriority="high" className="h-auto w-full" />
       </Link>
       <nav aria-label="Pagrindinis meniu" className="hidden items-center gap-8 text-xs xl:flex">
@@ -63,6 +63,7 @@ export function SiteHeader({ nav, cta, menu, placement, logoHref }: SiteHeaderPr
             <NavDropdown key={l.href} link={{ ...l, children: l.children }} />
           ) : (
             <Link
+            prefetch={false}
               key={l.href}
               href={l.href}
               className="relative inline-flex min-h-11 items-center whitespace-nowrap after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-200 motion-safe:after:ease-out-strong hover:after:scale-x-100"
