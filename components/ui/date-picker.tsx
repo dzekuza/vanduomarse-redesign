@@ -14,6 +14,8 @@ interface DatePickerProps {
   onChange: (value: string) => void
   min?: string
   max?: string
+  /** Month the calendar opens on while empty, e.g. the paired "Nuo" date for an "Iki" field (pass it as `min` too). */
+  openOn?: string
   placeholder?: string
   invalid?: boolean
   describedBy?: string
@@ -32,7 +34,7 @@ const shortDate = (key: string) => {
 }
 
 /** Date field that opens a month calendar; the value stays a plain yyyy-mm-dd string, like `<input type="date">`. */
-export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasirink datą", invalid, describedBy, className, dayDetails, calendarFooter }: DatePickerProps) {
+export function DatePicker({ id, value, onChange, min, max, openOn, placeholder = "Pasirink datą", invalid, describedBy, className, dayDetails, calendarFooter }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const today = todayKey()
   const todayOff = Boolean((min && today < min) || (max && today > max))
@@ -59,7 +61,7 @@ export function DatePicker({ id, value, onChange, min, max, placeholder = "Pasir
         </button>
       </PopoverTrigger>
       <PopoverContent className="border-border">
-        <CalendarGrid value={value} min={min} max={max} onSelect={pick} dayDetails={dayDetails} />
+        <CalendarGrid value={value} min={min} max={max} openOn={openOn || undefined} onSelect={pick} dayDetails={dayDetails} />
         {calendarFooter ? <div className="mt-2 border-t border-line pt-3">{calendarFooter}</div> : null}
         <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-xs font-bold">
           <button type="button" disabled={todayOff} onClick={() => pick(today)} className="min-h-11 px-2 transition-opacity duration-150 enabled:hover:underline disabled:opacity-30">

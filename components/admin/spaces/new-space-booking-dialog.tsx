@@ -117,7 +117,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
             <Input id="sb-start" type="time" aria-invalid={!!err.startTime} className="min-h-11" {...register("startTime")} />
           </FormField>
           <FormField id="sb-end-date" label="Iki datos" error={err.endDate?.message} hint="Kelių dienų nuomai pasirinkite vėlesnę datą.">
-            <Controller control={control} name="endDate" render={({ field }) => <DatePicker id="sb-end-date" value={field.value} min={day} invalid={!!err.endDate} onChange={field.onChange} />} />
+            <Controller control={control} name="endDate" render={({ field }) => <DatePicker id="sb-end-date" value={field.value} min={day} openOn={day} invalid={!!err.endDate} onChange={field.onChange} />} />
           </FormField>
           <FormField id="sb-end" label="Iki laiko" error={err.endTime?.message}>
             <Input id="sb-end" type="time" aria-invalid={!!err.endTime} className="min-h-11" {...register("endTime")} />

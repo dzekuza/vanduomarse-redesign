@@ -609,9 +609,15 @@ function useAdminReducer(initial: AdminData) {
         if ("data" in result) dispatch({ type: "request/delete", kind, id });
         return result;
       },
-      saveStayType: (stayType: StayType) => {
+      /** Optimistic; a refused save (e.g. seasons the database rejects) puts the previous type back. */
+      saveStayType: async (stayType: StayType, previous?: StayType) => {
         dispatch({ type: "stayType/upsert", stayType });
-        return report(actions.saveStayType(stayType));
+        const result = await report(actions.saveStayType(stayType));
+        if ("error" in result) {
+          if (previous) dispatch({ type: "stayType/upsert", stayType: previous });
+          else dispatch({ type: "stayType/delete", id: stayType.id });
+        }
+        return result;
       },
       /** Owner: store or clear a room's Sirvoy feed address. Not optimistic: the address never comes back to the browser. */
       saveExternalFeed: (calendarId: string, url: string) => report(actions.saveExternalFeed(calendarId, url)),

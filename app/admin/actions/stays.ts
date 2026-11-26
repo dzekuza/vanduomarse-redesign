@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import type { StayType } from "@/lib/cabin";
+import { seasonsProblem, type StayType } from "@/lib/cabin";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
 
 /* ---------------- stay types (cabins, camper pitches) ---------------- */
@@ -30,6 +30,8 @@ const stayTypeInput = z.object({
   seasons: z.array(seasonInput).max(24),
   /** null = not limited (camper pitches). */
   units: z.number().int().min(1).max(500).nullable(),
+  /** Exclusive "bookable until" date for the website; null = no limit. */
+  bookableUntil: date.nullable(),
   active: z.boolean(),
   sortOrder: z.number().int().min(0).max(1000),
 });
@@ -47,6 +49,8 @@ export async function saveStayType(type: StayType): Promise<ActionResult> {
   const t = parsed.data;
   // Cabins are always counted; only camper pitches may be unlimited.
   if (t.kind === "namelis" && t.units === null) return fail("Namelių skaičius privalomas.", "invalid");
+  const problem = seasonsProblem(t.seasons);
+  if (problem) return fail(problem, "invalid");
   // One database call: the type and its seasons are saved together or not at all.
   const { error } = await ctx.supabase.rpc("save_stay_type", {
     p_type: {
@@ -61,6 +65,7 @@ export async function saveStayType(type: StayType): Promise<ActionResult> {
       units: t.units,
       active: t.active,
       sort_order: t.sortOrder,
+      bookable_until: t.bookableUntil,
     },
     p_seasons: t.seasons.map((x) => ({
       id: x.id,
@@ -71,7 +76,11 @@ export async function saveStayType(type: StayType): Promise<ActionResult> {
       price_per_night_3: x.pricePerNight3,
     })),
   });
-  if (error?.code === "23P01") return fail("Sezonų datos persidengia.", "invalid");
+  // Until migration 20261126110000 is applied the database still refuses any overlap, nested seasons included (ADR-0128).
+  if (error?.code === "23P01") {
+    return fail("Sezonas kito sezono viduje dar neišsaugomas: duomenų bazė kol kas leidžia tik nepersidengiančius sezonus. Kol tai bus įjungta, padalinkite ilgąjį sezoną į dalis prieš ir po trumpojo.", "season_overlap");
+  }
+  if (error?.code === "23505") return fail("Du sezonai turi tas pačias datas.", "invalid");
   if (error) return dbError(error);
   revalidateStays();
   return done(null);

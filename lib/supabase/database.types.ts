@@ -161,17 +161,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_inquiry_id_fkey"
-            columns: ["inquiry_id"]
-            isOneToOne: false
-            referencedRelation: "inquiries"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "bookings_discount_code_id_fkey"
             columns: ["discount_code_id"]
             isOneToOne: false
             referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "inquiries"
             referencedColumns: ["id"]
           },
           {
@@ -295,6 +295,44 @@ export type Database = {
           },
         ]
       }
+      coupon_refunds: {
+        Row: {
+          amount: number
+          coupon_id: string
+          created_at: string
+          id: string
+          refunded_by: string | null
+          status: string
+          stripe_refund_id: string | null
+        }
+        Insert: {
+          amount: number
+          coupon_id: string
+          created_at?: string
+          id?: string
+          refunded_by?: string | null
+          status?: string
+          stripe_refund_id?: string | null
+        }
+        Update: {
+          amount?: number
+          coupon_id?: string
+          created_at?: string
+          id?: string
+          refunded_by?: string | null
+          status?: string
+          stripe_refund_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_refunds_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: true
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupons: {
         Row: {
           balance: number
@@ -308,20 +346,20 @@ export type Database = {
           discount_code_id: string | null
           expires_at: string | null
           face_value: number
-          ip_hash: string | null
           id: string
-          last_emailed_at: string | null
+          ip_hash: string | null
           kind: Database["public"]["Enums"]["coupon_kind"]
+          last_emailed_at: string | null
           message: string
           paid_amount: number | null
           paid_at: string | null
           product_id: string
           product_name: string
-          refunded_amount: number
-          refunded_at: string | null
           recipient_email: string
           recipient_name: string
           reference: string
+          refunded_amount: number
+          refunded_at: string | null
           rider_id: string | null
           service: Database["public"]["Enums"]["coupon_service"]
           status: Database["public"]["Enums"]["coupon_status"]
@@ -341,10 +379,10 @@ export type Database = {
           discount_code_id?: string | null
           expires_at?: string | null
           face_value: number
-          ip_hash?: string | null
           id?: string
-          last_emailed_at?: string | null
+          ip_hash?: string | null
           kind: Database["public"]["Enums"]["coupon_kind"]
+          last_emailed_at?: string | null
           message?: string
           paid_amount?: number | null
           paid_at?: string | null
@@ -353,6 +391,8 @@ export type Database = {
           recipient_email?: string
           recipient_name?: string
           reference: string
+          refunded_amount?: number
+          refunded_at?: string | null
           rider_id?: string | null
           service: Database["public"]["Enums"]["coupon_service"]
           status?: Database["public"]["Enums"]["coupon_status"]
@@ -372,20 +412,20 @@ export type Database = {
           discount_code_id?: string | null
           expires_at?: string | null
           face_value?: number
-          ip_hash?: string | null
           id?: string
-          last_emailed_at?: string | null
+          ip_hash?: string | null
           kind?: Database["public"]["Enums"]["coupon_kind"]
+          last_emailed_at?: string | null
           message?: string
           paid_amount?: number | null
           paid_at?: string | null
           product_id?: string
           product_name?: string
-          refunded_amount?: number
-          refunded_at?: string | null
           recipient_email?: string
           recipient_name?: string
           reference?: string
+          refunded_amount?: number
+          refunded_at?: string | null
           rider_id?: string | null
           service?: Database["public"]["Enums"]["coupon_service"]
           status?: Database["public"]["Enums"]["coupon_status"]
@@ -394,6 +434,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "coupons_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coupons_product_id_fkey"
             columns: ["product_id"]
@@ -608,6 +655,7 @@ export type Database = {
           program_id: string | null
           published: boolean
           regular_price: number | null
+          sauna_master_id: string | null
           sold: number
           start_time: string
           template_id: string | null
@@ -630,6 +678,7 @@ export type Database = {
           program_id?: string | null
           published?: boolean
           regular_price?: number | null
+          sauna_master_id?: string | null
           sold?: number
           start_time: string
           template_id?: string | null
@@ -652,6 +701,7 @@ export type Database = {
           program_id?: string | null
           published?: boolean
           regular_price?: number | null
+          sauna_master_id?: string | null
           sold?: number
           start_time?: string
           template_id?: string | null
@@ -665,6 +715,13 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "sauna_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_sauna_master_id_fkey"
+            columns: ["sauna_master_id"]
+            isOneToOne: false
+            referencedRelation: "sauna_masters"
             referencedColumns: ["id"]
           },
           {
@@ -710,6 +767,32 @@ export type Database = {
             foreignKeyName: "external_blocks_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "external_calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_calendar_exports: {
+        Row: {
+          calendar_id: string
+          created_at: string
+          token: string
+        }
+        Insert: {
+          calendar_id: string
+          created_at?: string
+          token?: string
+        }
+        Update: {
+          calendar_id?: string
+          created_at?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_calendar_exports_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "external_calendars"
             referencedColumns: ["id"]
           },
@@ -868,6 +951,30 @@ export type Database = {
           },
         ]
       }
+      loyalty_settings: {
+        Row: {
+          earn_points_per_euro: number
+          enabled: boolean
+          id: boolean
+          point_value_eur: number
+          updated_at: string
+        }
+        Insert: {
+          earn_points_per_euro?: number
+          enabled?: boolean
+          id?: boolean
+          point_value_eur?: number
+          updated_at?: string
+        }
+        Update: {
+          earn_points_per_euro?: number
+          enabled?: boolean
+          id?: boolean
+          point_value_eur?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_recipients: {
         Row: {
           active: boolean
@@ -901,94 +1008,23 @@ export type Database = {
         }
         Relationships: []
       }
-      staff_notification_reads: {
+      page_content: {
         Row: {
-          read_at: string
-          user_id: string
-        }
-        Insert: {
-          read_at?: string
-          user_id: string
-        }
-        Update: {
-          read_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      staff_notifications: {
-        Row: {
-          body: string
-          created_at: string
-          href: string
-          id: string
-          kind: string
-          permissions: string[]
-          reference: string | null
-          title: string
-        }
-        Insert: {
-          body?: string
-          created_at?: string
-          href?: string
-          id?: string
-          kind: string
-          permissions: string[]
-          reference?: string | null
-          title: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          href?: string
-          id?: string
-          kind?: string
-          permissions?: string[]
-          reference?: string | null
-          title?: string
-        }
-        Relationships: []
-      }
-      staff_push_tokens: {
-        Row: {
-          active: boolean
-          created_at: string
-          device_name: string
-          expo_push_token: string
-          id: string
-          topics: string[]
+          content: Json
+          slug: string
           updated_at: string
-          user_id: string
         }
         Insert: {
-          active?: boolean
-          created_at?: string
-          device_name?: string
-          expo_push_token: string
-          id?: string
-          topics?: string[]
+          content?: Json
+          slug: string
           updated_at?: string
-          user_id: string
         }
         Update: {
-          active?: boolean
-          created_at?: string
-          device_name?: string
-          expo_push_token?: string
-          id?: string
-          topics?: string[]
+          content?: Json
+          slug?: string
           updated_at?: string
-          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "staff_push_tokens_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       payments: {
         Row: {
@@ -1051,40 +1087,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
-      }
-      price_items: {
-        Row: {
-          group: Database["public"]["Enums"]["price_group"]
-          id: string
-          label: string
-          max: number | null
-          sort_order: number
-          unit: string
-          updated_at: string
-          value: number
-        }
-        Insert: {
-          group: Database["public"]["Enums"]["price_group"]
-          id: string
-          label: string
-          max?: number | null
-          sort_order?: number
-          unit: string
-          updated_at?: string
-          value: number
-        }
-        Update: {
-          group?: Database["public"]["Enums"]["price_group"]
-          id?: string
-          label?: string
-          max?: number | null
-          sort_order?: number
-          unit?: string
-          updated_at?: string
-          value?: number
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payments_points_rider_id_fkey"
+            columns: ["points_rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_passes: {
         Row: {
@@ -1104,11 +1115,11 @@ export type Database = {
           plan_name: string
           price: number
           purchase_id: string | null
-          refunded_at: string | null
           recipient_name: string
           redeemed_at: string | null
           redeemed_by: string | null
           reference: string
+          refunded_at: string | null
           rider_id: string | null
           status: string
           stripe_payment_intent_id: string | null
@@ -1131,11 +1142,11 @@ export type Database = {
           plan_name: string
           price: number
           purchase_id?: string | null
-          refunded_at?: string | null
           recipient_name?: string
           redeemed_at?: string | null
           redeemed_by?: string | null
           reference: string
+          refunded_at?: string | null
           rider_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
@@ -1158,11 +1169,11 @@ export type Database = {
           plan_name?: string
           price?: number
           purchase_id?: string | null
-          refunded_at?: string | null
           recipient_name?: string
           redeemed_at?: string | null
           redeemed_by?: string | null
           reference?: string
+          refunded_at?: string | null
           rider_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
@@ -1198,6 +1209,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      points_ledger: {
+        Row: {
+          balance_after: number
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          kind: string
+          parent_source_id: string | null
+          reason: string
+          rider_id: string
+          source_id: string | null
+          source_kind: string | null
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          kind: string
+          parent_source_id?: string | null
+          reason?: string
+          rider_id: string
+          source_id?: string | null
+          source_kind?: string | null
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          kind?: string
+          parent_source_id?: string | null
+          reason?: string
+          rider_id?: string
+          source_id?: string | null
+          source_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "points_ledger_rider_id_fkey"
+            columns: ["rider_id"]
+            isOneToOne: false
+            referencedRelation: "riders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_items: {
+        Row: {
+          group: Database["public"]["Enums"]["price_group"]
+          id: string
+          label: string
+          max: number | null
+          sort_order: number
+          unit: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          group: Database["public"]["Enums"]["price_group"]
+          id: string
+          label: string
+          max?: number | null
+          sort_order?: number
+          unit: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          group?: Database["public"]["Enums"]["price_group"]
+          id?: string
+          label?: string
+          max?: number | null
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
       }
       purchases: {
         Row: {
@@ -1820,6 +1914,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "rider_plan_orders_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rider_plan_orders_plan_id_fkey"
             columns: ["plan_id"]
             isOneToOne: false
@@ -1899,80 +2000,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "rider_waivers_rider_id_fkey"
-            columns: ["rider_id"]
-            isOneToOne: false
-            referencedRelation: "riders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      loyalty_settings: {
-        Row: {
-          earn_points_per_euro: number
-          enabled: boolean
-          id: boolean
-          point_value_eur: number
-          updated_at: string
-        }
-        Insert: {
-          earn_points_per_euro?: number
-          enabled?: boolean
-          id?: boolean
-          point_value_eur?: number
-          updated_at?: string
-        }
-        Update: {
-          earn_points_per_euro?: number
-          enabled?: boolean
-          id?: boolean
-          point_value_eur?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      points_ledger: {
-        Row: {
-          balance_after: number
-          created_at: string
-          created_by: string | null
-          delta: number
-          id: string
-          kind: string
-          parent_source_id: string | null
-          reason: string
-          rider_id: string
-          source_id: string | null
-          source_kind: string | null
-        }
-        Insert: {
-          balance_after: number
-          created_at?: string
-          created_by?: string | null
-          delta: number
-          id?: string
-          kind: string
-          parent_source_id?: string | null
-          reason?: string
-          rider_id: string
-          source_id?: string | null
-          source_kind?: string | null
-        }
-        Update: {
-          balance_after?: number
-          created_at?: string
-          created_by?: string | null
-          delta?: number
-          id?: string
-          kind?: string
-          parent_source_id?: string | null
-          reason?: string
-          rider_id?: string
-          source_id?: string | null
-          source_kind?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "points_ledger_rider_id_fkey"
             columns: ["rider_id"]
             isOneToOne: false
             referencedRelation: "riders"
@@ -2371,9 +2398,9 @@ export type Database = {
           small_group_rate: number | null
           sort_order: number
           turnaround_hours: number
+          updated_at: string
           weekday_prices: Json
           weekend_prices: Json
-          updated_at: string
         }
         Insert: {
           active?: boolean
@@ -2398,9 +2425,9 @@ export type Database = {
           small_group_rate?: number | null
           sort_order?: number
           turnaround_hours?: number
+          updated_at?: string
           weekday_prices?: Json
           weekend_prices?: Json
-          updated_at?: string
         }
         Update: {
           active?: boolean
@@ -2425,27 +2452,9 @@ export type Database = {
           small_group_rate?: number | null
           sort_order?: number
           turnaround_hours?: number
+          updated_at?: string
           weekday_prices?: Json
           weekend_prices?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      page_content: {
-        Row: {
-          content: Json
-          slug: string
-          updated_at: string
-        }
-        Insert: {
-          content?: Json
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          content?: Json
-          slug?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -2463,71 +2472,6 @@ export type Database = {
         Update: {
           coming_soon?: boolean
           id?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      staff: {
-        Row: {
-          active: boolean
-          created_at: string
-          display_name: string
-          email: string
-          role_id: string
-          user_id: string
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          display_name: string
-          email?: string
-          role_id: string
-          user_id: string
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          display_name?: string
-          email?: string
-          role_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "staff_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "staff_roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      staff_roles: {
-        Row: {
-          created_at: string
-          description: string
-          id: string
-          is_owner: boolean
-          name: string
-          permissions: string[]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string
-          id?: string
-          is_owner?: boolean
-          name: string
-          permissions?: string[]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string
-          id?: string
-          is_owner?: boolean
-          name?: string
-          permissions?: string[]
           updated_at?: string
         }
         Relationships: []
@@ -2592,6 +2536,252 @@ export type Database = {
         }
         Relationships: []
       }
+      spaces: {
+        Row: {
+          active: boolean
+          blurb: string
+          created_at: string
+          id: string
+          label: string
+          max_guests: number
+          price_weekday: number | null
+          price_weekend: number | null
+          sort_order: number
+          updated_at: string
+          whole_park: boolean
+        }
+        Insert: {
+          active?: boolean
+          blurb?: string
+          created_at?: string
+          id: string
+          label: string
+          max_guests: number
+          price_weekday?: number | null
+          price_weekend?: number | null
+          sort_order?: number
+          updated_at?: string
+          whole_park?: boolean
+        }
+        Update: {
+          active?: boolean
+          blurb?: string
+          created_at?: string
+          id?: string
+          label?: string
+          max_guests?: number
+          price_weekday?: number | null
+          price_weekend?: number | null
+          sort_order?: number
+          updated_at?: string
+          whole_park?: boolean
+        }
+        Relationships: []
+      }
+      staff: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_name: string
+          email: string
+          role_id: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_name: string
+          email?: string
+          role_id: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_name?: string
+          email?: string
+          role_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "staff_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_notification_reads: {
+        Row: {
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_notification_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "staff"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      staff_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          href: string
+          id: string
+          kind: string
+          permissions: string[]
+          reference: string | null
+          title: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          href?: string
+          id?: string
+          kind: string
+          permissions: string[]
+          reference?: string | null
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          href?: string
+          id?: string
+          kind?: string
+          permissions?: string[]
+          reference?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      staff_push_tokens: {
+        Row: {
+          active: boolean
+          created_at: string
+          device_name: string
+          expo_push_token: string
+          id: string
+          topics: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          device_name?: string
+          expo_push_token: string
+          id?: string
+          topics?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          device_name?: string
+          expo_push_token?: string
+          id?: string
+          topics?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      staff_roles: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_owner: boolean
+          name: string
+          permissions: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_owner?: boolean
+          name: string
+          permissions?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_owner?: boolean
+          name?: string
+          permissions?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stay_room_assignments: {
+        Row: {
+          booking_id: string
+          calendar_id: string
+          created_at: string
+          nights: number
+          starts_on: string
+          unit: number
+        }
+        Insert: {
+          booking_id: string
+          calendar_id: string
+          created_at?: string
+          nights: number
+          starts_on: string
+          unit: number
+        }
+        Update: {
+          booking_id?: string
+          calendar_id?: string
+          created_at?: string
+          nights?: number
+          starts_on?: string
+          unit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stay_room_assignments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stay_room_assignments_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "external_calendars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stay_type_seasons: {
         Row: {
           created_at: string
@@ -2636,6 +2826,7 @@ export type Database = {
       stay_types: {
         Row: {
           active: boolean
+          bookable_until: string | null
           id: string
           kind: Database["public"]["Enums"]["booking_kind"]
           label: string
@@ -2650,6 +2841,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          bookable_until?: string | null
           id: string
           kind: Database["public"]["Enums"]["booking_kind"]
           label: string
@@ -2664,6 +2856,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          bookable_until?: string | null
           id?: string
           kind?: Database["public"]["Enums"]["booking_kind"]
           label?: string
@@ -2683,299 +2876,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      save_stay_type: {
-        Args: { p_seasons: Json; p_type: Json }
+      abandon_coupon_order: {
+        Args: { p_coupon_id: string }
         Returns: undefined
       }
-      payment_requests: {
-        Args: { p_payment_id: string }
-        Returns: {
-          date: string
-          guests: number | null
-          hours: number | null
-          kind: string
-          nights: number | null
-          reference: string
-          start_hour: number | null
-          start_time: string | null
-          status: string
-          title: string
-          total: number
-          units: number | null
-        }[]
-      }
-      begin_coupon_refund: {
-        Args: { p_coupon: string; p_staff: string }
-        Returns: {
-          amount: number
-          created_at: string
-          payment_intent: string
-          reference: string
-          refund_id: string
-          resumed: boolean
-        }[]
-      }
-      finish_coupon_refund: {
-        Args: { p_id: string; p_stripe_refund_id: string }
-        Returns: undefined
-      }
-      fail_coupon_refund: {
-        Args: { p_id: string }
-        Returns: undefined
-      }
-      my_coupons: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          balance: number
-          buyer_name: string
-          code: string | null
-          expires_at: string | null
-          face_value: number
-          message: string
-          paid_at: string | null
-          product_name: string
-          recipient_name: string
-          reference: string
-          role: string
-          service: Database["public"]["Enums"]["coupon_service"]
-          session_id: string | null
-          status: Database["public"]["Enums"]["coupon_status"]
-        }[]
-      }
-      rider_accounts: {
-        Args: Record<PropertyKey, never>
-        Returns: { rider_id: string }[]
-      }
-      auth_user_has_password: {
-        Args: { p_user: string }
-        Returns: boolean
-      }
-      adjust_rider_points: {
-        Args: { p_delta: number; p_reason: string; p_rider: string }
-        Returns: number
-      }
-      redeem_points_on_payment: {
-        Args: { p_payment_id: string; p_points: number; p_user: string }
-        Returns: {
-          amount: number
-          points_discount: number
-          points_spent: number
-        }[]
-      }
-      my_spendable_points: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          balance: number
-          enabled: boolean
-          point_value_eur: number
-        }[]
-      }
-      my_points: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          balance: number
-          entries: Json
-          primary_match: boolean
-          rider_id: string
-          rider_name: string
-        }[]
-      }
-      my_riders: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          avatar_path: string | null
-          birthdate: string | null
-          cards: string[]
-          email: string | null
-          id: string
-          name: string
-          plan_category: string | null
-          plan_description: string | null
-          plan_name: string | null
-          plan_price: number | null
-          phone: string | null
-          phone2: string | null
-          primary_match: boolean
-          purchases: Json
-          registered: boolean
-          signed_at: string | null
-          surname: string
-          terms_version: string | null
-        }[]
-      }
-      my_inquiries: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          accepted: boolean
-          contact_email: string | null
-          contact_name: string
-          contact_phone: string | null
-          created_at: string
-          date: string | null
-          estimate_max: number | null
-          estimate_min: number | null
-          event_type: string
-          guests: number
-          id: string
-          lines: Json
-          message: string
-          space: string
-          status: Database["public"]["Enums"]["inquiry_status"]
-        }[]
-      }
-      set_external_feed: {
-        Args: { p_calendar: string; p_url: string }
-        Returns: undefined
-      }
-      external_sync_feeds: {
-        Args: never
-        Returns: { calendar_id: string; feed_url: string }[]
-      }
-      sync_external_blocks: {
-        Args: { p_blocks: Json; p_calendar: string }
-        Returns: number
-      }
-      external_sync_failed: {
-        Args: { p_calendar: string; p_error: string }
-        Returns: undefined
-      }
-      set_purchase_payment: {
-        Args: { p_method: string; p_purchase_id: string }
-        Returns: boolean
-      }
-      accept_inquiry_stays: {
-        Args: { p_inquiry_id: string }
-        Returns: number
-      }
-      release_inquiry_stays: {
-        Args: { p_inquiry_id: string }
-        Returns: number
-      }
-      abandon_plan_order: { Args: { p_order_id: string }; Returns: undefined }
-      attach_plan_order_session: { Args: { p_order_id: string; p_session_id: string }; Returns: undefined }
-      complete_plan_order_payment: {
-        Args: { p_amount: number; p_order_id: string; p_payment_intent: string; p_session_id: string }
-        Returns: {
-          amount_ok: boolean
-          newly_paid: boolean
-          order_status: string
-          plan_name: string
-          price: number
-          reference: string
-          rider_email: string
-          rider_id: string
-          rider_name: string
-        }[]
-      }
-      create_plan_order: {
-        Args: { p_discount_code?: string; p_plan_id: string; p_rider_id: string }
-        Returns: {
-          id: string
-          plan_name: string
-          price: number
-          reference: string
-          rider_email: string
-          rider_name: string
-        }[]
-      }
-      expire_plan_order_session: { Args: { p_session_id: string }; Returns: number }
-      online_plans: {
-        Args: never
-        Returns: {
-          category: string
-          description: string
-          id: string
-          name: string
-          price: number
-        }[]
-      }
-      create_plan_pass: {
-        Args: {
-          p_buyer_email: string
-          p_buyer_name: string
-          p_discount_code?: string
-          p_gift?: boolean
-          p_ip_hash?: string
-          p_plan_id: string
-          p_recipient_name?: string
-        }
-        Returns: {
-          id: string
-          plan_name: string
-          price: number
-          reference: string
-        }[]
-      }
-      attach_plan_pass_session: {
-        Args: { p_pass_id: string; p_session_id: string }
-        Returns: undefined
-      }
-      abandon_plan_pass: { Args: { p_pass_id: string }; Returns: undefined }
-      complete_plan_pass_payment: {
-        Args: {
-          p_amount: number
-          p_pass_id: string
-          p_payment_intent: string
-          p_session_id: string
-        }
-        Returns: {
-          amount_ok: boolean
-          buyer_email: string
-          buyer_name: string
-          gift: boolean
-          newly_paid: boolean
-          order_status: string
-          pass_code: string | null
-          plan_name: string
-          price: number
-          recipient_name: string
-          reference: string
-        }[]
-      }
-      expire_plan_pass_session: {
-        Args: { p_session_id: string }
-        Returns: number
-      }
-      refund_plan_pass_payment: {
-        Args: { p_payment_intent: string; p_refunded: number }
-        Returns: {
-          reference: string
-          was_attached: boolean
-        }[]
-      }
-      redeem_plan_pass: {
-        Args: { p_pass_id: string; p_replace?: boolean; p_rider_id: string }
-        Returns: {
-          plan_category: string
-          plan_id: string
-          plan_name: string
-          price: number
-          purchase_id: string
-          sold_at: string
-        }[]
-      }
-      plan_order_state: {
-        Args: { p_session_id: string }
-        Returns: {
-          discount_code: string | null
-          gift: boolean
-          kind: string
-          pass_code: string | null
-          plan_name: string
-          price: number
-          reference: string
-          rider_email: string
-          status: string
-        }[]
-      }
-      refund_plan_order_payment: { Args: { p_payment_intent: string; p_refunded: number }; Returns: string }
-      begin_request_refund: {
-        Args: { p_id: string; p_kind: string; p_staff: string }
-        Returns: { amount: number; created_at: string; payment_intent: string; reference: string; refund_id: string; resumed: boolean }[]
-      }
-      fail_request_refund: { Args: { p_id: string }; Returns: undefined }
-      finish_request_refund: { Args: { p_id: string; p_stripe_refund_id: string }; Returns: undefined }
       abandon_payment: { Args: { p_payment_id: string }; Returns: number }
+      abandon_plan_order: { Args: { p_order_id: string }; Returns: undefined }
+      abandon_plan_pass: { Args: { p_pass_id: string }; Returns: undefined }
+      accept_inquiry_stays: { Args: { p_inquiry_id: string }; Returns: number }
       account_notify_email: { Args: { p_user: string }; Returns: string }
       activate_coupon: {
         Args: { p_id: string }
@@ -2984,10 +2892,27 @@ export type Database = {
           expires_at: string
         }[]
       }
-      abandon_coupon_order: {
-        Args: { p_coupon_id: string }
+      adjust_rider_points: {
+        Args: { p_delta: number; p_reason: string; p_rider: string }
+        Returns: number
+      }
+      admin_login_check: {
+        Args: { p_email_hash: string; p_ip_hash: string; p_kind: string }
+        Returns: {
+          allowed: boolean
+          retry_after: number
+        }[]
+      }
+      admin_login_record: {
+        Args: {
+          p_email_hash: string
+          p_ip_hash: string
+          p_kind: string
+          p_ok: boolean
+        }
         Returns: undefined
       }
+      assign_stay_rooms: { Args: never; Returns: number }
       attach_coupon_session: {
         Args: { p_coupon_id: string; p_session_id: string }
         Returns: undefined
@@ -3001,16 +2926,36 @@ export type Database = {
         }
         Returns: undefined
       }
-      admin_login_check: {
-        Args: { p_email_hash: string; p_ip_hash: string; p_kind: string }
+      attach_plan_order_session: {
+        Args: { p_order_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      attach_plan_pass_session: {
+        Args: { p_pass_id: string; p_session_id: string }
+        Returns: undefined
+      }
+      auth_user_has_password: { Args: { p_user: string }; Returns: boolean }
+      begin_coupon_refund: {
+        Args: { p_coupon: string; p_staff: string }
         Returns: {
-          allowed: boolean
-          retry_after: number
+          amount: number
+          created_at: string
+          payment_intent: string
+          reference: string
+          refund_id: string
+          resumed: boolean
         }[]
       }
-      admin_login_record: {
-        Args: { p_email_hash: string; p_ip_hash: string; p_kind: string; p_ok: boolean }
-        Returns: undefined
+      begin_request_refund: {
+        Args: { p_id: string; p_kind: string; p_staff: string }
+        Returns: {
+          amount: number
+          created_at: string
+          payment_intent: string
+          reference: string
+          refund_id: string
+          resumed: boolean
+        }[]
       }
       cancel_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
@@ -3039,7 +2984,12 @@ export type Database = {
         }[]
       }
       complete_coupon_payment: {
-        Args: { p_amount: number; p_coupon_id: string; p_payment_intent: string; p_session_id: string }
+        Args: {
+          p_amount: number
+          p_coupon_id: string
+          p_payment_intent: string
+          p_session_id: string
+        }
         Returns: {
           amount_ok: boolean
           buyer_email: string
@@ -3057,42 +3007,6 @@ export type Database = {
           service: Database["public"]["Enums"]["coupon_service"]
           status: Database["public"]["Enums"]["coupon_status"]
         }[]
-      }
-      coupon_payment_state: {
-        Args: { p_session_id: string }
-        Returns: {
-          buyer_name: string
-          code: string | null
-          expires_at: string | null
-          face_value: number
-          has_recipient: boolean
-          message: string
-          product_name: string
-          recipient_name: string
-          reference: string
-          service: Database["public"]["Enums"]["coupon_service"]
-          status: Database["public"]["Enums"]["coupon_status"]
-        }[]
-      }
-      resend_coupon_email: {
-        Args: { p_session_id: string }
-        Returns: {
-          allowed: boolean
-          buyer_email: string
-          buyer_name: string
-          code: string
-          expires_at: string
-          face_value: number
-          message: string
-          product_name: string
-          recipient_name: string
-          retry_in: number
-          service: Database["public"]["Enums"]["coupon_service"]
-        }[]
-      }
-      confirm_cash_request: {
-        Args: { p_reference: string }
-        Returns: boolean
       }
       complete_payment: {
         Args: {
@@ -3112,13 +3026,70 @@ export type Database = {
           refs: string[]
         }[]
       }
+      complete_plan_order_payment: {
+        Args: {
+          p_amount: number
+          p_order_id: string
+          p_payment_intent: string
+          p_session_id: string
+        }
+        Returns: {
+          amount_ok: boolean
+          newly_paid: boolean
+          order_status: string
+          plan_name: string
+          price: number
+          reference: string
+          rider_email: string
+          rider_id: string
+          rider_name: string
+        }[]
+      }
+      complete_plan_pass_payment: {
+        Args: {
+          p_amount: number
+          p_pass_id: string
+          p_payment_intent: string
+          p_session_id: string
+        }
+        Returns: {
+          amount_ok: boolean
+          buyer_email: string
+          buyer_name: string
+          gift: boolean
+          newly_paid: boolean
+          order_status: string
+          pass_code: string
+          plan_name: string
+          price: number
+          recipient_name: string
+          reference: string
+        }[]
+      }
+      confirm_cash_request: { Args: { p_reference: string }; Returns: boolean }
+      coupon_payment_state: {
+        Args: { p_session_id: string }
+        Returns: {
+          buyer_name: string
+          code: string
+          expires_at: string
+          face_value: number
+          has_recipient: boolean
+          message: string
+          product_name: string
+          recipient_name: string
+          reference: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          status: Database["public"]["Enums"]["coupon_status"]
+        }[]
+      }
       create_coupon_order: {
         Args: {
           p_buyer_email: string
-          p_discount_code?: string
           p_buyer_name: string
           p_buyer_phone: string
-          p_ip_hash: string
+          p_discount_code?: string
+          p_ip_hash?: string
           p_message?: string
           p_product_id: string
           p_recipient_email?: string
@@ -3181,6 +3152,38 @@ export type Database = {
           id: string
           reference: string
           total: number
+        }[]
+      }
+      create_plan_order: {
+        Args: {
+          p_discount_code?: string
+          p_plan_id: string
+          p_rider_id: string
+        }
+        Returns: {
+          id: string
+          plan_name: string
+          price: number
+          reference: string
+          rider_email: string
+          rider_name: string
+        }[]
+      }
+      create_plan_pass: {
+        Args: {
+          p_buyer_email: string
+          p_buyer_name: string
+          p_discount_code?: string
+          p_gift?: boolean
+          p_ip_hash?: string
+          p_plan_id: string
+          p_recipient_name?: string
+        }
+        Returns: {
+          id: string
+          plan_name: string
+          price: number
+          reference: string
         }[]
       }
       create_program_booking: {
@@ -3389,10 +3392,7 @@ export type Database = {
           uses: number
         }[]
       }
-      expire_coupon_session: {
-        Args: { p_session_id: string }
-        Returns: number
-      }
+      expire_coupon_session: { Args: { p_session_id: string }; Returns: number }
       expire_payment: {
         Args: { p_failed?: boolean; p_session_id: string }
         Returns: number
@@ -3405,6 +3405,27 @@ export type Database = {
           tickets: number
         }[]
       }
+      expire_plan_order_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
+      expire_plan_pass_session: {
+        Args: { p_session_id: string }
+        Returns: number
+      }
+      external_sync_failed: {
+        Args: { p_calendar: string; p_error: string }
+        Returns: undefined
+      }
+      external_sync_feeds: {
+        Args: never
+        Returns: {
+          calendar_id: string
+          feed_url: string
+        }[]
+      }
+      fail_coupon_refund: { Args: { p_id: string }; Returns: undefined }
+      fail_request_refund: { Args: { p_id: string }; Returns: undefined }
       finalize_rider_registration_public: {
         Args: {
           p_avatar_path: string
@@ -3413,11 +3434,120 @@ export type Database = {
         }
         Returns: undefined
       }
+      finish_coupon_refund: {
+        Args: { p_id: string; p_stripe_refund_id: string }
+        Returns: undefined
+      }
+      finish_request_refund: {
+        Args: { p_id: string; p_stripe_refund_id: string }
+        Returns: undefined
+      }
       materialize_sauna_events: {
         Args: { p_days?: number; p_from: string }
         Returns: number
       }
-      payment_notify_email: { Args: { p_payment_id: string }; Returns: string }
+      my_coupons: {
+        Args: never
+        Returns: {
+          balance: number
+          buyer_name: string
+          code: string
+          expires_at: string
+          face_value: number
+          message: string
+          paid_at: string
+          product_name: string
+          recipient_name: string
+          reference: string
+          role: string
+          service: Database["public"]["Enums"]["coupon_service"]
+          session_id: string
+          status: Database["public"]["Enums"]["coupon_status"]
+        }[]
+      }
+      my_inquiries: {
+        Args: never
+        Returns: {
+          accepted: boolean
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          created_at: string
+          date: string
+          estimate_max: number
+          estimate_min: number
+          event_type: string
+          guests: number
+          id: string
+          lines: Json
+          message: string
+          space: string
+          status: Database["public"]["Enums"]["inquiry_status"]
+        }[]
+      }
+      my_points: {
+        Args: never
+        Returns: {
+          balance: number
+          entries: Json
+          primary_match: boolean
+          rider_id: string
+          rider_name: string
+        }[]
+      }
+      my_riders: {
+        Args: never
+        Returns: {
+          avatar_path: string
+          birthdate: string
+          cards: string[]
+          email: string
+          id: string
+          name: string
+          phone: string
+          phone2: string
+          plan_category: string
+          plan_description: string
+          plan_name: string
+          plan_price: number
+          primary_match: boolean
+          purchases: Json
+          registered: boolean
+          signed_at: string
+          surname: string
+          terms_version: string
+        }[]
+      }
+      my_spendable_points: {
+        Args: never
+        Returns: {
+          balance: number
+          enabled: boolean
+          point_value_eur: number
+        }[]
+      }
+      online_plans: {
+        Args: never
+        Returns: {
+          category: string
+          description: string
+          id: string
+          name: string
+          price: number
+        }[]
+      }
+      paid_request_details: {
+        Args: { p_payment_id: string }
+        Returns: {
+          day: string
+          end_time: string
+          nights: number
+          reference: string
+          service: string
+          start_time: string
+          title: string
+        }[]
+      }
       paid_staff_details: {
         Args: { p_payment_id: string }
         Returns: {
@@ -3432,16 +3562,22 @@ export type Database = {
           units: number
         }[]
       }
-      paid_request_details: {
+      payment_notify_email: { Args: { p_payment_id: string }; Returns: string }
+      payment_requests: {
         Args: { p_payment_id: string }
         Returns: {
-          day: string
-          end_time: string
+          date: string
+          guests: number
+          hours: number
+          kind: string
           nights: number
           reference: string
-          service: string
+          start_hour: number
           start_time: string
+          status: string
           title: string
+          total: number
+          units: number
         }[]
       }
       payment_state: {
@@ -3457,9 +3593,25 @@ export type Database = {
           stripe_session_id: string
         }[]
       }
+      plan_order_state: {
+        Args: { p_session_id: string }
+        Returns: {
+          discount_code: string
+          gift: boolean
+          kind: string
+          pass_code: string
+          plan_name: string
+          price: number
+          reference: string
+          rider_email: string
+          status: string
+        }[]
+      }
       private_event_dates: {
         Args: { p_from: string; p_to: string }
-        Returns: { event_date: string }[]
+        Returns: {
+          event_date: string
+        }[]
       }
       quad_taken: {
         Args: { p_from: string; p_to: string }
@@ -3470,15 +3622,45 @@ export type Database = {
           taken: number
         }[]
       }
-      refund_coupon_payment: {
-        Args: { p_payment_intent: string; p_refunded: number }
-        Returns: string
-      }
       record_refund: {
         Args: { p_payment_intent: string; p_refunded: number }
         Returns: undefined
       }
       record_skipped_phone: { Args: { p_phone: string }; Returns: undefined }
+      redeem_plan_pass: {
+        Args: { p_pass_id: string; p_replace?: boolean; p_rider_id: string }
+        Returns: {
+          plan_category: string
+          plan_id: string
+          plan_name: string
+          price: number
+          purchase_id: string
+          sold_at: string
+        }[]
+      }
+      redeem_points_on_payment: {
+        Args: { p_payment_id: string; p_points: number; p_user: string }
+        Returns: {
+          amount: number
+          points_discount: number
+          points_spent: number
+        }[]
+      }
+      refund_coupon_payment: {
+        Args: { p_payment_intent: string; p_refunded: number }
+        Returns: string
+      }
+      refund_plan_order_payment: {
+        Args: { p_payment_intent: string; p_refunded: number }
+        Returns: string
+      }
+      refund_plan_pass_payment: {
+        Args: { p_payment_intent: string; p_refunded: number }
+        Returns: {
+          reference: string
+          was_attached: boolean
+        }[]
+      }
       register_for_event: {
         Args: {
           p_email?: string
@@ -3502,13 +3684,39 @@ export type Database = {
           p_surname: string
           p_terms_version: string
         }
-        Returns: { already_registered: boolean; rider_id: string | null }[]
+        Returns: {
+          already_registered: boolean
+          rider_id: string
+        }[]
       }
+      release_inquiry_stays: { Args: { p_inquiry_id: string }; Returns: number }
       request_phone_code: {
         Args: { p_code_hash: string; p_ip_hash: string; p_phone: string }
         Returns: {
           reason: string
           retry_after: number
+        }[]
+      }
+      resend_coupon_email: {
+        Args: { p_session_id: string }
+        Returns: {
+          allowed: boolean
+          buyer_email: string
+          buyer_name: string
+          code: string
+          expires_at: string
+          face_value: number
+          message: string
+          product_name: string
+          recipient_name: string
+          retry_in: number
+          service: Database["public"]["Enums"]["coupon_service"]
+        }[]
+      }
+      rider_accounts: {
+        Args: never
+        Returns: {
+          rider_id: string
         }[]
       }
       rider_awaiting_photo: { Args: { p_rider_id: string }; Returns: boolean }
@@ -3531,6 +3739,28 @@ export type Database = {
           hour: number
         }[]
       }
+      save_stay_type: {
+        Args: { p_seasons: Json; p_type: Json }
+        Returns: undefined
+      }
+      set_external_feed: {
+        Args: { p_calendar: string; p_url: string }
+        Returns: undefined
+      }
+      set_purchase_payment: {
+        Args: { p_method: string; p_purchase_id: string }
+        Returns: boolean
+      }
+      staff_notify_emails_for: {
+        Args: { p_topics: string[] }
+        Returns: string[]
+      }
+      staff_notify_phones: { Args: { p_topic: string }; Returns: string[] }
+      staff_notify_phones_for: {
+        Args: { p_topics: string[] }
+        Returns: string[]
+      }
+      staff_push_tokens_for: { Args: { p_topic: string }; Returns: string[] }
       start_payment: {
         Args: { p_refs: string[]; p_user: string }
         Returns: {
@@ -3546,17 +3776,13 @@ export type Database = {
         Args: { p_refs: string[] }
         Returns: {
           amount: number
-          customer_email: string | null
-          expires_at: string | null
+          customer_email: string
+          expires_at: string
           items: Json
           payment_id: string
-          stripe_session_id: string | null
+          stripe_session_id: string
         }[]
       }
-      staff_notify_emails_for: { Args: { p_topics: string[] }; Returns: string[] }
-      staff_notify_phones: { Args: { p_topic: string }; Returns: string[] }
-      staff_notify_phones_for: { Args: { p_topics: string[] }; Returns: string[] }
-      staff_push_tokens_for: { Args: { p_topic: string }; Returns: string[] }
       stay_occupancy: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -3566,14 +3792,15 @@ export type Database = {
           units: number
         }[]
       }
+      sync_external_blocks: {
+        Args: { p_blocks: Json; p_calendar: string }
+        Returns: number
+      }
       verify_phone_code: {
         Args: { p_code_hash: string; p_phone: string }
         Returns: string
       }
-      void_staff_payment: {
-        Args: { p_payment_id: string }
-        Returns: undefined
-      }
+      void_staff_payment: { Args: { p_payment_id: string }; Returns: undefined }
     }
     Enums: {
       booking_kind: "pirtis" | "namelis" | "kemperis"

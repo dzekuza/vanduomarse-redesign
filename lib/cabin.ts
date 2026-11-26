@@ -37,6 +37,11 @@ export interface StayType {
   seasons: StaySeason[];
   /** How many exist; null = not limited (camper pitches). */
   units: number | null;
+  /**
+   * "Rezervuoti galima iki", yyyy-mm-dd, EXCLUSIVE: the website sells no night on or after it (check-out on it is fine).
+   * null = no limit beyond `STAY_BOOKING_DAYS`. Staff bookings ignore it.
+   */
+  bookableUntil: string | null;
   active: boolean;
   sortOrder: number;
 }
@@ -68,9 +73,61 @@ export function stayNightRate(type: StayRates, nights: number): number {
   return type.pricePerNight;
 }
 
-/** The season a night (`yyyy-mm-dd`) falls in, if any. */
-export const seasonOn = (type: Pick<StayPriced, "seasons">, day: string): StaySeason | undefined =>
-  type.seasons?.find((s) => s.startsOn <= day && day <= s.endsOn);
+/** Nights in a season (both ends inclusive). */
+export const seasonNights = (s: Pick<StaySeason, "startsOn" | "endsOn">): number =>
+  Math.round((Date.parse(`${s.endsOn}T00:00:00Z`) - Date.parse(`${s.startsOn}T00:00:00Z`)) / 86_400_000) + 1;
+
+/**
+ * The season that prices a night (`yyyy-mm-dd`), if any. Seasons may nest (Christmas inside the winter season): the
+ * shortest one containing the night wins, a tie goes to the later start. Mirrors `private.stay_night_rate()`.
+ */
+export function seasonOn(type: Pick<StayPriced, "seasons">, day: string): StaySeason | undefined {
+  let best: StaySeason | undefined;
+  for (const s of type.seasons ?? []) {
+    if (s.startsOn > day || day > s.endsOn) continue;
+    if (!best || seasonNights(s) < seasonNights(best) || (seasonNights(s) === seasonNights(best) && s.startsOn > best.startsOn)) best = s;
+  }
+  return best;
+}
+
+/**
+ * Why a set of seasons cannot be saved, or null when it can: two seasons may not have the same dates, and two that
+ * overlap must nest (one wholly inside the other), so it is always clear which one prices a night.
+ */
+export function seasonsProblem(seasons: readonly Pick<StaySeason, "startsOn" | "endsOn">[]): string | null {
+  for (let i = 0; i < seasons.length; i++) {
+    for (let j = i + 1; j < seasons.length; j++) {
+      const a = seasons[i];
+      const b = seasons[j];
+      if (a.startsOn === b.startsOn && a.endsOn === b.endsOn) return `Du sezonai turi tas pačias datas (${a.startsOn} – ${a.endsOn}).`;
+      const overlap = a.startsOn <= b.endsOn && b.startsOn <= a.endsOn;
+      const nested = (a.startsOn <= b.startsOn && b.endsOn <= a.endsOn) || (b.startsOn <= a.startsOn && a.endsOn <= b.endsOn);
+      if (overlap && !nested) return `Sezonai ${a.startsOn} – ${a.endsOn} ir ${b.startsOn} – ${b.endsOn} kertasi. Trumpesnis sezonas turi būti visas ilgesniojo viduje.`;
+    }
+  }
+  return null;
+}
+
+/** Whether every night of a stay is before the type's "bookable until" date (always true without one). */
+export function stayBookable(type: Pick<StayType, "bookableUntil">, checkIn: string | Date, nights: number): boolean {
+  if (!type.bookableUntil) return true;
+  const first = typeof checkIn === "string" ? checkIn : dateKey(checkIn);
+  const count = Math.max(1, nights);
+  const lastNight = dateKey(nextDays(first, count)[count - 1]);
+  return lastNight < type.bookableUntil;
+}
+
+/**
+ * Check-in days to offer counting today: `STAY_BOOKING_DAYS`, or fewer when every active type of the kind closes earlier
+ * (no point listing months nobody can book).
+ */
+export function stayBookingDays(types: readonly StayType[], today: string, kind?: StayKind): number {
+  const relevant = types.filter((t) => t.active && (!kind || t.kind === kind));
+  if (!relevant.length || relevant.some((t) => !t.bookableUntil)) return STAY_BOOKING_DAYS;
+  const latest = relevant.map((t) => t.bookableUntil as string).toSorted().at(-1) as string;
+  const days = Math.round((Date.parse(`${latest}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+  return Math.max(1, Math.min(STAY_BOOKING_DAYS, days));
+}
 
 /**
  * Price of a stay, for one unit unless `units` is given. With the check-in date each night is priced from the
@@ -112,8 +169,9 @@ export function stayTiersLabel(type: StayRates): string {
 /** Free units per night and stay type id from `stay_occupancy()`, with no entry for unlimited stock. */
 export type CabinAvailability = Record<string, Record<string, number>>;
 
-/** Lowest availability across all nights, with unlisted nights using the type's whole stock. */
+/** Lowest availability across all nights, with unlisted nights using the type's whole stock; 0 past "bookable until". */
 export function freeStayUnits(availability: CabinAvailability, checkIn: Date, nights: number, type: StayType): number {
+  if (!stayBookable(type, checkIn, nights)) return 0;
   const inventory = type.units ?? Infinity;
   let free = inventory;
   for (let i = 0; i < nights; i++) {
@@ -143,3 +201,13 @@ export function pickStayType(types: readonly StayType[], kind: StayKind, guests:
 /** Total cabins (or pitches) of a kind; camper pitches without a limit count as 0. */
 export const stayStock = (types: readonly StayType[], kind: StayKind): number =>
   types.filter((t) => t.kind === kind && t.active).reduce((sum, t) => sum + (t.units ?? 0), 0);
+
+/** "1 naktis", "3 naktys", "12 naktų", "21 naktis" (Lithuanian plural). */
+export function nightsLabel(n: number): string {
+  const tens = n % 100;
+  const ones = n % 10;
+  if (tens >= 10 && tens <= 20) return `${n} naktų`;
+  if (ones === 1) return `${n} naktis`;
+  if (ones === 0) return `${n} naktų`;
+  return `${n} naktys`;
+}

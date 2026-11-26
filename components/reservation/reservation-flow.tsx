@@ -17,7 +17,7 @@ import type { WakeOffer } from "@/lib/coupons";
 import { QuadServiceBooking } from "@/components/quads/quad-service-booking";
 import { quadTourPlan, type QuadTourPick } from "@/components/quads/quad-tour-plan";
 import { SaunaServiceBooking, saunaHasSessions, type SaunaMode } from "@/components/services/sauna-service-booking";
-import { MAX_STAY_NIGHTS, STAY_BOOKING_DAYS } from "@/lib/cabin";
+import { MAX_STAY_NIGHTS, stayBookingDays } from "@/lib/cabin";
 import { loadSpendablePoints } from "@/app/actions/points";
 import { trackingForPlans } from "@/lib/analytics-kind";
 import { spendPreview, type SpendablePoints } from "@/lib/points";
@@ -114,7 +114,8 @@ export function ReservationFlow({
   const tab = activeTab === "wake" ? tabs[0] : activeTab;
   /** Cabins can be booked almost a year ahead (summer); the sauna and quads only as far as their loaded availability. */
   const stayTab = tab === "nakvyne";
-  const days = useMemo(() => nextDays(today, stayTab ? STAY_BOOKING_DAYS : RESERVATION_DAYS), [today, stayTab]);
+  const stayDays = stayBookingDays(data.cabin.stayTypes, today);
+  const days = useMemo(() => nextDays(today, stayTab ? stayDays : RESERVATION_DAYS), [today, stayTab, stayDays]);
   /** The sauna's two ways to book are separate chips on /rezervacija; session when there are any, otherwise private hire. */
   const [saunaMode, setSaunaMode] = useState<SaunaMode>(() => initialSaunaMode === "private" ? "private" : sessionId || saunaHasSessions(data.sauna) ? "session" : "private");
   const chipTypes: ReservationType[] = availableTabs.flatMap<ReservationType>((id) => id === "pirtis" ? [...(saunaHasSessions(data.sauna) ? ["session" as const] : []), "private"] : [id]);

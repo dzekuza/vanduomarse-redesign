@@ -18,7 +18,7 @@ const booking = (over: Partial<Booking>): Booking => ({
   ...over,
 });
 
-const cabin: StayType = { id: "namelis-2", kind: "namelis", label: "Namelis", note: "", maxGuests: 2, pricePerNight: 80, pricePerNight2: 80, pricePerNight3: 80, seasons: [], units: 2, active: true, sortOrder: 0 };
+const cabin: StayType = { id: "namelis-2", kind: "namelis", label: "Namelis", note: "", maxGuests: 2, pricePerNight: 80, pricePerNight2: 80, pricePerNight3: 80, seasons: [], units: 2, bookableUntil: null, active: true, sortOrder: 0 };
 
 describe("sauna occupancy", () => {
   const sauna = booking({ startHour: 14, hours: 3, saunaId: "s1" });

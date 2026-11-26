@@ -41,6 +41,8 @@ interface CalendarGridProps {
   max?: string
   /** Optional indicator and its spoken description for a selectable day. */
   dayDetails?: (key: string) => CalendarDayDetails | undefined
+  /** Month to show when nothing is chosen yet (e.g. the "from" date for a "to" field). */
+  openOn?: string
 }
 
 /**
@@ -48,9 +50,9 @@ interface CalendarGridProps {
  * filled. Arrow keys move by day/week, Home/End to the week's ends, PageUp/Down
  * by month. Days outside min/max are disabled.
  */
-export function CalendarGrid({ value, onSelect, min, max, dayDetails }: CalendarGridProps) {
+export function CalendarGrid({ value, onSelect, min, max, dayDetails, openOn }: CalendarGridProps) {
   const today = todayKey()
-  const start = value || (min && min > today ? min : today)
+  const start = value || openOn || (min && min > today ? min : today)
   const [view, setView] = useState(`${start.slice(0, 7)}-01`)
   const [focus, setFocus] = useState(start)
   const [mode, setMode] = useState<"days" | "years">("days")

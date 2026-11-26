@@ -398,6 +398,7 @@ export function toStayType(r: Tables<"stay_types"> & { stay_type_seasons?: Table
     pricePerNight3: Number(r.price_per_night_3),
     seasons: (r.stay_type_seasons ?? []).map(toStaySeason).toSorted((a, b) => a.startsOn.localeCompare(b.startsOn)),
     units: r.units,
+    bookableUntil: r.bookable_until,
     active: r.active,
     sortOrder: r.sort_order,
   };
