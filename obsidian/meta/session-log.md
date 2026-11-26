@@ -1,3 +1,9 @@
+## 2026-11-26 — Browser check of Erdvės renginiai
+
+- **Changed:** nothing in code; logged-in check of /admin/erdves at 1280 and 375 px.
+- **Status:** dialog, preselected space, auto Vieta and the clash refusal (renginys over the 4 Dec restaurant hire) work; no test data saved. Saving a space event and the hire-side refusal not tried in the browser (DB trigger was tested with SQL).
+- **Next:** owner creates a real renginys in a space; merge PR #160.
+
 ## 2026-11-26 — Renginiai in Erdvės (ADR-0136)
 
 - **Changed:** an event can be held in an event space and books it for its duration (DB triggers both ways, migration `20261126160000_event_space.sql` applied). /admin/erdves has Renginiai / Nuomos tabs like Pirtis's Seansai.
