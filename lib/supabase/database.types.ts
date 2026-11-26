@@ -3792,6 +3792,16 @@ export type Database = {
           units: number
         }[]
       }
+      stay_room_export_links: {
+        Args: never
+        Returns: {
+          calendar_id: string
+          label: string
+          stay_type_id: string
+          token: string
+        }[]
+      }
+      stay_room_feed: { Args: { p_token: string }; Returns: Json }
       sync_external_blocks: {
         Args: { p_blocks: Json; p_calendar: string }
         Returns: number
