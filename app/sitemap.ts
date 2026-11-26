@@ -17,19 +17,20 @@ const PAGES: { path: string; priority: number }[] = [
   ...Object.keys(SERVICE_PAGES).map((slug) => ({ path: `/${slug}`, priority: 0.8 })),
 ];
 
-/** When the owner last edited each service page (`page_content.updated_at`), by slug. Empty when the read fails. */
-async function pageEditDates(): Promise<Map<string, Date>> {
+/** When the owner last edited each service page (`page_content.updated_at`) by slug, and the pages switched off. Empty when the read fails. */
+async function pageRows(): Promise<{ edited: Map<string, Date>; hidden: Set<string> }> {
   try {
-    const { data } = await createPublicClient().from("page_content").select("slug, updated_at");
-    return new Map((data ?? []).map((row) => [row.slug, new Date(row.updated_at)]));
+    const { data } = await createPublicClient().from("page_content").select("slug, updated_at, hidden");
+    const rows = data ?? [];
+    return { edited: new Map(rows.map((row) => [row.slug, new Date(row.updated_at)])), hidden: new Set(rows.filter((row) => row.hidden).map((row) => row.slug)) };
   } catch {
-    return new Map();
+    return { edited: new Map(), hidden: new Set() };
   }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const edited = await pageEditDates();
-  return PAGES.map(({ path, priority }) => ({
+  const { edited, hidden } = await pageRows();
+  return PAGES.filter(({ path }) => !hidden.has(path.slice(1))).map(({ path, priority }) => ({
     url: `${SITE_URL}${path}`,
     // Only a real date: pages edited in /admin/puslapiai. Others carry none rather than an invented one.
     lastModified: edited.get(path.slice(1)),

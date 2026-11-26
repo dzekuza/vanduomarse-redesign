@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0137 — Owners can switch a service page off
+
+- **Date:** 2026-11-26
+- **Status:** accepted
+- **Context:** the owner wants to turn a service page (e.g. Keturračiai) off from /admin/puslapiai so it no longer shows on the home page or in the menu.
+- **Decision:** a `hidden` column on `page_content` (migration `20261126170000_page_content_hidden.sql`, applied), not a key inside the `content` JSON, so it is not an "edit" and survives "Grąžinti numatytuosius". Saving an empty override now keeps a row that is still hidden; switching a page back on deletes a row that only carried the flag. Each tab in /admin/puslapiai has a "Rodomas svetainėje" switch (`PageVisibilityCard`) and hidden tabs carry a "Paslėpta" badge. Action `setPageHidden` (owner only) revalidates the whole site (`revalidatePath("/", "layout")`). A hidden page answers 404 and is left out of: the header nav and menu panel (`MainHeader` is now a server wrapper that reads `getHiddenServiceSlugs()` and passes the filtered links to `MainHeaderClient`), the home page activity tiles and filter counts, the footer, /kainos and the sitemap. Href helpers in `lib/hidden-pages.ts` (tested).
+- **Consequences:** only the service page and links to it go. Booking the same activity in /rezervacija (e.g. the Keturračiai tab) is unaffected, and the hand-written CTAs on the home page that point at /sventes stay. Tile numbers ("02 / IŠSITAŠKYK") are fixed copy, so hiding one leaves a gap in the numbering.
+
+---
+
 ## ADR-0136 — An event can be held in an event space and books it while it runs
 
 - **Date:** 2026-11-26

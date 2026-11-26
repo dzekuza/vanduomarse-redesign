@@ -426,6 +426,7 @@ Migration `20261119210000_event_presets.sql`, APPLIED 2026-11-19. `event_presets
 | `20261126120000_sauna_session_master.sql` | APPLIED | `events.sauna_master_id text` → `sauna_masters` (on delete set null). |
 | `20261126130000_spaces.sql` | APPLIED | table `spaces` (seeded with the 8 sheet ids), trigger `space_bookings_spaces_known`, CHECK `space_bookings_spaces` dropped. |
 | `20261126160000_event_space.sql` | APPLIED | `events.space_id` (ADR-0136), CHECK `events_space_needs_duration`, triggers `events_space_free` and `space_bookings_events_free` (23P01 `space_taken`), `renginiai` may read `spaces`. |
+| `20261126170000_page_content_hidden.sql` | APPLIED | `page_content.hidden boolean not null default false` (ADR-0137): owner switches a service page off; a row may hold `content = {}` just to carry the flag. Existing RLS covers it. Types edited by hand. |
 | `20261126140000_stay_room_export.sql` | APPLIED | `stay_room_assignments`, `external_calendar_exports` (tokens), `assign_stay_rooms()` (service role), `private.external_units_on()` ignores a room's Sirvoy blocks on nights that room holds one of our confirmed bookings (echo of our export). Checked in a rolled-back block: 3 bookings assigned, stock unchanged after simulated echoes, re-run stable. |
 | `20261126150000_stay_room_feed_functions.sql` | APPLIED | `stay_room_feed(token)` (service role, assigns then returns the room's events as jsonb, null for an unknown token), `stay_room_export_links()` (owner check inside). |
 

@@ -1021,16 +1021,19 @@ export type Database = {
       page_content: {
         Row: {
           content: Json
+          hidden: boolean
           slug: string
           updated_at: string
         }
         Insert: {
           content?: Json
+          hidden?: boolean
           slug: string
           updated_at?: string
         }
         Update: {
           content?: Json
+          hidden?: boolean
           slug?: string
           updated_at?: string
         }

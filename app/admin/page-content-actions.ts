@@ -39,8 +39,11 @@ export async function savePageContent(slug: string, input: unknown): Promise<Act
   const orphaned = (previous.success ? (previous.data.photos ?? []) : []).map((p) => p.src).filter((src) => !keptSrc.has(src));
 
   if (Object.keys(content).length === 0) {
-    const { error } = await supabase.from("page_content").delete().eq("slug", slug);
+    // Back to the defaults: the row goes, unless it still carries the page's "hidden" switch.
+    const { error } = await supabase.from("page_content").update({ content: {} }).eq("slug", slug);
     if (error) return dbError(error);
+    const { error: removeError } = await supabase.from("page_content").delete().eq("slug", slug).eq("hidden", false);
+    if (removeError) return dbError(removeError);
   } else {
     const { error } = await supabase.from("page_content").upsert({ slug, content });
     if (error) return dbError(error);
@@ -49,6 +52,26 @@ export async function savePageContent(slug: string, input: unknown): Promise<Act
   if (paths.length) await supabase.storage.from(PAGE_PHOTO_BUCKET).remove(paths);
   revalidatePage(slug);
   return done(content);
+}
+
+/**
+ * Switches a service page off (or back on). A hidden page 404s and drops out of the header, menu, home page tiles,
+ * footer, /kainos and the sitemap, so every public page is revalidated, not just this one.
+ */
+export async function setPageHidden(slug: string, hidden: boolean): Promise<ActionResult<{ hidden: boolean }>> {
+  const ctx = await staffClient("owner");
+  if (!ctx.ok) return ctx.error;
+  if (!isServiceSlug(slug) || typeof hidden !== "boolean") return fail("Netinkamos reikšmės.", "invalid");
+  const { supabase } = ctx;
+  const { error } = await supabase.from("page_content").upsert({ slug, hidden }, { onConflict: "slug" });
+  if (error) return dbError(error);
+  if (!hidden) {
+    // A row that only carried the switch goes; one with edits stays.
+    const { error: removeError } = await supabase.from("page_content").delete().eq("slug", slug).eq("hidden", false).eq("content", "{}");
+    if (removeError) return dbError(removeError);
+  }
+  revalidatePath("/", "layout");
+  return done({ hidden });
 }
 
 /** Uploads one photo for a page and returns its public URL; it joins the page's gallery when the editor saves. */

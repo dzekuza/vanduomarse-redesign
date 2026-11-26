@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SERVICES, type ActivityCard } from "./content";
 
-const ACTIVITY_HREF: Record<ActivityCard["id"], string> = {
+export const ACTIVITY_HREF: Record<ActivityCard["id"], string> = {
   sauna: "/pirtis",
   ciongo: "/keturraciu-nuoma",
   cabins: "/nakvyne",

@@ -1,8 +1,10 @@
 import { ActivityBoard } from "./activity-board";
 import { Reveal } from "@/components/reveal";
+import { getHiddenServiceSlugs } from "@/lib/data/page-content";
 
 /** `#kryptys`: heading + the filterable activity grid. */
-export function LandingActivities() {
+export async function LandingActivities() {
+  const hidden = await getHiddenServiceSlugs();
   return (
     <section id="kryptys" aria-labelledby="activities-title" className="px-gutter py-14 md:py-19">
       <Reveal>
@@ -17,7 +19,7 @@ export function LandingActivities() {
         </p>
       </div>
       </Reveal>
-      <ActivityBoard />
+      <ActivityBoard hidden={hidden} />
     </section>
   );
 }
