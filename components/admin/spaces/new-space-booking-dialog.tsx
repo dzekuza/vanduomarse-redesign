@@ -9,7 +9,6 @@ import { useAdmin } from "../admin-store";
 import { FormField } from "../form-field";
 import { SpacePicker } from "./space-picker";
 import { formatEur } from "@/lib/admin/format";
-import { SPACES, type SpaceId } from "@/lib/event-pricing";
 import { anySpaceClash, spaceLabels, suggestedSpacePrice, windowsOverlap } from "@/lib/space-booking";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { FormPhoneInput } from "@/components/ui/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 
-const SPACE_IDS = SPACES.map((s) => s.id) as [SpaceId, ...SpaceId[]];
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pasirinkite laiką.");
 
 const schema = z
@@ -28,7 +26,7 @@ const schema = z
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite datą."),
     startTime: time,
     endTime: time,
-    spaces: z.array(z.enum(SPACE_IDS)).min(1, "Pasirinkite bent vieną erdvę."),
+    spaces: z.array(z.string()).min(1, "Pasirinkite bent vieną erdvę."),
     name: z.string().trim().min(2, "Įveskite vardą.").max(80),
     surname: z.string().trim().min(2, "Įveskite pavardę.").max(80),
     phone: z.string().trim().regex(/^\+?[\d\s()-]{6,}$/, "Įveskite telefono numerį."),
@@ -49,7 +47,8 @@ interface NewSpaceBookingDialogProps {
 
 /** Hires one or several event spaces for a day and time window to a customer, for the agreed price. */
 export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBookingDialogProps) {
-  const { spaceBookings, createSpaceBooking } = useAdmin();
+  const { spaceBookings, spaces: catalog, createSpaceBooking } = useAdmin();
+  const offered = useMemo(() => catalog.filter((s) => s.active), [catalog]);
   const { register, control, handleSubmit, setError, setValue, getValues, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { date: date || todayKey(), endDate: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", note: "" },
@@ -58,15 +57,15 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
   const [day, endDay, startTime, endTime, spaces, guests, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "guests", "price"] });
 
   const taken = useMemo(() => {
-    const ids = new Set<SpaceId>();
+    const ids = new Set<string>();
     const wanted = { date: day, endDate: endDay, startTime, endTime };
     if (!day || !endDay || `${endDay} ${endTime}` <= `${day} ${startTime}`) return ids;
     const clashing = spaceBookings.filter((b) => b.status !== "atsaukta" && windowsOverlap(wanted, b));
-    for (const s of SPACES) if (anySpaceClash([s.id], clashing.flatMap((b) => b.spaces))) ids.add(s.id);
+    for (const s of offered) if (anySpaceClash([s.id], clashing.flatMap((b) => b.spaces), catalog)) ids.add(s.id);
     return ids;
-  }, [spaceBookings, day, endDay, startTime, endTime]);
+  }, [spaceBookings, offered, catalog, day, endDay, startTime, endTime]);
 
-  const suggested = suggestedSpacePrice(spaces, day, Number(guests) || 1);
+  const suggested = suggestedSpacePrice(spaces, day, catalog, startTime);
   const total = price === "" ? suggested : Number(price.replace(",", "."));
 
   const submit = handleSubmit(async (v) => {
@@ -84,7 +83,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
       note: v.note,
     });
     if ("error" in result) return setError("spaces", { message: result.error.message });
-    toast.success(`Erdvės rezervuotos: ${spaceLabels(result.data.booking.spaces)}`);
+    toast.success(`Erdvės rezervuotos: ${spaceLabels(result.data.booking.spaces, catalog)}`);
     onOpenChange(false);
   });
 
@@ -125,7 +124,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
 
           <div className="space-y-1.5 sm:col-span-2">
             <p className="text-sm font-medium">Erdvės</p>
-            <Controller control={control} name="spaces" render={({ field }) => <SpacePicker value={field.value} onChange={field.onChange} taken={taken} invalid={!!err.spaces} />} />
+            <Controller control={control} name="spaces" render={({ field }) => <SpacePicker spaces={offered} value={field.value} onChange={field.onChange} taken={taken} invalid={!!err.spaces} />} />
             {err.spaces?.message ? <p className="text-xs text-destructive">{err.spaces.message}</p> : null}
           </div>
 

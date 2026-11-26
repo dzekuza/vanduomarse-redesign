@@ -44,7 +44,7 @@ export interface CalendarEntry {
   space?: true;
 }
 
-type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events" | "externalBlocks" | "spaceBookings">;
+type Source = Pick<AdminData, "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "events" | "externalBlocks" | "spaceBookings"> & Partial<Pick<AdminData, "spaces">>;
 
 const EVENT_KIND: Record<EventCategory, CalendarKind> = { pirtis: "pirtis", keturratis: "keturraciai", vakarai: "renginys", akademija: "renginys", sventes: "renginys" };
 
@@ -63,7 +63,7 @@ function lastNight(date: string, nights: number): string {
 }
 
 /** Every non-cancelled booking and rental, plus every event (its tickets are read with `ticketsFor`), as one flat, date-sorted list. */
-export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings }: Source): CalendarEntry[] {
+export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, events, externalBlocks, spaceBookings, spaces = [] }: Source): CalendarEntry[] {
   const entries: CalendarEntry[] = [];
 
   for (const b of bookings) {
@@ -110,7 +110,7 @@ export function calendarEntries({ bookings, stayTypes, quadRentals, quadTypes, e
       date: s.date,
       endDate: s.endDate,
       time: s.startTime,
-      title: `Erdvės: ${spaceLabels(s.spaces)}`,
+      title: `Erdvės: ${spaceLabels(s.spaces, spaces)}`,
       detail: s.endDate === s.date ? `${s.startTime}–${s.endTime}` : `${s.startTime} – ${s.endDate.slice(5)} ${s.endTime}`,
       customer: { name: [s.customer.name, s.customer.surname].filter(Boolean).join(" "), email: s.customer.email, phone: s.customer.phone },
       status: s.status,

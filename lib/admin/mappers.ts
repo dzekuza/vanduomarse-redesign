@@ -10,7 +10,8 @@ import type { SaunaProgram } from "@/lib/sauna-programs";
 import type { SaunaMaster } from "@/lib/sauna-masters";
 import type { Upsell } from "@/lib/sauna-upsells";
 import { isNotificationTopic } from "@/lib/notification-topics";
-import type { EventPreset, SpaceId } from "@/lib/event-pricing";
+import type { EventPreset } from "@/lib/event-pricing";
+import type { ManagedSpace } from "@/lib/space-booking";
 import type { Block, Booking, ManagedEventPreset, SpaceBooking, ExternalBlock, ExternalCalendar, Coupon, Inquiry, ManagedEvent, PaymentInfo, PaymentStatus, PlanPass, PriceItem, Purchase, NotificationRecipient, StaffNotification, QuadRental, Rider, RiderCard, RiderComment, RiderDocument, RiderSession, RiderWaiver, RidePlan, RidePlanCategory, StaffMember, StaffPaymentMethod, StaffRole, TourTicket } from "./types";
 
 /**
@@ -79,12 +80,27 @@ export function toSpaceBooking(r: Tables<"space_bookings">): SpaceBooking {
     endDate: r.end_date,
     startTime: hhmm(r.start_time),
     endTime: hhmm(r.end_time),
-    spaces: r.spaces as SpaceId[],
+    spaces: r.spaces,
     customer: { name: r.customer_name, surname: r.customer_surname, phone: r.customer_phone, email: r.customer_email ?? "" },
     guests: r.guests,
     price: Number(r.price),
     status: r.status,
     note: r.note,
+    createdAt: r.created_at,
+  };
+}
+
+export function toSpace(r: Tables<"spaces">): ManagedSpace {
+  return {
+    id: r.id,
+    label: r.label,
+    blurb: r.blurb,
+    maxGuests: r.max_guests,
+    priceWeekday: r.price_weekday === null ? null : Number(r.price_weekday),
+    priceWeekend: r.price_weekend === null ? null : Number(r.price_weekend),
+    wholePark: r.whole_park,
+    active: r.active,
+    sortOrder: r.sort_order,
   };
 }
 

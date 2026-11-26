@@ -10,7 +10,7 @@ import * as siteSettingsActions from "@/app/admin/site-settings-actions";
 import * as staffActions from "@/app/admin/staff-actions";
 import { formatEuro } from "@/lib/coupons";
 import type { LoyaltySettings } from "@/lib/points";
-import type { ActionResult, EventPresetInput, NewBookingInput, NewSpaceBookingInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
+import type { ActionResult, EventPresetInput, NewBookingInput, NewSpaceBookingInput, SpaceInput, NewEventTicketInput, StaffRentalInput, StaffTourInput } from "@/app/admin/actions";
 import type { PermissionId } from "@/lib/admin/permissions";
 import type { RiderProfileInput } from "@/app/admin/actions";
 import type { AdminData, Booking, BookingStatus, InquiryStatus, ManagedEvent, PriceItem, Purchase, PurchasePaymentMethod, QuadRental, Rider, RiderComment, RiderDocument, RidePlan, RiderSession, SpaceBooking, StaffMember, StaffRole, TourTicket } from "@/lib/admin/types";
@@ -19,6 +19,7 @@ import type { PageContentOverride } from "@/lib/page-content";
 import type { DiscountCodeInput } from "@/lib/discount-code-schema";
 import type { NotificationRecipientInput } from "@/lib/notification-recipient-schema";
 import type { StayType } from "@/lib/cabin";
+import type { ManagedSpace } from "@/lib/space-booking";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
 import type { SaunaValues } from "./sauna/sauna-schema";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -72,6 +73,7 @@ type Action =
   | { type: "rental/add"; rental: QuadRental }
   | { type: "space/add"; booking: SpaceBooking }
   | { type: "space/status"; id: string; status: BookingStatus }
+  | { type: "space/upsert"; space: ManagedSpace }
   | { type: "ticket/status"; id: string; status: BookingStatus }
   | { type: "ticket/add"; ticket: TourTicket }
   | { type: "stayType/upsert"; stayType: StayType }
@@ -237,6 +239,11 @@ function reducer(state: AdminData, action: Action): AdminData {
       return { ...state, spaceBookings: [...state.spaceBookings, action.booking] };
     case "space/status":
       return { ...state, spaceBookings: state.spaceBookings.map((s) => (s.id === action.id ? { ...s, status: action.status } : s)) };
+    case "space/upsert": {
+      const exists = state.spaces.some((s) => s.id === action.space.id);
+      const spaces = exists ? state.spaces.map((s) => (s.id === action.space.id ? action.space : s)) : [...state.spaces, action.space];
+      return { ...state, spaces: spaces.toSorted((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, "lt")) };
+    }
     case "rental/add":
       return { ...state, quadRentals: [...state.quadRentals, action.rental] };
     case "ticket/status": {
@@ -557,6 +564,12 @@ function useAdminReducer(initial: AdminData) {
       createSpaceBooking: async (input: NewSpaceBookingInput) => {
         const result = await actions.createSpaceBooking(input);
         if ("data" in result) dispatch({ type: "space/add", booking: result.data.booking });
+        return result;
+      },
+      /** Not optimistic: a new space gets its id from the server. */
+      saveSpace: async (input: SpaceInput) => {
+        const result = await report(actions.saveSpace(input));
+        if ("data" in result) dispatch({ type: "space/upsert", space: result.data.space });
         return result;
       },
       setSpaceBookingStatus: (id: string, status: BookingStatus) => {

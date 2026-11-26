@@ -2,7 +2,7 @@ import "server-only";
 import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toManagedEventPreset, toSpaceBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toManagedEventPreset, toSpaceBooking, toSpace, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData, SiteSettings } from "./types";
 
@@ -184,6 +184,16 @@ async function readSpaceBookings(supabase: ServerSupabase) {
   return data.map(toSpaceBooking);
 }
 
+/** Event spaces (erdvės); a role without access just has none. */
+async function readSpaces(supabase: ServerSupabase) {
+  const { data, error } = await supabase.from("spaces").select("*").order("sort_order").order("label");
+  if (error) {
+    console.error("Admin data: spaces", error.message);
+    return [];
+  }
+  return data.map(toSpace);
+}
+
 /** Calculator event types; a database without the migration just has none. */
 async function readEventPresets(supabase: ServerSupabase) {
   const { data, error } = await supabase.from("event_presets").select("*").order("sort_order");
@@ -263,6 +273,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     bookings: bookings.data!.map((r) => ({ ...toBooking(r), payment: paymentOf(r.payment_id) })),
     blocks: blocks.data!.map(toBlock),
     spaceBookings: await readSpaceBookings(supabase),
+    spaces: await readSpaces(supabase),
     inquiries: inquiries.data!.map(toInquiry),
     events: events.data!.map(toManagedEvent),
     prices: prices.data!.map(toPriceItem),

@@ -16,14 +16,14 @@ interface SpaceBookingSheetProps {
 
 /** An event-space hire: the spaces, window, customer and price, with confirm / cancel. */
 export function SpaceBookingSheet({ booking, onOpenChange }: SpaceBookingSheetProps) {
-  const { setSpaceBookingStatus } = useAdmin();
+  const { setSpaceBookingStatus, spaces } = useAdmin();
   return (
     <Sheet open={!!booking} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
         {booking ? (
           <>
             <SheetHeader>
-              <SheetTitle className="wrap-anywhere">{spaceLabels(booking.spaces)}</SheetTitle>
+              <SheetTitle className="wrap-anywhere">{spaceLabels(booking.spaces, spaces)}</SheetTitle>
               <SheetDescription>Erdvių rezervacija</SheetDescription>
             </SheetHeader>
             <div className="space-y-6 px-4 pb-6">
