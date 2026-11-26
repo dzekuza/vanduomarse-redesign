@@ -30,6 +30,6 @@ describe("space bookings", () => {
   });
 
   it("names spaces", () => {
-    expect(spaceLabels(["terasa", "corona"])).toBe("Įstiklinta terasa, „Corona“ su baseinu");
+    expect(spaceLabels(["terasa", "corona"])).toBe("Įstiklinta terasa, Lauko terasa su baseinu („Corona“)");
   });
 });

@@ -1,6 +1,6 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-18
+updated: 2026-11-26
 ---
 
 # Decisions Log (ADRs)
@@ -10,6 +10,43 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0130 — Camps are an event type of the same calculator, priced by day and by meal
+
+- **Status:** Accepted (rules from the owner, 2026-11-23; to be refined with real orders).
+- **Date:** 2026-11-23
+- **Context:** the park takes camps (not only for children): a stay of one or more days, with meals per person (Friday dinner 18 €, Saturday breakfast 15 € with drinks, lunch 15 €, dinner 18 €, Sunday breakfast 15 €) and the dome at about 100 € a day. The event calculator priced one-off events only.
+- **Decision:** "Stovykla" is a preset of the existing calculator, not a separate tool. Since ADR-0125 the types live in `public.event_presets`; the camp is the row with id `stovykla` (migration `20261126120000_event_preset_stovykla.sql`, typical price 0-0, which the page hides) and the code keys the camp flow to that id. `EstimateInput.campDays` and `campMeals` (counts of breakfasts, lunches and dinners over the stay) apply only while `preset === "stovykla"`. A space may define `campRent` (per day; the dome, both variants); other spaces keep their event price. Meals are `CAMP_MEALS` x count x guests, counted toward the space's minimum bill. The meal section swaps the buffet slider for `CampMeals`. Cabins and nights, sauna, WAKE and quads reuse the existing sections.
+- **Consequences:** prices stay in `lib/event-pricing.ts` (one place). Meals are counts, not dates, so a menu planned per calendar day is not modelled. Other spaces for camps (the "priespirtis", terraces, restaurant) still need their camp prices from the owner. Typical price per guest is absent for camps, so `EventPreset.perGuest` became nullable.
+
+---
+
+## ADR-0129 — The calculator quotes several spaces at once: rents add up, one minimum bill, one service fee
+
+- **Status:** Accepted (owner agreed to the proposed rules, 2026-11-23).
+- **Date:** 2026-11-23
+- **Context:** the calculator offered eight single spaces, including the bundle "Kupolas + Corona". The owner wants four venues (Kupolas, Įstiklinta terasa, Lauko terasa su baseinu, Restoranas) that can be combined. The sheet's bundle price is exactly the sum of its parts (700 + 1 200 = 1 900 €), but its 1 500 € minimum bill is charged once.
+- **Decision:** `EstimateInput.spaces: SpaceId[]`. Rents are summed line by line, the minimum food and drink bill is the highest of the chosen spaces, one service fee applies (the one with the highest maximum), one extra-hour rate. A venue's variants (Kupolas: Šventė / Seminaras; the park: Be WAKE / Su WAKE) are the priced `Space` entries; the whole park excludes the single venues. The `SPACES` sheet data is unchanged (`kupolas-corona` stays for the pricing pages). The inquiry still stores one text, the labels joined with " + ".
+- **Consequences:** any other combination (e.g. terasa + restoranas) is priced by the same sum, which the sheet does not explicitly list; the owner should confirm those. Per-space availability per date is still not modelled (events carry a free-text place and only day-level private dates exist), so the calendar cannot show free and taken spaces yet; that needs an owner decision and a migration.
+
+---
+
+## ADR-0128 — The price calculator is a standalone page again, built on the shared calculator state
+
+- **Status:** Accepted.
+- **Date:** 2026-11-23
+- **Context:** the calculator had been folded into `/sventes` (redirect, 2026-11-12), where it lives in a narrow side panel. The owner wants a full page to build on, with all choices on the left and the price on the right.
+- **Decision:** `/skaiciuokle` renders `CalculatorPage` (client) over the same `useEventCalculator` hook, `CalculatorGroups` and `EstimateSummary` the panel uses; no pricing logic is duplicated. The redirect is removed; `/sventes` keeps its panel for now.
+- **Consequences:** two surfaces share one state hook, so a price rule change lands in both. If the new page replaces the panel later, `CelebrationCalculator` and its `compact` paths can go. The page is the one to design further.
+
+---
+
+## ADR-0127 — The public header's inline nav starts at `xl`, not `lg`
+
+- **Status:** Accepted.
+- **Date:** 2026-11-23
+- **Context:** the header now carries five links (one a dropdown with a caret), a user-icon account button, the "Rezervuok" CTA and the burger. At 1024 px that overflowed by about 157 px and cut the CTA off. Trimming gaps would have saved ~60 px at most.
+- **Decision:** the inline nav starts at `xl` (1280 px); below it the burger menu carries every link (`NAV_LINKS` plus `ACCOUNT_LINK`). Two-column page layouts still start at `lg`. AGENTS.md rule 3 and the design brief say so.
+- **Consequences:** tablets and small laptops (768-1279 px) use the burger menu. The account icon shows from `md` and the menu repeats it as an item. Adding a sixth nav link or a longer label needs a new width check at 1280 px.
 ## ADR-0126 — Cabin prices can change by date range (seasons); summer is bookable 350 days ahead
 
 - **Status:** Accepted.

@@ -31,7 +31,7 @@ Records developer selections for the interface. Values and tokens live in [[desi
 - **Palette:** ink (aubergine `#382e38`) bands and text, dust (`#eed9ce`) page, rust (coral `#ed5257`) for CTAs, second headline line, stars and highlights, `lake-soft` (deep teal `#015059`) as the third surface, `lake` (tan) accents on teal, `water` (bright teal) only for status dot and focus. [design-system.md]
 - **Type:** Termina only, four weights (400, 500, 600, 700; files in `app/fonts/`). Titles bold uppercase with tight tracking on fluid steps. Body `text-xs`/`text-sm` with `leading-loose`. Labels `text-micro` only. [design-system.md; developer decision 2026-11-10 on weights]
 - **Shape:** square (`--radius: 0`). Curves only on the circular sticker, the cut photo corners and the home activity drawer (`rounded-tile`). [design-system.md]
-- **Layout:** mobile-first. Two columns and inline nav start at `lg`. Every tap target at least 44 px. Choice chips wrap; only date strips scroll sideways. Check 375, 768 and 1024 px. [AGENTS.md; design-system.md]
+- **Layout:** mobile-first. Two columns start at `lg`; the public header's inline nav at `xl` (below it the burger menu). Every tap target at least 44 px. Choice chips wrap; only date strips scroll sideways. Check 375, 768 and 1024 px. [AGENTS.md; design-system.md]
 - **Forms and cards:** outlined `border-ink` cards on `bg-foam` / `bg-card`, a bottom bar with total and primary button. [design-system.md]
 - **Motion:** gated with `motion-safe:`, press `active:scale-97`, `ease-out-strong`, `Reveal` on scroll. [design-system.md]
 - **Copy:** Lithuanian, prices include 21% PVM, no i18n library yet. [AGENTS.md]

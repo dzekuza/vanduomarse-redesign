@@ -1,4 +1,5 @@
 import { guestsLabel, lowestStayPrice, stayRateLabel, stayTypesOf } from "@/lib/cabin";
+import { BedNotice } from "@/components/booking/bed-notice";
 import { Cta } from "@/components/cta";
 import { QuadInformation } from "@/components/quads/quad-information";
 import type { ActivityId, ReservationData } from "@/lib/reservation";
@@ -69,6 +70,7 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
       <div className="space-y-6">
         {cabins.length ? (
           <Section title="Nameliai">
+            <BedNotice className="mb-3" />
             <ul className="space-y-3">
               {cabins.map((t) => (
                 <Item key={t.id} title={t.label} text={t.note || undefined} meta={`${stayRateLabel(t)} · ${guestsLabel(t.maxGuests)}`} />
