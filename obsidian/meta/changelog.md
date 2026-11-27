@@ -1,3 +1,4 @@
+- 2026-11-27 `/kuponai` title is "Vanduo Marse" (ink) / "dovanų kuponas" (coral); "Geriausia dovana" removed.
 - 2026-11-27 Plan purchase: the pay button ("Apmokėti … €" / "Pirkti draugui …") is no longer full width and sits on the right (`PassBuyForm`; `MemberPlanCheckout` aligned right too).
 - 2026-11-27 Black Friday purchase card artwork matches the new offer: "Įsigyk iki gruodžio 1 d. ir mokėk dalimis: pusę dabar, o likusią sumą prieš sezono pradžią." (the free sauna visit until 27 Nov is gone everywhere).
 - 2026-11-27 Plan purchase tabs "Perku sau" / "Perku draugui" get more side padding (`px-4`).

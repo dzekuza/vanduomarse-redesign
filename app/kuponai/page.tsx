@@ -27,7 +27,7 @@ export default async function CouponsPage({ searchParams }: PageProps<"/kuponai"
           header={
             <BookingHeader
               crumb="Dovanų kuponai"
-              title={["Geriausia dovana", "Vanduo Marse dovanų kuponas"]}
+              title={["Vanduo Marse", "dovanų kuponas"]}
               intro={[
                 "Skaitmeninis dovanų kuponas, kuris bus pristatytas jūsų arba gavėjo nurodytu el. paštu kartu su unikaliu kodu ir naudojimosi instrukcijomis.",
                 `Kuponą gali panaudoti vienu kartu plaukimui, pirčiai ar nakvynei. Jis galioja ${COUPON_VALID_MONTHS} mėn. nuo apmokėjimo. Didesnei dovanai rinkis kelis mažesnės vertės kuponus. Pasibaigus galiojimo laikui, pinigai negrąžinami.`,
