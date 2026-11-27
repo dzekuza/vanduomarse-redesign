@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0140 — Sauna bookings are Meta `Schedule`, event enquiries stay `Lead`
+
+- **Date:** 2026-11-27
+- **Status:** accepted
+- **Context:** the owner (for their ads) wants a celebration/event enquiry to count as a Meta `Lead` and a sauna booking as `Schedule`. Until now every request sent without online payment, sauna included, was `Lead`.
+- **Decision:** `trackLead` sends Meta `Schedule` instead of `Lead` when the kind is `sauna` or `sauna_session` (`isScheduleKind` in `lib/analytics.ts`); every other kind (event enquiry from the calculator, stay, quads, event registration) stays `Lead`. A sauna booking paid online keeps its `Purchase` and also sends `Schedule` from the paid return page (`eventID` `schedule-<transactionId>`, so a reload counts once), with its Conversions API copy through `reportMetaEvent` (`Schedule` added to `CAPI_EVENTS`). Google Analytics is unchanged (`generate_lead` / `purchase`).
+- **Consequences:** sauna bookings no longer show up as `Lead` in Meta. A /rezervacija plan that mixes a sauna with a stay or quads is reported as kind `reservation`, so it stays `Lead`. A paid sauna booking whose buyer closes the tab before the return page gets its server `Purchase` from the webhook but no `Schedule`.
+
+---
+
 ## ADR-0139 — The WAKE season pass can be paid in two halves; the code is issued only when the balance is paid
 
 - **Status:** Accepted (draft PR from `feat/wake-pass-part-payment`). Migration `20261127130000_plan_pass_part_payment.sql` NOT applied yet. Builds on ADR-0109 (plan passes) and reuses the link pattern of ADR-0112 / ADR-0113.

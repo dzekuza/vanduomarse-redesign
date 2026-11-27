@@ -13,7 +13,7 @@ import { toE164 } from "@/lib/sms/twilio";
 
 export const META_GRAPH_VERSION = "v26.0";
 
-export const CAPI_EVENTS = ["ViewContent", "Lead", "InitiateCheckout", "CompleteRegistration", "Purchase"] as const;
+export const CAPI_EVENTS = ["ViewContent", "Lead", "Schedule", "InitiateCheckout", "CompleteRegistration", "Purchase"] as const;
 export type CapiEventName = (typeof CAPI_EVENTS)[number];
 
 /** Who did it, as far as the server knows. Every field is optional; Meta matches on whatever it gets. */
