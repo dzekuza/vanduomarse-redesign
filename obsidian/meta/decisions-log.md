@@ -1,12 +1,22 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-26
+updated: 2026-11-27
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0139 — The WAKE season pass can be paid in two halves; the code is issued only when the balance is paid
+
+- **Status:** Accepted (draft PR from `feat/wake-pass-part-payment`). Migration `20261127130000_plan_pass_part_payment.sql` NOT applied yet. Builds on ADR-0109 (plan passes) and reuses the link pattern of ADR-0112 / ADR-0113.
+- **Date:** 2026-11-27
+- **Context:** the Black Friday copy promises "mokėk dalimis". The owner decided: only the WAKE season pass bought online (`plan_passes`, plan `52e95927-…`, including the Black Friday page and "Perku draugui"); a 50/50 split of the final price after discount; no deadline for the second half, staff send the link from /admin; the code is issued only when everything is paid. Online passes were also missing from Apžvalga → Pardavimai.
+- **Decision:** `plan_passes` gets `payment_plan` (`visa` / `dalimis`), `deposit_amount` = round(price / 2, 2), `balance_amount` = price − deposit (both ≥ 0,50 €, checked by a constraint and by `create_plan_pass`, which refuses `dalimis` for any other plan), the balance session / payment intent / paid time, and `deposit_refunded_at` / `balance_refunded_at`. New status `dalinai_apmoketa` ("Apmokėta dalis"): the deposit is in, no code, cannot be attached (`redeem_plan_pass` still wants `apmoketa`). The buy form offers "Visa suma" (default) or "Mokėti dalimis" with both amounts, only for the WAKE season pass while both halves reach 0,50 €; the action refuses it for other plans and treats a request without the field as a full payment. The deposit is a normal pass Checkout (`plan_pass_part: depozitas`); the webhook calls `complete_plan_pass_payment(..., p_balance => false)`, which moves the pass to `dalinai_apmoketa`, and the buyer gets a "pirmoji dalis" e-mail. Staff open the pass from the sales list (new `SaleTarget` kind `pass`, `PassSheet`) or from Apyrankės → Kodai and press "Siųsti likučio nuorodą" or "Kopijuoti nuorodą" (`getPassBalanceLink`, needs `apyrankes`, the page whose permission can read passes): `lib/plan-pass-balance.ts` reuses the pass's open balance Checkout Session or makes a new one of 23 h 55 min (`STAFF_LINK_MINUTES`), with `plan_pass_part: likutis`, remembered by `attach_plan_pass_balance_session` (expected-session guard against two staff renewing at once). The webhook routes that metadata to `p_balance => true`; the paid balance issues the code and goes down the same code e-mail path as a full payment. An expired deposit session cancels the pass as before; an expired balance session leaves it part-paid. Refunds are matched to either payment intent (`refund_plan_pass_payment` now returns `part` and `outcome`): a full-payment refund behaves as before; a deposit refund cancels an unattached pass (staff are told to refund the balance too if it was paid); a balance refund puts a paid, unattached pass back to `dalinai_apmoketa` (its code stops working until the balance is paid again); an attached pass is only reported, as before. Sales: online passes are listed under Vandenlentės; unpaid ones are left out, cancelled or refunded ones do not count, a part-paid one counts only the deposit (status "Apmokėta 300 € · Likutis 300 €"), a paid one the full price; the till purchase logged when a pass is attached is left out so the pass is counted once. Meta / GA: the purchase is reported once, with the deposit, worth the deposit (the money received); the balance is not reported again.
+- **Consequences:** a split pass with no balance stays `dalinai_apmoketa` indefinitely; there is no reminder, SMS or deadline (the earlier idea of an April 17 reminder and keeping the deposit was not built). A signed-in member buying through `MemberPlanCheckout` (`rider_plan_orders`) cannot split; only the anonymous pass flow can. The sales list sees passes only for staff with `apyrankes` (RLS) and only the loaded window (every paid / part-paid one, the latest 300 attached or cancelled). A balance payment with a wrong amount is flagged to staff and its payment intent is remembered only until a correct balance arrives. Code deployed before the migration keeps working (new parameters have defaults, new result columns are appended), but the new code needs the migration before the "Mokėti dalimis" choice works.
 
 ---
 
