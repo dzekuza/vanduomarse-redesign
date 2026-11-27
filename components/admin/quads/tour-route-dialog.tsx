@@ -17,19 +17,30 @@ import { Textarea } from "@/components/ui/textarea";
 const int = (min: number, max: number) =>
   z.string().trim().regex(/^\d+$/, "Sveikas skaičius.").refine((v) => Number(v) >= min && Number(v) <= max, `Nuo ${min} iki ${max}.`);
 
+const optionalInt = (min: number, max: number) =>
+  z.string().trim().regex(/^\d*$/, "Sveikas skaičius.").refine((v) => v === "" || (Number(v) >= min && Number(v) <= max), `Nuo ${min} iki ${max} arba tuščia.`);
+const orNull = (v: string) => (v === "" ? null : Number(v));
+
 const schema = z.object({
   name: z.string().trim().min(1, "Įveskite pavadinimą.").max(60),
   kilometres: int(1, 500),
   hours: int(1, 8),
   durationLabel: z.string().trim().max(30, "Daugiausia 30 simbolių."),
   price: z.string().trim().regex(/^\d+(\.\d{1,2})?$/, "Įveskite kainą, pvz. 79."),
-  minUnits: int(1, 20),
+  minUnits: int(1, 40),
+  maxUnits: int(1, 40),
+  groupFrom: optionalInt(2, 40),
+  groupPrice: z.string().trim().regex(/^(\d+(\.\d{1,2})?)?$/, "Įveskite kainą, pvz. 72."),
+  guidesFrom: optionalInt(2, 40),
+  guideUnits: int(0, 5),
   description: z.string().trim().max(200, "Daugiausia 200 simbolių."),
   longDescription: z.string().trim().max(1200, "Daugiausia 1200 simbolių."),
   photo: z.string().trim().max(200).regex(/^(\/[A-Za-z0-9._/-]*)?$/, "Kelias prasideda /, pvz. /quads/ciongo/mini-route.webp."),
   badge: z.string().trim().max(20, "Daugiausia 20 simbolių."),
   active: z.boolean(),
-});
+})
+  .refine((v) => Number(v.minUnits) <= Number(v.maxUnits), { path: ["maxUnits"], message: "Ne mažiau nei mažiausias kiekis." })
+  .refine((v) => (v.groupFrom === "") === (v.groupPrice === ""), { path: ["groupPrice"], message: "Užpildykite abu grupės laukus arba nė vieno." });
 type Values = z.infer<typeof schema>;
 
 /** Create or edit a tour product; remounted per route (key) so defaults reset. */
@@ -44,6 +55,11 @@ export function TourRouteDialog({ route, onOpenChange }: { route?: QuadTourRoute
       durationLabel: route?.durationLabel ?? "",
       price: route ? String(route.price) : "",
       minUnits: route ? String(route.minUnits) : "3",
+      maxUnits: route ? String(route.maxUnits) : "15",
+      groupFrom: route?.groupFrom != null ? String(route.groupFrom) : "",
+      groupPrice: route?.groupPrice != null ? String(route.groupPrice) : "",
+      guidesFrom: route?.guidesFrom != null ? String(route.guidesFrom) : "",
+      guideUnits: route ? String(route.guideUnits) : "0",
       description: route?.description ?? "",
       longDescription: route?.longDescription ?? "",
       photo: route?.photo ?? "",
@@ -65,6 +81,11 @@ export function TourRouteDialog({ route, onOpenChange }: { route?: QuadTourRoute
       durationLabel: v.durationLabel,
       price: Number(v.price),
       minUnits: Number(v.minUnits),
+      maxUnits: Number(v.maxUnits),
+      groupFrom: orNull(v.groupFrom),
+      groupPrice: orNull(v.groupPrice),
+      guidesFrom: orNull(v.guidesFrom),
+      guideUnits: Number(v.guideUnits),
       description: v.description,
       longDescription: v.longDescription,
       photo: v.photo,
@@ -89,12 +110,17 @@ export function TourRouteDialog({ route, onOpenChange }: { route?: QuadTourRoute
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{route ? "Redaguoti turą" : "Naujas turas"}</DialogTitle>
-          <DialogDescription>Kaina yra už keturratį su PVM. Rezervacijos kainą visada perskaičiuoja duomenų bazė iš šių reikšmių.</DialogDescription>
+          <DialogDescription>Kaina yra už keturratį su PVM. Vedlių keturračiai imami iš to paties parko papildomai prie klientų. Rezervacijos kainą visada perskaičiuoja duomenų bazė iš šių reikšmių.</DialogDescription>
         </DialogHeader>
         <form id="tour-route-form" onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">{field("name", "Pavadinimas")}</div>
           {field("price", "Kaina, € už keturratį", { inputMode: "decimal" })}
           {field("minUnits", "Mažiausiai keturračių", { inputMode: "numeric" })}
+          {field("maxUnits", "Daugiausiai keturračių klientams", { inputMode: "numeric" })}
+          {field("groupFrom", "Grupės kaina nuo, keturr.", { inputMode: "numeric", placeholder: "10" })}
+          {field("groupPrice", "Grupės kaina, € už keturratį", { inputMode: "decimal", placeholder: "72" })}
+          {field("guidesFrom", "Vedliai nuo, keturr.", { inputMode: "numeric", placeholder: "11" })}
+          {field("guideUnits", "Keturračių vedliams", { inputMode: "numeric" })}
           {field("kilometres", "Atstumas, km", { inputMode: "numeric" })}
           {field("hours", "Trukmė, val.", { inputMode: "numeric" })}
           {field("durationLabel", "Trukmė kortelėje", { placeholder: "Iki 2 val." })}

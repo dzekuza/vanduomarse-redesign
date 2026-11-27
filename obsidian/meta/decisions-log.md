@@ -10,6 +10,23 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0142 — CIONGO packages are priced in one lib file and sent as inquiries
+
+- **Status:** Accepted.
+- **Date:** 2026-11-27
+- **Context:** the owner wants the five packages of the CIONGO x Vanduo Marse offer sheet on the site, each with a choice between the Finnish sauna (3 h, 210 € Mon–Thu / 270 € Fri–Sun) and the wood-fired sauna with a sauna master (530 € / 600 €), selectable in the right-hand panel. Answers: a request to the team (not a booking), group of 5–15 people, on the quads page.
+- **Decision:** `lib/ciongo-packages.ts` holds the packages (items, program, photos) and the sheet's own prices (food and dinner per person, dome, cabins 50–60 € per person, the wood-fired sauna with a master). Quads come from the live tour route (`quadTourUnitPrice`, so 80 € / 72 € from 10) and the Finnish sauna from its `saunas` row (3-hour price + extra-guest fee); I–IV vs V–VII follows `isWeekendDay` (Fri–Sun). The dome of package 5 is shown with PVM (500 € + 21 % = 605 €). /keturraciu-nuoma gets a "Paketai" section, and its booking panel offers only the packages (heading "Tipas"; the owner dropped the tour-only form there the same day — plain tours stay bookable on /rezervacija); both share `CiongoPackageProvider`. Sending uses `create_inquiry` through the new shared `QuoteRequestForm`, with `calculator_input.saunas` so staff can book the sauna from the request; quads, food and cabins are arranged by staff.
+- **Consequences:** changing a sheet price is a code change in one file (no admin screen yet). Totals differ from the sheet only where it left PVM out (dome) or when the group is not 10. Nothing is held until staff confirm.
+
+---
+
+## ADR-0141 — One quad tour with a group price and guide quads taken from the fleet
+
+- **Status:** Accepted.
+- **Date:** 2026-11-27
+- **Context:** the owner (CIONGO) wants one tour instead of Mini / Midi / Maxi: the Midi route at 80 € per quad, 72 € per quad from 10 quads, at most 15 quads per booking, and from 11 quads two guides who ride two more quads of the same fleet. Prices and limits must stay editable in the admin and re-priced by the database (ADR-0053).
+- **Decision:** the rules are columns of `quad_tour_routes` (`max_units`, `group_from` + `group_price`, `guides_from` + `guide_units`), not code constants. The guides' quads are part of the rental's stock: `quad_rentals.units` = customer + guide quads (so availability, the capacity trigger and the allocations view need no change), `guide_units` records how many are the guides', `riders` = customer quads. `create_quad_tour_rental` checks `min_units`..`max_units`, takes customer + guide quads, and charges the group price to every quad once the group size is reached. Mini and Maxi stay as inactive rows (old bookings point at them). The UI uses `quadTourUnitPrice`, `quadTourGuideUnits`, `quadTourMaxUnits` (largest customer count that fits with its guides), `quadTourPriceLabel`, `quadTourUnitsNote` in `lib/quads.ts`.
+- **Consequences:** a start with 12 free quads takes at most 10 customers (11 + 2 guides do not fit). Guide quads count as sold in a tour event's `sold` (`sync_tour_event_sold` sums `units`). The mapper falls back (max 15, no group price, no guides) until the migration runs, so the deployed app works either way; before the SQL runs the DB still prices 79 € and allows 20.
 ## ADR-0140 — Sauna bookings are Meta `Schedule`, event enquiries stay `Lead`
 
 - **Date:** 2026-11-27

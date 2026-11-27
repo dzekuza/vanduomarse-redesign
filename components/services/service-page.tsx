@@ -20,9 +20,12 @@ import { ServicePricing } from "./service-pricing";
 import { ServiceReviews } from "./service-reviews";
 import { SectionTabs } from "./section-tabs";
 import { CalendarSchedule, InquirySchedule } from "./service-schedule";
+import { quadTourUnitsNote } from "@/lib/quads";
+import { hoursLabel } from "@/lib/sauna";
 
 const SECTIONS = [
   { id: "aprasymas", label: "Aprašymas" },
+  { id: "paketai", label: "Paketai" },
   { id: "informacija", label: "Informacija" },
   { id: "kainos", label: "Kainos" },
   { id: "galerija", label: "Galerija" },
@@ -40,10 +43,13 @@ function Section({ id, children }: { id: (typeof SECTIONS)[number]["id"]; childr
   );
 }
 
-export async function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake }: {
+export async function ServicePage({ slug, booking, schedule, sauna, quads, stayTypes, photos, wake, packages }: {
   slug: ServiceSlug;
+  /** Packages shown under "Paketai" (CIONGO on the quads page); the section and its tab are left out without them. */
+  packages?: ReactNode;
   booking?: ReactNode | ((header: ReactNode) => ReactNode);
-  schedule?: ReactNode;
+  /** The availability section; `false` leaves the section and its tab out (pages that only take requests). */
+  schedule?: ReactNode | false;
   sauna?: SaunaPageData;
   quads?: QuadPageData;
   /** Active stay types, for the Nakvynė price list. */
@@ -56,8 +62,10 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
     ...(sauna?.saunas ?? []).map(({ id, name, description, rates }) => ({
       id, label: name, value: [description, `Iki ${rates.maxParty} žmonių.`].filter(Boolean).join(" "),
     })),
-    ...(quads?.tourRoutes ?? []).map(({ id, name, kilometres, minUnits }) => ({
-      id, label: name, value: `${kilometres} km · Mažiausias keturračių skaičius – ${minUnits}.`,
+    ...(quads?.tourRoutes ?? []).map((route) => ({
+      id: route.id,
+      label: quads && quads.tourRoutes.length > 1 ? `${route.name} turas` : "Turas",
+      value: `${route.durationLabel || hoursLabel(route.hours)} · ${route.kilometres} km. Specialiai parengta trasa miške už parko teritorijos, važiuojama su gidu. ${quadTourUnitsNote(route)}`,
     })),
     ...(stayTypes ?? []).map(({ id, label, maxGuests, note }) => ({
       id, label, value: [guestsLabel(maxGuests), note].filter(Boolean).join(" · "),
@@ -89,7 +97,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
             <BookingTitle title={[copy.title]} />
             <p className="text-sm leading-loose text-copy">{copy.summary}</p>
           </header>
-          <SectionTabs tabs={SECTIONS} className="sticky top-21.5 z-10 -mx-gutter min-w-0 bg-dust px-gutter py-1 md:top-26.5 lg:col-span-8 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:px-0" />
+          <SectionTabs tabs={SECTIONS.filter(({ id }) => (id !== "paketai" || packages) && (id !== "tvarkarastis" || schedule !== false))} className="sticky top-21.5 z-10 -mx-gutter min-w-0 bg-dust px-gutter py-1 md:top-26.5 lg:col-span-8 lg:col-start-1 lg:row-start-2 lg:mx-0 lg:px-0" />
           <aside id="rezervuoti" aria-labelledby="service-booking-title" className={cn(
             "min-w-0 scroll-mt-32 border border-line bg-foam lg:sticky lg:top-32 lg:col-span-4 lg:col-start-9 lg:row-span-3 lg:row-start-1 lg:max-h-[calc(100dvh-9rem)]",
             customBookingLayout ? "lg:flex lg:flex-col" : "p-4 sm:p-6 lg:overflow-y-auto",
@@ -113,6 +121,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
                 ))}
               </div> : null}
             </Section>
+            {packages ? <Section id="paketai">{packages}</Section> : null}
             <Section id="informacija">
               <dl className="grid gap-2 lg:grid-cols-3">
                 {facts.map(({ id, label, value }) => (
@@ -129,7 +138,7 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
             </Section>
             <Section id="kainos"><ServicePricing slug={slug} sauna={sauna} quads={quads} stayTypes={stayTypes} /></Section>
             <Section id="galerija"><ServicePhotoMosaic photos={gallery} label={`${copy.label}: galerija`} /></Section>
-            <Section id="tvarkarastis">{schedule ?? (booking ? <CalendarSchedule wake={wake} note={copy.availabilityNote} /> : <InquirySchedule wake={wake} note={copy.availabilityNote} />)}</Section>
+            {schedule === false ? null : <Section id="tvarkarastis">{schedule ?? (booking ? <CalendarSchedule wake={wake} note={copy.availabilityNote} /> : <InquirySchedule wake={wake} note={copy.availabilityNote} />)}</Section>}
             <Section id="atsiliepimai"><ServiceReviews service={copy.service} /></Section>
             <Section id="duk">
               <LandingAccordion rows={copy.questions.map((question, index) => ({ ...question, id: `${slug}-${index}` }))} variant="faq" mode="multiple" />

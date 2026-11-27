@@ -13,14 +13,8 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, 
       ? `Iki ${program.capacity} žmonių. ${program.description}`
       : program.description,
   })) ?? [];
-  if (slug === "keturraciu-nuoma") return [
-    ...(quads?.tourRoutes ?? []).map((route) => ({
-      label: `${route.name} turas`,
-      price: `${route.price} € / keturračiui`,
-      note: `${route.kilometres} km · ${route.hours} val. · bent ${route.minUnits} keturračiai`,
-    })),
-    ...(quads?.tourAccessories ?? []).map((gear) => ({ label: gear.name, price: `${gear.price} € / vnt.`, note: "Papildoma įranga" })),
-  ];
+  // The quads page sells the CIONGO packages (priced in "Paketai"); only the extra gear is listed here.
+  if (slug === "keturraciu-nuoma") return (quads?.tourAccessories ?? []).map((gear) => ({ label: gear.name, price: `${gear.price} € / vnt.`, note: "Papildoma įranga" }));
   if (slug === "nakvyne") return (stayTypes ?? []).map((type) => ({
     label: type.label,
     price: stayRateLabel(type),

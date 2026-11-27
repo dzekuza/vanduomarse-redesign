@@ -1,12 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { SectionKicker } from "@/components/section-kicker";
 import { StarMark } from "@/components/star-mark";
 import { FooterLinks } from "@/components/footer-links";
-import { FOOTER_CONTACTS, INSTAGRAM_URL, MAIN_CONTACT, telHref, type Contact } from "@/lib/contacts";
-
-const LINK = "inline-flex min-h-11 items-center";
+import { FOOTER_CONTACTS, telHref, type Contact } from "@/lib/contacts";
 
 /** The giant "Susitinkam Marse" closing line. */
 export function FooterWord() {
@@ -22,28 +19,12 @@ export function FooterWord() {
   );
 }
 
-/** Logo, link row and copyright. `topHref` is where "Į viršų" jumps to. */
-export function FooterBar({ topHref }: { topHref: string }) {
+/** Logo on the left, copyright on the far right. */
+export function FooterBar() {
   return (
-    <div className="flex flex-col gap-3 border-t border-line pt-6.5 text-xs lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 shrink-0 md:w-30" />
-        <span>© {new Date().getFullYear()} VANDUO MARSE</span>
-      </div>
-      <div className="flex flex-wrap justify-end gap-x-6">
-        <a href={`mailto:${MAIN_CONTACT.email}`} className={LINK}>
-          {MAIN_CONTACT.email}
-        </a>
-        <Link prefetch={false} href="/kuponai" className={LINK}>
-          Dovanoti Marsą
-        </Link>
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener" className={LINK}>
-          Instagram
-        </a>
-        <a href={topHref} className={LINK}>
-          Į viršų ↑
-        </a>
-      </div>
+    <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-t border-line pt-6.5 text-xs">
+      <Image src="/brand/logo-dark.svg" alt="Vanduo Marse" width={134} height={51} className="h-auto w-26 shrink-0 md:w-30" />
+      <span>© {new Date().getFullYear()} VANDUO MARSE</span>
     </div>
   );
 }
@@ -81,7 +62,7 @@ export function SiteFooter() {
         </ul>
       </Reveal>
       <FooterLinks />
-      <FooterBar topHref="#" />
+      <FooterBar />
     </footer>
   );
 }

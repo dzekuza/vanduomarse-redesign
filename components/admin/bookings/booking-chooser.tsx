@@ -6,7 +6,7 @@ import type { DayOptions } from "@/lib/admin/booking-options";
 import { formatEur } from "@/lib/admin/format";
 import type { ManagedEvent } from "@/lib/admin/types";
 import { stayTiersLabel, type StayType } from "@/lib/cabin";
-import type { QuadTourRoute, QuadType } from "@/lib/quads";
+import { quadTourPriceLabel, type QuadTourRoute, type QuadType } from "@/lib/quads";
 import type { Sauna } from "@/lib/sauna";
 import { DatePicker } from "@/components/ui/date-picker";
 
@@ -105,7 +105,7 @@ export function BookingChooser({ date, onDateChange, options, canTickets, quads,
               key={route.id}
               title={`${route.name} turas`}
               detail={`${route.kilometres} km · ${route.durationLabel}`}
-              meta={`Nuo ${route.minUnits} keturračių · ${formatEur(route.price)} / keturratį`}
+              meta={`${route.minUnits}–${route.maxUnits} keturr. · ${quadTourPriceLabel(route)}`}
               onPick={() => onPickTour(route)}
             />
           ))}

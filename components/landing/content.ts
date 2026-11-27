@@ -65,12 +65,12 @@ export const SERVICES: Record<ServiceId, Service> = {
   ciongo: {
     id: "ciongo",
     name: "Ciongo keturračiai",
-    choice: "Keturračiai",
+    choice: "CIONGO keturračiai",
     glyph: "↗",
     label: "02 / VANDUO MARSE × CIONGO",
     title: "IŠSUKAM\nSU CIONGO.",
-    photo: "/landing/ciongo.webp",
-    alt: "Ciongo keturratis miško trasoje",
+    photo: "/quads/marse/forest-road-pair.webp",
+    alt: "Du keturračiai su Ciongo instruktoriais miško žvyrkelyje",
     description:
       "Žvyras, miškas ir visai kitas maršrutas. Važiuok su Ciongo, o po trasos pratęsk dieną Marse. Vienu keturračiu galima važiuoti dviese.",
     facts: [
@@ -182,7 +182,7 @@ export interface ActivityCard {
 
 export const ACTIVITY_CARDS: ActivityCard[] = [
   { id: "sauna", categories: ["rest"], alt: SAUNA_COVER.alt, tag: "SUOMIŠKA SAUNA", num: "01 / ATSIKVĖPK", title: "PIRTIS MARSE.", note: ["Privati pirtis", "ir bendri seansai."] },
-  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "KETURRAČIŲ NUOMA.", note: ["Po pasivažinėjimų –", "į pirtį atsigauti."] },
+  { id: "ciongo", categories: ["action"], alt: "Ciongo keturratis važiuoja miško trasa", tag: "VANDUO MARSE × CIONGO", num: "02 / IŠSITAŠKYK", title: "CIONGO KETURRAČIŲ NUOMA.", note: ["Po pasivažinėjimų –", "į pirtį atsigauti."] },
   { id: "party", categories: ["celebrate"], alt: "Kupolas ir šventės erdvė prie vandens", tag: "KUPOLAS · RESTORANAS · TERASA", num: "03 / ŠVĘSK", title: "ŠVENTĖS MARSE.", note: ["Vestuvės, gimtadieniai,", "įmonių renginiai."] },
   { id: "cabins", categories: ["rest"], alt: CABINS_COVER.alt, tag: "NAMELIAI PRIE VANDENS", num: "04 / PASILIK", title: "NAKVYNĖ MARSE.", note: ["Apsistokite jaukiuose", "nameliuose prie vandens."] },
   { id: "wake", categories: ["action"], alt: "Vandenlentės ir šuoliai Marso parke", tag: "WAKE PARKAS", num: "05 / VANDENLENČIŲ SPORTAS", title: "WAKEBOARD", note: ["Wake grupinės treniruotės", "kartu su Handle The Watter."] },
@@ -241,8 +241,9 @@ export const SERVICE_GALLERY: Record<ServiceId, ServicePhoto[]> = {
     { src: "/landing/pirtis-05.webp", alt: "Įkaitę pirties krosnies akmenys" },
   ],
   ciongo: [
-    { src: "/landing/ciongo.webp", alt: SERVICES.ciongo.alt },
-    { src: "/landing/aerial.webp", alt: "Parkas iš oro: trasos aplink ežerą" },
+    { src: SERVICES.ciongo.photo, alt: SERVICES.ciongo.alt },
+    { src: "/quads/marse/field-drift.webp", alt: "Loncin keturratis pievoje taško žemes" },
+    { src: "/quads/marse/riders-start.webp", alt: "Dvi vairuotojos ant keturračių prie ežero prieš turą" },
   ],
   party: [
     { src: "/landing/dome.webp", alt: SERVICES.party.alt },

@@ -11,7 +11,7 @@ import { FormField } from "../form-field";
 import { TourGearFields } from "./tour-gear-fields";
 import { formatEur } from "@/lib/admin/format";
 import { tourStartsOn } from "@/lib/admin/quad-availability";
-import { hourLabel, MAX_QUAD_RENTAL_UNITS } from "@/lib/quads";
+import { quadTourMaxUnits, quadTourGuideUnits, quadTourUnitPrice, quadTourPriceLabel, hourLabel, MAX_QUAD_RENTAL_UNITS } from "@/lib/quads";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -57,14 +57,16 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
   const route = routes.find((r) => r.id === chosenRoute);
   const starts = route && day ? tourStartsOn(day, route, { types: quadTypes, settings: quadSettings, rentals: quadRentals }) : [];
   const free = starts.find((s) => String(s.hour) === startHour)?.free ?? 0;
+  const most = route ? quadTourMaxUnits(route, Math.min(free, MAX_QUAD_RENTAL_UNITS)) : 0;
   const units = Math.max(route?.minUnits ?? 1, Number(unitsText) || 0);
+  const guides = route ? quadTourGuideUnits(route, units) : 0;
   const gearItems = quadTourAccessories.filter((a) => a.active && (gear[a.id] ?? 0) > 0);
-  const total = route ? route.price * units + gearItems.reduce((sum, a) => sum + a.price * (gear[a.id] ?? 0), 0) : 0;
+  const total = route ? quadTourUnitPrice(route, units) * units + gearItems.reduce((sum, a) => sum + a.price * (gear[a.id] ?? 0), 0) : 0;
 
   const submit = handleSubmit(async (v) => {
     if (!route) return setError("routeId", { message: "Pasirinkite turą." });
     if (units < route.minUnits) return setError("units", { message: `Šiam turui reikia bent ${route.minUnits} keturračių.` });
-    if (units > Math.min(free, MAX_QUAD_RENTAL_UNITS)) return setError("units", { message: `Šiuo laiku laisvų: ${free}.` });
+    if (units > most) return setError("units", { message: `Šiuo laiku galima iki ${most} (su vedlių keturračiais).` });
     const result = await createQuadTour({
       routeId: v.routeId,
       date: v.date,
@@ -91,7 +93,7 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
           <DialogDescription>Kaip svetainėje: laikai, kuriuos visam maršrutui dengia laisvi keturračiai, ir mažiausias keturračių skaičius.</DialogDescription>
         </DialogHeader>
         <form id="new-tour-form" onSubmit={submit} className="grid grid-cols-2 gap-3">
-          <FormField id="nt-route" label="Turas" error={err.routeId?.message} className="col-span-2" hint={route ? `${route.kilometres} km · ${route.durationLabel} · nuo ${route.minUnits} keturračių · ${formatEur(route.price)} / keturratį` : undefined}>
+          <FormField id="nt-route" label="Turas" error={err.routeId?.message} className="col-span-2" hint={route ? `${route.kilometres} km · ${route.durationLabel} · ${route.minUnits}–${route.maxUnits} keturr. · ${quadTourPriceLabel(route)}` : undefined}>
             <Controller
               control={control}
               name="routeId"
@@ -124,13 +126,13 @@ export function NewTourDialog({ onOpenChange, date, routeId }: { onOpenChange: (
               stacked
               value={units}
               min={route?.minUnits ?? 1}
-              max={Math.max(route?.minUnits ?? 1, startHour ? Math.min(free, MAX_QUAD_RENTAL_UNITS) : MAX_QUAD_RENTAL_UNITS)}
+              max={Math.max(route?.minUnits ?? 1, startHour ? most : route?.maxUnits ?? 1)}
               editable
               updateOnInput
               onChange={(n) => setValue("units", String(n), { shouldValidate: true })}
             />
             <p className={err.units ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
-              {err.units?.message ?? (route ? `Nuo ${route.minUnits}${startHour ? ` iki ${Math.min(free, MAX_QUAD_RENTAL_UNITS)}` : ""}` : "")}
+              {err.units?.message ?? (route ? `Nuo ${route.minUnits}${startHour ? ` iki ${most}` : ` iki ${route.maxUnits}`}${guides > 0 ? ` · +${guides} vedlių keturr.` : ""}` : "")}
             </p>
           </div>
           <TourGearFields accessories={quadTourAccessories.filter((a) => a.active)} quantities={gear} onChange={(id, n) => setGear((g) => ({ ...g, [id]: n }))} maxTotal={units * 2} />

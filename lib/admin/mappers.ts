@@ -3,7 +3,7 @@ import type { StaySeason, StayType } from "@/lib/cabin";
 import type { CouponProduct } from "@/lib/coupons";
 import { isDiscountService, type DiscountCode } from "@/lib/discount-codes";
 import { PASS_STATUS, type PassStatus } from "@/lib/plan-pass";
-import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
+import { DEFAULT_QUAD_TOUR_MAX_UNITS, type QuadSettings, type QuadTourAccessory, type QuadTourRoute, type QuadType } from "@/lib/quads";
 import type { Tables } from "@/lib/supabase/database.types";
 import { saunaPhotoUrl, type PriceTable, type Sauna, type SaunaRates } from "@/lib/sauna";
 import type { SaunaProgram } from "@/lib/sauna-programs";
@@ -440,6 +440,12 @@ export function toQuadTourRoute(r: Tables<"quad_tour_routes">): QuadTourRoute {
     durationLabel: r.duration_label,
     price: r.price,
     minUnits: r.min_units,
+    // Fallbacks keep the site working until the 2026-11-27 tour migration has run.
+    maxUnits: r.max_units ?? DEFAULT_QUAD_TOUR_MAX_UNITS,
+    groupFrom: r.group_from ?? null,
+    groupPrice: r.group_price ?? null,
+    guidesFrom: r.guides_from ?? null,
+    guideUnits: r.guide_units ?? 0,
     description: r.description,
     longDescription: r.long_description,
     photo: r.photo,

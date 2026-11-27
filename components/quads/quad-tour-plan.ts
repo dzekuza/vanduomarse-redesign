@@ -1,5 +1,5 @@
 import type { QuadPageData } from "@/lib/data/public-types";
-import { freeAt, hourLabel, MAX_QUAD_RENTAL_UNITS, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
+import { freeAt, hourLabel, MAX_QUAD_RENTAL_UNITS, quadTourGuideUnits, quadTourMaxUnits, quadTourUnitPrice, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
 import type { PlanLine, When } from "@/lib/reservation";
 import { hoursLabel, longDateLabel, nextDays, pastHourOn } from "@/lib/sauna";
 
@@ -68,9 +68,9 @@ export function quadTourSlots(data: Pick<QuadPageData, "settings" | "types" | "t
   });
 }
 
-/** Starts of a route on a day: any hour the free fleet covers the whole route with at least its minimum number of quads. */
+/** Starts of a route on a day: any hour the free fleet covers the whole route with at least its minimum number of quads (plus guides' quads). */
 export function quadTourStarts(data: Pick<QuadPageData, "settings" | "types" | "taken" | "today" | "nowHour">, day: string, route: QuadTourRoute, busy: readonly number[] = []) {
-  return quadTourSlots(data, day, route.hours, busy).filter(({ free }) => free >= route.minUnits);
+  return quadTourSlots(data, day, route.hours, busy).filter(({ free }) => quadTourMaxUnits(route, free) >= route.minUnits);
 }
 
 /** The plan line of a chosen tour. The database prices the request again when it is filed. */
@@ -78,8 +78,9 @@ export function quadTourPlan(data: QuadPageData, when: When, pick: QuadTourPick 
   const route = data.tourRoutes.find(({ id }) => id === pick?.routeId);
   if (!pick || !route) return null;
   const start = quadTourStarts(data, when.day, route, busy).find(({ hour }) => hour === pick.startHour);
-  const maxUnits = start?.free ?? 0;
-  const validUnits = Number.isInteger(pick.units) && pick.units >= 1 && pick.units <= MAX_QUAD_RENTAL_UNITS;
+  const maxUnits = quadTourMaxUnits(route, start?.free ?? 0);
+  const validUnits = Number.isInteger(pick.units) && pick.units >= 1 && pick.units <= route.maxUnits;
+  const guides = validUnits ? quadTourGuideUnits(route, pick.units) : 0;
   const accessories = quadTourAccessories(data.tourAccessories, pick.accessories);
   const ok = validUnits && pick.units >= route.minUnits && pick.units <= maxUnits && accessories.ok;
   const time = Number.isInteger(pick.startHour) && pick.startHour >= 0 && pick.startHour + route.hours <= 24
@@ -89,9 +90,12 @@ export function quadTourPlan(data: QuadPageData, when: When, pick: QuadTourPick 
     line: {
       id: "keturraciai",
       title: `${route.name} turas`,
-      detail: [`${pick.units} × Keturratis · ${hoursLabel(route.hours)}`, ...accessories.items.map((item) => `${item.units} × ${item.name}`)].join(" · "),
+      detail: [
+        `${pick.units} × Keturratis · ${hoursLabel(route.hours)}`,
+        ...(guides > 0 ? [`${guides} vedliai (be papildomo mokesčio)`] : []),
+        ...accessories.items.map((item) => `${item.units} × ${item.name}`)].join(" · "),
       schedule: `${longDateLabel(nextDays(when.day, 1)[0])}, ${time}`,
-      price: validUnits && accessories.ok ? route.price * pick.units + accessories.total : 0,
+      price: validUnits && accessories.ok ? quadTourUnitPrice(route, pick.units) * pick.units + accessories.total : 0,
     },
     ok,
     hours: ok ? Array.from({ length: route.hours }, (_, offset) => pick.startHour + offset) : [],

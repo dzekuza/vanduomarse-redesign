@@ -29,6 +29,14 @@ export interface QuadTourRoute {
   /** EUR per quad incl. 21% PVM, the same for a driver alone or with a passenger. */
   price: number;
   minUnits: number;
+  /** Most customer quads one booking can take (guide quads come on top). */
+  maxUnits: number;
+  /** From this many quads every quad costs `groupPrice` instead of `price`; null = no group price. */
+  groupFrom: number | null;
+  groupPrice: number | null;
+  /** From this many customer quads the tour takes `guideUnits` more quads for its guides; null = never. */
+  guidesFrom: number | null;
+  guideUnits: number;
   description: string;
   longDescription: string;
   /** A path under /public. */
@@ -73,6 +81,46 @@ export type QuadTaken = Record<string, Record<string, Record<number, number>>>;
 /** Days ahead the rental day strip shows. */
 export const QUAD_DAYS = 21;
 export const MAX_QUAD_RENTAL_UNITS = 20;
+
+/** Most customer quads a tour takes when it does not say (the 2026 rule). */
+export const DEFAULT_QUAD_TOUR_MAX_UNITS = 15;
+
+type TourRules = Pick<QuadTourRoute, "price" | "minUnits" | "maxUnits" | "groupFrom" | "groupPrice" | "guidesFrom" | "guideUnits">;
+
+/** EUR per quad for a tour of `units` customer quads: the group price from `groupFrom`, otherwise the route price. */
+export function quadTourUnitPrice(route: TourRules, units: number): number {
+  return route.groupFrom !== null && route.groupPrice !== null && units >= route.groupFrom ? route.groupPrice : route.price;
+}
+
+/** Quads the guides ride on a tour of `units` customer quads; they come out of the same fleet. */
+export function quadTourGuideUnits(route: TourRules, units: number): number {
+  return route.guidesFrom !== null && units >= route.guidesFrom ? route.guideUnits : 0;
+}
+
+/** The most customer quads a start with `free` quads can take, keeping room for the guides' quads. */
+export function quadTourMaxUnits(route: TourRules, free: number): number {
+  for (let units = Math.min(route.maxUnits, free); units >= 1; units--) {
+    if (units + quadTourGuideUnits(route, units) <= free) return units;
+  }
+  return 0;
+}
+
+/** "80 € / keturračiui · nuo 10 keturr. 72 €" */
+export function quadTourPriceLabel(route: TourRules): string {
+  const group = route.groupFrom !== null && route.groupPrice !== null ? ` · nuo ${route.groupFrom} keturr. ${route.groupPrice} €` : "";
+  return `${route.price} € / keturračiui${group}`;
+}
+
+/** The lowest price per quad a route can reach (its group price when it has one). */
+export function quadTourLowestPrice(route: TourRules): number {
+  return route.groupPrice !== null ? Math.min(route.price, route.groupPrice) : route.price;
+}
+
+/** "Bent 5, daugiausiai 15 keturračių. Nuo 11 keturračių kartu važiuoja 2 vedliai." */
+export function quadTourUnitsNote(route: TourRules): string {
+  const guides = route.guidesFrom !== null && route.guideUnits > 0 ? ` Nuo ${route.guidesFrom} keturračių kartu važiuoja ${route.guideUnits} vedliai.` : "";
+  return `Bent ${route.minUnits}, daugiausiai ${route.maxUnits} keturračių.${guides}`;
+}
 
 export function quadRentalUnitLimit(type: QuadType, otherUnits: number): number {
   return Math.max(0, Math.min(type.units, MAX_QUAD_RENTAL_UNITS - otherUnits));

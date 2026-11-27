@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAdmin } from "../admin-store";
 import { TourRouteDialog } from "./tour-route-dialog";
-import type { QuadTourRoute } from "@/lib/quads";
+import { quadTourPriceLabel, type QuadTourRoute } from "@/lib/quads";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -41,7 +41,7 @@ export function TourRoutesCard() {
             <div className="min-w-0 flex-1">
               <p className={`truncate text-sm font-medium ${r.active ? "" : "text-muted-foreground line-through"}`}>{r.name}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {r.kilometres} km · {r.hours} val. · bent {r.minUnits} keturračiai
+                {r.kilometres} km · {r.hours} val. · {r.minUnits}–{r.maxUnits} keturr. · {quadTourPriceLabel(r)}{r.guidesFrom !== null ? ` · vedliai nuo ${r.guidesFrom} (+${r.guideUnits})` : ""}
               </p>
             </div>
             <p className="shrink-0 font-display text-sm font-bold tabular-nums">{r.price} €</p>

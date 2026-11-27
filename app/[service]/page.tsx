@@ -18,6 +18,9 @@ import { RESERVATION_DAYS } from "@/lib/reservation";
 import { SERVICE_OG_IMAGES, metaDescription, pageMetadata } from "@/lib/seo";
 import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
 import { paymentsEnabled } from "@/lib/stripe";
+import { CiongoPackageProvider } from "@/components/quads/ciongo-package-state";
+import { CiongoPackagesSection } from "@/components/quads/ciongo-packages-section";
+import { CiongoPackageBooking } from "@/components/quads/ciongo-package-booking";
 
 interface Props {
   params: Promise<{ service: string }>;
@@ -77,15 +80,28 @@ export default async function ActivityPage({ params }: Props) {
     return (
       <LiveActivityProvider activity={activity} initial={data}>
         {schema}
-        <ServicePage
-          slug={service}
-          sauna={activity === "pirtis" ? sauna : undefined}
-          quads={activity === "keturraciai" ? quads : undefined}
-          stayTypes={activity === "nakvyne" ? cabin.stayTypes : undefined}
-          photos={photos}
-          booking={<LiveBooking activity={activity} payments={paymentsEnabled()} />}
-          schedule={<LiveSchedule activity={activity} />}
-        />
+        {activity === "keturraciai" ? (
+          <CiongoPackageProvider>
+            <ServicePage
+              slug={service}
+              quads={quads}
+              photos={photos}
+              packages={<CiongoPackagesSection />}
+              booking={<CiongoPackageBooking />}
+              // Packages are requests to the team, so the quad availability table is not shown here.
+              schedule={false}
+            />
+          </CiongoPackageProvider>
+        ) : (
+          <ServicePage
+            slug={service}
+            sauna={activity === "pirtis" ? sauna : undefined}
+            stayTypes={activity === "nakvyne" ? cabin.stayTypes : undefined}
+            photos={photos}
+            booking={<LiveBooking activity={activity} payments={paymentsEnabled()} />}
+            schedule={<LiveSchedule activity={activity} />}
+          />
+        )}
       </LiveActivityProvider>
     );
   }

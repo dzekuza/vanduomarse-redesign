@@ -42,12 +42,12 @@ export const SERVICE_PAGES = {
   },
   "keturraciu-nuoma": {
     service: "ciongo",
-    label: "Keturračiai",
-    title: "Keturračių nuoma ir turai prie Kauno",
-    bookingIntro: "Susidėliok turo planą. Rezervaciją patvirtins komanda.",
-    metaDescription: "Keturračių nuoma prie Kauno: turai su gidu miške ir bekelėje, „Vanduo Marse“ ir „Ciongo“ trasos. Pasirink trasą, datą ir rezervuok.",
-    summary: "Išvykos keturračiais su gidu. Apžiūrėk „Vanduo Marse“ ir „Ciongo“ turų pasiūlymą bei palygink trasas.",
-    description: "Trumpesnė trasa tinka pirmai pažinčiai su keturračiu, ilgesnė skirta tiems, kurie nori daugiau laiko miške ir bekelėje. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Dėl išvykos iš Vanduo Marse susitark su komanda.",
+    label: "CIONGO keturračiai",
+    title: "CIONGO keturračių nuoma ir turai prie Kauno",
+    bookingIntro: "Pasirink tipą, pirtį, žmonių skaičių ir datą. Užklausą patvirtins komanda.",
+    metaDescription: "CIONGO keturračių nuoma prie Kauno: turai su gidu miške ir bekelėje, „Vanduo Marse“ ir „Ciongo“ trasos. Pasirink trasą, datą ir rezervuok.",
+    summary: "Išvykos keturračiais su gidu po CIONGO trasą miško ir bekelės keliais. Grupėms nuo 10 keturračių taikoma nuolaida.",
+    description: "Turas su gidu miško ir bekelės keliais, tinka ir pirmai pažinčiai su keturračiu. Vienu keturračiu gali važiuoti vairuotojas su keleiviu. Didesnę grupę lydi du vedliai. Dėl išvykos iš Vanduo Marse susitark su komanda.",
     facts: [
       { label: "Apranga", value: "Rinkis judėti patogią aprangą pagal oro sąlygas." },
       { label: "Partneris", value: "Ciongo" },
