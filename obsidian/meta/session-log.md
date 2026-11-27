@@ -1,3 +1,8 @@
+## 2026-11-27 — Black Friday copy and DB fix live
+
+- **Changed:** merged PR #166 (hero copy) and PR #167 (constraint migration); the owner applied the SQL. Docs: status.
+- **Status:** deployed; live hero text checked; constraints checked in the live DB.
+- **Next:** extend the code's end date; build installment payments (the copy already promises them).
 ## 2026-11-27 — Black Friday DB constraint and installment research
 
 - **Changed:** migration `20261127120000_wake_black_friday_any_percent.sql` (not applied). Docs: changelog, status.

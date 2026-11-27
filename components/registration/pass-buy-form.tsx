@@ -132,15 +132,17 @@ export function PassBuyForm({
           ? "Gausite el. laišką su kodu: perduokite jį draugui. Draugas užsiregistruos pats ir parke pasakys kodą."
           : "Registraciją (kontaktai, nuotrauka, taisyklės) užpildysi vėliau, prieš gaudamas apyrankę. Kodą atsiųsime el. paštu."}
       </p>
-      <ArrowButton fullWidth type="submit" disabled={working}>
-        {redirecting
-          ? "Nukreipiame į apmokėjimą..."
-          : isSubmitting
-            ? "Siunčiama..."
-            : gift
-              ? `Pirkti draugui ${formatEuro(total)}`
-              : `Apmokėti ${formatEuro(total)}`}
-      </ArrowButton>
+      <div className="flex justify-end">
+        <ArrowButton type="submit" disabled={working}>
+          {redirecting
+            ? "Nukreipiame į apmokėjimą..."
+            : isSubmitting
+              ? "Siunčiama..."
+              : gift
+                ? `Pirkti draugui ${formatEuro(total)}`
+                : `Apmokėti ${formatEuro(total)}`}
+        </ArrowButton>
+      </div>
     </form>
   );
 }

@@ -10,7 +10,7 @@ export function WakeBlackFridayArtwork({ price, percent }: { price: string; perc
         <p className="text-micro font-bold uppercase">Metinis WAKE abonementas</p>
         <p className="inline-block bg-rust px-2 py-1 text-sm font-bold text-on-rust">−{percent} % nuo {price}</p>
       </div>
-      <p className="text-xs">Įsigijus iki lapkričio 27 d. dovanų gausi apsilankymą pirtyje.</p>
+      <p className="text-xs">Įsigyk iki gruodžio 1 d. ir mokėk dalimis: pusę dabar, o likusią sumą prieš sezono pradžią.</p>
     </div>
   );
 }

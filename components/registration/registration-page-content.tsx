@@ -69,13 +69,13 @@ export async function RegistrationPageContent({ params, blackFriday = false }: {
   // A finished registration buying a plan goes straight to payment, unless they are registering someone else (?kitas=1).
   const member = plan && !kitas ? (account?.registeredName ?? null) : null;
   const planTitle = plan?.name.toLowerCase() === "wake sezono abonementas" ? "WAKE sezono abonementą" : plan?.name;
-  const titleLine = blackFriday ? <>WAKE sezono <span className="text-rust">abonementą</span></> : planTitle;
+  const titleLine = planTitle;
 
   const header = (
     <BookingHeader
       crumb="Registracija"
       introClassName="max-w-2xl"
-      title={titleLine ? ["Užsakyk", titleLine] : ["Tapk Vanduo", "Marse nariu"]}
+      title={blackFriday ? ["WAKE sezono", "abonementas"] : titleLine ? ["Užsakyk", titleLine] : ["Tapk Vanduo", "Marse nariu"]}
       intro={plan && member !== null
         ? "Tavo registracija jau išsaugota, belieka apmokėti."
         : plan

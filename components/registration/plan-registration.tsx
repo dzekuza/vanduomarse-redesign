@@ -60,10 +60,10 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
         <div className="border border-line bg-foam p-4 sm:p-6">
           <Tabs value={mode} onValueChange={(v) => setMode(v === "draugui" ? "draugui" : "sau")} className="gap-6">
             <TabsList>
-              <TabsTrigger value="sau" className="min-h-11" disabled={busy}>
+              <TabsTrigger value="sau" className="min-h-11 px-4" disabled={busy}>
                 Perku sau
               </TabsTrigger>
-              <TabsTrigger value="draugui" className="min-h-11" disabled={busy}>
+              <TabsTrigger value="draugui" className="min-h-11 px-4" disabled={busy}>
                 Perku draugui
               </TabsTrigger>
             </TabsList>
