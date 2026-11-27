@@ -1,3 +1,5 @@
+**WAKE Black Friday e-mail (2026-11-27): Omnisend draft 4 is image-based (survives Gmail dark mode), images in `public/email/wake-black-friday-2026/`, merged to main. Tests sent; countdown on dark background in Gmail dark mode unconfirmed. Next: owner reviews the test and schedules the campaign.**
+
 ---
 tags: [meta, status]
 updated: 2026-11-27
