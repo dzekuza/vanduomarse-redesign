@@ -63,7 +63,7 @@ export async function RegistrationPageContent({ params, blackFriday = false }: {
   const checked = promo && "data" in promo && promo.data.services.includes("planai") ? promo.data : null;
   if (blackFriday && process.env.NODE_ENV === "production" && !isWakeBlackFridayDiscount(checked)) notFound();
   // Local design previews also work before the checkout database is migrated.
-  const discount = blackFriday ? WAKE_BLACK_FRIDAY_DISCOUNT : checked;
+  const discount = blackFriday ? (checked ?? WAKE_BLACK_FRIDAY_DISCOUNT) : checked;
   const checkoutKey = `${plan?.id ?? "registration"}:${discount?.code ?? ""}`;
   const initial = account?.initial;
   // A finished registration buying a plan goes straight to payment, unless they are registering someone else (?kitas=1).
