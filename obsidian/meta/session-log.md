@@ -1,3 +1,9 @@
+## 2026-11-27 — WAKE Black Friday e-mail images
+
+- **Changed:** `public/email/wake-black-friday-2026/` section and footer images for the Omnisend draft (photo section from the PDF, linkable e-mail/phone, new copy). Docs: changelog, status.
+- **Status:** merged via PR; Omnisend draft 4 updated, test e-mails sent. Countdown in Gmail dark mode not yet confirmed.
+- **Next:** owner checks the test e-mail, then schedules the campaign in Omnisend.
+
 ## 2026-11-27 — Footer: bottom bar and Marketingas contact
 
 - **Changed:** `components/site-footer.tsx` (`FooterBar` is logo + copyright on the right, link row gone, no `topHref`), `lib/contacts.ts` (`MARKETING_CONTACT` in `FOOTER_CONTACTS` and `CONTACTS`). Docs: catalog, changelog, status.
