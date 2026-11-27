@@ -15,12 +15,12 @@ const CATEGORY_LABEL = Object.fromEntries(SALE_CATEGORIES.map((c) => [c.id, c.la
  * Only orders linked to this customer (Klientai) are listed.
  */
 export function CustomerPurchasesTab({ riderId }: { riderId: string }) {
-  const { bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces } = useAdmin();
+  const { bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, planPasses } = useAdmin();
   const { openSale, sheets } = useSaleDetails();
 
   const rows = useMemo(
-    () => buildSales({ bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces }).filter((s) => s.riderId === riderId),
-    [bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, riderId],
+    () => buildSales({ bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, planPasses }).filter((s) => s.riderId === riderId),
+    [bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, planPasses, riderId],
   );
 
   if (rows.length === 0) return <p className="py-3 text-sm text-muted-foreground">Pirkimų dar nėra.</p>;

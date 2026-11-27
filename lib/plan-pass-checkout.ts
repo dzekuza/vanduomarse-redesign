@@ -14,8 +14,10 @@ export interface PlanPassToPay {
   id: string;
   reference: string;
   planName: string;
-  /** The stored price, never a client number. */
+  /** The stored price (or the stored deposit of a split pass), never a client number. */
   amount: number;
+  /** "depozitas": the first half of a pass paid in parts (ADR-0139). */
+  part?: "depozitas";
   buyerEmail: string;
   gift: boolean;
 }
@@ -31,11 +33,14 @@ export async function openPlanPassCheckout(o: PlanPassToPay): Promise<string | n
     const origin = await siteOrigin();
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{ quantity: 1, price_data: { currency: "eur", unit_amount: toCents(o.amount), product_data: { name: `${o.planName}${o.gift ? " (dovana)" : ""} · ${o.reference}` } } }],
+      line_items: [{ quantity: 1, price_data: { currency: "eur", unit_amount: toCents(o.amount), product_data: { name: `${o.planName}${o.gift ? " (dovana)" : ""}${o.part ? " · pirmoji dalis (50 %)" : ""} · ${o.reference}` } } }],
       customer_email: o.buyerEmail,
       client_reference_id: o.id,
-      metadata: { plan_pass_id: o.id, plan_pass_reference: o.reference, ...(await trackingMetadata()) },
-      payment_intent_data: { metadata: { plan_pass_id: o.id }, description: `Vanduo Marse abonementas ${o.reference} (${formatEuro(o.amount)})` },
+      metadata: { plan_pass_id: o.id, plan_pass_reference: o.reference, ...(o.part ? { plan_pass_part: o.part } : {}), ...(await trackingMetadata()) },
+      payment_intent_data: {
+        metadata: { plan_pass_id: o.id, ...(o.part ? { plan_pass_part: o.part } : {}) },
+        description: `Vanduo Marse abonementas ${o.reference}${o.part ? ", pirmoji dalis" : ""} (${formatEuro(o.amount)})`,
+      },
       success_url: `${origin}/registracija/apmoketa?sid={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/registracija/apmoketa?sid={CHECKOUT_SESSION_ID}&atsaukta=1`,
       expires_at: Math.floor(Date.now() / 1000) + SESSION_MINUTES * 60,

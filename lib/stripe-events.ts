@@ -2,7 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { couponIdOf, onCouponPaid, onCouponRefund, onCouponSessionClosed } from "@/lib/coupon-payment";
-import { onPlanOrderPaid, onPlanOrderRefund, onPlanPassPaid, onPlanSessionClosed, planOrderIdOf, planPassIdOf } from "@/lib/plan-payment";
+import { onPlanOrderPaid, onPlanOrderRefund, onPlanPassPaid, onPlanSessionClosed, planOrderIdOf, planPassIdOf, planPassPartOf } from "@/lib/plan-payment";
 import { reportPurchaseFromWebhook } from "@/lib/meta-purchase";
 import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
 import { loadPaidRequests } from "@/lib/payment-notice";
@@ -39,8 +39,9 @@ async function onPaid(session: Stripe.Checkout.Session) {
   }
   const planPassId = planPassIdOf(session);
   if (planPassId) {
+    // The balance of a pass paid in parts (ADR-0139) is not a new purchase: Meta heard of it with the deposit.
     await onPlanPassPaid(planPassId, session);
-    await reportPurchaseFromWebhook("plan", session.id, session);
+    if (planPassPartOf(session) !== "likutis") await reportPurchaseFromWebhook("plan", session.id, session);
     return;
   }
   const admin = createAdminClient();

@@ -16,4 +16,5 @@ export * from "./quads";
 export * from "./riders";
 export * from "./points";
 export * from "./staff-payments";
+export * from "./plan-passes";
 export type { ActionResult } from "@/lib/admin/action-helpers";

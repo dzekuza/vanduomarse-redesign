@@ -3,7 +3,7 @@ import { quadTourUnitPrice, type QuadTourRoute } from "@/lib/quads";
 import { guestSurcharge, isWeekendDay, type PriceTable, type SaunaRates } from "@/lib/sauna";
 
 /**
- * CIONGO x Vanduo Marse packages (ADR-0140), from the offer sheet the owner sent on 2026-11-27.
+ * CIONGO x Vanduo Marse packages (ADR-0142), from the offer sheet the owner sent on 2026-11-27.
  * Quads are priced from the live tour route (`quad_tour_routes`) and the Finnish sauna from its `saunas` row;
  * the sheet's own figures (food, dome, cabins, the wood-fired sauna with a sauna master) live here, the one place.
  * Every package is a request to the team (`create_inquiry`), never a booking. All prices include 21% PVM.

@@ -50,7 +50,7 @@ export function useCiongoSources(): CiongoPriceSources {
 
 /**
  * The booking panel of the quads page (the only way to book there since 2026-11-27; tours alone stay on /rezervacija): a CIONGO package, the sauna (Finnish or wood-fired with a sauna master), the group size,
- * optional cabins and a date, priced live and sent to the team as an inquiry (ADR-0140). Nothing is held until staff confirm.
+ * optional cabins and a date, priced live and sent to the team as an inquiry (ADR-0142). Nothing is held until staff confirm.
  */
 export function CiongoPackageBooking() {
   const data = useLiveData();

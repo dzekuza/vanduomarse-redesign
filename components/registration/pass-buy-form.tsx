@@ -2,14 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { buyPlanPass } from "@/app/actions/plan-pass";
 import { ArrowButton } from "@/components/booking/arrow-button";
+import { ChoiceTile } from "@/components/booking/choice-tile";
 import { Field, goToCheckout } from "@/components/coupons/order-form";
 import { Input } from "@/components/ui/input";
 import { trackCheckout } from "@/lib/analytics";
 import { formatEuro } from "@/lib/coupons";
-import { planPassSchema, type PlanPassInput } from "@/lib/plan-pass";
+import { canPayInParts, planPassSchema, splitPassPrice, type PlanPassInput } from "@/lib/plan-pass";
 import type { RegistrationPlan } from "./plan-registration";
 
 interface PassBuyFormProps {
@@ -44,18 +45,26 @@ export function PassBuyForm({
       buyerEmail: buyer?.email ?? "",
       gift,
       recipientName: "",
+      paymentPlan: "visa",
       website: "",
     },
   });
-  const { register, handleSubmit, clearErrors, setError, formState } = form;
+  const { register, handleSubmit, clearErrors, setError, formState, setValue, control } = form;
   const { errors, isSubmitting } = formState;
+  // "Mokėti dalimis" (ADR-0139): only the WAKE season pass, of the final price, while both halves meet the 0,50 € minimum.
+  const partsOffered = canPayInParts(plan.id, total);
+  const parts = splitPassPrice(total);
+  const chosenPlan = useWatch({ control, name: "paymentPlan" });
+  const paymentPlan = partsOffered ? chosenPlan : "visa";
+  const dueNow = paymentPlan === "dalimis" ? parts.deposit : total;
+  const working = isSubmitting || redirecting;
 
   const submit = handleSubmit(async (values) => {
     clearErrors("root");
     setBusy(true);
     let result: Awaited<ReturnType<typeof buyPlanPass>>;
     try {
-      result = await buyPlanPass({ ...values, gift, discountCode });
+      result = await buyPlanPass({ ...values, paymentPlan, gift, discountCode });
     } catch {
       setError("root", { message: "Nepavyko pradėti mokėjimo. Patikrinkite ryšį ir bandykite dar kartą." });
       setBusy(false);
@@ -68,15 +77,13 @@ export function PassBuyForm({
     }
     trackCheckout("plan", {
       itemName: plan.name,
-      value: total,
+      value: dueNow,
       coupon: discountCode,
       contact: { email: values.buyerEmail, name: values.buyerName },
     });
     setRedirecting(true);
     goToCheckout(result.data.checkoutUrl);
   });
-
-  const working = isSubmitting || redirecting;
 
   return (
     <form onSubmit={submit} noValidate className="space-y-5">
@@ -114,6 +121,35 @@ export function PassBuyForm({
           <Input id="recipientName" {...register("recipientName")} />
         </Field>
       ) : null}
+      {partsOffered ? (
+        <fieldset className="space-y-2">
+          <legend className="mb-2 text-sm text-ink/70">Kaip mokėsite?</legend>
+          <div className="grid grid-cols-2 gap-2">
+            <ChoiceTile
+              primary="Visa suma"
+              secondary={`${formatEuro(total)} dabar`}
+              active={paymentPlan === "visa"}
+              disabled={working}
+              onClick={() => setValue("paymentPlan", "visa")}
+            />
+            <ChoiceTile
+              primary="Mokėti dalimis"
+              secondary={`${formatEuro(parts.deposit)} dabar, ${formatEuro(parts.balance)} vėliau`}
+              active={paymentPlan === "dalimis"}
+              disabled={working}
+              onClick={() => setValue("paymentPlan", "dalimis")}
+            />
+          </div>
+          {paymentPlan === "dalimis" ? (
+            <div className="space-y-3 text-sm text-copy">
+              <p>
+                Mokėti dalimis: 50 % dabar, 50 % vėliau. Likučio ({formatEuro(parts.balance)}) apmokėjimo nuorodą atsiųsime el. paštu. Likutį reikės apmokėti prieš sezono startą arba jo metu (tik nepamirškite, kad abonementas skirtas 2027 metų sezonui).
+              </p>
+              <p>Abonemento kodą-aktyvaciją gausite apmokėję visą sumą.</p>
+            </div>
+          ) : null}
+        </fieldset>
+      ) : null}
       <input
         type="text"
         tabIndex={-1}
@@ -130,7 +166,7 @@ export function PassBuyForm({
       <p className="text-sm text-copy">
         {gift
           ? "Gausite el. laišką su kodu: perduokite jį draugui. Draugas užsiregistruos pats ir parke pasakys kodą."
-          : "Registraciją (kontaktai, nuotrauka, taisyklės) užpildysi vėliau, prieš gaudamas apyrankę. Kodą atsiųsime el. paštu."}
+          : "Registraciją (kontaktai, nuotrauka, taisyklės) užpildysi vėliau, prieš gaudamas apyrankę."}
       </p>
       <div className="flex justify-end">
         <ArrowButton type="submit" disabled={working}>
@@ -139,8 +175,8 @@ export function PassBuyForm({
             : isSubmitting
               ? "Siunčiama..."
               : gift
-                ? `Pirkti draugui ${formatEuro(total)}`
-                : `Apmokėti ${formatEuro(total)}`}
+                ? `Pirkti draugui ${formatEuro(dueNow)}`
+                : `Apmokėti ${formatEuro(dueNow)}`}
         </ArrowButton>
       </div>
     </form>

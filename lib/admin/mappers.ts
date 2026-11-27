@@ -373,7 +373,12 @@ export function toPlanPass(r: Tables<"plan_passes">): PlanPass {
   return {
     id: r.id, reference: r.reference, code: r.code, planId: r.plan_id, planName: r.plan_name, price: r.price, discountCode: r.discount_code,
     buyerName: r.buyer_name, buyerEmail: r.buyer_email, gift: r.gift, recipientName: r.recipient_name, status,
-    paidAt: r.paid_at, riderId: r.rider_id, redeemedAt: r.redeemed_at, createdAt: r.created_at,
+    paidAt: r.paid_at, riderId: r.rider_id, redeemedAt: r.redeemed_at, purchaseId: r.purchase_id, createdAt: r.created_at,
+    paymentPlan: r.payment_plan === "dalimis" ? "dalimis" : "visa",
+    depositAmount: r.deposit_amount === null ? null : Number(r.deposit_amount),
+    balanceAmount: r.balance_amount === null ? null : Number(r.balance_amount),
+    balancePaidAt: r.balance_paid_at, balanceSessionId: r.balance_stripe_session_id,
+    refundedAt: r.refunded_at, depositRefundedAt: r.deposit_refunded_at, balanceRefundedAt: r.balance_refunded_at,
   };
 }
 

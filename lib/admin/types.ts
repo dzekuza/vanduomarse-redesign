@@ -6,7 +6,7 @@ import type { EventCategory } from "@/lib/park-events";
 import type { EventPreset } from "@/lib/event-pricing";
 import type { ManagedSpace } from "@/lib/space-booking";
 import type { PermissionId, StaffAccess } from "@/lib/admin/permissions";
-import type { PassStatus } from "@/lib/plan-pass";
+import type { PassPaymentPlan, PassStatus } from "@/lib/plan-pass";
 import type { PURCHASE_PAYMENT_METHODS, RIDE_PLAN_CATEGORIES } from "@/lib/ride-plans";
 import type { StayType } from "@/lib/cabin";
 import type { QuadSettings, QuadTourAccessory, QuadTourRoute, QuadType } from "@/lib/quads";
@@ -377,11 +377,24 @@ export interface PlanPass {
   gift: boolean;
   recipientName: string;
   status: PassStatus;
+  /** When the first payment (the full price, or the deposit of a split pass) arrived. */
   paidAt: string | null;
   /** The rider it was attached to; null before that, or after that rider was deleted. */
   riderId: string | null;
   redeemedAt: string | null;
+  /** The till purchase logged when staff attached it; the sales list counts the pass instead. */
+  purchaseId: string | null;
   createdAt: string;
+  /** "dalimis": half now, half later by a link staff send (ADR-0139). The amounts are null for a full payment. */
+  paymentPlan: PassPaymentPlan;
+  depositAmount: number | null;
+  balanceAmount: number | null;
+  balancePaidAt: string | null;
+  /** The balance link made last (reused while open). */
+  balanceSessionId: string | null;
+  refundedAt: string | null;
+  depositRefundedAt: string | null;
+  balanceRefundedAt: string | null;
 }
 
 /** A staff note on a rider. */

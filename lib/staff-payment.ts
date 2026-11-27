@@ -24,8 +24,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * by the caller.
  */
 
-/** Stripe allows a Checkout Session to live 30 minutes to 24 hours; a few minutes under the maximum. */
-const SESSION_MINUTES = 24 * 60 - 5;
+/** Stripe allows a Checkout Session to live 30 minutes to 24 hours; a few minutes under the maximum. Also the pass balance link (ADR-0139). */
+export const STAFF_LINK_MINUTES = 24 * 60 - 5;
+const SESSION_MINUTES = STAFF_LINK_MINUTES;
 
 /** Tags our Checkout Sessions in the Stripe Dashboard (the same as the website flow). */
 const INTEGRATION_ID = "vanduomarse-reservation-qvtmxkdh";

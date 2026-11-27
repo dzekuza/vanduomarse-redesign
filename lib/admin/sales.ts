@@ -1,9 +1,10 @@
-import { makeCustomerLookup } from "@/lib/admin/customer-match";
-import { bookingTypeLabel, bookingWhen, formatDay, quadRentalLabel } from "./format";
+import { makeCustomerLookup, type CustomerLookup } from "@/lib/admin/customer-match";
+import { bookingTypeLabel, bookingWhen, formatDay, formatEur, quadRentalLabel } from "./format";
 import { toCsv } from "./export";
 import { BOOKING_SOURCE, BOOKING_STATUS } from "./labels";
 import type { AdminData, BookingSource, BookingStatus } from "./types";
 import { COUPON_STATUS_LABEL, type CouponStatus } from "@/lib/coupons";
+import { PASS_STATUS_LABELS, passOwedAmount, passPaidAmount } from "@/lib/plan-pass";
 import { PURCHASE_PAYMENT_LABELS } from "@/lib/ride-plans";
 import { todayKey } from "@/lib/sauna";
 import { spaceLabels } from "@/lib/space-booking";
@@ -36,7 +37,7 @@ export const SALE_ORIGIN_LABEL: Record<SaleOrigin, string> = { internetu: "Inter
 export const saleOrigin = (source: BookingSource): SaleOrigin => (source === "svetaine" ? "internetu" : "admin");
 
 /** What a click on a sale row opens: a details drawer on the overview (an event's tickets for ticket sales), or the page that manages it. */
-export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event" | "space"; id: string } | { kind: "link"; href: string };
+export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event" | "space" | "pass"; id: string } | { kind: "link"; href: string };
 
 export interface Sale {
   id: string;
@@ -73,7 +74,42 @@ type SalesSource = Pick<
   AdminData,
   "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "tourTickets" | "eventTickets" | "events" | "coupons" | "purchases" | "riders"
 > &
-  Partial<Pick<AdminData, "spaceBookings" | "spaces">>;
+  Partial<Pick<AdminData, "spaceBookings" | "spaces" | "planPasses">>;
+
+/**
+ * A WAKE pass bought online (ADR-0109) as a sale, or null when it is not one. Only paid or part-paid passes are sales (the
+ * admin never loads unpaid ones; a stray one is left out); a cancelled or refunded one stays listed as cancelled. `total` is
+ * the money received: the deposit of a part-paid pass (ADR-0139), the full price of a fully paid one, so `salesRevenue`
+ * counts only what came in. The status says what is still owed.
+ */
+export function passSale(p: NonNullable<SalesSource["planPasses"]>[number], customerOf: CustomerLookup): Sale | null {
+  if (p.status === "laukia_apmokejimo" || (!p.paidAt && p.status !== "atsauktas")) return null;
+  const paid = passPaidAmount(p);
+  const owed = passOwedAmount(p);
+  const cancelled = p.status === "atsauktas" || paid === 0;
+  const soldAt = p.paidAt ?? p.createdAt;
+  return {
+    id: `pp-${p.id}`,
+    category: "vandenlentes",
+    soldOn: soldOn(soldAt),
+    soldAt,
+    whenKey: "",
+    item: `${p.planName}${p.gift ? " (dovana)" : ""}`,
+    when: "",
+    customer: p.buyerName,
+    reference: p.reference,
+    total: paid,
+    state: cancelled ? "atsaukta" : "galioja",
+    source: "svetaine",
+    statusLabel: cancelled
+      ? p.refundedAt ? "Grąžinta" : PASS_STATUS_LABELS.atsauktas
+      : owed > 0
+        ? `Apmokėta ${formatEur(paid)} · Likutis ${formatEur(owed)}`
+        : PASS_STATUS_LABELS[p.status],
+    target: { kind: "pass", id: p.id },
+    riderId: p.riderId ?? customerOf({ email: p.buyerEmail }) ?? null,
+  };
+}
 
 export type SaleSortKey = "soldAt" | "item" | "category" | "when" | "customer" | "total" | "state" | "source";
 export interface SaleSort {
@@ -238,8 +274,17 @@ export function buildSales(data: SalesSource): Sale[] {
     });
   }
 
+  // Online passes (ADR-0109). Attaching one logs a till purchase too; that purchase is left out below, so the pass is counted once.
+  const passPurchases = new Set<string>();
+  for (const p of data.planPasses ?? []) {
+    if (p.purchaseId) passPurchases.add(p.purchaseId);
+    const sale = passSale(p, customerOf);
+    if (sale) sales.push(sale);
+  }
+
   const riderName = new Map(data.riders.map((r) => [r.id, `${r.name} ${r.surname}`.trim()]));
   for (const p of data.purchases) {
+    if (passPurchases.has(p.id)) continue;
     sales.push({
       id: `p-${p.id}`,
       category: "vandenlentes",

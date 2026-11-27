@@ -6,21 +6,32 @@
 
 ## 2026-11-27 — Quads page: packages only, compact package photos
 
-- **Changed:** `app/[service]/page.tsx` (panel is `CiongoPackageBooking`), `ciongo-package-state.tsx` (no mode), `ciongo-package-booking.tsx` ("Tipas"), quads `bookingIntro`; deleted `quad-booking-modes.tsx`; package cards use a small 3-photo strip (`ciongo-packages-section.tsx`); package date marks Laisva / Pilna; Kainos drops the tour row (`service-pricing.tsx`); Informacija route card is "Turas" with duration, km and the forest-track text (`service-page.tsx`); cabins are a "Nakvynė" heading row with the switch on the right; card prices plain, coral button; `ServiceBookingHelp` contact lines tighter site-wide; Tipas tiles with summary + info popup (`ciongo-package-dialog.tsx`); packages sorted cheapest first; card price footer after the program; packages are framed cards without inner rules; then redesigned as a comparable 2-column grid with check-lists, one price, "Rinktis" + "Plačiau" (details in the popup); Tvarkaraštis removed from the quads page (`schedule={false}`); package cards turned into event-style rows with photos (phone layout at every width, no "Plačiau", program shown open, each item's price via `CiongoPriceLines`). Docs: catalog, ADR-0140, changelog, status.
+- **Changed:** `app/[service]/page.tsx` (panel is `CiongoPackageBooking`), `ciongo-package-state.tsx` (no mode), `ciongo-package-booking.tsx` ("Tipas"), quads `bookingIntro`; deleted `quad-booking-modes.tsx`; package cards use a small 3-photo strip (`ciongo-packages-section.tsx`); package date marks Laisva / Pilna; Kainos drops the tour row (`service-pricing.tsx`); Informacija route card is "Turas" with duration, km and the forest-track text (`service-page.tsx`); cabins are a "Nakvynė" heading row with the switch on the right; card prices plain, coral button; `ServiceBookingHelp` contact lines tighter site-wide; Tipas tiles with summary + info popup (`ciongo-package-dialog.tsx`); packages sorted cheapest first; card price footer after the program; packages are framed cards without inner rules; then redesigned as a comparable 2-column grid with check-lists, one price, "Rinktis" + "Plačiau" (details in the popup); Tvarkaraštis removed from the quads page (`schedule={false}`); package cards turned into event-style rows with photos (phone layout at every width, no "Plačiau", program shown open, each item's price via `CiongoPriceLines`). Docs: catalog, ADR-0142, changelog, status.
 - **Status:** tsc, eslint clean; browser-checked locally. Uncommitted.
 - **Next:** owner reviews; commit / push on their word.
 
 ## 2026-11-27 — CIONGO packages on the quads page
 
-- **Changed:** `lib/ciongo-packages.ts` (+ test), `components/quads/ciongo-package-state.tsx`, `ciongo-package-booking.tsx`, `ciongo-packages-section.tsx`, `quad-booking-modes.tsx`, `components/booking/quote-request-form.tsx` (from `InquiryForm`), `service-page.tsx` (optional Paketai section), `app/[service]/page.tsx`, `live-activity.tsx` (`useLiveData`), quad gallery, 7 new photos. Docs: ADR-0140, components and utils catalogs, changelog, status.
+- **Changed:** `lib/ciongo-packages.ts` (+ test), `components/quads/ciongo-package-state.tsx`, `ciongo-package-booking.tsx`, `ciongo-packages-section.tsx`, `quad-booking-modes.tsx`, `components/booking/quote-request-form.tsx` (from `InquiryForm`), `service-page.tsx` (optional Paketai section), `app/[service]/page.tsx`, `live-activity.tsx` (`useLiveData`), quad gallery, 7 new photos. Docs: ADR-0142, components and utils catalogs, changelog, status.
 - **Status:** tsc, eslint, 268 tests pass; browser-checked at 800 and 375 px. Not done: a real request sent; prices show 79 € per quad until the tour migration runs.
 - **Next:** owner runs the tour SQL, tries the packages, then commit / push on their word.
 
 ## 2026-11-27 — CIONGO naming and the single quad tour
 
-- **Changed:** CIONGO renames; quad tour rules (ADR-0139): migration `20261127140000_quad_tour_group_rules.sql`, `lib/quads.ts` helpers, mapper, `quad-tour-plan.ts`, tour card/fields/picker/dialog, service pricing, service page facts, quads service copy (one route), activity details, admin route dialog and staff tour form, DB types, tests. Docs: ADR-0139, database, utils catalog, changelog, status.
+- **Changed:** CIONGO renames; quad tour rules (ADR-0141): migration `20261127140000_quad_tour_group_rules.sql`, `lib/quads.ts` helpers, mapper, `quad-tour-plan.ts`, tour card/fields/picker/dialog, service pricing, service page facts, quads service copy (one route), activity details, admin route dialog and staff tour form, DB types, tests. Docs: ADR-0141, database, utils catalog, changelog, status.
 - **Status:** tsc, eslint, 261 tests pass; `/keturraciu-nuoma` browser-checked locally with the pre-migration fallbacks (79 €, max 15, 11 quads → 869 €). Migration NOT applied (owner runs it in the SQL editor); 72 € and the guide line checked only by tests.
 - **Next:** owner runs the SQL; browser-check the tour with the new rules; commit, PR, merge on the owner's OK.
+## 2026-11-27 — Pass checkout copy and mobile order
+
+- **Changed:** `pass-buy-form.tsx` (owner's part-payment wording), `plan-registration.tsx` (title, card, form below `lg`), `booking-panel.tsx` (`className`). Docs: common.md, changelog, status.
+- **Status:** tsc, eslint pass; browser-checked at 375 / 768 / 1280 px on /registracija/wake/black-friday.
+- **Next:** merged as PR #171; check the live page on a phone after the deploy.
+
+## 2026-11-27 — Meta Schedule for sauna bookings (ADR-0140)
+
+- **Changed:** sauna bookings send Meta `Schedule` (paid ones also next to `Purchase`); event enquiries stay `Lead`. GA unchanged.
+- **Status:** tsc, eslint, 256 tests. PR #170 from `feat/pixel-lead-schedule`, not browser-checked (would need a real booking).
+- **Next:** merged as PR #170; owner checks Meta Events Manager after the first sauna booking.
 
 ## 2026-11-27 — Black Friday copy and DB fix live
 
@@ -429,7 +440,7 @@
 
 - **Changed:** `PlanLine.regularPrice`, `saleSaving`; struck-through regular price in `PlanDetails`, `PlanSummary`, `PlanLines`, `SaunaServiceSessions`, `SaunaScheduleChooser`.
 - **Status:** tsc/eslint clean, tests pass; checked in the browser on the live sale session ("Vyrai į krepšinį…", 12 € instead of 20 €). PR open from `fix/sale-price-summary`.
-- **Next:** merge the PR.
+- **Next:** merged as PR #171; check the live page on a phone after the deploy.
 
 ## 2026-11-16 — Migration versions match the live log
 
@@ -453,7 +464,7 @@
 
 - **Changed:** `SaunaView` grid: side column from `xl` (2/3 + 1/3), side cards two per row from `md` below that.
 - **Status:** eslint clean; browser-checked at 1440, 1200, 768, 375 px. PR open from `fix/sauna-admin-layout`.
-- **Next:** merge the PR.
+- **Next:** merged as PR #171; check the live page on a phone after the deploy.
 
 ## 2026-11-16 — Sale price for events and sessions
 

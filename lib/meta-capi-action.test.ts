@@ -13,7 +13,7 @@ vi.mock("@/lib/customer", () => ({ getCustomer: () => customer() }));
 
 const send = vi.fn<(event: unknown) => Promise<void>>(() => Promise.resolve());
 vi.mock("@/lib/meta-capi", () => ({
-  CAPI_EVENTS: ["ViewContent", "Lead", "InitiateCheckout", "CompleteRegistration", "Purchase"],
+  CAPI_EVENTS: ["ViewContent", "Lead", "Schedule", "InitiateCheckout", "CompleteRegistration", "Purchase"],
   capiConfigured: () => true,
   sendCapiEvent: (event: unknown) => send(event),
 }));

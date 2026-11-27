@@ -348,7 +348,7 @@ function reducer(state: AdminData, action: Action): AdminData {
     case "planPass/redeem":
       return {
         ...state,
-        planPasses: state.planPasses.map((p) => (p.id === action.passId ? { ...p, status: "priskirtas", riderId: action.riderId, redeemedAt: action.purchase.soldAt } : p)),
+        planPasses: state.planPasses.map((p) => (p.id === action.passId ? { ...p, status: "priskirtas", riderId: action.riderId, redeemedAt: action.purchase.soldAt, purchaseId: action.purchase.id } : p)),
         riders: state.riders.map((r) => (r.id === action.riderId ? { ...r, planId: action.planId } : r)),
         purchases: [action.purchase, ...state.purchases],
       };
@@ -625,6 +625,8 @@ function useAdminReducer(initial: AdminData) {
       },
       /** The payment link of an unpaid staff-entered request: e-mailed again, or just returned to copy (ADR-0113). */
       getPaymentLink: (kind: "booking" | "rental" | "ticket", id: string, mode: "email" | "copy") => report(actions.getPaymentLink(kind, id, mode)),
+      /** The balance link of a WAKE pass paid in parts (ADR-0139): e-mailed to the buyer, or just returned to copy. */
+      getPassBalanceLink: (passId: string, mode: "email" | "copy") => report(actions.getPassBalanceLink(passId, mode)),
       /** Records an unpaid staff-entered request as paid at entry; the layout then re-renders with the fresh state. */
       markRequestPaid: (kind: "booking" | "rental" | "ticket", id: string, method: "grynais" | "kortele") => report(actions.markRequestPaid(kind, id, method)),
       /** Removes a cancelled request (refunded, or never paid online). Not optimistic: the server checks the refund first. */

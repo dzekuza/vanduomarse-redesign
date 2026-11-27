@@ -10,7 +10,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0140 — CIONGO packages are priced in one lib file and sent as inquiries
+## ADR-0142 — CIONGO packages are priced in one lib file and sent as inquiries
 
 - **Status:** Accepted.
 - **Date:** 2026-11-27
@@ -20,13 +20,30 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
-## ADR-0139 — One quad tour with a group price and guide quads taken from the fleet
+## ADR-0141 — One quad tour with a group price and guide quads taken from the fleet
 
 - **Status:** Accepted.
 - **Date:** 2026-11-27
 - **Context:** the owner (CIONGO) wants one tour instead of Mini / Midi / Maxi: the Midi route at 80 € per quad, 72 € per quad from 10 quads, at most 15 quads per booking, and from 11 quads two guides who ride two more quads of the same fleet. Prices and limits must stay editable in the admin and re-priced by the database (ADR-0053).
 - **Decision:** the rules are columns of `quad_tour_routes` (`max_units`, `group_from` + `group_price`, `guides_from` + `guide_units`), not code constants. The guides' quads are part of the rental's stock: `quad_rentals.units` = customer + guide quads (so availability, the capacity trigger and the allocations view need no change), `guide_units` records how many are the guides', `riders` = customer quads. `create_quad_tour_rental` checks `min_units`..`max_units`, takes customer + guide quads, and charges the group price to every quad once the group size is reached. Mini and Maxi stay as inactive rows (old bookings point at them). The UI uses `quadTourUnitPrice`, `quadTourGuideUnits`, `quadTourMaxUnits` (largest customer count that fits with its guides), `quadTourPriceLabel`, `quadTourUnitsNote` in `lib/quads.ts`.
 - **Consequences:** a start with 12 free quads takes at most 10 customers (11 + 2 guides do not fit). Guide quads count as sold in a tour event's `sold` (`sync_tour_event_sold` sums `units`). The mapper falls back (max 15, no group price, no guides) until the migration runs, so the deployed app works either way; before the SQL runs the DB still prices 79 € and allows 20.
+## ADR-0140 — Sauna bookings are Meta `Schedule`, event enquiries stay `Lead`
+
+- **Date:** 2026-11-27
+- **Status:** accepted
+- **Context:** the owner (for their ads) wants a celebration/event enquiry to count as a Meta `Lead` and a sauna booking as `Schedule`. Until now every request sent without online payment, sauna included, was `Lead`.
+- **Decision:** `trackLead` sends Meta `Schedule` instead of `Lead` when the kind is `sauna` or `sauna_session` (`isScheduleKind` in `lib/analytics.ts`); every other kind (event enquiry from the calculator, stay, quads, event registration) stays `Lead`. A sauna booking paid online keeps its `Purchase` and also sends `Schedule` from the paid return page (`eventID` `schedule-<transactionId>`, so a reload counts once), with its Conversions API copy through `reportMetaEvent` (`Schedule` added to `CAPI_EVENTS`). Google Analytics is unchanged (`generate_lead` / `purchase`).
+- **Consequences:** sauna bookings no longer show up as `Lead` in Meta. A /rezervacija plan that mixes a sauna with a stay or quads is reported as kind `reservation`, so it stays `Lead`. A paid sauna booking whose buyer closes the tab before the return page gets its server `Purchase` from the webhook but no `Schedule`.
+
+---
+
+## ADR-0139 — The WAKE season pass can be paid in two halves; the code is issued only when the balance is paid
+
+- **Status:** Accepted (draft PR from `feat/wake-pass-part-payment`). Migration `20261127130000_plan_pass_part_payment.sql` NOT applied yet. Builds on ADR-0109 (plan passes) and reuses the link pattern of ADR-0112 / ADR-0113.
+- **Date:** 2026-11-27
+- **Context:** the Black Friday copy promises "mokėk dalimis". The owner decided: only the WAKE season pass bought online (`plan_passes`, plan `52e95927-…`, including the Black Friday page and "Perku draugui"); a 50/50 split of the final price after discount; no deadline for the second half, staff send the link from /admin; the code is issued only when everything is paid. Online passes were also missing from Apžvalga → Pardavimai.
+- **Decision:** `plan_passes` gets `payment_plan` (`visa` / `dalimis`), `deposit_amount` = round(price / 2, 2), `balance_amount` = price − deposit (both ≥ 0,50 €, checked by a constraint and by `create_plan_pass`, which refuses `dalimis` for any other plan), the balance session / payment intent / paid time, and `deposit_refunded_at` / `balance_refunded_at`. New status `dalinai_apmoketa` ("Apmokėta dalis"): the deposit is in, no code, cannot be attached (`redeem_plan_pass` still wants `apmoketa`). The buy form offers "Visa suma" (default) or "Mokėti dalimis" with both amounts, only for the WAKE season pass while both halves reach 0,50 €; the action refuses it for other plans and treats a request without the field as a full payment. The deposit is a normal pass Checkout (`plan_pass_part: depozitas`); the webhook calls `complete_plan_pass_payment(..., p_balance => false)`, which moves the pass to `dalinai_apmoketa`, and the buyer gets a "pirmoji dalis" e-mail. Staff open the pass from the sales list (new `SaleTarget` kind `pass`, `PassSheet`) or from Apyrankės → Kodai and press "Siųsti likučio nuorodą" or "Kopijuoti nuorodą" (`getPassBalanceLink`, needs `apyrankes`, the page whose permission can read passes): `lib/plan-pass-balance.ts` reuses the pass's open balance Checkout Session or makes a new one of 23 h 55 min (`STAFF_LINK_MINUTES`), with `plan_pass_part: likutis`, remembered by `attach_plan_pass_balance_session` (expected-session guard against two staff renewing at once). The webhook routes that metadata to `p_balance => true`; the paid balance issues the code and goes down the same code e-mail path as a full payment. An expired deposit session cancels the pass as before; an expired balance session leaves it part-paid. Refunds are matched to either payment intent (`refund_plan_pass_payment` now returns `part` and `outcome`): a full-payment refund behaves as before; a deposit refund cancels an unattached pass (staff are told to refund the balance too if it was paid); a balance refund puts a paid, unattached pass back to `dalinai_apmoketa` (its code stops working until the balance is paid again); an attached pass is only reported, as before. Sales: online passes are listed under Vandenlentės; unpaid ones are left out, cancelled or refunded ones do not count, a part-paid one counts only the deposit (status "Apmokėta 300 € · Likutis 300 €"), a paid one the full price; the till purchase logged when a pass is attached is left out so the pass is counted once. Meta / GA: the purchase is reported once, with the deposit, worth the deposit (the money received); the balance is not reported again.
+- **Consequences:** a split pass with no balance stays `dalinai_apmoketa` indefinitely; there is no reminder, SMS or deadline (the earlier idea of an April 17 reminder and keeping the deposit was not built). A signed-in member buying through `MemberPlanCheckout` (`rider_plan_orders`) cannot split; only the anonymous pass flow can. The sales list sees passes only for staff with `apyrankes` (RLS) and only the loaded window (every paid / part-paid one, the latest 300 attached or cancelled). A balance payment with a wrong amount is flagged to staff and its payment intent is remembered only until a correct balance arrives. Code deployed before the migration keeps working (new parameters have defaults, new result columns are appended), but the new code needs the migration before the "Mokėti dalimis" choice works.
 
 ---
 

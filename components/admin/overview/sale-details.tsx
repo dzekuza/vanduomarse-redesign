@@ -6,6 +6,7 @@ import { useAdmin } from "../admin-store";
 import { BookingSheet } from "../bookings/booking-sheet";
 import { NewBookingDialog } from "../bookings/new-booking-dialog";
 import { EventSheet } from "../calendar/event-sheet";
+import { PassSheet } from "../apyrankes/pass-sheet";
 import { CouponSheet } from "../coupons/coupon-sheet";
 import { EventDialog } from "../events/event-dialog";
 import { RentalSheet } from "../quads/rental-sheet";
@@ -14,12 +15,12 @@ import type { Sale } from "@/lib/admin/sales";
 import type { ManagedEvent } from "@/lib/admin/types";
 
 /**
- * What a click on a sale opens (`Sale["target"]`): a booking, rental, coupon or event details panel in place, or the
+ * What a click on a sale opens (`Sale["target"]`): a booking, rental, coupon, online pass or event details panel in place, or the
  * page that manages it. Render `sheets` once next to the list that calls `openSale`. Shared by the Apžvalga sales
  * table and the customer's Pirkimai tab.
  */
 export function useSaleDetails(): { openSale: (target: Sale["target"]) => void; sheets: ReactNode } {
-  const { bookings, quadRentals, coupons, events, spaceBookings } = useAdmin();
+  const { bookings, quadRentals, coupons, events, spaceBookings, planPasses } = useAdmin();
   const router = useRouter();
   const [open, setOpen] = useState<Extract<Sale["target"], { id: string }> | null>(null);
   const [editingEvent, setEditingEvent] = useState<ManagedEvent | null>(null);
@@ -50,6 +51,7 @@ export function useSaleDetails(): { openSale: (target: Sale["target"]) => void; 
       ) : null}
       <SpaceBookingSheet booking={open?.kind === "space" ? (spaceBookings.find((s) => s.id === open.id) ?? null) : null} onOpenChange={close} />
       <CouponSheet coupon={open?.kind === "coupon" ? (coupons.find((c) => c.id === open.id) ?? null) : null} onOpenChange={close} />
+      <PassSheet pass={open?.kind === "pass" ? (planPasses.find((p) => p.id === open.id) ?? null) : null} onOpenChange={close} />
     </>
   );
 
