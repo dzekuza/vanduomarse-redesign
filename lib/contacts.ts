@@ -14,6 +14,7 @@ export const EVENTS_EMAIL = "renginiai@vanduomarse.lt";
 export const SAUNA_CONTACT: Contact = { name: "Pirtis Marse", email: EVENTS_EMAIL, phone: "+370 630 80 444" };
 
 const RESTAURANT_CONTACT: Contact = { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" };
+export const MARKETING_CONTACT: Contact = { name: "Marketingas", email: "marketingas@vanduomarse.lt", phone: "+370 636 52 683" };
 export const ACADEMY_CONTACT: Contact = { name: "Marso Akademija", email: MAIN_CONTACT.email, phone: MAIN_CONTACT.phone };
 
 export const CONTACTS: Contact[] = [
@@ -21,6 +22,7 @@ export const CONTACTS: Contact[] = [
   SAUNA_CONTACT,
   RESTAURANT_CONTACT,
   ACADEMY_CONTACT,
+  MARKETING_CONTACT,
 ];
 
 /** The footer's contact list, in display order. */
@@ -30,6 +32,7 @@ export const FOOTER_CONTACTS: Contact[] = [
   { name: "Pirtis Marse", email: EVENTS_EMAIL, phone: "+370 640 57 504" },
   { name: "Partneriai", email: "info@vanduomarse.lt", phone: "+370 672 21 235" },
   { name: "Skoniai Marse", email: "restoranas@vanduomarse.lt", phone: "+370 630 01 390" },
+  MARKETING_CONTACT,
 ];
 
 /**

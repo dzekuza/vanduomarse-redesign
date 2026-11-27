@@ -43,6 +43,11 @@ function useLive(): Live {
   return live;
 }
 
+/** The live reservation data (the cached snapshot until /api/availability answers). */
+export function useLiveData(): ReservationData {
+  return useLive().data;
+}
+
 function merge(
   initial: ReservationData,
   response: AvailabilityResponse,

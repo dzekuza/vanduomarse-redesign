@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0140 — CIONGO packages are priced in one lib file and sent as inquiries
+
+- **Status:** Accepted.
+- **Date:** 2026-11-27
+- **Context:** the owner wants the five packages of the CIONGO x Vanduo Marse offer sheet on the site, each with a choice between the Finnish sauna (3 h, 210 € Mon–Thu / 270 € Fri–Sun) and the wood-fired sauna with a sauna master (530 € / 600 €), selectable in the right-hand panel. Answers: a request to the team (not a booking), group of 5–15 people, on the quads page.
+- **Decision:** `lib/ciongo-packages.ts` holds the packages (items, program, photos) and the sheet's own prices (food and dinner per person, dome, cabins 50–60 € per person, the wood-fired sauna with a master). Quads come from the live tour route (`quadTourUnitPrice`, so 80 € / 72 € from 10) and the Finnish sauna from its `saunas` row (3-hour price + extra-guest fee); I–IV vs V–VII follows `isWeekendDay` (Fri–Sun). The dome of package 5 is shown with PVM (500 € + 21 % = 605 €). /keturraciu-nuoma gets a "Paketai" section, and its booking panel offers only the packages (heading "Tipas"; the owner dropped the tour-only form there the same day — plain tours stay bookable on /rezervacija); both share `CiongoPackageProvider`. Sending uses `create_inquiry` through the new shared `QuoteRequestForm`, with `calculator_input.saunas` so staff can book the sauna from the request; quads, food and cabins are arranged by staff.
+- **Consequences:** changing a sheet price is a code change in one file (no admin screen yet). Totals differ from the sheet only where it left PVM out (dome) or when the group is not 10. Nothing is held until staff confirm.
+
+---
+
 ## ADR-0139 — One quad tour with a group price and guide quads taken from the fleet
 
 - **Status:** Accepted.
