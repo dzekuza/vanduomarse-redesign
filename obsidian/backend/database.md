@@ -364,7 +364,7 @@ Migration `20261117180903_plan_passes.sql`, APPLIED 2026-11-17. `public.plan_pas
 no rider yet: buyer name and e-mail, plan snapshot, the price actually paid (after the discount), `gift`, `recipient_name`,
 a 12-character `code` (issued on payment, same alphabet as coupon codes), `status`
 (`laukia_apmokejimo` → `apmoketa` → `priskirtas`, or `atsauktas`), Stripe session / intent, and once attached `rider_id`,
-`redeemed_at`, `redeemed_by`, `purchase_id`. The Black Friday code check constraint from `rider_plan_orders` is repeated on it.
+`redeemed_at`, `redeemed_by`, `purchase_id`. The Black Friday code check constraint from `rider_plan_orders` is repeated on it; since migration `20261127120000_wake_black_friday_any_percent.sql` both checks only keep `WAKEBLACKFRIDAY2026` on the WAKE season pass (no fixed 10 %: the amount comes from the live code row, the owner sets the percentage in /admin/nuolaidos).
 RLS: staff with the `apyrankes` permission can read. Every RPC below is service-role only except `redeem_plan_pass`, which signed-in staff call (it checks the permission itself).
 
 | Function | Who | What |
