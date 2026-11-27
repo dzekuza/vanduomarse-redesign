@@ -26,6 +26,7 @@ import { confirmCashRequest, PHONE_REQUIRED } from "@/lib/cash-confirm";
 import { notifyRequestFiled, notifyRequestOutcome } from "@/lib/notify";
 import { describeRequest, saunaSummary } from "@/lib/sms/notify";
 import { todayKey, vilniusHour } from "@/lib/sauna";
+import { stayBookable } from "@/lib/cabin";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /**
@@ -61,6 +62,7 @@ const BY_HINT: Record<string, string> = {
   stay_nights: "Netinkamas naktų skaičius.",
   stay_past: "Pasirinkta data jau praėjo arba yra per toli.",
   stay_full: "Šioms naktims nepakanka laisvų vietų. Pakeiskite pasirinkimą arba datą.",
+  stay_closed: "Šias naktis rezervuoti internetu dar negalima. Pasirinkite ankstesnes datas arba skambinkite.",
   event_unavailable: "Šis renginys nebeprieinamas. Atnaujinkite puslapį.",
   program_unavailable: "Ši programa šiuo metu nerezervuojama. Atnaujinkite puslapį.",
   event_people: "Netinkamas žmonių skaičius.",
@@ -175,6 +177,10 @@ export async function createStayBooking(input: StayBookingInput): Promise<Action
   if (!who) return UNVERIFIED;
   const { supabase, phone, email, notifyEmail } = who;
   if (v.payOnSite && v.viaAccount && !phone) return PHONE_REQUIRED;
+
+  // "Rezervuoti galima iki" (ADR-0131): the database trigger refuses it too; checked here first for a clear message.
+  const { data: type } = await supabase.from("stay_types").select("bookable_until").eq("id", v.stayTypeId).maybeSingle();
+  if (type?.bookable_until && !stayBookable({ bookableUntil: type.bookable_until }, v.date, v.nights)) return fail(BY_HINT.stay_closed, "stay_closed");
 
   const units = v.units ?? 1;
   const args = {

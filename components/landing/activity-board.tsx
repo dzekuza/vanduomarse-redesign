@@ -4,19 +4,21 @@ import { useState } from "react";
 import { FilterChip } from "@/components/events/filter-chip";
 import { cn } from "@/lib/utils";
 import { ACTIVITY_CARDS, FILTERS, type ActivityFilter } from "./content";
-import { ActivityTile } from "./activity-tile";
+import { ACTIVITY_HREF, ActivityTile } from "./activity-tile";
+import { isHiddenHref } from "@/lib/hidden-pages";
 import { Reveal } from "@/components/reveal";
 
-/** The requested single-row category picker scrolls inside its own container. */
-export function ActivityBoard() {
+/** The requested single-row category picker scrolls inside its own container. Tiles of hidden service pages are left out. */
+export function ActivityBoard({ hidden }: { hidden: readonly string[] }) {
   const [filter, setFilter] = useState<ActivityFilter>("all");
-  const cards = ACTIVITY_CARDS.filter((c) => filter === "all" || c.categories.includes(filter));
+  const shown = ACTIVITY_CARDS.filter((c) => !isHiddenHref(ACTIVITY_HREF[c.id], hidden));
+  const cards = shown.filter((c) => filter === "all" || c.categories.includes(filter));
 
   return (
     <>
       <div role="group" aria-label="Veiklų filtras" className="scrollbar-ink mb-6 flex gap-2 overflow-x-auto overscroll-x-contain py-3 md:mb-8 md:py-4">
         {FILTERS.map((f) => {
-          const count = f.id === "all" ? ACTIVITY_CARDS.length : ACTIVITY_CARDS.filter((card) => card.categories.includes(f.id)).length;
+          const count = f.id === "all" ? shown.length : shown.filter((card) => card.categories.includes(f.id)).length;
           return (
             <FilterChip
               key={f.id}

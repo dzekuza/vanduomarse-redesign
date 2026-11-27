@@ -47,6 +47,7 @@ export function StayTypesCard({ kind, title, description, onCreate }: StayTypesC
               <p className="truncate text-xs text-muted-foreground">
                 {[t.units === null ? "neribota" : `${t.units} vnt.`, guestsLabel(t.maxGuests), t.note].filter(Boolean).join(" · ")}
               </p>
+              {t.bookableUntil ? <p className="truncate text-xs text-muted-foreground tabular-nums">Rezervuoti galima iki {t.bookableUntil} (neimtinai)</p> : null}
               {t.seasons.map((s) => (
                 <p key={s.id} className="truncate text-xs text-muted-foreground tabular-nums">
                   {s.startsOn} – {s.endsOn}: {stayTiersLabel(s)}
@@ -58,7 +59,7 @@ export function StayTypesCard({ kind, title, description, onCreate }: StayTypesC
               checked={t.active}
               aria-label={`Rodyti svetainėje: ${t.label}`}
               onCheckedChange={(active) => {
-                saveStayType({ ...t, active });
+                saveStayType({ ...t, active }, t);
                 toast.success(active ? `${t.label}: rodomas` : `${t.label}: paslėptas`);
               }}
             />

@@ -9,6 +9,23 @@
 - **Changed:** merged PR #159 into `main` (owner's go-ahead); local `main` fast-forwarded. Docs: status, session log, changelog.
 - **Status:** Vercel production deploy succeeded; live `/skaiciuokle` and `/nakvyne` checked. Applying the camp row failed: the Supabase MCP is read-only and a service-key script was refused by the permission system, so the owner adds the type in /admin/kainos.
 - **Next:** camp type in /admin/kainos, check the camp flow live, triage cubic's review comments.
+## 2026-11-26 — Hide a service page (ADR-0137)
+
+- **Changed:** owners can switch a service page off at /admin/puslapiai (catalog: `PageVisibilityCard`, `lib/hidden-pages.ts`, `getHiddenServiceSlugs` in utils.md); it 404s and leaves the menu, home tiles, footer, /kainos and sitemap. Migration `20261126170000_page_content_hidden.sql` applied.
+- **Status:** tsc, eslint, 255 tests; browser-checked on and off with Keturračiai, left on. Uncommitted on `feat/owner-requests-2026-11-26`; build not run.
+- **Next:** PR #160 was already merged (and #161 after it), so this went into PR #162, now merged to main (`bb1e56b`). The owner hides the pages they want once the deploy is live.
+
+## 2026-11-26 — Browser check of Erdvės renginiai
+
+- **Changed:** nothing in code; logged-in check of /admin/erdves at 1280 and 375 px.
+- **Status:** dialog, preselected space, auto Vieta and the clash refusal (renginys over the 4 Dec restaurant hire) work; no test data saved. Saving a space event and the hire-side refusal not tried in the browser (DB trigger was tested with SQL).
+- **Next:** owner creates a real renginys in a space; merge PR #160.
+
+## 2026-11-26 — Renginiai in Erdvės (ADR-0136)
+
+- **Changed:** an event can be held in an event space and books it for its duration (DB triggers both ways, migration `20261126160000_event_space.sql` applied). /admin/erdves has Renginiai / Nuomos tabs like Pirtis's Seansai.
+- **Status:** tsc, eslint, 252 tests, build pass; trigger checked with rolled-back SQL. Admin page not browser-checked (login). Uncommitted on `feat/owner-requests-2026-11-26`.
+- **Next:** owner tries /admin/erdves → Naujas renginys; commit to the PR.
 
 ## 2026-11-26 — Merge with main and PR #159
 

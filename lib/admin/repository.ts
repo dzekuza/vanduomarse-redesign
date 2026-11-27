@@ -2,7 +2,7 @@ import "server-only";
 import { pageContentSchema, type PageContentOverride } from "@/lib/page-content";
 import { hasPermission, isPermissionId, type StaffAccess } from "@/lib/admin/permissions";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { toBlock, toBooking, toManagedEventPreset, toSpaceBooking, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
+import { toBlock, toBooking, toManagedEventPreset, toSpaceBooking, toSpace, toCoupon, toExternalBlock, toExternalCalendar, toCouponProduct, toDiscountCode, toInquiry, toManagedEvent, toNotificationRecipient, toPaymentInfo, toPriceItem, toQuadTourAccessory, toSaunaMaster, toQuadTourRoute, toPlanPass, toPurchase, toQuadRental, toQuadSettings, toQuadType, toStayType, toRider, toRiderCard, toRiderComment, toRiderDocument, toRiderSession, toRiderWaiver, toRidePlan, toSauna, toSaunaProgram, toStaffMember, toStaffNotification, toStaffRole, toTourTicket, toUpsell } from "./mappers";
 import { supabaseEnv } from "@/lib/supabase/env";
 import type { AdminData, SiteSettings } from "./types";
 
@@ -89,20 +89,23 @@ async function readSiteSettings(supabase: ServerSupabase, me: StaffAccess): Prom
   return data ? { comingSoon: data.coming_soon } : null;
 }
 
-/** Saved service page overrides, owners only. An invalid row is left out (the public page falls back to its defaults). */
-async function readPageContent(supabase: ServerSupabase, me: StaffAccess): Promise<Record<string, PageContentOverride>> {
-  if (!me.isOwner) return {};
-  const { data, error } = await supabase.from("page_content").select("slug, content");
+/**
+ * Saved service page overrides and the pages switched off, owners only. An invalid row is left out (the public page
+ * falls back to its defaults); an empty override (a row kept only for `hidden`) is not reported as an edit.
+ */
+async function readPageContent(supabase: ServerSupabase, me: StaffAccess): Promise<{ pageContent: Record<string, PageContentOverride>; hiddenPages: string[] }> {
+  if (!me.isOwner) return { pageContent: {}, hiddenPages: [] };
+  const { data, error } = await supabase.from("page_content").select("slug, content, hidden");
   if (error) {
     console.error("Admin data: page content", error.message);
-    return {};
+    return { pageContent: {}, hiddenPages: [] };
   }
-  const out: Record<string, PageContentOverride> = {};
+  const pageContent: Record<string, PageContentOverride> = {};
   for (const row of data) {
     const parsed = pageContentSchema.safeParse(row.content);
-    if (parsed.success) out[row.slug] = parsed.data;
+    if (parsed.success && Object.keys(parsed.data).length) pageContent[row.slug] = parsed.data;
   }
-  return out;
+  return { pageContent, hiddenPages: data.filter((row) => row.hidden).map((row) => row.slug) };
 }
 
 /** Ids of customers who have a site account; empty without the Klientai / Apyrankės page or before the migration. */
@@ -184,6 +187,16 @@ async function readSpaceBookings(supabase: ServerSupabase) {
   return data.map(toSpaceBooking);
 }
 
+/** Event spaces (erdvės); a role without access just has none. */
+async function readSpaces(supabase: ServerSupabase) {
+  const { data, error } = await supabase.from("spaces").select("*").order("sort_order").order("label");
+  if (error) {
+    console.error("Admin data: spaces", error.message);
+    return [];
+  }
+  return data.map(toSpace);
+}
+
 /** Calculator event types; a database without the migration just has none. */
 async function readEventPresets(supabase: ServerSupabase) {
   const { data, error } = await supabase.from("event_presets").select("*").order("sort_order");
@@ -263,6 +276,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     bookings: bookings.data!.map((r) => ({ ...toBooking(r), payment: paymentOf(r.payment_id) })),
     blocks: blocks.data!.map(toBlock),
     spaceBookings: await readSpaceBookings(supabase),
+    spaces: await readSpaces(supabase),
     inquiries: inquiries.data!.map(toInquiry),
     events: events.data!.map(toManagedEvent),
     prices: prices.data!.map(toPriceItem),
@@ -291,7 +305,7 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     notificationRecipients: await readNotificationRecipients(supabase, me),
     ...(await readNotifications(supabase, me)),
     siteSettings: await readSiteSettings(supabase, me),
-    pageContent: await readPageContent(supabase, me),
+    ...(await readPageContent(supabase, me)),
     ridePlans: ridePlans.data!.map(toRidePlan),
     riders: riders.data!.map(toRider),
     riderCards: riderCards.data!.map(toRiderCard),

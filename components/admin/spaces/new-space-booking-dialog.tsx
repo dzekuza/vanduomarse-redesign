@@ -9,8 +9,7 @@ import { useAdmin } from "../admin-store";
 import { FormField } from "../form-field";
 import { SpacePicker } from "./space-picker";
 import { formatEur } from "@/lib/admin/format";
-import { SPACES, type SpaceId } from "@/lib/event-pricing";
-import { anySpaceClash, spaceLabels, suggestedSpacePrice, windowsOverlap } from "@/lib/space-booking";
+import { spaceLabels, spaceTakenBy, suggestedSpacePrice } from "@/lib/space-booking";
 import { todayKey } from "@/lib/sauna";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -19,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { FormPhoneInput } from "@/components/ui/phone-input";
 import { Textarea } from "@/components/ui/textarea";
 
-const SPACE_IDS = SPACES.map((s) => s.id) as [SpaceId, ...SpaceId[]];
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pasirinkite laiką.");
 
 const schema = z
@@ -28,7 +26,7 @@ const schema = z
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pasirinkite datą."),
     startTime: time,
     endTime: time,
-    spaces: z.array(z.enum(SPACE_IDS)).min(1, "Pasirinkite bent vieną erdvę."),
+    spaces: z.array(z.string()).min(1, "Pasirinkite bent vieną erdvę."),
     name: z.string().trim().min(2, "Įveskite vardą.").max(80),
     surname: z.string().trim().min(2, "Įveskite pavardę.").max(80),
     phone: z.string().trim().regex(/^\+?[\d\s()-]{6,}$/, "Įveskite telefono numerį."),
@@ -49,24 +47,25 @@ interface NewSpaceBookingDialogProps {
 
 /** Hires one or several event spaces for a day and time window to a customer, for the agreed price. */
 export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBookingDialogProps) {
-  const { spaceBookings, createSpaceBooking } = useAdmin();
+  const { spaceBookings, events, spaces: catalog, createSpaceBooking } = useAdmin();
+  const offered = useMemo(() => catalog.filter((s) => s.active), [catalog]);
   const { register, control, handleSubmit, setError, setValue, getValues, formState } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { date: date || todayKey(), endDate: date || todayKey(), startTime: "12:00", endTime: "18:00", spaces: [], name: "", surname: "", phone: "", email: "", guests: "", price: "", note: "" },
   });
   const err = formState.errors;
-  const [day, endDay, startTime, endTime, spaces, guests, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "guests", "price"] });
+  const [day, endDay, startTime, endTime, spaces, price] = useWatch({ control, name: ["date", "endDate", "startTime", "endTime", "spaces", "price"] });
 
   const taken = useMemo(() => {
-    const ids = new Set<SpaceId>();
+    const ids = new Set<string>();
     const wanted = { date: day, endDate: endDay, startTime, endTime };
     if (!day || !endDay || `${endDay} ${endTime}` <= `${day} ${startTime}`) return ids;
-    const clashing = spaceBookings.filter((b) => b.status !== "atsaukta" && windowsOverlap(wanted, b));
-    for (const s of SPACES) if (anySpaceClash([s.id], clashing.flatMap((b) => b.spaces))) ids.add(s.id);
+    // Hires and events held in a space both take it (ADR-0136).
+    for (const s of offered) if (spaceTakenBy([s.id], wanted, spaceBookings, events, catalog)) ids.add(s.id);
     return ids;
-  }, [spaceBookings, day, endDay, startTime, endTime]);
+  }, [spaceBookings, events, offered, catalog, day, endDay, startTime, endTime]);
 
-  const suggested = suggestedSpacePrice(spaces, day, Number(guests) || 1);
+  const suggested = suggestedSpacePrice(spaces, day, catalog, startTime);
   const total = price === "" ? suggested : Number(price.replace(",", "."));
 
   const submit = handleSubmit(async (v) => {
@@ -84,7 +83,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
       note: v.note,
     });
     if ("error" in result) return setError("spaces", { message: result.error.message });
-    toast.success(`Erdvės rezervuotos: ${spaceLabels(result.data.booking.spaces)}`);
+    toast.success(`Erdvės rezervuotos: ${spaceLabels(result.data.booking.spaces, catalog)}`);
     onOpenChange(false);
   });
 
@@ -117,7 +116,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
             <Input id="sb-start" type="time" aria-invalid={!!err.startTime} className="min-h-11" {...register("startTime")} />
           </FormField>
           <FormField id="sb-end-date" label="Iki datos" error={err.endDate?.message} hint="Kelių dienų nuomai pasirinkite vėlesnę datą.">
-            <Controller control={control} name="endDate" render={({ field }) => <DatePicker id="sb-end-date" value={field.value} min={day} invalid={!!err.endDate} onChange={field.onChange} />} />
+            <Controller control={control} name="endDate" render={({ field }) => <DatePicker id="sb-end-date" value={field.value} min={day} openOn={day} invalid={!!err.endDate} onChange={field.onChange} />} />
           </FormField>
           <FormField id="sb-end" label="Iki laiko" error={err.endTime?.message}>
             <Input id="sb-end" type="time" aria-invalid={!!err.endTime} className="min-h-11" {...register("endTime")} />
@@ -125,7 +124,7 @@ export function NewSpaceBookingDialog({ onOpenChange, date = "" }: NewSpaceBooki
 
           <div className="space-y-1.5 sm:col-span-2">
             <p className="text-sm font-medium">Erdvės</p>
-            <Controller control={control} name="spaces" render={({ field }) => <SpacePicker value={field.value} onChange={field.onChange} taken={taken} invalid={!!err.spaces} />} />
+            <Controller control={control} name="spaces" render={({ field }) => <SpacePicker spaces={offered} value={field.value} onChange={field.onChange} taken={taken} invalid={!!err.spaces} />} />
             {err.spaces?.message ? <p className="text-xs text-destructive">{err.spaces.message}</p> : null}
           </div>
 

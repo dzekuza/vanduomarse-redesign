@@ -1,15 +1,15 @@
 "use server";
 
 import { z } from "zod";
-import { toSpaceBooking } from "@/lib/admin/mappers";
+import { toSpace, toSpaceBooking } from "@/lib/admin/mappers";
 import type { SpaceBooking } from "@/lib/admin/types";
-import { SPACES, type SpaceId } from "@/lib/event-pricing";
-import { anySpaceClash, spaceLabels, windowsOverlap } from "@/lib/space-booking";
+import { anySpaceClash, spaceLabels, windowsOverlap, type ManagedSpace } from "@/lib/space-booking";
 import { dbError, done, fail, staffClient, type ActionResult } from "@/lib/admin/action-helpers";
+import { slugify } from "@/lib/sauna";
 
-/* ---------------- event spaces ---------------- */
+/* ---------------- event spaces (ADR-0124, ADR-0133) ---------------- */
 
-const spaceId = z.enum(SPACES.map((s) => s.id) as [SpaceId, ...SpaceId[]]);
+const spaceId = z.string().regex(/^[a-z0-9-]+$/).max(60);
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Netinkamas laikas.");
 
 const spaceBookingInput = z.object({
@@ -17,7 +17,7 @@ const spaceBookingInput = z.object({
   endDate: z.iso.date(),
   startTime: time,
   endTime: time,
-  spaces: z.array(spaceId).min(1).max(SPACES.length),
+  spaces: z.array(spaceId).min(1).max(50),
   customer: z.object({
     name: z.string().trim().min(2).max(80),
     surname: z.string().trim().max(80),
@@ -42,10 +42,16 @@ export async function createSpaceBooking(input: NewSpaceBookingInput): Promise<A
   if (`${v.endDate} ${v.endTime}` <= `${v.date} ${v.startTime}`) return fail("Pabaiga turi būti vėlesnė už pradžią.", "invalid");
   const spaces = [...new Set(v.spaces)];
 
+  const { data: spaceRows, error: spacesError } = await ctx.supabase.from("spaces").select("*");
+  if (spacesError) return dbError(spacesError);
+  const catalog = spaceRows.map(toSpace);
+  const off = spaces.filter((id) => !catalog.some((c) => c.id === id && c.active));
+  if (off.length) return fail(`Ši erdvė nebenuomojama: ${spaceLabels(off, catalog)}. Atnaujinkite puslapį.`, "invalid");
+
   const { data: nearby, error: readError } = await ctx.supabase.from("space_bookings").select("*").lte("date", v.endDate).gte("end_date", v.date).neq("status", "atsaukta");
   if (readError) return dbError(readError);
-  const clash = nearby.map(toSpaceBooking).find((b) => windowsOverlap(v, b) && anySpaceClash(spaces, b.spaces));
-  if (clash) return fail(`Šiuo laiku jau užimta: ${spaceLabels(clash.spaces)} (${clash.date}${clash.endDate !== clash.date ? `–${clash.endDate}` : ""} ${clash.startTime}–${clash.endTime}, ${clash.customer.name}).`, "conflict");
+  const clash = nearby.map(toSpaceBooking).find((b) => windowsOverlap(v, b) && anySpaceClash(spaces, b.spaces, catalog));
+  if (clash) return fail(`Šiuo laiku jau užimta: ${spaceLabels(clash.spaces, catalog)} (${clash.date}${clash.endDate !== clash.date ? `–${clash.endDate}` : ""} ${clash.startTime}–${clash.endTime}, ${clash.customer.name}).`, "conflict");
 
   const { data: row, error } = await ctx.supabase
     .from("space_bookings")
@@ -78,4 +84,53 @@ export async function setSpaceBookingStatus(id: string, status: SpaceBooking["st
   if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
   const { error } = await ctx.supabase.from("space_bookings").update({ status }).eq("id", id);
   return error ? dbError(error) : done(null);
+}
+
+const spaceInput = z.object({
+  /** null = a new space; its id is made from the label and never changes. */
+  id: spaceId.nullable(),
+  label: z.string().trim().min(2).max(80),
+  blurb: z.string().trim().max(300),
+  maxGuests: z.number().int().min(1).max(5000),
+  priceWeekday: z.number().min(0).max(1_000_000).nullable(),
+  priceWeekend: z.number().min(0).max(1_000_000).nullable(),
+  wholePark: z.boolean(),
+  active: z.boolean(),
+  sortOrder: z.number().int().min(0).max(32000),
+});
+
+export type SpaceInput = z.infer<typeof spaceInput>;
+
+/** Creates (`id` null) or updates an event space. Spaces are never deleted, only switched off, so old hires keep their name. */
+export async function saveSpace(input: SpaceInput): Promise<ActionResult<{ space: ManagedSpace }>> {
+  const ctx = await staffClient(["rezervacijos", "kainos"]);
+  if (!ctx.ok) return ctx.error;
+  const parsed = spaceInput.safeParse(input);
+  if (!parsed.success) return fail("Netinkamos reikšmės.", "invalid");
+  const v = parsed.data;
+  const row = {
+    label: v.label,
+    blurb: v.blurb,
+    max_guests: v.maxGuests,
+    price_weekday: v.priceWeekday,
+    price_weekend: v.priceWeekend,
+    whole_park: v.wholePark,
+    active: v.active,
+    sort_order: v.sortOrder,
+  };
+
+  let id = v.id;
+  if (id) {
+    const { error } = await ctx.supabase.from("spaces").update(row).eq("id", id);
+    if (error) return dbError(error);
+  } else {
+    const base = slugify(v.label) || "erdve";
+    const { data: taken } = await ctx.supabase.from("spaces").select("id").like("id", `${base}%`);
+    const used = new Set((taken ?? []).map((r) => r.id));
+    id = base;
+    for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
+    const { error } = await ctx.supabase.from("spaces").insert({ id, ...row });
+    if (error) return dbError(error);
+  }
+  return done({ space: { id, label: v.label, blurb: v.blurb, maxGuests: v.maxGuests, priceWeekday: v.priceWeekday, priceWeekend: v.priceWeekend, wholePark: v.wholePark, active: v.active, sortOrder: v.sortOrder } });
 }

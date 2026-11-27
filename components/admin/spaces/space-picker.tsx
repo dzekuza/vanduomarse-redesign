@@ -1,24 +1,27 @@
 "use client";
 
-import { SPACES, type SpaceId } from "@/lib/event-pricing";
+import type { ManagedSpace } from "@/lib/space-booking";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 interface SpacePickerProps {
-  value: readonly SpaceId[];
-  onChange: (next: SpaceId[]) => void;
+  /** Active spaces (from `public.spaces`), in display order. */
+  spaces: readonly ManagedSpace[];
+  value: readonly string[];
+  onChange: (next: string[]) => void;
   /** Spaces already hired in the chosen window, shown as taken and not selectable. */
-  taken: ReadonlySet<SpaceId>;
+  taken: ReadonlySet<string>;
   invalid?: boolean;
 }
 
 /** Several spaces can be ticked at once (e.g. the dome and the terrace for one party). */
-export function SpacePicker({ value, onChange, taken, invalid }: SpacePickerProps) {
-  const toggle = (id: SpaceId, on: boolean) => onChange(on ? [...value, id] : value.filter((v) => v !== id));
+export function SpacePicker({ spaces, value, onChange, taken, invalid }: SpacePickerProps) {
+  const toggle = (id: string, on: boolean) => onChange(on ? [...value, id] : value.filter((v) => v !== id));
   return (
     <fieldset aria-invalid={invalid} className="grid gap-2 sm:grid-cols-2">
       <legend className="sr-only">Erdvės</legend>
-      {SPACES.map((s) => {
+      {spaces.length === 0 ? <p className="text-sm text-muted-foreground">Erdvių nėra: pridėkite jas skiltyje Erdvės.</p> : null}
+      {spaces.map((s) => {
         const busy = taken.has(s.id);
         const checked = value.includes(s.id);
         return (

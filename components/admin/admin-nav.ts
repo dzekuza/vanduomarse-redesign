@@ -16,6 +16,7 @@ import {
   PercentIcon,
   PersonSimpleSnowboardIcon,
   TagIcon,
+  TentIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { hasPermission, NOTIFICATIONS_HREF, PAGE_CONTENT_HREF, SITE_SETTINGS_HREF, STAFF_HREF, type PermissionId, type StaffAccess } from "@/lib/admin/permissions";
@@ -77,6 +78,7 @@ export const ADMIN_NAV: AdminNavEntry[] = [
   { href: "/admin/pirtis", label: "Pirtis", icon: FireIcon, group: "pardavimai", permission: "pirtis" },
   { href: "/admin/namukai", label: "Namukai", icon: BedIcon, group: "pardavimai", permission: "owner" },
   { href: "/admin/keturraciai", label: "Keturračiai", icon: MotorcycleIcon, group: "pardavimai", permission: "keturraciai", badge: "pendingQuads" },
+  { href: "/admin/erdves", label: "Erdvės", icon: TentIcon, group: "pardavimai", permission: "rezervacijos" },
   { href: "/admin/apyrankes", label: "Vandenlentės", icon: PersonSimpleSnowboardIcon, group: "pardavimai", permission: "apyrankes" },
   { href: "/admin/instruktorius", label: "Apyrankių skenavimas", icon: LifebuoyIcon, group: "pardavimai", permission: "instruktorius" },
   { href: "/admin/renginiai", label: "Renginiai", icon: ConfettiIcon, group: "turinys", permission: "renginiai", badge: "pendingEvents" },

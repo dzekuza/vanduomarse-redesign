@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { lowestStayPrice, stayNightRate, stayPrice, stayRateLabel, stayTiersLabel, type StayType } from "@/lib/cabin";
+import { freeStayUnits, lowestStayPrice, seasonOn, seasonsProblem, stayBookable, stayBookingDays, stayNightRate, stayPrice, stayRateLabel, stayTiersLabel, type StayType } from "@/lib/cabin";
 
-const tiered: StayType = { id: "namelis-2", kind: "namelis", label: "Namelis", note: "", maxGuests: 2, pricePerNight: 100, pricePerNight2: 80, pricePerNight3: 60, seasons: [], units: 2, active: true, sortOrder: 0 };
+const tiered: StayType = { id: "namelis-2", kind: "namelis", label: "Namelis", note: "", maxGuests: 2, pricePerNight: 100, pricePerNight2: 80, pricePerNight3: 60, seasons: [], units: 2, bookableUntil: null, active: true, sortOrder: 0 };
 
 describe("stay night tiers", () => {
   it("applies the rate of the whole stay's length to every night", () => {
@@ -59,5 +59,69 @@ describe("seasonal prices", () => {
   it("shows a 'from' price when a season changes the nightly price", () => {
     expect(stayRateLabel({ ...tiered, pricePerNight2: 100, pricePerNight3: 100, seasons: [summer] })).toBe("nuo 5 € / naktį");
     expect(lowestStayPrice([seasonal])).toBe(5);
+  });
+});
+
+describe("nested seasons", () => {
+  const winter = { id: "w", startsOn: "2026-11-26", endsOn: "2027-04-30", pricePerNight: 50, pricePerNight2: 50, pricePerNight3: 50 };
+  const christmas = { id: "x", startsOn: "2026-12-24", endsOn: "2026-12-26", pricePerNight: 90, pricePerNight2: 90, pricePerNight3: 90 };
+  const type: StayType = { ...tiered, seasons: [winter, christmas] };
+
+  it("prices a night inside both from the shorter season", () => {
+    expect(seasonOn(type, "2026-12-25")?.id).toBe("x");
+    expect(seasonOn(type, "2026-12-23")?.id).toBe("w");
+    expect(seasonOn(type, "2027-05-01")).toBeUndefined();
+  });
+
+  it("prices a stay crossing into the nested season night by night", () => {
+    // 23, 24, 25 Dec: one winter night and two Christmas nights, all at the 3+ rate.
+    expect(stayPrice(type, 3, 1, "2026-12-23")).toBe(50 + 90 + 90);
+  });
+
+  it("is independent of the order the seasons are listed in", () => {
+    expect(seasonOn({ seasons: [christmas, winter] }, "2026-12-24")?.id).toBe("x");
+  });
+
+  it("accepts nested seasons and refuses identical or crossing ones", () => {
+    expect(seasonsProblem([winter, christmas])).toBeNull();
+    expect(seasonsProblem([winter, { ...winter, id: "w2" }])).toMatch(/tas pačias datas/);
+    expect(seasonsProblem([winter, { ...christmas, startsOn: "2027-04-28", endsOn: "2027-05-03" }])).toMatch(/kertasi/);
+    expect(seasonsProblem([christmas, { ...christmas, startsOn: "2026-12-27", endsOn: "2026-12-30" }])).toBeNull();
+  });
+});
+
+describe("bookable until", () => {
+  const closing: StayType = { ...tiered, bookableUntil: "2027-05-01" };
+
+  it("allows a stay whose last night is the day before (check-out on the date)", () => {
+    expect(stayBookable(closing, "2027-04-30", 1)).toBe(true);
+    expect(stayBookable(closing, "2027-04-29", 2)).toBe(true);
+  });
+
+  it("refuses a stay with a night on or after the date", () => {
+    expect(stayBookable(closing, "2027-04-30", 2)).toBe(false);
+    expect(stayBookable(closing, "2027-05-01", 1)).toBe(false);
+  });
+
+  it("is always bookable without a date", () => {
+    expect(stayBookable(tiered, "2027-09-01", 3)).toBe(true);
+  });
+
+  it("shows no free units past the date", () => {
+    expect(freeStayUnits({}, new Date(2027, 3, 30), 1, closing)).toBe(2);
+    expect(freeStayUnits({}, new Date(2027, 3, 30), 2, closing)).toBe(0);
+  });
+
+  it("shortens the list of check-in days when every type closes", () => {
+    expect(stayBookingDays([closing], "2026-11-26")).toBe(156);
+    expect(stayBookingDays([closing, tiered], "2026-11-26")).toBe(350);
+    expect(stayBookingDays([], "2026-11-26")).toBe(350);
+  });
+});
+
+describe("nightsLabel", () => {
+  it("uses the Lithuanian plural", async () => {
+    const { nightsLabel } = await import("@/lib/cabin");
+    expect([1, 2, 9, 10, 12, 21, 22, 30, 111].map(nightsLabel)).toEqual(["1 naktis", "2 naktys", "9 naktys", "10 naktų", "12 naktų", "21 naktis", "22 naktys", "30 naktų", "111 naktų"]);
   });
 });

@@ -28,6 +28,7 @@ export function dbError(e: DbError) {
       stay_full: "Visi šio tipo nameliai tomis naktimis užimti.",
       event_full: "Renginyje nebėra vietų.",
       quad_full: "Tiek keturračių šiuo laiku nebėra.",
+      space_taken: "Ši erdvė šiuo laiku jau užimta (nuoma ar kitas renginys).",
     };
     return fail(byHint[e.hint ?? ""] ?? "Šis laikas jau užimtas – pasirinkite kitą.", "conflict");
   }

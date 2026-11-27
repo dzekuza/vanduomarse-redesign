@@ -6,6 +6,7 @@ import type { AdminData, BookingSource, BookingStatus } from "./types";
 import { COUPON_STATUS_LABEL, type CouponStatus } from "@/lib/coupons";
 import { PURCHASE_PAYMENT_LABELS } from "@/lib/ride-plans";
 import { todayKey } from "@/lib/sauna";
+import { spaceLabels } from "@/lib/space-booking";
 
 /** The product areas a sale belongs to; the filter tabs on the overview. */
 export const SALE_CATEGORIES = [
@@ -13,6 +14,7 @@ export const SALE_CATEGORIES = [
   { id: "nakvyne", label: "Nakvynė" },
   { id: "keturraciai", label: "Keturračiai" },
   { id: "renginiai", label: "Renginiai" },
+  { id: "erdves", label: "Erdvės" },
   { id: "kuponai", label: "Kuponai" },
   { id: "vandenlentes", label: "Vandenlentės" },
 ] as const;
@@ -34,7 +36,7 @@ export const SALE_ORIGIN_LABEL: Record<SaleOrigin, string> = { internetu: "Inter
 export const saleOrigin = (source: BookingSource): SaleOrigin => (source === "svetaine" ? "internetu" : "admin");
 
 /** What a click on a sale row opens: a details drawer on the overview (an event's tickets for ticket sales), or the page that manages it. */
-export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event"; id: string } | { kind: "link"; href: string };
+export type SaleTarget = { kind: "booking" | "rental" | "coupon" | "event" | "space"; id: string } | { kind: "link"; href: string };
 
 export interface Sale {
   id: string;
@@ -70,7 +72,8 @@ const soldOn = (iso: string) => todayKey(new Date(iso));
 type SalesSource = Pick<
   AdminData,
   "bookings" | "stayTypes" | "quadRentals" | "quadTypes" | "tourTickets" | "eventTickets" | "events" | "coupons" | "purchases" | "riders"
->;
+> &
+  Partial<Pick<AdminData, "spaceBookings" | "spaces">>;
 
 export type SaleSortKey = "soldAt" | "item" | "category" | "when" | "customer" | "total" | "state" | "source";
 export interface SaleSort {
@@ -190,6 +193,28 @@ export function buildSales(data: SalesSource): Sale[] {
       statusLabel: BOOKING_STATUS[t.status],
       target: { kind: "event", id: t.eventId },
       riderId: t.riderId ?? customerOf(t.customer) ?? null,
+    });
+  }
+
+  // Event-space hires (ADR-0124) are entered by staff only, so they count as Admin sales; the agreed price is the total.
+  for (const s of data.spaceBookings ?? []) {
+    const customer = { name: [s.customer.name, s.customer.surname].filter(Boolean).join(" "), email: s.customer.email, phone: s.customer.phone };
+    sales.push({
+      id: `s-${s.id}`,
+      category: "erdves",
+      soldOn: soldOn(s.createdAt),
+      soldAt: s.createdAt,
+      whenKey: `${s.date} ${s.startTime}`,
+      item: spaceLabels(s.spaces, data.spaces ?? []),
+      when: s.endDate === s.date ? `${formatDay(s.date)}, ${s.startTime}–${s.endTime}` : `${formatDay(s.date)} ${s.startTime} – ${formatDay(s.endDate)} ${s.endTime}`,
+      customer: customer.name,
+      reference: "",
+      total: s.price,
+      state: bookingState(s.status),
+      source: "telefonu",
+      statusLabel: BOOKING_STATUS[s.status],
+      target: { kind: "space", id: s.id },
+      riderId: customerOf(customer) ?? null,
     });
   }
 

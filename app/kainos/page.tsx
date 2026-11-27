@@ -6,6 +6,7 @@ import { BookingPage } from "@/components/booking/booking-page";
 import { JsonLd } from "@/components/json-ld";
 import { ServicePricing } from "@/components/services/service-pricing";
 import { SERVICE_PAGES, type ServiceSlug } from "@/components/services/service-content";
+import { getHiddenServiceSlugs } from "@/lib/data/page-content";
 import { getCabinPageData, getQuadPageData, getSaunaPageData } from "@/lib/data/public";
 import { RESERVATION_DAYS } from "@/lib/reservation";
 import { pageMetadata } from "@/lib/seo";
@@ -24,7 +25,7 @@ const SECTIONS: ServiceSlug[] = ["pirtis", "keturraciu-nuoma", "nakvyne", "svent
 export default async function PricesPage() {
   await connection();
   const window = { days: RESERVATION_DAYS, now: new Date() };
-  const [sauna, cabin, quads] = await Promise.all([getSaunaPageData(window), getCabinPageData(window), getQuadPageData(window)]);
+  const [sauna, cabin, quads, hidden] = await Promise.all([getSaunaPageData(window), getCabinPageData(window), getQuadPageData(window), getHiddenServiceSlugs()]);
 
   return (
     <BookingPage>
@@ -36,7 +37,7 @@ export default async function PricesPage() {
             title={["Kainos", "Vanduo Marse"]}
             intro="Visos kainos nurodytos eurais su 21% PVM. Galutinę kainą matysi rezervuodamas. Vandenlenčių plaukimų ir treniruočių kainas sužinosi pas Marso Akademiją, restorano meniu pas restoraną."
           />
-          {SECTIONS.map((slug) => (
+          {SECTIONS.filter((slug) => !hidden.includes(slug)).map((slug) => (
             <section key={slug} id={slug} aria-labelledby={`${slug}-kainos`} className="scroll-mt-32 space-y-4 border-t border-line pt-7">
               <h2 id={`${slug}-kainos`} className="text-tile font-bold">
                 <Link href={`/${slug}`} className="hover:text-rust">{SERVICE_PAGES[slug].label}</Link>

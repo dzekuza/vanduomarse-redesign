@@ -11,7 +11,7 @@ import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy } from "@/components
 import { ServicePage } from "@/components/services/service-page";
 import { WakeServiceBooking } from "@/components/services/wake-service-booking";
 import { ACADEMY_CONTACT } from "@/lib/contacts";
-import { getServicePageContent } from "@/lib/data/page-content";
+import { getServicePageContent, isServicePageHidden } from "@/lib/data/page-content";
 import { getCabinPageData, getCalculatorCatalog, getCelebrationSchedule, getParkEvents, getQuadPageData, getSaunaPageData, getWakeOffers } from "@/lib/data/public";
 import type { ActivityKind } from "@/lib/analytics";
 import { RESERVATION_DAYS } from "@/lib/reservation";
@@ -48,14 +48,14 @@ const VIEW_KIND: Partial<Record<string, ActivityKind>> = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { service } = await params;
-  if (!isServiceSlug(service)) notFound();
+  if (!isServiceSlug(service) || (await isServicePageHidden(service))) notFound();
   const { copy: { title, summary, description, metaDescription: custom, service: id } } = await getServicePageContent(service);
   return pageMetadata({ title, description: custom ?? metaDescription([summary, description]), path: `/${service}`, image: SERVICE_OG_IMAGES[id] ?? { url: SERVICES[id].photo, alt: SERVICES[id].alt } });
 }
 
 export default async function ActivityPage({ params }: Props) {
   const { service } = await params;
-  if (!isServiceSlug(service)) notFound();
+  if (!isServiceSlug(service) || (await isServicePageHidden(service))) notFound();
   const { copy }: { copy: ServicePageCopy } = await getServicePageContent(service);
   const schema = (
     <>

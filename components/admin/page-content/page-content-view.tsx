@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AdminPage } from "../admin-page";
 import { useAdmin } from "../admin-store";
 import { PageEditor } from "./page-editor";
+import { PageVisibilityCard } from "./page-visibility-card";
 import { SERVICE_PAGES, isServiceSlug, type ServicePageCopy, type ServiceSlug } from "@/components/services/service-content";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ const SLUGS = Object.keys(SERVICE_PAGES) as ServiceSlug[];
 
 /** `/admin/puslapiai`: owners edit the texts, FAQ and photos of every public service page. The chosen page is in `?puslapis=`. */
 export function PageContentView() {
-  const { pageContent } = useAdmin();
+  const { pageContent, hiddenPages } = useAdmin();
   const router = useRouter();
   const requested = useSearchParams().get("puslapis") ?? "";
   const slug: ServiceSlug = isServiceSlug(requested) ? requested : SLUGS[0];
@@ -22,7 +23,7 @@ export function PageContentView() {
   return (
     <AdminPage
       title="Puslapiai"
-      description="Keiskite paslaugų puslapių tekstus, DUK ir nuotraukas. Kainos, tvarkaraščiai ir laisvi laikai imami iš savo skilčių. Pakeitimai matomi lankytojams iškart."
+      description="Keiskite paslaugų puslapių tekstus, DUK ir nuotraukas arba paslėpkite puslapį. Kainos, tvarkaraščiai ir laisvi laikai imami iš savo skilčių. Pakeitimai matomi lankytojams iškart."
       actions={
         <Button variant="outline" className="min-h-11" asChild>
           <a href={`/${slug}`} target="_blank" rel="noreferrer">
@@ -43,6 +44,7 @@ export function PageContentView() {
             onClick={() => router.replace(`/admin/puslapiai?puslapis=${s}`, { scroll: false })}
           >
             {SERVICE_PAGES[s].label}
+            {hiddenPages.includes(s) ? <Badge variant="secondary" className="ml-2">Paslėpta</Badge> : null}
             {pageContent[s] ? <Badge variant="secondary" className="ml-2">Pakeista</Badge> : null}
           </Button>
         ))}
@@ -50,6 +52,7 @@ export function PageContentView() {
       <p className="text-sm text-muted-foreground">
         /{slug} · {copy.label}
       </p>
+      <PageVisibilityCard slug={slug} label={copy.label} />
       <PageEditor key={slug} slug={slug} />
     </AdminPage>
   );

@@ -1,13 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { anySpaceClash, spaceLabels, spacesClash, suggestedSpacePrice, windowsOverlap } from "./space-booking";
+import { anySpaceClash, eventWindow, spaceLabels, spaceRent, spacesClash, spaceTakenBy, suggestedSpacePrice, windowsOverlap, type ManagedSpace } from "./space-booking";
+
+const space = (id: string, label: string, priceWeekday: number | null, priceWeekend: number | null, wholePark = false): ManagedSpace => ({
+  id, label, blurb: "", maxGuests: 100, priceWeekday, priceWeekend, wholePark, active: true, sortOrder: 0,
+});
+const SPACES = [
+  space("terasa", "Įstiklinta terasa", 0, 0),
+  space("kupolas-svente", "Kupolas: šventė", 700, 700),
+  space("kupolas-seminaras", "Kupolas: seminaras", 363, null),
+  space("corona", "„Corona“ su baseinu", 1200, 1200),
+  space("restoranas", "Restoranas + terasa", 500, 500),
+  space("parkas", "Visas parkas (be WAKE)", 6000, 7000, true),
+  space("parkas-wake", "Visas parkas su WAKE", 9000, 10000, true),
+];
 
 describe("space bookings", () => {
   it("clashes on the same space and on the whole park", () => {
-    expect(spacesClash("terasa", "terasa")).toBe(true);
-    expect(spacesClash("terasa", "corona")).toBe(false);
-    expect(spacesClash("parkas", "terasa")).toBe(true);
-    expect(anySpaceClash(["terasa", "corona"], ["restoranas"])).toBe(false);
-    expect(anySpaceClash(["terasa", "corona"], ["parkas-wake"])).toBe(true);
+    expect(spacesClash("terasa", "terasa", SPACES)).toBe(true);
+    expect(spacesClash("terasa", "corona", SPACES)).toBe(false);
+    expect(spacesClash("parkas", "terasa", SPACES)).toBe(true);
+    expect(anySpaceClash(["terasa", "corona"], ["restoranas"], SPACES)).toBe(false);
+    expect(anySpaceClash(["terasa", "corona"], ["parkas-wake"], SPACES)).toBe(true);
   });
 
   it("treats touching times as free", () => {
@@ -22,14 +35,49 @@ describe("space bookings", () => {
     expect(windowsOverlap(camp, { date: "2026-11-23", endDate: "2026-11-23", startTime: "11:00", endTime: "14:00" })).toBe(false);
   });
 
-  it("adds the sheet rent of each space", () => {
+  it("adds the listed rent of each space", () => {
     // 2026-11-21 is a Saturday: dome party 700 + Corona 1200.
-    expect(suggestedSpacePrice(["kupolas-svente", "corona"], "2026-11-21", 40)).toBe(1900);
-    expect(suggestedSpacePrice(["terasa"], "2026-11-21", 20)).toBe(0);
-    expect(suggestedSpacePrice(["terasa"], "", 20)).toBe(0);
+    expect(suggestedSpacePrice(["kupolas-svente", "corona"], "2026-11-21", SPACES)).toBe(1900);
+    expect(suggestedSpacePrice(["terasa"], "2026-11-21", SPACES)).toBe(0);
+    expect(suggestedSpacePrice(["terasa"], "", SPACES)).toBe(0);
+    // The seminar is not offered on a weekend and adds nothing.
+    expect(suggestedSpacePrice(["kupolas-seminaras"], "2026-11-21", SPACES)).toBe(0);
+    expect(suggestedSpacePrice(["parkas"], "2026-11-21", SPACES)).toBe(7000);
+  });
+
+  it("uses the weekday price only for Mon–Thu daytime hires", () => {
+    // 2026-11-24 is a Tuesday.
+    expect(spaceRent(SPACES[5], "2026-11-24", "10:00")).toBe(6000);
+    expect(spaceRent(SPACES[5], "2026-11-24", "18:00")).toBe(7000);
+    expect(spaceRent(SPACES[5], "2026-11-24")).toBe(7000);
+    expect(suggestedSpacePrice(["kupolas-seminaras"], "2026-11-24", SPACES, "09:00")).toBe(363);
   });
 
   it("names spaces", () => {
-    expect(spaceLabels(["terasa", "corona"])).toBe("Įstiklinta terasa, Lauko terasa su baseinu („Corona“)");
+    expect(spaceLabels(["terasa", "corona"], SPACES)).toBe("Įstiklinta terasa, „Corona“ su baseinu");
+    expect(spaceLabels(["nera"], SPACES)).toBe("nera");
+  });
+});
+
+describe("events in a space (ADR-0136)", () => {
+  it("an event window runs from its start for its length, past midnight too", () => {
+    expect(eventWindow("2027-06-11", "19:00", 180)).toEqual({ date: "2027-06-11", startTime: "19:00", endDate: "2027-06-11", endTime: "22:00" });
+    expect(eventWindow("2027-06-11", "22:30", 120)).toEqual({ date: "2027-06-11", startTime: "22:30", endDate: "2027-06-12", endTime: "00:30" });
+  });
+
+  const hire = { date: "2027-06-11", endDate: "2027-06-11", startTime: "12:00", endTime: "18:00", spaces: ["corona"], status: "patvirtinta" };
+  const event = { id: "e1", title: "Koncertas", date: "2027-06-12", time: "20:00", durationMinutes: 120, spaceId: "kupolas-svente" };
+
+  it("finds a live hire or another event in the same space, or the whole park", () => {
+    expect(spaceTakenBy(["corona"], eventWindow("2027-06-11", "17:00", 60), [hire], [], SPACES)).toBe("nuoma 2027-06-11 12:00–18:00");
+    expect(spaceTakenBy(["parkas"], eventWindow("2027-06-11", "17:00", 60), [hire], [], SPACES)).not.toBeNull();
+    expect(spaceTakenBy(["kupolas-svente"], eventWindow("2027-06-12", "21:00", 60), [], [event], SPACES)).toBe("renginys „Koncertas“ 2027-06-12 20:00");
+  });
+
+  it("is free for another space, a cancelled hire, touching ends, or the event itself", () => {
+    expect(spaceTakenBy(["terasa"], eventWindow("2027-06-11", "17:00", 60), [hire], [event], SPACES)).toBeNull();
+    expect(spaceTakenBy(["corona"], eventWindow("2027-06-11", "17:00", 60), [{ ...hire, status: "atsaukta" }], [], SPACES)).toBeNull();
+    expect(spaceTakenBy(["corona"], eventWindow("2027-06-11", "18:00", 60), [hire], [], SPACES)).toBeNull();
+    expect(spaceTakenBy(["kupolas-svente"], eventWindow("2027-06-12", "21:00", 60), [], [event], SPACES, "e1")).toBeNull();
   });
 });

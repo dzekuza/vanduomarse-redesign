@@ -25,7 +25,15 @@ export const eventSchema = z.object({
   visibility: z.enum(["draft", "public", "private"]),
   /** Sauna program id, or "" for none. */
   programId: z.string(),
+  /** Sauna master id for a sauna session, or "" for "Be pirtininko". */
+  saunaMasterId: z.string(),
+  /** Event space the event books, or "" for none (ADR-0136). */
+  spaceId: z.string(),
 }).refine(
+  // An event in a space books it until it ends, so its length is required.
+  ({ spaceId, durationMinutes }) => spaceId === "" || (/^\d+$/.test(durationMinutes) && eventDurationMinutes.safeParse(Number(durationMinutes)).success),
+  { path: ["durationMinutes"], message: "Įveskite trukmę minutėmis: tiek laiko erdvė bus užimta." },
+).refine(
   ({ category, durationMinutes }) => category !== "pirtis" || durationMinutes === "" ||
     (/^\d+$/.test(durationMinutes) && eventDurationMinutes.safeParse(Number(durationMinutes)).success),
   { path: ["durationMinutes"], message: "Įveskite teigiamą sveiką minučių skaičių arba palikite tuščią." },
