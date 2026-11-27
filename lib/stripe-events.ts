@@ -3,7 +3,8 @@ import type Stripe from "stripe";
 import { z } from "zod";
 import { couponIdOf, onCouponPaid, onCouponRefund, onCouponSessionClosed } from "@/lib/coupon-payment";
 import { onPlanOrderPaid, onPlanOrderRefund, onPlanPassPaid, onPlanSessionClosed, planOrderIdOf, planPassIdOf, planPassPartOf } from "@/lib/plan-payment";
-import { reportPurchaseFromWebhook } from "@/lib/meta-purchase";
+import { reportPurchaseFromWebhook, type PurchaseKind } from "@/lib/meta-purchase";
+import { reportOrderToOmnisend } from "@/lib/omnisend-order";
 import { notifyDuplicatePayment, notifyPaymentReceived } from "@/lib/notify";
 import { loadPaidRequests } from "@/lib/payment-notice";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -22,26 +23,32 @@ const paymentIdOf = (session: Stripe.Checkout.Session) => {
   return parsed.success ? parsed.data : undefined;
 };
 
+/** A recorded sale goes to Meta (ADR-0111) and to Omnisend (ADR-0143). Neither ever throws. */
+async function reportSale(kind: PurchaseKind, proof: string, session: Stripe.Checkout.Session) {
+  await reportPurchaseFromWebhook(kind, proof, session);
+  await reportOrderToOmnisend(kind, proof);
+}
+
 async function onPaid(session: Stripe.Checkout.Session) {
   // A delayed payment method completes the session while it is still unpaid; wait for `async_payment_succeeded`.
   if (session.payment_status === "unpaid") return;
   const couponId = couponIdOf(session);
   if (couponId) {
     await onCouponPaid(couponId, session);
-    await reportPurchaseFromWebhook("coupon", session.id, session);
+    await reportSale("coupon", session.id, session);
     return;
   }
   const planOrderId = planOrderIdOf(session);
   if (planOrderId) {
     await onPlanOrderPaid(planOrderId, session);
-    await reportPurchaseFromWebhook("plan", session.id, session);
+    await reportSale("plan", session.id, session);
     return;
   }
   const planPassId = planPassIdOf(session);
   if (planPassId) {
     // The balance of a pass paid in parts (ADR-0139) is not a new purchase: Meta heard of it with the deposit.
     await onPlanPassPaid(planPassId, session);
-    if (planPassPartOf(session) !== "likutis") await reportPurchaseFromWebhook("plan", session.id, session);
+    if (planPassPartOf(session) !== "likutis") await reportSale("plan", session.id, session);
     return;
   }
   const admin = createAdminClient();
@@ -76,7 +83,7 @@ async function onPaid(session: Stripe.Checkout.Session) {
   const requests = await loadPaidRequests(paid.payment_id);
   await notifyPaymentReceived({ phone: paid.phone, email: email ?? null }, paid.refs, paid.amount, paid.needs_review, requests, paid.confirmed);
   // The sale for Meta's Conversions API (ADR-0111), except a payment that needs a look (wrong amount): its value is not settled.
-  if (!paid.needs_review) await reportPurchaseFromWebhook("reservation", paid.payment_id, session);
+  if (!paid.needs_review) await reportSale("reservation", paid.payment_id, session);
 }
 
 async function onClosed(sessionId: string, failed: boolean) {
