@@ -2,7 +2,13 @@
 
 - **Changed:** `pass-buy-form.tsx` (owner's part-payment wording), `plan-registration.tsx` (title, card, form below `lg`), `booking-panel.tsx` (`className`). Docs: common.md, changelog, status.
 - **Status:** tsc, eslint pass; browser-checked at 375 / 768 / 1280 px on /registracija/wake/black-friday.
-- **Next:** merge the PR.
+- **Next:** merged as PR #171; check the live page on a phone after the deploy.
+
+## 2026-11-27 — Meta Schedule for sauna bookings (ADR-0140)
+
+- **Changed:** sauna bookings send Meta `Schedule` (paid ones also next to `Purchase`); event enquiries stay `Lead`. GA unchanged.
+- **Status:** tsc, eslint, 256 tests. PR #170 from `feat/pixel-lead-schedule`, not browser-checked (would need a real booking).
+- **Next:** merged as PR #170; owner checks Meta Events Manager after the first sauna booking.
 
 ## 2026-11-27 — Black Friday copy and DB fix live
 
@@ -411,7 +417,7 @@
 
 - **Changed:** `PlanLine.regularPrice`, `saleSaving`; struck-through regular price in `PlanDetails`, `PlanSummary`, `PlanLines`, `SaunaServiceSessions`, `SaunaScheduleChooser`.
 - **Status:** tsc/eslint clean, tests pass; checked in the browser on the live sale session ("Vyrai į krepšinį…", 12 € instead of 20 €). PR open from `fix/sale-price-summary`.
-- **Next:** merge the PR.
+- **Next:** merged as PR #171; check the live page on a phone after the deploy.
 
 ## 2026-11-16 — Migration versions match the live log
 
@@ -435,7 +441,7 @@
 
 - **Changed:** `SaunaView` grid: side column from `xl` (2/3 + 1/3), side cards two per row from `md` below that.
 - **Status:** eslint clean; browser-checked at 1440, 1200, 768, 375 px. PR open from `fix/sauna-admin-layout`.
-- **Next:** merge the PR.
+- **Next:** merged as PR #171; check the live page on a phone after the deploy.
 
 ## 2026-11-16 — Sale price for events and sessions
 

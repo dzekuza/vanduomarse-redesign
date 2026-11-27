@@ -68,6 +68,23 @@ describe("Meta Pixel events", () => {
     expect(fbq).toHaveBeenNthCalledWith(4, "track", "CompleteRegistration", { content_name: "rider_registration" }, ANY_ID);
   });
 
+  it("sends Schedule for sauna bookings and Lead for event enquiries", async () => {
+    const win = browser({ marketing: true });
+    const fbq = vi.fn();
+    win.fbq = fbq;
+    const { trackLead, trackPurchase } = await load(PIXEL);
+    trackLead("event_inquiry", { value: 3000 });
+    trackLead("sauna", { itemName: "Pirtis Marse", value: 160 });
+    trackLead("sauna_session", { itemName: "Pirties seansas", value: 25 });
+    trackPurchase("sauna", "PAY-1", { itemName: "Pirtis Marse", value: 160 });
+    expect(fbq).toHaveBeenNthCalledWith(1, "track", "Lead", { content_category: "event_inquiry", content_name: "event_inquiry", value: 3000, currency: "EUR" }, ANY_ID);
+    expect(fbq).toHaveBeenNthCalledWith(2, "track", "Schedule", { content_category: "sauna", content_name: "Pirtis Marse", value: 160, currency: "EUR" }, ANY_ID);
+    expect(fbq).toHaveBeenNthCalledWith(3, "track", "Schedule", { content_category: "sauna_session", content_name: "Pirties seansas", value: 25, currency: "EUR" }, ANY_ID);
+    expect(fbq).toHaveBeenNthCalledWith(4, "track", "Purchase", expect.objectContaining({ content_category: "sauna", value: 160 }), { eventID: "purchase-PAY-1" });
+    expect(fbq).toHaveBeenNthCalledWith(5, "track", "Schedule", expect.objectContaining({ content_category: "sauna", value: 160 }), { eventID: "schedule-PAY-1" });
+    expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Schedule", eventId: "schedule-PAY-1" }));
+  });
+
   it("gives a Purchase without a known amount a value of 0, as Meta requires one", async () => {
     const win = browser({ marketing: true });
     const fbq = vi.fn();
@@ -110,7 +127,7 @@ describe("Meta Pixel events", () => {
     trackPurchase("plan", "AB-7", { itemName: "WAKE sezono abonementas", value: 675, coupon: "WAKEBLACKFRIDAY2026" });
     const leadId = (fbq.mock.calls[0][3] as { eventID: string }).eventID;
     expect(report).toHaveBeenCalledTimes(1);
-    expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Lead", eventId: leadId, value: 160, contentName: "Pirtis Marse", contentCategory: "sauna" }));
+    expect(report).toHaveBeenCalledWith(expect.objectContaining({ name: "Schedule", eventId: leadId, value: 160, contentName: "Pirtis Marse", contentCategory: "sauna" }));
     // The Pixel still sends the browser Purchase with the id the webhook's server copy uses, so Meta keeps one.
     expect(fbq).toHaveBeenLastCalledWith("track", "Purchase", expect.objectContaining({ value: 675, currency: "EUR", coupon: "WAKEBLACKFRIDAY2026" }), { eventID: "purchase-AB-7" });
   });
