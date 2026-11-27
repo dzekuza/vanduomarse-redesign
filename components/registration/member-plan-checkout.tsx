@@ -38,7 +38,7 @@ export function MemberPlanCheckout({ plan, name, discountCode, total, busy, setB
     <div className="space-y-5">
       <p className="font-bold">Jau užsiregistravai{name ? `, ${name}` : ""}</p>
       {error ? <p role="alert" className="text-sm text-rust-ink">{error}</p> : null}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-4">
         <Button type="button" size="lg" className="min-h-11" disabled={busy} onClick={() => void pay()}>
           {busy ? "Nukreipiame į apmokėjimą..." : `Apmokėti ${formatEuro(total)}`}
         </Button>
