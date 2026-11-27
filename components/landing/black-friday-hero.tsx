@@ -61,7 +61,7 @@ export async function BlackFridayHero() {
             </span>
           </p>
           <p className="mt-2 text-xs leading-relaxed md:text-sm">
-            Įsigijus abonementą iki lapkričio 27 d., <strong className="max-lg:uppercase">nemokamai</strong> apsilankysi pirtyje.
+            Iki gruodžio 1 d. įsigyk metinį wake abonementą su {percent} % nuolaida ir mokėk dalimis: pusę dabar, o likusią sumą prieš sezono pradžią.
           </p>
           <Cta href={WAKE_BLACK_FRIDAY_PATH} tone="coral" className="mt-5 text-black lg:mt-7">
             Pirkti abonementą
