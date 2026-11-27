@@ -1,3 +1,4 @@
+- 2026-11-27 Black Friday purchase card artwork matches the new offer: "Įsigyk iki gruodžio 1 d. ir mokėk dalimis: pusę dabar, o likusią sumą prieš sezono pradžią." (the free sauna visit until 27 Nov is gone everywhere).
 - 2026-11-27 Plan purchase tabs "Perku sau" / "Perku draugui" get more side padding (`px-4`).
 - 2026-11-27 Black Friday page title is "WAKE sezono / abonementas" (second line coral), without "Užsakyk"; other plan pages keep "Užsakyk ...".
 - 2026-11-27 Home Black Friday hero copy (owner's wording): "Iki gruodžio 1 d. įsigyk metinį wake abonementą su {percent} % nuolaida ir mokėk dalimis: pusę dabar, o likusią sumą prieš sezono pradžią." (the percentage is the live code value). Not pushed: the code `WAKEBLACKFRIDAY2026` is valid only until 2026-11-29 and paying in installments is not built yet.
