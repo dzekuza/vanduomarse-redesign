@@ -72,7 +72,14 @@ export function marketingAllowed(): boolean {
 
 type PixelParams = Record<string, string | number | string[] | undefined>;
 
-type PixelEventName = "ViewContent" | "Lead" | "InitiateCheckout" | "CompleteRegistration" | "Purchase";
+type PixelEventName = "ViewContent" | "Lead" | "Schedule" | "InitiateCheckout" | "CompleteRegistration" | "Purchase";
+
+/**
+ * Sauna bookings (private hire or a place in a session) are Meta `Schedule`, not `Lead`, so ads can optimise for booked
+ * sauna visits apart from event enquiries (ADR-0140). GA keeps `generate_lead` / `purchase` for them.
+ */
+const SCHEDULE_KINDS: ReadonlySet<ActivityKind> = new Set(["sauna", "sauna_session"]);
+export const isScheduleKind = (kind: ActivityKind) => SCHEDULE_KINDS.has(kind);
 
 interface PixelOptions {
   /** Fixed id (a purchase's, so a reloaded return page counts once); otherwise a fresh one per event. */
@@ -179,10 +186,13 @@ export function trackViewItem(kind: ActivityKind, input: ItemInput = {}, to: { g
   if (to.meta) trackPixel("ViewContent", pixelParams(kind, input));
 }
 
-/** A request or enquiry was sent without paying online (staff confirm it): GA's recommended `generate_lead`. */
+/**
+ * A request or enquiry was sent without paying online (staff confirm it): GA's recommended `generate_lead`, and Meta
+ * `Lead` (an event enquiry, a stay request, ...) or `Schedule` for a sauna booking.
+ */
 export function trackLead(kind: ActivityKind, input: ItemInput = {}): void {
   trackEvent("generate_lead", { lead_type: kind, ...(input.itemName ? { item_name: input.itemName } : {}), ...money(input) });
-  trackPixel("Lead", pixelParams(kind, input));
+  trackPixel(isScheduleKind(kind) ? "Schedule" : "Lead", pixelParams(kind, input));
 }
 
 /** The visitor is being sent to Stripe Checkout: `begin_checkout`. */
@@ -205,6 +215,8 @@ export function trackPurchase(
   if (!to.meta) return;
   // Meta requires value and currency on Purchase; 0 when the amount is not known on the page.
   trackPixel("Purchase", { ...pixelParams(kind, input), value: input.value === undefined ? 0 : Math.round(input.value * 100) / 100, currency: CURRENCY }, { eventId: `purchase-${transactionId}` });
+  // A sauna booking paid online is also a booked visit: one `Schedule` per payment (fixed id, so a reload counts once).
+  if (isScheduleKind(kind)) trackPixel("Schedule", pixelParams(kind, input), { eventId: `schedule-${transactionId}` });
 }
 
 /** A new customer finished registering: `sign_up`. */
