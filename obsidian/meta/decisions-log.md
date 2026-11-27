@@ -10,6 +10,16 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ---
 
+## ADR-0138 — Google Tag Manager loads after consent and passes the choice through Consent Mode v2
+
+- **Status:** Accepted.
+- **Date:** 2026-11-27
+- **Context:** the owner wants Google Tag Manager (`GTM-5KK2VHQS`) to manage tags without code changes. Since ADR-0085 no optional tracker loads before consent, and GA4 and the Meta Pixel are loaded directly.
+- **Decision:** `NEXT_PUBLIC_GTM_ID` (validated `GTM-…`). `GoogleTagManager` mounts only when the visitor allowed analytics or marketing. Before gtm.js it pushes `gtag('consent','default', …)` with `analytics_storage` from the analytics choice and `ad_storage`, `ad_user_data`, `ad_personalization` from the marketing choice; a wider choice later is sent as `consent update` (withdrawing reloads the page, as before). GTM counts as both categories in the banner ("Google Tag Manager" under analytics, "Google žymos" under marketing); `_gcl_*` cookies are cleared with marketing. `CONSENT_VERSION` is 2, so everyone is asked again. No `<noscript>` iframe: without JavaScript there is no consent.
+- **Consequences:** the container must not add a GA4 tag while `NEXT_PUBLIC_GA_MEASUREMENT_ID` loads GA directly (double counting); either keep GA in code or move it into GTM and unset the env variable. Tags that ignore Consent Mode still only run after some consent, never before. The site's own GA events still go through `gtag` into the same `dataLayer`, so GTM triggers can use them.
+
+---
+
 ## ADR-0137 — Owners can switch a service page off
 
 - **Date:** 2026-11-26

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useRef } from "react";
+import type { ConsentChoice } from "@/lib/consent";
 
 declare global {
   interface Window {
@@ -17,6 +18,38 @@ export function GoogleAnalytics({ id }: { id: string }) {
     <>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`} strategy="afterInteractive" />
       <Script id="ga-init" strategy="afterInteractive">{init}</Script>
+    </>
+  );
+}
+
+const granted = (yes: boolean) => (yes ? "granted" : "denied");
+
+/** Consent Mode v2 states for the visitor's choice: analytics drives measurement, marketing drives ads. */
+function consentState({ analytics, marketing }: ConsentChoice) {
+  return { analytics_storage: granted(analytics), ad_storage: granted(marketing), ad_user_data: granted(marketing), ad_personalization: granted(marketing) };
+}
+
+/**
+ * Mounted only after the visitor allowed analytics or marketing. The container's tags see the choice through Google
+ * Consent Mode: the default is set before gtm.js loads, and a later, wider choice is sent as an update (withdrawing
+ * reloads the page, see `ConsentManager`).
+ */
+export function GoogleTagManager({ id, choice }: { id: string; choice: ConsentChoice }) {
+  const first = useRef(true);
+
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    window.gtag?.("consent", "update", consentState(choice));
+  }, [choice]);
+
+  const init = `window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){dataLayer.push(arguments)};gtag('consent','default',${JSON.stringify(consentState(choice))});dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`;
+  return (
+    <>
+      <Script id="gtm-init" strategy="afterInteractive">{init}</Script>
+      <Script src={`https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(id)}`} strategy="afterInteractive" />
     </>
   );
 }

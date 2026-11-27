@@ -7,6 +7,7 @@ import {
   ACCEPT_ALL,
   CONSENT_ENABLED,
   GA_ID,
+  GTM_ID,
   PIXEL_ID,
   REJECT_ALL,
   clearTrackerCookies,
@@ -19,7 +20,7 @@ import {
 } from "@/lib/consent";
 import { ConsentBanner } from "./consent-banner";
 import { ConsentSettings } from "./consent-settings";
-import { GoogleAnalytics, MetaPixel } from "./trackers";
+import { GoogleAnalytics, GoogleTagManager, MetaPixel } from "./trackers";
 
 /** Staff screens and the framed booking widgets are never tracked and never ask. */
 const UNTRACKED_PREFIXES = ["/admin", "/embed"];
@@ -55,6 +56,7 @@ export function ConsentManager() {
     <>
       {choice?.analytics && GA_ID ? <GoogleAnalytics id={GA_ID} /> : null}
       {choice?.marketing && PIXEL_ID ? <MetaPixel id={PIXEL_ID} /> : null}
+      {choice && (choice.analytics || choice.marketing) && GTM_ID ? <GoogleTagManager id={GTM_ID} choice={choice} /> : null}
       {ready && !choice ? <ConsentBanner onAcceptAll={() => save(ACCEPT_ALL)} onRejectAll={() => save(REJECT_ALL)} onCustomize={() => setSettingsOpen(true)} /> : null}
       <ConsentSettings open={settingsOpen} onOpenChange={setSettingsOpen} choice={choice} onSave={save} />
     </>

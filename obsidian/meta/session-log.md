@@ -1,3 +1,9 @@
+## 2026-11-27 — Google Tag Manager behind consent
+
+- **Changed:** `lib/consent.ts` (`GTM_ID`, version 2, `_gcl` cookies), `components/consent/trackers.tsx` (`GoogleTagManager`), `consent-manager.tsx`, `consent-categories.ts`, `components/legal/privacy-content.ts`, `.env.example`, analytics tests. Docs: ADR-0138, env variables, catalog, changelog, status.
+- **Status:** tsc, eslint, 257 tests pass; browser-checked locally with the ID set inline (dev server restarted in a terminal tab with `NEXT_PUBLIC_GTM_ID`). Not live: needs the Vercel variable and a merge.
+- **Next:** owner sets the variable; PR; merge.
+
 ## 2026-11-27 — Black Friday page 404 after the discount change
 
 - **Changed:** `lib/wake-black-friday.ts` (no fixed percentage in the check), `registration-page-content.tsx`, `plan-registration.tsx`, `black-friday-hero.tsx` (live percentage), `lib/wake-black-friday.test.ts` (new). Docs: changelog, status.

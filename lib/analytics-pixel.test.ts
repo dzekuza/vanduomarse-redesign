@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CONSENT_VERSION } from "./consent";
 
 const report = vi.fn<(input: unknown) => Promise<void>>(() => Promise.resolve());
 vi.mock("@/app/actions/meta-capi", () => ({ reportMetaEvent: (input: unknown) => report(input) }));
@@ -10,7 +11,7 @@ const ANY_ID = expect.objectContaining({ eventID: expect.any(String) });
 /** A browser with localStorage and timers, and the consent a visitor stored. */
 function browser(consent: { marketing: boolean } | null) {
   const store: Record<string, string> = {};
-  if (consent) store.vm_consent = JSON.stringify({ analytics: false, marketing: consent.marketing, v: 1, at: Date.now() });
+  if (consent) store.vm_consent = JSON.stringify({ analytics: false, marketing: consent.marketing, v: CONSENT_VERSION, at: Date.now() });
   const win = {
     localStorage: { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => void (store[k] = v) },
     setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
