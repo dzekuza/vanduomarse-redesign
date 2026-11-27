@@ -349,33 +349,92 @@ export const emailPassPaidCustomer = (o: PlanPassPaidNotice & { code: string }) 
     ]),
   });
 
-/** A pass was paid online (or, with `problem`, needs a look). */
-export const emailStaffPassPaid = async (o: PlanPassPaidNotice & { problem?: string }) =>
+/**
+ * The first half of a pass paid in parts arrived (ADR-0139): no code yet. The buyer is told the balance link will follow by
+ * e-mail; staff send it from /admin (Apžvalga → Pardavimai, the pass's drawer) when they choose.
+ */
+export const emailPassDepositCustomer = (o: PlanPassPaidNotice & { deposit: number; balance: number }) =>
+  sendEmail({
+    to: o.buyerEmail,
+    subject: `Apmokėta pirmoji dalis: ${o.planName} (${o.reference})`,
+    ...body([
+      `Sveiki, ${o.buyerName}!`,
+      { strong: `${o.planName}: gavome pirmąją dalį, ${formatEuro(o.deposit)}. Dėkojame!` },
+      `Liko sumokėti ${formatEuro(o.balance)} (visa kaina ${formatEuro(o.amount)}). Likučio apmokėjimo nuorodą atsiųsime šiuo el. pašto adresu vėliau.`,
+      o.gift
+        ? `Abonemento kodą atsiųsime, kai bus apmokėta visa suma: tada galėsite jį perduoti ${o.recipientName ? o.recipientName : "draugui"}.`
+        : "Abonemento kodą atsiųsime, kai bus apmokėta visa suma. Su juo parke kasoje gausite abonementą ir apyrankę.",
+      `Registraciją (kontaktai, nuotrauka, taisyklės) galima užpildyti jau dabar${siteUrl() ? `: ${siteUrl()}/registracija` : " svetainėje (/registracija)"}.`,
+    ]),
+  });
+
+/** The balance link of a pass paid in parts; staff send it (again) from /admin. The link lasts about a day. */
+export function emailPassBalanceRequest(o: { to: string; buyerName: string; reference: string; planName: string; balance: number; url: string }): Promise<boolean> {
+  const paragraphs: EmailParagraph[] = [
+    `Sveiki, ${o.buyerName}!`,
+    { strong: `${o.planName} (${o.reference}): likutis ${formatEuro(o.balance)}.` },
+    "Apmokėti galite paspaudę mygtuką žemiau. Apmokėjimas saugus, kortele per Stripe. Nuoroda galioja 24 val.",
+    "Kai likutis bus apmokėtas, atsiųsime abonemento kodą. Jei nuoroda nebegalioja, parašykite mums ir atsiųsime naują.",
+  ];
+  const button = { label: "Apmokėti likutį", href: o.url };
+  const text = [...paragraphs.map((p) => (typeof p === "string" ? p : p.strong)), `${button.label}: ${button.href}`, footer.join("\n")].join("\n\n");
+  return sendEmail({ to: o.to, subject: `Abonemento likučio apmokėjimas ${o.reference}`, text, html: brandedEmailHtml({ paragraphs, button }) });
+}
+
+/**
+ * A pass was paid online (or, with `problem`, needs a look). `stage` "depozitas": only the first half of a split pass
+ * arrived; "likutis": its balance arrived and the code was issued.
+ */
+export const emailStaffPassPaid = async (o: PlanPassPaidNotice & { problem?: string; stage?: "depozitas" | "likutis"; deposit?: number; balance?: number }) =>
   sendEmail({
     to: await couponStaffTo(),
-    subject: o.problem ? `PATIKRINTI ABONEMENTO MOKĖJIMĄ ${o.reference}` : `Apmokėtas abonementas ${o.reference} (be registracijos)`,
+    subject: o.problem
+      ? `PATIKRINTI ABONEMENTO MOKĖJIMĄ ${o.reference}`
+      : o.stage === "depozitas"
+        ? `Apmokėta abonemento dalis ${o.reference} (be registracijos)`
+        : o.stage === "likutis"
+          ? `Apmokėtas abonemento likutis ${o.reference}`
+          : `Apmokėtas abonementas ${o.reference} (be registracijos)`,
     ...body(
       [
         { strong: `${o.planName}, ${formatEuro(o.amount)}${o.gift ? " (dovana)" : ""}` },
         `Pirkėjas: ${o.buyerName}, ${o.buyerEmail}`,
-        o.problem ?? "Apmokėta per Stripe. Abonementas dar nepriskirtas: pirkėjas (ar jo draugas) užsiregistruos ir parke pasakys kodą, tada priskirkite skiltyje Apyrankės → Kodai.",
+        o.problem ??
+          (o.stage === "depozitas"
+            ? `Mokama dalimis: gauta pirmoji dalis ${formatEuro(o.deposit ?? 0)}, likutis ${formatEuro(o.balance ?? 0)}. Kodas bus išduotas, kai bus apmokėtas likutis. Likučio nuorodą siųskite skiltyje Apžvalga → Pardavimai (abonemento eilutė).`
+            : `${o.stage === "likutis" ? "Likutis apmokėtas per Stripe, kodas išsiųstas pirkėjui." : "Apmokėta per Stripe."} Abonementas dar nepriskirtas: pirkėjas (ar jo draugas) užsiregistruos ir parke pasakys kodą, tada priskirkite skiltyje Apyrankės → Kodai.`),
         ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`] : []),
       ],
       false,
     ),
   });
 
-/** A paid pass was fully refunded in Stripe. An unattached pass is now cancelled; an attached one needs a manual plan change. */
-export const emailStaffPassCancelled = async (reference: string, wasAttached: boolean) =>
-  sendEmail({
+/** What a refund did to a pass (`refund_plan_pass_payment`); without it, the full-payment wording. */
+export type PassRefundOutcome = { part: "visa" | "depozitas" | "likutis"; outcome: "atsauktas" | "priskirtas" | "dalinai_apmoketa" | "grazinta" };
+
+/** The refund lines staff read: what happened to the pass, and what they still have to do. */
+export function passRefundLines(reference: string, wasAttached: boolean, refund?: PassRefundOutcome): [string, string] {
+  const which = refund?.part === "depozitas" ? "pirmoji dalis" : refund?.part === "likutis" ? "likutis" : "mokėjimas";
+  if (wasAttached) return [`Abonementas ${reference} jau priskirtas klientui, bet ${which} grąžintas per Stripe.`, "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja."];
+  if (refund?.outcome === "dalinai_apmoketa") return [`Abonemento ${reference} likutis grąžintas per Stripe: abonementas vėl apmokėtas tik dalinai.`, "Jo kodas neveikia, kol nebus vėl apmokėtas likutis (nuorodą galima siųsti iš naujo)."];
+  if (refund?.outcome === "grazinta") return [`Abonemento ${reference} likučio mokėjimas grąžintas per Stripe.`, "Abonemento būsena nepakeista."];
+  if (refund?.part === "depozitas") return [`Abonementas ${reference} atšauktas, nes pirmoji dalis grąžinta per Stripe.`, "Jo kodas nebeveikia. Jei likutis jau buvo apmokėtas, grąžinkite ir jį per Stripe."];
+  return [`Abonementas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.`, "Jo kodas nebeveikia."];
+}
+
+/** A paid pass was refunded in Stripe: cancelled, back to part-paid (balance refund, ADR-0139), or attached (a manual plan change). */
+export const emailStaffPassCancelled = async (reference: string, wasAttached: boolean, refund?: PassRefundOutcome) => {
+  const [headline, todo] = passRefundLines(reference, wasAttached, refund);
+  return sendEmail({
     to: await couponStaffTo(),
     subject: `Abonementas ${reference}: grąžinti pinigai`,
     ...body(
       [
-        { strong: wasAttached ? `Abonementas ${reference} jau priskirtas klientui, bet mokėjimas grąžintas per Stripe.` : `Abonementas ${reference} atšauktas, nes mokėjimas grąžintas per Stripe.` },
-        wasAttached ? "Pakeiskite kliento planą skiltyje Apyrankės, jei jis dar galioja." : "Jo kodas nebeveikia.",
+        { strong: headline },
+        todo,
         ...(siteUrl() ? [`Atidaryti: ${siteUrl()}/admin/apyrankes?tab=kodai`] : []),
       ],
       false,
     ),
   });
+};

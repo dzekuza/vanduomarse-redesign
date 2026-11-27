@@ -255,9 +255,10 @@ export async function loadAdminData(supabase: ServerSupabase, me: StaffAccess): 
     supabase.from("quad_tour_routes").select("*").order("sort_order").order("id"),
     supabase.from("quad_tour_accessories").select("*").order("sort_order").order("id"),
     supabase.from("sauna_masters").select("*").order("sort_order").order("created_at"),
-    // Every paid, unattached pass (staff look these up by code), then the latest attached or cancelled ones for the history
-    // filters; unpaid passes are never needed. Two bounded queries, so the 1000-row API limit cannot hide a code.
-    supabase.from("plan_passes").select("*").eq("status", "apmoketa").order("created_at", { ascending: false }).limit(1000),
+    // Every paid or part-paid, unattached pass (staff look these up by code, and send part-paid ones their balance link), then
+    // the latest attached or cancelled ones for the history filters; unpaid passes are never needed. Two bounded queries, so
+    // the 1000-row API limit cannot hide a code.
+    supabase.from("plan_passes").select("*").in("status", ["apmoketa", "dalinai_apmoketa"]).order("created_at", { ascending: false }).limit(1000),
     supabase.from("plan_passes").select("*").in("status", ["priskirtas", "atsauktas"]).order("created_at", { ascending: false }).limit(300),
   ]);
 

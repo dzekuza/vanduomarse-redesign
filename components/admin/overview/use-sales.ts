@@ -16,11 +16,11 @@ const initialFilters = (): SaleFilters => ({
 
 /** All sales plus the shared filters and the stats they produce, so the stats block and the Pardavimai table stay in step. */
 export function useSales() {
-  const { bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces } = useAdmin();
+  const { bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, planPasses } = useAdmin();
   const [filters, setFilters] = useState(initialFilters);
   const all = useMemo(
-    () => buildSales({ bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces }),
-    [bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces],
+    () => buildSales({ bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, planPasses }),
+    [bookings, stayTypes, quadRentals, quadTypes, tourTickets, eventTickets, events, coupons, purchases, riders, spaceBookings, spaces, planPasses],
   );
   const stats = useMemo(() => computeSalesStats(all, filters), [all, filters]);
   return { all, filters, setFilters, stats };
