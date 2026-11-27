@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CONSENT_VERSION } from "./consent";
 
 // The Conversions API action is server code; these GA tests never reach it (no Pixel id).
 vi.mock("@/app/actions/meta-capi", () => ({ reportMetaEvent: () => Promise.resolve() }));
@@ -8,7 +9,7 @@ const GA = "G-TEST123456";
 /** A browser with localStorage and timers, and the consent a visitor stored. */
 function browser(consent: { analytics: boolean } | null) {
   const store: Record<string, string> = {};
-  if (consent) store.vm_consent = JSON.stringify({ analytics: consent.analytics, marketing: false, v: 1, at: Date.now() });
+  if (consent) store.vm_consent = JSON.stringify({ analytics: consent.analytics, marketing: false, v: CONSENT_VERSION, at: Date.now() });
   const win = {
     localStorage: { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => void (store[k] = v) },
     setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),

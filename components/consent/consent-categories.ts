@@ -1,4 +1,6 @@
-import { GA_ID, PIXEL_ID, type ConsentChoice } from "@/lib/consent";
+import { GA_ID, GTM_ID, PIXEL_ID, type ConsentChoice } from "@/lib/consent";
+
+const tools = (...names: (string | false)[]) => names.filter(Boolean).join(", ");
 
 export interface ConsentCategory {
   key: keyof ConsentChoice;
@@ -12,16 +14,16 @@ const ALL_CATEGORIES: readonly (ConsentCategory & { configured: boolean })[] = [
   {
     key: "analytics",
     title: "Analitika",
-    noun: "analitiką (Google Analytics)",
-    description: "Google Analytics rodo, kurie puslapiai lankomi ir kaip svetaine naudojama, kad ją tobulintume.",
-    configured: Boolean(GA_ID),
+    noun: `analitiką (${tools(Boolean(GA_ID) && "Google Analytics", Boolean(GTM_ID) && "Google Tag Manager")})`,
+    description: "Google Analytics (taip pat per Google Tag Manager) rodo, kurie puslapiai lankomi ir kaip svetaine naudojama, kad ją tobulintume.",
+    configured: Boolean(GA_ID || GTM_ID),
   },
   {
     key: "marketing",
     title: "Rinkodara",
-    noun: "rinkodarą (Meta Pixel)",
-    description: "Meta Pixel padeda matyti, kaip veikia mūsų skelbimai Facebook ir Instagram, ir juos rodyti tinkamiems žmonėms.",
-    configured: Boolean(PIXEL_ID),
+    noun: `rinkodarą (${tools(Boolean(PIXEL_ID) && "Meta Pixel", Boolean(GTM_ID) && "Google žymos")})`,
+    description: "Meta Pixel ir Google žymos (per Google Tag Manager) padeda matyti, kaip veikia mūsų skelbimai Facebook, Instagram ir Google, ir juos rodyti tinkamiems žmonėms.",
+    configured: Boolean(PIXEL_ID || GTM_ID),
   },
 ];
 

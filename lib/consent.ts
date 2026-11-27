@@ -13,7 +13,8 @@ export const CONSENT_STORAGE_KEY = "vm_consent";
  * anything to Meta (the Conversions API, ADR-0107). It records the choice itself, like the localStorage entry.
  */
 export const MARKETING_CONSENT_COOKIE = "vm_mkt";
-export const CONSENT_VERSION = 1;
+/** 2: Google Tag Manager joined the trackers, so earlier choices are asked again. */
+export const CONSENT_VERSION = 2;
 const CONSENT_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 const OPEN_SETTINGS_EVENT = "vm:consent-settings";
 const CHANGE_EVENT = "vm:consent-change";
@@ -36,11 +37,13 @@ function readId(value: string | undefined, shape: RegExp): string | undefined {
 
 export const GA_ID = readId(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, /^G-[A-Z0-9]{4,20}$/);
 export const PIXEL_ID = readId(process.env.NEXT_PUBLIC_META_PIXEL_ID, /^\d{6,20}$/);
+/** Google Tag Manager container; its tags run under Consent Mode with the visitor's analytics and marketing choice. */
+export const GTM_ID = readId(process.env.NEXT_PUBLIC_GTM_ID, /^GTM-[A-Z0-9]{4,12}$/);
 /** No tracker configured means no banner and no footer link. */
-export const CONSENT_ENABLED = Boolean(GA_ID || PIXEL_ID);
+export const CONSENT_ENABLED = Boolean(GA_ID || PIXEL_ID || GTM_ID);
 
 export const REJECT_ALL: ConsentChoice = { analytics: false, marketing: false };
-export const ACCEPT_ALL: ConsentChoice = { analytics: Boolean(GA_ID), marketing: Boolean(PIXEL_ID) };
+export const ACCEPT_ALL: ConsentChoice = { analytics: Boolean(GA_ID || GTM_ID), marketing: Boolean(PIXEL_ID || GTM_ID) };
 
 /** Raw stored string (null = no choice yet), the stable value `useSyncExternalStore` compares. */
 export function readRawConsent(): string | null {
@@ -103,7 +106,8 @@ export function withdrewConsent(prev: ConsentChoice | null, next: ConsentChoice)
 
 const TRACKER_COOKIES: Record<keyof ConsentChoice, RegExp> = {
   analytics: /^(_ga|_gid|_gat)/,
-  marketing: /^(_fbp|_fbc)/,
+  // _gcl_*: Google Ads conversion linker, set by tags in the Tag Manager container.
+  marketing: /^(_fbp|_fbc|_gcl)/,
 };
 
 /** Categories the visitor has not allowed: whatever cookies their trackers left behind must go. */
