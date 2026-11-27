@@ -65,11 +65,12 @@ export function DateStrip({ days, selected, onSelect, icons, dayDetails, range, 
       {[...months].map(([key, dates]) => {
         const label = MONTH_LABEL.format(dates[0]);
         return (
-          <div key={key} role="group" aria-label={label} className="shrink-0">
+          <div key={key} role="group" aria-label={label} className="flex shrink-0 flex-col">
             <p aria-hidden className={`sticky left-0 flex w-fit items-center whitespace-nowrap text-micro font-bold uppercase text-copy ${compact ? "mb-2 h-6" : "mb-3 h-12"}`}>
               {label}
             </p>
-            <div className="flex gap-1.5 sm:gap-2">
+            {/* Every month stretches to the tallest one, so days without availability marks are as tall as days with them. */}
+            <div className="flex flex-1 gap-1.5 sm:gap-2">
               {dates.map((date) => {
                 const day = dateKey(date);
                 const arrivalAvailable = !lastKey || day <= lastKey;

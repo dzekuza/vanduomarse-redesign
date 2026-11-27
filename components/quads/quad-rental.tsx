@@ -98,7 +98,7 @@ export function QuadRental({ data }: { data: QuadPageData }) {
   if (sent) {
     return (
       <RequestConfirmation
-        title="Keturračių nuoma"
+        title="CIONGO keturračių nuoma"
         {...sent}
         resetLabel="Pateikti kitą užklausą"
         onReset={() => {

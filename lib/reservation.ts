@@ -38,7 +38,7 @@ export const ACTIVITY_TAB_ORDER: ActivityId[] = ["pirtis", "nakvyne", "keturraci
 
 export const ACTIVITY_TITLE: Record<ActivityId, string> = {
   pirtis: "Pirtis",
-  keturraciai: "Keturračiai",
+  keturraciai: "CIONGO keturračiai",
   nakvyne: "Nakvynė",
 };
 

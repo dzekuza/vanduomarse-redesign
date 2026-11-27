@@ -20,6 +20,7 @@ import { ServicePricing } from "./service-pricing";
 import { ServiceReviews } from "./service-reviews";
 import { SectionTabs } from "./section-tabs";
 import { CalendarSchedule, InquirySchedule } from "./service-schedule";
+import { quadTourUnitsNote } from "@/lib/quads";
 
 const SECTIONS = [
   { id: "aprasymas", label: "Aprašymas" },
@@ -56,8 +57,8 @@ export async function ServicePage({ slug, booking, schedule, sauna, quads, stayT
     ...(sauna?.saunas ?? []).map(({ id, name, description, rates }) => ({
       id, label: name, value: [description, `Iki ${rates.maxParty} žmonių.`].filter(Boolean).join(" "),
     })),
-    ...(quads?.tourRoutes ?? []).map(({ id, name, kilometres, minUnits }) => ({
-      id, label: name, value: `${kilometres} km · Mažiausias keturračių skaičius – ${minUnits}.`,
+    ...(quads?.tourRoutes ?? []).map((route) => ({
+      id: route.id, label: route.name, value: `${route.kilometres} km · ${quadTourUnitsNote(route)}`,
     })),
     ...(stayTypes ?? []).map(({ id, label, maxGuests, note }) => ({
       id, label, value: [guestsLabel(maxGuests), note].filter(Boolean).join(" · "),

@@ -3,7 +3,7 @@
 import { CompactStepper } from "@/components/booking/stepper";
 import { StartTimePicker } from "@/components/reservation/start-time-picker";
 import type { QuadPageData } from "@/lib/data/public-types";
-import { hourLabel, type QuadTourRoute } from "@/lib/quads";
+import { quadTourMaxUnits, quadTourUnitsNote, hourLabel, type QuadTourRoute } from "@/lib/quads";
 import { QuadAccessories } from "./quad-accessories";
 import { quadTourAccessories, quadTourStarts, type QuadTourPick } from "./quad-tour-plan";
 
@@ -27,7 +27,7 @@ export function QuadTourFields({ data, route, day, busyHours, busy, pick, onChan
   function start(hour: number) {
     const next = starts.find((entry) => entry.hour === hour);
     if (!next) return;
-    const units = Math.min(Math.max(current?.units ?? route.minUnits, route.minUnits), next.free);
+    const units = Math.min(Math.max(current?.units ?? route.minUnits, route.minUnits), quadTourMaxUnits(route, next.free));
     onChange({ routeId: route.id, startHour: hour, units, accessories: current?.accessories });
   }
 
@@ -39,15 +39,15 @@ export function QuadTourFields({ data, route, day, busyHours, busy, pick, onChan
         busy={busy}
         describeHour={(hour) => {
           const start = starts.find((entry) => entry.hour === hour);
-          return start && `iki ${hourLabel(hour + route.hours)}, laisvų keturračių: ${start.free}`;
+          return start && `iki ${hourLabel(hour + route.hours)}, galima iki ${quadTourMaxUnits(route, start.free)} keturračių`;
         }}
         onSelect={start}
       />
       {current && slot ? (
         <>
           <div className="space-y-2">
-            <CompactStepper label={`Kiekis: ${route.name}`} value={current.units} min={route.minUnits} max={slot.free} onChange={(units) => onChange({ ...current, units })} editable />
-            <p className="text-xs text-copy">Bent {route.minUnits} keturračiai. Laisvų keturračių: {slot.free}.</p>
+            <CompactStepper label={`Kiekis: ${route.name}`} value={current.units} min={route.minUnits} max={quadTourMaxUnits(route, slot.free)} onChange={(units) => onChange({ ...current, units })} editable />
+            <p className="text-xs text-copy">{quadTourUnitsNote(route)} Šiuo laiku galima iki {quadTourMaxUnits(route, slot.free)}.</p>
           </div>
           <QuadAccessories catalogue={data.tourAccessories} title={`${route.name} turas`} selected={false} quantities={current.accessories ?? {}} onChange={(accessories) => onChange({ ...current, accessories })} />
           {quadTourAccessories(data.tourAccessories, current.accessories).ok ? null : <p role="status" className="text-xs text-rust">Patikslink įrangos kiekį.</p>}

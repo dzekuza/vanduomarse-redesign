@@ -6,7 +6,7 @@ import { Cta } from "@/components/cta";
 import { OptionGroupLabel } from "@/components/reservation/option-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { QuadPageData } from "@/lib/data/public-types";
-import { hourLabel, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
+import { quadTourMaxUnits, quadTourPriceLabel, quadTourUnitsNote, hourLabel, type QuadTourAccessory, type QuadTourRoute } from "@/lib/quads";
 import type { When } from "@/lib/reservation";
 import { hoursLabel } from "@/lib/sauna";
 import { quadTourAccessories, quadTourStarts, type QuadTourPick, type QuadTourSlot } from "./quad-tour-plan";
@@ -81,7 +81,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
 }) {
   const title = `${route.name} turas`;
   const slot = starts.find(({ hour }) => hour === choice.startHour);
-  const ready = Boolean(slot && choice.units >= route.minUnits && choice.units <= slot.free && quadTourAccessories(catalogue, choice.accessories).ok);
+  const ready = Boolean(slot && choice.units >= route.minUnits && choice.units <= quadTourMaxUnits(route, slot.free) && quadTourAccessories(catalogue, choice.accessories).ok);
   const copy = selected ? "text-dust/80" : "text-copy";
 
   return (
@@ -89,7 +89,7 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
       <header className="space-y-2">
         <p className={`text-micro uppercase ${copy}`}>{route.kilometres} km · {hoursLabel(route.hours)}</p>
         <h3 className="flex flex-wrap items-center gap-x-2 gap-y-1 text-item font-bold">{title}{route.badge ? <span className="bg-rust px-1.5 py-0.5 text-micro font-bold text-ink">{route.badge}</span> : null}</h3>
-        <p className="text-xs font-bold">{route.price} € / keturračiui</p>
+        <p className="text-xs font-bold">{quadTourPriceLabel(route)}</p>
       </header>
       <QuadRouteDialog route={route} className="absolute top-2 right-2" />
       <div className="mt-auto space-y-4">
@@ -105,8 +105,8 @@ function RouteCard({ route, catalogue, starts, selected, choice, onDraft, onChoo
         {slot ? (
           <>
             <div className="space-y-2">
-              <CompactStepper label={`Kiekis: ${route.name}`} value={choice.units} min={route.minUnits} max={slot.free} onChange={(units) => onDraft({ ...choice, units })} editable />
-              <p className={`text-xs ${copy}`}>Bent {route.minUnits} keturračiai.</p>
+              <CompactStepper label={`Kiekis: ${route.name}`} value={choice.units} min={route.minUnits} max={quadTourMaxUnits(route, slot.free)} onChange={(units) => onDraft({ ...choice, units })} editable />
+              <p className={`text-xs ${copy}`}>{quadTourUnitsNote(route)}</p>
             </div>
             <QuadAccessories catalogue={catalogue} title={title} selected={selected} quantities={choice.accessories ?? {}} onChange={(accessories) => onDraft({ ...choice, accessories })} />
           </>

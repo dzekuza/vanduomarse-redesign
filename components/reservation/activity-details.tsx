@@ -3,6 +3,7 @@ import { BedNotice } from "@/components/booking/bed-notice";
 import { Cta } from "@/components/cta";
 import { QuadInformation } from "@/components/quads/quad-information";
 import type { ActivityId, ReservationData } from "@/lib/reservation";
+import { quadTourLowestPrice, quadTourPriceLabel } from "@/lib/quads";
 
 /** Dialog introduction, using the same price catalogues as the activity controls. */
 export function activityBlurb(id: ActivityId, data: ReservationData): string {
@@ -13,7 +14,7 @@ export function activityBlurb(id: ActivityId, data: ReservationData): string {
   }
   const routes = data.quads.tourRoutes;
   if (routes.length === 0) return "Keturračių turai su gidu ir nuoma valandomis.";
-  const from = Math.min(...routes.map((route) => route.price));
+  const from = Math.min(...routes.map(quadTourLowestPrice));
   return `${routes.map((route) => route.name).join(", ")}. Nuo ${from} € už keturratį. Vienam ar dviem kaina ta pati.`;
 }
 
@@ -97,7 +98,7 @@ export function ActivityDetails({ id, data }: { id: ActivityId; data: Reservatio
       <Section title="Turai">
         <ul className="space-y-3">
           {data.quads.tourRoutes.map((route) => (
-            <Item key={route.id} title={`${route.name} turas`} text={`${route.kilometres} km · ${route.hours} val. ${route.description}`} meta={`${route.price} € / keturračiui`} />
+            <Item key={route.id} title={`${route.name} turas`} text={`${route.kilometres} km · ${route.hours} val. ${route.description}`} meta={quadTourPriceLabel(route)} />
           ))}
         </ul>
       </Section>

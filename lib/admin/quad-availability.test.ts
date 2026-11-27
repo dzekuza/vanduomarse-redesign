@@ -5,7 +5,7 @@ import type { QuadSettings, QuadTourRoute, QuadType } from "@/lib/quads";
 
 const type = (over: Partial<QuadType>): QuadType => ({ id: "a", name: "A", description: "", seats: 2, units: 6, pricePerHour: 30, active: true, ...over });
 const settings = { openHour: 10, closeHour: 14, maxHours: 4, deposit: 0, minAge: 16, rules: "", tourCancellationNote: "" } as QuadSettings;
-const route = { id: "mini", name: "Mini", kilometres: 20, hours: 2, durationLabel: "Iki 2 val.", price: 59, minUnits: 5, description: "", longDescription: "", photo: "", badge: null, active: true, sortOrder: 0 } as QuadTourRoute;
+const route = { id: "mini", name: "Mini", kilometres: 20, hours: 2, durationLabel: "Iki 2 val.", price: 59, minUnits: 5, maxUnits: 15, groupFrom: null, groupPrice: null, guidesFrom: null, guideUnits: 0, description: "", longDescription: "", photo: "", badge: null, active: true, sortOrder: 0 } as QuadTourRoute;
 const rental = (over: Partial<QuadRental>) => ({ id: "r", reference: "KT-1", items: [{ quadTypeId: "a", units: 2 }], date: "2030-01-10", startHour: 10, hours: 2, units: 2, riders: 2, status: "patvirtinta", ...over }) as QuadRental;
 const fleet = (rentals: QuadRental[], types = [type({})]): QuadFleet => ({ types, settings, rentals });
 

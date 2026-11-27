@@ -1,3 +1,9 @@
+## 2026-11-27 — CIONGO naming and the single quad tour
+
+- **Changed:** CIONGO renames; quad tour rules (ADR-0139): migration `20261127140000_quad_tour_group_rules.sql`, `lib/quads.ts` helpers, mapper, `quad-tour-plan.ts`, tour card/fields/picker/dialog, service pricing, service page facts, quads service copy (one route), activity details, admin route dialog and staff tour form, DB types, tests. Docs: ADR-0139, database, utils catalog, changelog, status.
+- **Status:** tsc, eslint, 261 tests pass; `/keturraciu-nuoma` browser-checked locally with the pre-migration fallbacks (79 €, max 15, 11 quads → 869 €). Migration NOT applied (owner runs it in the SQL editor); 72 € and the guide line checked only by tests.
+- **Next:** owner runs the SQL; browser-check the tour with the new rules; commit, PR, merge on the owner's OK.
+
 ## 2026-11-27 — Black Friday copy and DB fix live
 
 - **Changed:** merged PR #166 (hero copy) and PR #167 (constraint migration); the owner applied the SQL. Docs: status.

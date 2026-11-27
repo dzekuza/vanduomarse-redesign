@@ -34,14 +34,14 @@ export default async function QuadsPreviewPage() {
         <section className="grid gap-8 px-gutter pt-10 pb-10 lg:grid-cols-2 lg:items-center lg:gap-12 lg:py-14">
           <div className="space-y-6">
             <span className="inline-flex min-h-11 items-center border border-line px-3 text-micro uppercase">Dizaino peržiūra · Vanduo Marse × Ciongo</span>
-            <BookingHeader crumb="Keturračiai" title={["Mažiau asfalto.", "Daugiau Marso."]} intro="Miškas, posūkiai ir gera kompanija. Išvažiuojam iš Marso, grįžtam su istorijomis." />
+            <BookingHeader crumb="CIONGO keturračiai" title={["Mažiau asfalto.", "Daugiau Marso."]} intro="Miškas, posūkiai ir gera kompanija. Išvažiuojam iš Marso, grįžtam su istorijomis." />
             <div className="flex flex-wrap gap-3 text-micro uppercase text-copy">
               {distances.length > 0 ? <><span>{distanceLabel}</span><span aria-hidden>✳</span></> : null}<span>Su gidu</span><span aria-hidden>✳</span><span>Visais sezonais</span>
             </div>
             <Cta tone="dark" href="#trasos">Planuok turą</Cta>
           </div>
           <div className="relative aspect-video bg-dust-soft lg:aspect-square">
-            <Image src="/quads/ciongo/forest-pair.webp" alt="Keturračiai miško trasoje" fill loading="eager" fetchPriority="high" sizes="(min-width: 1024px) 48vw, 92vw" className="object-cover" />
+            <Image src="/quads/marse/forest-road-pair.webp" alt="Du keturračiai su Ciongo instruktoriais miško žvyrkelyje" fill loading="eager" fetchPriority="high" sizes="(min-width: 1024px) 48vw, 92vw" className="object-cover" />
             <span className="absolute bottom-4 left-4 bg-dust px-3 py-2 text-micro uppercase text-ink">Startas iš Marso</span>
           </div>
         </section>
@@ -53,21 +53,21 @@ export default async function QuadsPreviewPage() {
           <QuadInformation accessories={data.tourAccessories} />
           <div className="space-y-6">
             <figure>
-              <div className="relative aspect-video bg-dust-soft"><Image src="/quads/ciongo/loncin-quad.webp" alt="Loncin dvivietis keturratis" fill sizes="(min-width: 1024px) 45vw, 90vw" className="object-cover" /></div>
+              <div className="relative aspect-video bg-dust-soft"><Image src="/quads/marse/field-drift.webp" alt="Loncin keturratis pievoje taško žemes" fill sizes="(min-width: 1024px) 45vw, 90vw" className="object-cover" /></div>
               <figcaption className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line py-4">
                 <span className="text-item font-bold">Loncin</span>
                 <span className="text-micro uppercase text-copy">44 AG · 2 vietos · Vairo stiprintuvas</span>
               </figcaption>
             </figure>
             <figure>
-              <div className="relative aspect-video bg-dust-soft"><Image src="/quads/ciongo/night-tour.webp" alt="Keturračių turas sutemus" fill sizes="(min-width: 1024px) 45vw, 90vw" className="object-cover" /></div>
-              <figcaption className="border-b border-line py-4 text-item font-bold">Marsas po saulėlydžio.</figcaption>
+              <div className="relative aspect-video bg-dust-soft"><Image src="/quads/marse/riders-start.webp" alt="Dvi vairuotojos ant keturračių prie ežero prieš turą" fill sizes="(min-width: 1024px) 45vw, 90vw" className="object-cover" /></div>
+              <figcaption className="border-b border-line py-4 text-item font-bold">Startas prie ežero.</figcaption>
             </figure>
           </div>
         </section>
         <div className="space-y-8 px-gutter pb-16 lg:pb-24">
           <QuadTourGallery />
-          <p className="text-xs text-copy">Peržiūros trasų informacija ir laikinos nuotraukos iš <a href={QUAD_TOUR_SOURCE} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline underline-offset-4">Ciongo</a>.</p>
+          <p className="text-xs text-copy">Trasų informacija iš <a href={QUAD_TOUR_SOURCE} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center underline underline-offset-4">Ciongo</a>.</p>
         </div>
       </div>
     </BookingPage>

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Cta } from "@/components/cta";
 import { DialogPhotoClose } from "@/components/reservation/dialog-photo-close";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import type { QuadTourRoute } from "@/lib/quads";
+import { quadTourPriceLabel, quadTourUnitsNote, type QuadTourRoute } from "@/lib/quads";
 
 /** Route details open from the card's info button without changing the booking selection. */
 export function QuadRouteDialog({ route, className }: { route: QuadTourRoute; className?: string }) {
@@ -43,13 +43,13 @@ export function QuadRouteDialog({ route, className }: { route: QuadTourRoute; cl
             </div>
             <div className="space-y-2">
               <dt className="text-micro uppercase text-copy">Kaina</dt>
-              <dd className="text-sm font-bold">{route.price} €</dd>
+              <dd className="text-sm font-bold">{quadTourPriceLabel(route)}</dd>
             </div>
           </dl>
           <section className="space-y-3">
             <h3 className="text-item font-bold">Prieš išvykstant</h3>
             <p className="text-xs leading-relaxed text-copy">Kaina už keturratį, su PVM. Vienam ar dviem kaina ta pati.</p>
-            <p className="text-xs leading-relaxed text-copy">Turui reikia bent {route.minUnits} keturračių. Maršrutą rodo gidas.</p>
+            <p className="text-xs leading-relaxed text-copy">{quadTourUnitsNote(route)} Maršrutą rodo gidas.</p>
           </section>
           <DialogClose asChild>
             <Cta tone="dark" small className="w-full">Grįžti prie trasų</Cta>

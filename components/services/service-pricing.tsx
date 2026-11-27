@@ -4,6 +4,7 @@ import { SPACES, formatMoney } from "@/lib/event-pricing";
 import { programPriceLine } from "@/lib/sauna-programs";
 import { SaunaPriceTables } from "./sauna-price-table";
 import type { ServiceSlug } from "./service-content";
+import { quadTourPriceLabel, quadTourUnitsNote } from "@/lib/quads";
 
 function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, stayTypes?: StayType[]) {
   if (slug === "pirtis") return sauna?.programs.filter((program) => program.kind === "session").map((program) => ({
@@ -16,8 +17,8 @@ function prices(slug: ServiceSlug, sauna?: SaunaPageData, quads?: QuadPageData, 
   if (slug === "keturraciu-nuoma") return [
     ...(quads?.tourRoutes ?? []).map((route) => ({
       label: `${route.name} turas`,
-      price: `${route.price} € / keturračiui`,
-      note: `${route.kilometres} km · ${route.hours} val. · bent ${route.minUnits} keturračiai`,
+      price: quadTourPriceLabel(route),
+      note: `${route.kilometres} km · ${route.hours} val. · ${quadTourUnitsNote(route)}`,
     })),
     ...(quads?.tourAccessories ?? []).map((gear) => ({ label: gear.name, price: `${gear.price} € / vnt.`, note: "Papildoma įranga" })),
   ];

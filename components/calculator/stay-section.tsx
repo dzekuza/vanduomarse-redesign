@@ -21,7 +21,7 @@ export function SaunaAndQuadCards({ calc: { input, set, setSauna, catalog, guest
         <CalculatorSaunaCard key={sauna.id} sauna={sauna} guests={guests} programs={catalog.programs.filter((p) => p.saunaId === sauna.id)} upsells={catalog.upsells.filter((u) => sauna.upsellIds.includes(u.id))} pick={input.saunas[sauna.id]} onChange={(pick) => setSauna(sauna.id, pick)} />
       ))}
       <CalculatorQuantityCard
-        title="Keturračiai"
+        title="CIONGO keturračiai"
         description="Žygis keturračiais po Marso apylinkes su instruktoriumi."
         price={`${PRICES.atvTour} € / asm.`}
         label="Dalyviai"

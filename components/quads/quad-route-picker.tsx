@@ -2,7 +2,7 @@
 
 import { MapTrifoldIcon } from "@phosphor-icons/react";
 import { BOOKING_CHOICE_CLASS, FilterChip } from "@/components/events/filter-chip";
-import type { QuadTourRoute } from "@/lib/quads";
+import { quadTourPriceLabel, quadTourLowestPrice, type QuadTourRoute } from "@/lib/quads";
 import { hoursLabel } from "@/lib/sauna";
 import { QuadRouteDialog } from "./quad-route-dialog";
 
@@ -27,7 +27,7 @@ export function QuadRoutePicker({ routes, value, disabled, onChange }: QuadRoute
             <div key={route.id} className="relative isolate min-w-0">
               <FilterChip
                 active={active}
-                aria-label={`${route.name} turas, ${duration}, ${route.price} € keturračiui${route.badge ? `, ${route.badge}` : ""}`}
+                aria-label={`${route.name} turas, ${duration}, ${quadTourPriceLabel(route)}${route.badge ? `, ${route.badge}` : ""}`}
                 onClick={() => onChange(route.id)}
                 className={`h-full w-full ${BOOKING_CHOICE_CLASS} gap-4 px-2`}
               >
@@ -35,7 +35,7 @@ export function QuadRoutePicker({ routes, value, disabled, onChange }: QuadRoute
                 <span className="w-full pr-6 font-bold">{route.name} turas</span>
                 <span className={`flex w-full flex-wrap items-baseline gap-x-1 ${active ? "text-dust/80" : "text-copy"}`}>
                   <span className="whitespace-nowrap">{duration}</span>
-                  <span className="ml-auto font-bold whitespace-nowrap">{route.price} €</span>
+                  <span className="ml-auto font-bold whitespace-nowrap">{route.groupPrice !== null ? "nuo " : ""}{quadTourLowestPrice(route)} €</span>
                 </span>
               </FilterChip>
               <QuadRouteDialog route={route} className={`absolute top-1 right-0 ${active ? "text-dust" : "text-ink"}`} />

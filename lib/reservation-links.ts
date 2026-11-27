@@ -5,7 +5,7 @@ export const RESERVATION_TYPE_LABEL: Record<ReservationType, string> = {
   session: "Pirties seansai",
   private: "Privati pirtis",
   nakvyne: "Nakvynė",
-  keturraciai: "Keturračiai",
+  keturraciai: "CIONGO keturračiai",
   wake: "Wake",
 };
 

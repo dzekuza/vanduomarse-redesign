@@ -33,7 +33,11 @@ export async function getHiddenServiceSlugs(): Promise<string[]> {
   return [...(await readPageRows()).hidden];
 }
 
+/** Local development only: SHOW_HIDDEN_PAGES=1 opens switched-off pages so they can be worked on; production ignores it. */
+const SHOW_HIDDEN_LOCALLY = process.env.NODE_ENV === "development" && process.env.SHOW_HIDDEN_PAGES === "1";
+
 export async function isServicePageHidden(slug: ServiceSlug): Promise<boolean> {
+  if (SHOW_HIDDEN_LOCALLY) return false;
   return (await readPageRows()).hidden.has(slug);
 }
 

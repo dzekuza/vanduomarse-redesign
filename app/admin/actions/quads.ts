@@ -46,7 +46,7 @@ export async function deleteQuadType(id: string): Promise<ActionResult> {
   return error ? dbError(error) : done(null);
 }
 
-/* Tour products (ADR-0053): Mini / Midi / Maxi and their gear. Prices are EUR incl. PVM; bookings re-read them in the database. */
+/* Tour products (ADR-0053, one Midi tour since 2026-11-27): routes with group price and guide quads, and their gear. Prices are EUR incl. PVM; bookings re-read them in the database. */
 
 const tourRouteInput = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/).max(60),
@@ -55,7 +55,12 @@ const tourRouteInput = z.object({
   hours: z.number().int().min(1).max(8),
   durationLabel: z.string().trim().max(30),
   price: z.number().min(0).max(10_000),
-  minUnits: z.number().int().min(1).max(20),
+  minUnits: z.number().int().min(1).max(40),
+  maxUnits: z.number().int().min(1).max(40),
+  groupFrom: z.number().int().min(2).max(40).nullable(),
+  groupPrice: z.number().min(0).max(10_000).nullable(),
+  guidesFrom: z.number().int().min(2).max(40).nullable(),
+  guideUnits: z.number().int().min(0).max(5),
   description: z.string().trim().max(200),
   longDescription: z.string().trim().max(1200),
   /** A path under /public (or empty). */
@@ -63,7 +68,7 @@ const tourRouteInput = z.object({
   badge: z.string().trim().max(20).nullable(),
   active: z.boolean(),
   sortOrder: z.number().int().min(0).max(1000),
-});
+}).refine((r) => r.minUnits <= r.maxUnits && (r.groupFrom === null) === (r.groupPrice === null));
 
 const tourAccessoryInput = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/).max(60),
@@ -88,7 +93,8 @@ export async function saveQuadTourRoute(route: QuadTourRoute): Promise<ActionRes
   const r = parsed.data;
   const { error } = await ctx.supabase.from("quad_tour_routes").upsert({
     id: r.id, name: r.name, kilometres: r.kilometres, hours: r.hours, duration_label: r.durationLabel, price: r.price,
-    min_units: r.minUnits, description: r.description, long_description: r.longDescription, photo: r.photo,
+    min_units: r.minUnits, max_units: r.maxUnits, group_from: r.groupFrom, group_price: r.groupPrice,
+    guides_from: r.guidesFrom, guide_units: r.guideUnits, description: r.description, long_description: r.longDescription, photo: r.photo,
     badge: r.badge || null, active: r.active, sort_order: r.sortOrder,
   });
   revalidateTours();
@@ -246,7 +252,7 @@ export type StaffTourInput = z.infer<typeof staffTourInput>;
 
 const TOUR_ERRORS: Record<string, string> = {
   quad_tour_unavailable: "Šio turo nebėra arba jis išjungtas.",
-  quad_units: "Šiam turui reikia daugiau keturračių (žr. mažiausią skaičių).",
+  quad_units: "Netinkamas keturračių skaičius šiam turui (žr. mažiausią ir didžiausią).",
   quad_gear: "Netinkama turo įranga: iki 2 vienetų vienam keturračiui.",
   quad_closed: "Turas netelpa į darbo valandas.",
   quad_past: "Praėjusios dienos ar laiko užsakyti negalima.",

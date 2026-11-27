@@ -1,12 +1,22 @@
 ---
 tags: [meta, decision]
-updated: 2026-11-26
+updated: 2026-11-27
 ---
 
 # Decisions Log (ADRs)
 
 Architecture Decision Records. Each entry captures a choice, its context, and its
 consequences. Use [[templates/adr-note]] for new entries. Newest first.
+
+---
+
+## ADR-0139 — One quad tour with a group price and guide quads taken from the fleet
+
+- **Status:** Accepted.
+- **Date:** 2026-11-27
+- **Context:** the owner (CIONGO) wants one tour instead of Mini / Midi / Maxi: the Midi route at 80 € per quad, 72 € per quad from 10 quads, at most 15 quads per booking, and from 11 quads two guides who ride two more quads of the same fleet. Prices and limits must stay editable in the admin and re-priced by the database (ADR-0053).
+- **Decision:** the rules are columns of `quad_tour_routes` (`max_units`, `group_from` + `group_price`, `guides_from` + `guide_units`), not code constants. The guides' quads are part of the rental's stock: `quad_rentals.units` = customer + guide quads (so availability, the capacity trigger and the allocations view need no change), `guide_units` records how many are the guides', `riders` = customer quads. `create_quad_tour_rental` checks `min_units`..`max_units`, takes customer + guide quads, and charges the group price to every quad once the group size is reached. Mini and Maxi stay as inactive rows (old bookings point at them). The UI uses `quadTourUnitPrice`, `quadTourGuideUnits`, `quadTourMaxUnits` (largest customer count that fits with its guides), `quadTourPriceLabel`, `quadTourUnitsNote` in `lib/quads.ts`.
+- **Consequences:** a start with 12 free quads takes at most 10 customers (11 + 2 guides do not fit). Guide quads count as sold in a tour event's `sold` (`sync_tour_event_sold` sums `units`). The mapper falls back (max 15, no group price, no guides) until the migration runs, so the deployed app works either way; before the SQL runs the DB still prices 79 € and allows 20.
 
 ---
 

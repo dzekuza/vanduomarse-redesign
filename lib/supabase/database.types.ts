@@ -1400,6 +1400,7 @@ export type Database = {
           discount_amount: number
           discount_code: string | null
           discount_code_id: string | null
+          guide_units: number
           hours: number
           id: string
           note: string | null
@@ -1430,6 +1431,7 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           discount_code_id?: string | null
+          guide_units?: number
           hours: number
           id?: string
           note?: string | null
@@ -1460,6 +1462,7 @@ export type Database = {
           discount_amount?: number
           discount_code?: string | null
           discount_code_id?: string | null
+          guide_units?: number
           hours?: number
           id?: string
           note?: string | null
@@ -1602,10 +1605,15 @@ export type Database = {
           created_at: string
           description: string
           duration_label: string
+          group_from: number | null
+          group_price: number | null
+          guide_units: number
+          guides_from: number | null
           hours: number
           id: string
           kilometres: number
           long_description: string
+          max_units: number
           min_units: number
           name: string
           photo: string
@@ -1619,10 +1627,15 @@ export type Database = {
           created_at?: string
           description?: string
           duration_label?: string
+          group_from?: number | null
+          group_price?: number | null
+          guide_units?: number
+          guides_from?: number | null
           hours: number
           id: string
           kilometres: number
           long_description?: string
+          max_units?: number
           min_units?: number
           name: string
           photo?: string
@@ -1636,10 +1649,15 @@ export type Database = {
           created_at?: string
           description?: string
           duration_label?: string
+          group_from?: number | null
+          group_price?: number | null
+          guide_units?: number
+          guides_from?: number | null
           hours?: number
           id?: string
           kilometres?: number
           long_description?: string
+          max_units?: number
           min_units?: number
           name?: string
           photo?: string
