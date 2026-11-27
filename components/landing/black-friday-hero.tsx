@@ -6,14 +6,17 @@ import { StarMark } from "@/components/star-mark";
 import { MAIN_CONTACT, MAPS_URL, telHref } from "@/lib/contacts";
 import { formatEuro } from "@/lib/coupons";
 import { getOnlinePlans } from "@/lib/data/public";
-import { WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_BLACK_FRIDAY_PATH, WAKE_SEASON_PASS_ID } from "@/lib/wake-black-friday";
+import { isWakeBlackFridayDiscount, WAKE_BLACK_FRIDAY_DISCOUNT, WAKE_BLACK_FRIDAY_PATH, WAKE_SEASON_PASS_ID } from "@/lib/wake-black-friday";
+import { checkDiscountCode } from "@/app/actions/discount-codes";
 import { PARK_ADDRESS } from "./content";
 import { HeroBookingLink } from "./hero-booking-link";
 import { HeroOrbits } from "./hero-orbits";
 
 export async function BlackFridayHero() {
-  const { data: plans } = await getOnlinePlans();
+  const [{ data: plans }, promo] = await Promise.all([getOnlinePlans(), checkDiscountCode(WAKE_BLACK_FRIDAY_DISCOUNT.code)]);
   const price = plans?.find(({ id }) => id === WAKE_SEASON_PASS_ID)?.price;
+  // The owner sets the percentage in /admin/nuolaidos; the constant is only the fallback when the row cannot be read.
+  const percent = "data" in promo && isWakeBlackFridayDiscount(promo.data) ? promo.data.value : WAKE_BLACK_FRIDAY_DISCOUNT.value;
 
   return (
     <section
@@ -54,7 +57,7 @@ export async function BlackFridayHero() {
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold md:text-item">
             <span>METINIS WAKE ABONEMENTAS</span>
             <span className="bg-rust px-2 py-1 leading-none text-black">
-              −{WAKE_BLACK_FRIDAY_DISCOUNT.value} %{price !== undefined ? ` NUO ${formatEuro(price)}` : null}
+              −{percent} %{price !== undefined ? ` NUO ${formatEuro(price)}` : null}
             </span>
           </p>
           <p className="mt-2 text-xs leading-relaxed md:text-sm">

@@ -1,3 +1,9 @@
+## 2026-11-27 — Black Friday page 404 after the discount change
+
+- **Changed:** `lib/wake-black-friday.ts` (no fixed percentage in the check), `registration-page-content.tsx`, `plan-registration.tsx`, `black-friday-hero.tsx` (live percentage), `lib/wake-black-friday.test.ts` (new). Docs: changelog, status.
+- **Status:** tsc, eslint, tests, `next build` pass; checked locally against the live DB (20 %). PR open, not merged yet.
+- **Next:** merge so production stops returning 404; the campaign ends 2026-11-29.
+
 ## 2026-11-26 — PR #159 merged and live
 
 - **Changed:** merged PR #159 into `main` (owner's go-ahead); local `main` fast-forwarded. Docs: status, session log, changelog.

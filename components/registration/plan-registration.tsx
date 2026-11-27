@@ -35,6 +35,8 @@ interface PlanRegistrationProps {
 
 export function PlanRegistration({ plan, header, member, initial, initialDiscount, blackFriday, invalidDiscount }: PlanRegistrationProps) {
   const [discount, setDiscount] = useState(initialDiscount);
+  // On the campaign page the Black Friday row from the database (its live percentage) is the default discount.
+  const campaign = blackFriday && initialDiscount?.code === WAKE_BLACK_FRIDAY_DISCOUNT.code ? initialDiscount : WAKE_BLACK_FRIDAY_DISCOUNT;
   const [busy, setBusy] = useState(false);
   const discountAmount = discount ? discountFor(discount, "planai", plan.price) : 0;
   const total = Math.max(plan.price - discountAmount, 0);
@@ -79,7 +81,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
       </div>
       <BookingPanel
         title="Užsakyti" label="Abonemento informacija" photos={SERVICE_GALLERY.wake} photoLabel="WAKE nuotraukos" showOnMobile
-        artwork={blackFriday ? <WakeBlackFridayArtwork price={formatEuro(plan.price)} percent={WAKE_BLACK_FRIDAY_DISCOUNT.value} /> : undefined}
+        artwork={blackFriday ? <WakeBlackFridayArtwork price={formatEuro(plan.price)} percent={campaign.value} /> : undefined}
       >
         <div className="border-t border-line pt-4">
           <BookingPrice
@@ -99,7 +101,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
           discount={blackFriday && discount?.code === WAKE_BLACK_FRIDAY_DISCOUNT.code ? null : discount}
           amount={discountAmount}
           disabled={busy}
-          onChange={(next) => setDiscount(next ?? (blackFriday ? WAKE_BLACK_FRIDAY_DISCOUNT : null))}
+          onChange={(next) => setDiscount(next ?? (blackFriday ? campaign : null))}
           hint={blackFriday ? "Taikomas vienas kodas: jis pakeičia Black Friday nuolaidą." : undefined}
         />
         <ServiceBookingHelp contact={{ phone: RESERVATION_PHONE, email: MAIN_CONTACT.email }} />
