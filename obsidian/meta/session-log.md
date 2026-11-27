@@ -1,3 +1,9 @@
+## 2026-11-27 — Black Friday copy and DB fix live
+
+- **Changed:** merged PR #166 (hero copy) and PR #167 (constraint migration); the owner applied the SQL. Docs: status.
+- **Status:** deployed; live hero text checked; constraints checked in the live DB.
+- **Next:** extend the code's end date; build installment payments (the copy already promises them).
+
 ## 2026-11-27 — Google Tag Manager behind consent
 
 - **Changed:** `lib/consent.ts` (`GTM_ID`, version 2, `_gcl` cookies), `components/consent/trackers.tsx` (`GoogleTagManager`), `consent-manager.tsx`, `consent-categories.ts`, `components/legal/privacy-content.ts`, `.env.example`, analytics tests. Docs: ADR-0138, env variables, catalog, changelog, status.
