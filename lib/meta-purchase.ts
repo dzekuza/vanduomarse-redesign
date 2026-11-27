@@ -102,15 +102,18 @@ export async function verifyPurchase(kind: PurchaseKind, proof: string): Promise
 async function verifyPlanPass(admin: ReturnType<typeof createAdminClient>, proof: string): Promise<VerifiedPurchase | null> {
   const { data } = await admin
     .from("plan_passes")
-    .select("reference, status, price, discount_code, paid_at, refunded_at, buyer_email, buyer_name")
+    .select("reference, status, price, payment_plan, deposit_amount, discount_code, paid_at, refunded_at, buyer_email, buyer_name")
     .eq("stripe_session_id", proof)
     .maybeSingle();
   // A refunded pass can still read `priskirtas` (the rider keeps the plan until staff change it), so the refund marker decides.
-  if (!data || (data.status !== "apmoketa" && data.status !== "priskirtas") || data.refunded_at || !recentlyPaid(data.paid_at)) return null;
+  // A pass paid in parts (ADR-0139) is a purchase from its deposit on, worth the deposit: the money actually received, the same
+  // value the return page gives the browser Pixel. Its balance is not reported again.
+  const paid = data?.status === "apmoketa" || data?.status === "priskirtas" || data?.status === "dalinai_apmoketa";
+  if (!data || !paid || data.refunded_at || !recentlyPaid(data.paid_at)) return null;
   const [firstName, ...rest] = data.buyer_name.trim().split(/\s+/);
   return {
     transactionId: data.reference,
-    value: Number(data.price),
+    value: data.payment_plan === "dalimis" && data.deposit_amount !== null ? Number(data.deposit_amount) : Number(data.price),
     coupon: data.discount_code ?? undefined,
     user: { email: data.buyer_email, firstName, lastName: rest.join(" ") },
   };

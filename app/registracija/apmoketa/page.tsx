@@ -16,7 +16,19 @@ async function loadOrder(sessionId: string | undefined): Promise<PlanPaymentView
     const row = data?.[0];
     if (!row) return null;
     // The discount code only labels the purchase for GA / Meta (e.g. Black Friday); null when the order had none.
-    return { status: row.status, reference: row.reference, planName: row.plan_name, amount: row.price, hasEmail: row.rider_email !== "", discountCode: row.discount_code || undefined, isPass: row.kind === "pass", isGift: row.gift, passCode: row.pass_code || undefined };
+    const split = row.payment_plan === "dalimis" && row.deposit_amount !== null && row.balance_amount !== null;
+    return {
+      status: row.status,
+      reference: row.reference,
+      planName: row.plan_name,
+      amount: row.price,
+      hasEmail: row.rider_email !== "",
+      discountCode: row.discount_code || undefined,
+      isPass: row.kind === "pass",
+      isGift: row.gift,
+      passCode: row.pass_code || undefined,
+      parts: split ? { deposit: Number(row.deposit_amount), balance: Number(row.balance_amount), isBalance: row.balance } : undefined,
+    };
   } catch (e) {
     console.error("Plan payment page: could not read the order", e);
     return null;

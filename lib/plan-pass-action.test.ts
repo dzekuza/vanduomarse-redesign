@@ -14,8 +14,8 @@ vi.mock("@/lib/wake-campaign", () => ({ campaignDiscountError: (...a: unknown[])
 
 const { buyPlanPass } = await import("@/app/actions/plan-pass");
 
-const input = { planId: "52e95927-7591-4feb-99b4-1b92c878ca6c", buyerName: "Jonas Jonaitis", buyerEmail: "jonas@example.com", gift: false, recipientName: "Petras" };
-const created = { data: [{ id: "id-1", reference: "PS-1", plan_name: "WAKE sezono abonementas", price: 675 }], error: null };
+const input = { planId: "52e95927-7591-4feb-99b4-1b92c878ca6c", buyerName: "Jonas Jonaitis", buyerEmail: "jonas@example.com", gift: false, recipientName: "Petras", paymentPlan: "visa" as const };
+const created = { data: [{ id: "id-1", reference: "PS-1", plan_name: "WAKE sezono abonementas", price: 675, payment_plan: "visa", deposit_amount: null, balance_amount: null }], error: null };
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -73,5 +73,27 @@ describe("buyPlanPass", () => {
     rpc.mockResolvedValue({ data: null, error: { hint: "too_many_orders", message: "x" } });
     expect(await buyPlanPass(input)).toMatchObject({ error: { code: "busy" } });
     expect(openCheckout).not.toHaveBeenCalled();
+  });
+
+  it("pays the deposit of a WAKE pass paid in parts: the amount comes from the database", async () => {
+    rpc.mockResolvedValue({ data: [{ id: "id-1", reference: "PS-1", plan_name: "WAKE sezono abonementas", price: 600, payment_plan: "dalimis", deposit_amount: 300, balance_amount: 300 }], error: null });
+    const result = await buyPlanPass({ ...input, paymentPlan: "dalimis" });
+    expect(result).toEqual({ data: { checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_1" } });
+    expect(calls("create_plan_pass")[0][1]).toMatchObject({ p_payment_plan: "dalimis" });
+    expect(openCheckout).toHaveBeenCalledWith(expect.objectContaining({ amount: 300, part: "depozitas" }));
+  });
+
+  it("refuses parts for any plan but the WAKE season pass, before anything is stored", async () => {
+    const result = await buyPlanPass({ ...input, planId: "11111111-1111-4111-8111-111111111111", paymentPlan: "dalimis" });
+    expect(result).toMatchObject({ error: { code: "payment_plan" } });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("treats a request without a payment plan (a page opened before this change) as a full payment", async () => {
+    const { paymentPlan: _omit, ...old } = input;
+    void _omit;
+    await buyPlanPass(old as typeof input);
+    expect(calls("create_plan_pass")[0][1]).toMatchObject({ p_payment_plan: "visa" });
+    expect(openCheckout).toHaveBeenCalledWith(expect.objectContaining({ amount: 675, part: undefined }));
   });
 });

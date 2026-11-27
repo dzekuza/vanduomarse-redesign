@@ -16,6 +16,7 @@ vi.mock("@/lib/coupon-payment", () => ({ couponIdOf: (s: { metadata?: Record<str
 vi.mock("@/lib/plan-payment", () => ({
   planOrderIdOf: (s: { metadata?: Record<string, string> }) => s.metadata?.plan_order_id,
   planPassIdOf: (s: { metadata?: Record<string, string> }) => s.metadata?.plan_pass_id,
+  planPassPartOf: (s: { metadata?: Record<string, string> }) => (s.metadata?.plan_pass_part === "likutis" ? "likutis" : "pirmas"),
   onPlanOrderPaid: (...a: unknown[]) => onPlanOrderPaid(...(a as [])),
   onPlanPassPaid: (...a: unknown[]) => onPlanPassPaid(...(a as [])),
   onPlanOrderRefund: vi.fn(),
@@ -49,6 +50,14 @@ describe("Stripe webhook reports sales to Meta (ADR-0111)", () => {
       "plan-order-handler", "report:plan:cs_test_a1b2c3d4e5f6",
       "plan-pass-handler", "report:plan:cs_test_a1b2c3d4e5f6",
     ]);
+  });
+
+  it("routes a pass deposit and its balance to the pass handler, but reports only the deposit (ADR-0139)", async () => {
+    await handleStripeEvent(event({ plan_pass_id: "33333333-3333-4333-8333-333333333333", plan_pass_part: "depozitas" }));
+    await handleStripeEvent(event({ plan_pass_id: "33333333-3333-4333-8333-333333333333", plan_pass_part: "likutis" }));
+    expect(calls).toEqual(["plan-pass-handler", "report:plan:cs_test_a1b2c3d4e5f6", "plan-pass-handler"]);
+    expect(onPlanPassPaid).toHaveBeenCalledTimes(2);
+    expect(rpc).not.toHaveBeenCalledWith("complete_payment", expect.anything());
   });
 
   it("does not report when recording the order failed: Stripe retries the event instead", async () => {

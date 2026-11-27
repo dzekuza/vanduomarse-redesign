@@ -76,6 +76,12 @@ describe("reportPurchaseFromWebhook", () => {
     expect(sent().user.externalId).toBeUndefined();
   });
 
+  it("reports a pass paid in parts from its deposit on, worth the deposit (ADR-0139)", async () => {
+    tables.plan_passes = { reference: "PS-8", status: "dalinai_apmoketa", price: 600, payment_plan: "dalimis", deposit_amount: 300, discount_code: null, paid_at: hoursAgo(0.01), refunded_at: null, buyer_email: "a@b.lt", buyer_name: "Jonas Jonaitis" };
+    await reportPurchaseFromWebhook("plan", SESSION, consented);
+    expect(sent()).toMatchObject({ eventId: "purchase-PS-8", custom: { value: 300 } });
+  });
+
   it("reports a paid coupon at face value, found by the Stripe session", async () => {
     tables.coupons = { reference: "KP-1015", status: "aktyvus", face_value: 50, refunded_amount: 0, discount_code: null, paid_at: hoursAgo(0.01), buyer_email: "a@b.lt", buyer_phone: null, buyer_name: "Ona Onaitė", rider_id: null };
     await reportPurchaseFromWebhook("coupon", SESSION, consented);
