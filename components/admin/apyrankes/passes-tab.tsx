@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAdmin } from "../admin-store";
+import { PassSheet } from "./pass-sheet";
 import { RedeemPassDialog } from "./redeem-pass-dialog";
 import { formatDateTime, formatEur } from "@/lib/admin/format";
 import type { PlanPass } from "@/lib/admin/types";
-import { formatPassCode, normalizePassCode, PASS_STATUS_LABELS, type PassStatus } from "@/lib/plan-pass";
+import { formatPassCode, normalizePassCode, PASS_STATUS_LABELS, passOwedAmount, type PassStatus } from "@/lib/plan-pass";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const FILTERS: { id: PassStatus; label: string }[] = [
   { id: "apmoketa", label: "Laukia priskyrimo" },
+  // Paid in parts (ADR-0139): the deposit is in, no code until the balance is paid, so it cannot be attached yet.
+  { id: "dalinai_apmoketa", label: "Apmokėta dalis" },
   { id: "priskirtas", label: "Priskirti" },
   { id: "atsauktas", label: "Atšaukti" },
 ];
@@ -25,6 +28,7 @@ export function PassesTab() {
   const [filter, setFilter] = useState<PassStatus>("apmoketa");
   const [query, setQuery] = useState("");
   const [redeeming, setRedeeming] = useState<PlanPass | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const counts = useMemo(() => {
@@ -71,7 +75,7 @@ export function PassesTab() {
 
       {shown.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          {filter === "apmoketa" ? "Nepriskirtų abonementų nėra." : "Abonementų nėra."}
+          {filter === "apmoketa" ? "Nepriskirtų abonementų nėra." : filter === "dalinai_apmoketa" ? "Likučio laukiančių abonementų nėra." : "Abonementų nėra."}
         </p>
       ) : (
         <Card className="overflow-hidden p-0">
@@ -112,6 +116,10 @@ export function PassesTab() {
                       <Button type="button" size="sm" className="min-h-11" onClick={() => setRedeeming(p)}>
                         Priskirti
                       </Button>
+                    ) : p.status === "dalinai_apmoketa" ? (
+                      <Button type="button" size="sm" variant="outline" className="min-h-11" onClick={() => setViewing(p.id)}>
+                        Likutis {formatEur(passOwedAmount(p))}
+                      </Button>
                     ) : p.status === "priskirtas" && p.riderId ? (
                       <Link href={`/admin/klientai/${p.riderId}`} className="inline-flex min-h-11 items-center text-sm underline underline-offset-4">
                         {riderName(p.riderId) ?? "Klientas"}
@@ -126,6 +134,8 @@ export function PassesTab() {
           </Table>
         </Card>
       )}
+
+      <PassSheet pass={planPasses.find((p) => p.id === viewing) ?? null} onOpenChange={(open) => !open && setViewing(null)} />
 
       <RedeemPassDialog
         pass={redeeming}
