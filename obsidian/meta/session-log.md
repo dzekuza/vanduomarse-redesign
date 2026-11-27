@@ -1,3 +1,9 @@
+## 2026-11-27 — Black Friday DB constraint and installment research
+
+- **Changed:** migration `20261127120000_wake_black_friday_any_percent.sql` (not applied). Docs: changelog, status.
+- **Status:** found while mapping the pass purchase flow for installments: the 10 % checks reject every Black Friday order since the code went to 20 %. Last campaign sale 2026-11-25.
+- **Next:** owner runs the SQL (or sets 10 %); then plan the installment feature (pass purchase has two paths: `plan_passes` for guests/gifts and `rider_plan_orders` for members; `complete_plan_pass_payment` requires the full price; no phone on passes; only one cron today).
+
 ## 2026-11-27 — Google Tag Manager behind consent
 
 - **Changed:** `lib/consent.ts` (`GTM_ID`, version 2, `_gcl` cookies), `components/consent/trackers.tsx` (`GoogleTagManager`), `consent-manager.tsx`, `consent-categories.ts`, `components/legal/privacy-content.ts`, `.env.example`, analytics tests. Docs: ADR-0138, env variables, catalog, changelog, status.
