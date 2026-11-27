@@ -3,6 +3,11 @@
 - **Changed:** merged PR #166 (hero copy) and PR #167 (constraint migration); the owner applied the SQL. Docs: status.
 - **Status:** deployed; live hero text checked; constraints checked in the live DB.
 - **Next:** extend the code's end date; build installment payments (the copy already promises them).
+## 2026-11-27 — Black Friday DB constraint and installment research
+
+- **Changed:** migration `20261127120000_wake_black_friday_any_percent.sql` (not applied). Docs: changelog, status.
+- **Status:** found while mapping the pass purchase flow for installments: the 10 % checks reject every Black Friday order since the code went to 20 %. Last campaign sale 2026-11-25.
+- **Next:** owner runs the SQL (or sets 10 %); then plan the installment feature (pass purchase has two paths: `plan_passes` for guests/gifts and `rider_plan_orders` for members; `complete_plan_pass_payment` requires the full price; no phone on passes; only one cron today).
 
 ## 2026-11-27 — Google Tag Manager behind consent
 

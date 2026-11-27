@@ -4,6 +4,7 @@ updated: 2026-11-27
 ---
 
 **Black Friday (2026-11-27): LIVE and working. The owner ran the SQL (constraints no longer pin 10 %, PR #167 holds the migration); the home hero says "Iki gruodžio 1 d. ... 20 % ... mokėk dalimis" (PR #166, deployed). Open: the code `WAKEBLACKFRIDAY2026` is valid until 2026-11-29 (extend to 2026-11-30 in /admin/nuolaidos to match the copy); paying in installments is promised but NOT built (checkout charges the full price). Next: build installments (half now, rest by link e-mail + SMS on April 17, season May 1, unpaid balance leaves the pass inactive and the deposit is kept; all passes incl. Black Friday).**
+**URGENT (2026-11-27): Black Friday purchases fail in the DB while the code is 20 % (constraints pinned 10 %). Fix: migration `20261127120000_wake_black_friday_any_percent.sql` on branch `fix/black-friday-db-percent`, to be run in the Supabase SQL editor; or set the code back to 10 %. Next after that: installment payments for passes (owner's rules: half now, rest by link e-mail + SMS on April 17, season May 1, unpaid balance leaves the pass inactive and the deposit is kept; all passes incl. Black Friday).**
 
 **Google Tag Manager (2026-11-27, ADR-0138): on branch `feat/google-tag-manager`, PR to open. Needs `NEXT_PUBLIC_GTM_ID=GTM-5KK2VHQS` in Vercel (Production and Preview) before it does anything; consent asked again for everyone (version 2). Next: owner adds the variable, merge, check the banner and gtm.js live.**
 
