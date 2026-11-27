@@ -1,7 +1,7 @@
 ## 2026-11-27 — Meta Schedule for sauna bookings (ADR-0140)
 
 - **Changed:** sauna bookings send Meta `Schedule` (paid ones also next to `Purchase`); event enquiries stay `Lead`. GA unchanged.
-- **Status:** tsc, eslint, 256 tests. Branch `feat/pixel-lead-schedule`, not browser-checked (would need a real booking).
+- **Status:** tsc, eslint, 256 tests. PR #170 from `feat/pixel-lead-schedule`, not browser-checked (would need a real booking).
 - **Next:** PR and merge; owner checks Meta Events Manager after the first sauna booking.
 
 ## 2026-11-27 — Black Friday copy and DB fix live
