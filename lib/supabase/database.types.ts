@@ -1112,10 +1112,17 @@ export type Database = {
       }
       plan_passes: {
         Row: {
+          balance_amount: number | null
+          balance_paid_at: string | null
+          balance_payment_intent_id: string | null
+          balance_refunded_at: string | null
+          balance_stripe_session_id: string | null
           buyer_email: string
           buyer_name: string
           code: string | null
           created_at: string
+          deposit_amount: number | null
+          deposit_refunded_at: string | null
           discount_amount: number
           discount_code: string | null
           discount_code_id: string | null
@@ -1123,6 +1130,7 @@ export type Database = {
           id: string
           ip_hash: string | null
           paid_at: string | null
+          payment_plan: string
           plan_category: string
           plan_id: string | null
           plan_name: string
@@ -1139,10 +1147,17 @@ export type Database = {
           stripe_session_id: string | null
         }
         Insert: {
+          balance_amount?: number | null
+          balance_paid_at?: string | null
+          balance_payment_intent_id?: string | null
+          balance_refunded_at?: string | null
+          balance_stripe_session_id?: string | null
           buyer_email: string
           buyer_name: string
           code?: string | null
           created_at?: string
+          deposit_amount?: number | null
+          deposit_refunded_at?: string | null
           discount_amount?: number
           discount_code?: string | null
           discount_code_id?: string | null
@@ -1150,6 +1165,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           paid_at?: string | null
+          payment_plan?: string
           plan_category: string
           plan_id?: string | null
           plan_name: string
@@ -1166,10 +1182,17 @@ export type Database = {
           stripe_session_id?: string | null
         }
         Update: {
+          balance_amount?: number | null
+          balance_paid_at?: string | null
+          balance_payment_intent_id?: string | null
+          balance_refunded_at?: string | null
+          balance_stripe_session_id?: string | null
           buyer_email?: string
           buyer_name?: string
           code?: string | null
           created_at?: string
+          deposit_amount?: number | null
+          deposit_refunded_at?: string | null
           discount_amount?: number
           discount_code?: string | null
           discount_code_id?: string | null
@@ -1177,6 +1200,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           paid_at?: string | null
+          payment_plan?: string
           plan_category?: string
           plan_id?: string | null
           plan_name?: string
@@ -2943,6 +2967,14 @@ export type Database = {
         Args: { p_order_id: string; p_session_id: string }
         Returns: undefined
       }
+      attach_plan_pass_balance_session: {
+        Args: {
+          p_expected_session_id?: string
+          p_pass_id: string
+          p_session_id: string
+        }
+        Returns: undefined
+      }
       attach_plan_pass_session: {
         Args: { p_pass_id: string; p_session_id: string }
         Returns: undefined
@@ -3061,18 +3093,22 @@ export type Database = {
       complete_plan_pass_payment: {
         Args: {
           p_amount: number
+          p_balance?: boolean
           p_pass_id: string
           p_payment_intent: string
           p_session_id: string
         }
         Returns: {
           amount_ok: boolean
+          balance_amount: number | null
           buyer_email: string
           buyer_name: string
+          deposit_amount: number | null
           gift: boolean
           newly_paid: boolean
           order_status: string
           pass_code: string
+          payment_plan: string
           plan_name: string
           price: number
           recipient_name: string
@@ -3189,11 +3225,15 @@ export type Database = {
           p_discount_code?: string
           p_gift?: boolean
           p_ip_hash?: string
+          p_payment_plan?: string
           p_plan_id: string
           p_recipient_name?: string
         }
         Returns: {
+          balance_amount: number | null
+          deposit_amount: number | null
           id: string
+          payment_plan: string
           plan_name: string
           price: number
           reference: string
@@ -3609,10 +3649,14 @@ export type Database = {
       plan_order_state: {
         Args: { p_session_id: string }
         Returns: {
+          balance: boolean
+          balance_amount: number | null
+          deposit_amount: number | null
           discount_code: string
           gift: boolean
           kind: string
           pass_code: string
+          payment_plan: string
           plan_name: string
           price: number
           reference: string
@@ -3670,6 +3714,8 @@ export type Database = {
       refund_plan_pass_payment: {
         Args: { p_payment_intent: string; p_refunded: number }
         Returns: {
+          outcome: string
+          part: string
           reference: string
           was_attached: boolean
         }[]
