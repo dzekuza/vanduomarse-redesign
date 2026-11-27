@@ -1,3 +1,9 @@
+## 2026-11-27 — Pass checkout copy and mobile order
+
+- **Changed:** `pass-buy-form.tsx` (owner's part-payment wording), `plan-registration.tsx` (title, card, form below `lg`), `booking-panel.tsx` (`className`). Docs: common.md, changelog, status.
+- **Status:** tsc, eslint pass; browser-checked at 375 / 768 / 1280 px on /registracija/wake/black-friday.
+- **Next:** merge the PR.
+
 ## 2026-11-27 — Black Friday copy and DB fix live
 
 - **Changed:** merged PR #166 (hero copy) and PR #167 (constraint migration); the owner applied the SQL. Docs: status.

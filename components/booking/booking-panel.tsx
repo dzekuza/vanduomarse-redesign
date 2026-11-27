@@ -4,7 +4,7 @@ import { ServiceGallery } from "@/components/landing/service-gallery";
 import { cn } from "@/lib/utils";
 
 /** Photo and summary card shared by public booking and pass checkout. */
-export function BookingPanel({ title, label, photos, photoLabel, galleryKey, artwork, showOnMobile, children, ref }: {
+export function BookingPanel({ title, label, photos, photoLabel, galleryKey, artwork, showOnMobile, className, children, ref }: {
   title: string;
   label?: string;
   photos: ServicePhoto[];
@@ -12,11 +12,13 @@ export function BookingPanel({ title, label, photos, photoLabel, galleryKey, art
   galleryKey?: string;
   artwork?: ReactNode;
   showOnMobile?: boolean;
+  /** Grid placement from the page, e.g. a column and row span. */
+  className?: string;
   children: ReactNode;
   ref?: Ref<HTMLElement>;
 }) {
   return (
-    <aside ref={ref} aria-label={label ?? title} className={cn("min-w-0 border border-line bg-foam lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto", !showOnMobile && "hidden")}>
+    <aside ref={ref} aria-label={label ?? title} className={cn("min-w-0 border border-line bg-foam lg:sticky lg:top-32 lg:block lg:max-h-[calc(100dvh-9rem)] lg:self-start lg:overflow-y-auto", !showOnMobile && "hidden", className)}>
       {artwork ?? <ServiceGallery key={galleryKey} photos={photos} variant="panel" label={photoLabel} />}
       <div className="space-y-6 p-5 sm:p-8">
         <h2 className="text-tile font-bold">{title}</h2>

@@ -52,11 +52,12 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
         : "Apmokėjęs gausi abonemento kodą el. paštu. Užsiregistravęs ir atvykęs į parką, pasakyk kodą kasoje: darbuotojas priskirs abonementą ir apyrankę.";
 
   return (
-    <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
+    // Phone and tablet: title, then the price card, then the form. From lg the card sits in the right column across both rows.
+    <div className="grid gap-10 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-8">
       {/* Landing view for ads: initial price and code only, so a later code change does not count a second view. */}
       <TrackViewItem kind="plan" itemName={plan.name} value={Math.max(plan.price - (initialDiscount ? discountFor(initialDiscount, "planai", plan.price) : 0), 0)} coupon={initialDiscount?.code} />
-      <div className="min-w-0 space-y-8 lg:col-span-2">
-        {header}
+      <div className="min-w-0 lg:col-span-2">{header}</div>
+      <div className="min-w-0 max-lg:order-last lg:col-span-2">
         <div className="border border-line bg-foam p-4 sm:p-6">
           <Tabs value={mode} onValueChange={(v) => setMode(v === "draugui" ? "draugui" : "sau")} className="gap-6">
             <TabsList>
@@ -81,6 +82,7 @@ export function PlanRegistration({ plan, header, member, initial, initialDiscoun
       </div>
       <BookingPanel
         title="Užsakyti" label="Abonemento informacija" photos={SERVICE_GALLERY.wake} photoLabel="WAKE nuotraukos" showOnMobile
+        className="lg:col-start-3 lg:row-span-2 lg:row-start-1"
         artwork={blackFriday ? <WakeBlackFridayArtwork price={formatEuro(plan.price)} percent={campaign.value} /> : undefined}
       >
         <div className="border-t border-line pt-4">

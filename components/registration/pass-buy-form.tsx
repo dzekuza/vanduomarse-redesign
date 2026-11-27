@@ -141,9 +141,12 @@ export function PassBuyForm({
             />
           </div>
           {paymentPlan === "dalimis" ? (
-            <p className="text-sm text-copy">
-              Mokėti dalimis: 50 % dabar, 50 % vėliau. Likučio ({formatEuro(parts.balance)}) apmokėjimo nuorodą atsiųsime el. paštu. Abonemento kodą gausite apmokėję visą sumą.
-            </p>
+            <div className="space-y-3 text-sm text-copy">
+              <p>
+                Mokėti dalimis: 50 % dabar, 50 % vėliau. Likučio ({formatEuro(parts.balance)}) apmokėjimo nuorodą atsiųsime el. paštu. Likutį reikės apmokėti prieš sezono startą arba jo metu (tik nepamirškite, kad abonementas skirtas 2027 metų sezonui).
+              </p>
+              <p>Abonemento kodą-aktyvaciją gausite apmokėję visą sumą.</p>
+            </div>
           ) : null}
         </fieldset>
       ) : null}
@@ -163,7 +166,7 @@ export function PassBuyForm({
       <p className="text-sm text-copy">
         {gift
           ? "Gausite el. laišką su kodu: perduokite jį draugui. Draugas užsiregistruos pats ir parke pasakys kodą."
-          : "Registraciją (kontaktai, nuotrauka, taisyklės) užpildysi vėliau, prieš gaudamas apyrankę. Kodą atsiųsime el. paštu."}
+          : "Registraciją (kontaktai, nuotrauka, taisyklės) užpildysi vėliau, prieš gaudamas apyrankę."}
       </p>
       <div className="flex justify-end">
         <ArrowButton type="submit" disabled={working}>
