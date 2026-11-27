@@ -12,7 +12,7 @@ consequences. Use [[templates/adr-note]] for new entries. Newest first.
 
 ## ADR-0143 — Paid orders are sent to Omnisend from the Stripe webhook
 
-- **Status:** Accepted (built on `feat/omnisend-orders`).
+- **Status:** Accepted (merged, PR #175).
 - **Date:** 2026-11-27
 - **Context:** the owner wants to see which email campaigns sell (first the WAKE Black Friday campaign). Omnisend credits revenue to a campaign only when it receives the order; the site is a custom store, so nothing reached Omnisend. GA4 already sees purchases with `utm_source=omnisend`, but only for visitors who accepted analytics cookies and reached the return page.
 - **Decision:** `lib/omnisend-order.ts` (`reportOrderToOmnisend`) is called from the Stripe webhook beside the Meta report (`reportSale` in `lib/stripe-events.ts`). It reuses `verifyPurchase` from `lib/meta-purchase.ts` for the paid order and the buyer's e-mail, and sends a `placed order` v2 event with `origin: "api"` and `totalPrice` (required for Omnisend revenue reports). It sends only when the buyer's e-mail is already an Omnisend contact: a purchase never adds a non-subscriber to the email tool. No cookie consent is required: the buyer is the shop's own customer and existing contact, and the data goes to the shop's own email processor, not an ad network.

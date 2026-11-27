@@ -1,8 +1,8 @@
 ## 2026-11-27 — Omnisend purchase tracking
 
 - **Changed:** new `lib/omnisend-order.ts` (+ test), `lib/stripe-events.ts` (`reportSale` sends to Meta and Omnisend), `lib/stripe-events-meta.test.ts`, `.env.example`. Docs: ADR-0143, api-architecture, environment-variables, changelog, status.
-- **Status:** tsc, eslint, 296 tests pass. Not tried against the live Omnisend API (needs the key). Branch `feat/omnisend-orders`, uncommitted.
-- **Next:** owner creates the Omnisend API key and adds `OMNISEND_API_KEY` in Vercel; commit, PR, merge; check one real order shows in Omnisend.
+- **Status:** tsc, eslint, 296 tests pass; PR #175 merged, `OMNISEND_API_KEY` set in Vercel by the owner. Not yet seen working with a live order.
+- **Next:** check the next real purchase shows in Omnisend.
 
 ## 2026-11-27 — WAKE Black Friday e-mail images
 
