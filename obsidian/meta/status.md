@@ -1,3 +1,5 @@
+**Omnisend purchase tracking (2026-11-27, ADR-0143): built on `feat/omnisend-orders`, uncommitted. The Stripe webhook sends paid orders to Omnisend as `placed order` for existing contacts, so campaign revenue shows in Omnisend. Needs `OMNISEND_API_KEY` in Vercel (owner). Not yet tried against the live API. Next: key, commit / PR / merge, verify with a real order.**
+
 **WAKE Black Friday e-mail (2026-11-27): Omnisend draft 4 is image-based (survives Gmail dark mode), images in `public/email/wake-black-friday-2026/`, merged to main. Tests sent; countdown on dark background in Gmail dark mode unconfirmed. Next: owner reviews the test and schedules the campaign.**
 
 ---

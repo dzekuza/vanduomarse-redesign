@@ -35,6 +35,7 @@ updated: 2026-11-16
 | `NEXT_PUBLIC_GTM_ID` | client | no | Google Tag Manager container (`GTM-…`), e.g. `GTM-5KK2VHQS`. Public. Loads only after analytics or marketing consent, with Google Consent Mode v2 set from the choice (ADR-0138). Do not add a GA4 tag in the container while `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set |
 | `SHOW_HIDDEN_PAGES` | server, local dev only | no | `1` opens service pages switched off in /admin/puslapiai under `next dev` (ADR-0137 pages otherwise 404). Ignored in production |
 | `META_CAPI_ACCESS_TOKEN` | server, **secret** | for the Meta Conversions API | Events Manager access token for Pixel `NEXT_PUBLIC_META_PIXEL_ID`; read only by `lib/meta-capi.ts`. Never `NEXT_PUBLIC_`. Without it nothing is sent server-side (ADR-0107) |
+| `OMNISEND_API_KEY` | server, **secret** | for sales in Omnisend reports | Omnisend → Store settings → API keys (needs Contacts read and Events write). Read only by `lib/omnisend-order.ts`; without it no orders are sent to Omnisend (ADR-0143) |
 | `META_CAPI_TEST_EVENT_CODE` | server | no, **leave unset in production** | Events Manager → Test events code, for local development: events from `localhost` go to Test events only, and `localhost` sends nothing without it. Ignored for events from the live site |
 | `SITE_URL` | server | no | Public origin for the Stripe return URLs (e.g. `https://vanduomarse.lt`); defaults to the request's own origin. Also the `/paskyra` and `/admin` links in emails, which are left out (customer) or relative (staff) without it |
 
